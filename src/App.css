@@ -1,0 +1,360 @@
+
+html { height: 100%; }
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #bbb;
+    height: 100%;
+}
+
+#root {
+    width: 100%;
+    height: 100%;
+
+    /* Disable errant mouse text selection, more trouble than it's worth */
+    user-select: none;
+   -webkit-user-select: none;
+   -khtml-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+}
+
+
+#stack_panel.errorflash {
+    animation-name: errorflash_stack_theme_default;
+    animation-duration: 0.3s;
+}
+/* NOTE: each area/theme errorflash combo needs its own animation entry it seems */
+@keyframes errorflash_stack_theme_default { from { background-color: #fdd; } to { background-color: #f8f8f8; } }
+@keyframes errorflash_stack_theme_dawn { from { background-color: #fcc; } to { background-color: #f7f2ce; } }
+@keyframes errorflash_stack_theme_dusk { from { background-color: #935d9b; } to { background-color: #447; } }
+@keyframes errorflash_stack_theme_dark { from { background-color: #600; } to { background-color: #333; } }
+
+#document_panel.errorflash {
+    animation-name: errorflash_document_theme_default;
+    animation-duration: 0.3s;
+}
+@keyframes errorflash_document_theme_default { from { background-color: #fdd; } to { background-color: #fff; } }
+@keyframes errorflash_document_theme_dawn { from { background-color: #fcc; } to { background-color: #ffd; } }
+@keyframes errorflash_document_theme_dusk { from { background-color: #935d9b; } to { background-color: #336; } }
+@keyframes errorflash_document_theme_dark { from { background-color: #600; } to { background-color: black; } }
+
+
+div.expr_item {}
+div.latex_fragment {
+    margin: 0.1em 0;
+    margin-left: 0;
+    padding: 0.05em 0;
+    padding-left: 1em;
+    border-left: 0.25em solid #aaa;
+}
+div.tag_expr {
+    /* TODO: customize colors per theme */
+    position: absolute;
+    z-index: 10;
+    width: auto;
+    right: 0.25em;
+    border: 1px solid #aca;
+    padding: 0.15em 0.5em;
+    margin: 0.2em 1em;
+    background-color: #e8f0e8;
+    font-size: 80%;
+}
+div.markdown {
+    clear: right;
+    margin: 0.1em 0;
+    padding-left: 1em;
+    border-left: 0.25em solid #88f;
+}
+div.markdown p {
+    margin: 0.25em 0;
+    /* text-indent: 1em; */   /* paragraph indent; remove to have it flush with equations instead */
+}
+div.markdown h1, div.markdown h2, div.markdown h3 {
+    border-bottom: 1px solid #aca;  /* TODO: customize per theme */
+    border-top: 1px solid #aca;
+    margin: 0.4em 0;
+    margin-right: 1em;
+    padding: 0.1em 0.25em;
+    background-color: #e8f0e8;
+}
+div.markdown h1 { font-size: 140%; }
+div.markdown h2 { font-size: 120%; }
+div.markdown h3 { font-size: 100%; }
+div.markdown hr {
+    height: 0.25em;
+    margin-right: 1em;
+    /*border: 1px solid #ccc;*/
+    border: none;
+    background-color: #888;
+}
+
+
+/* for iphone */
+textarea { font-size: 16px; }
+
+/* User-selectable color themes */
+
+/* Default theme */
+#panel_layout.theme_default div.panel { background-color: #f8f8f8; }
+#panel_layout.theme_default #document_panel, #panel_layout.theme_default #aux_panel { background-color: white; }
+
+/* Dawn theme */
+#panel_layout.theme_dawn div.panel { background-color: #f7f2ce; }
+#panel_layout.theme_dawn { color: #400; /*    scrollbar-color: #996 #eee; */ }
+#panel_layout.theme_dawn a, #panel_layout.theme_dawn a:visited { color: #e46; }
+#panel_layout.theme_dawn #document_panel, #panel_layout.theme_dawn #aux_panel { background-color: #ffd; }
+#panel_layout.theme_dawn #document_panel div.selected, #panel_layout.theme_dawn div.selection_indicator.visible, #panel_layout.theme_dawn ul.files_list li.selected_file { background-color: #e0f0e0; }
+#panel_layout.theme_dawn div.stack_items textarea { background-color: #336; color: white; }
+#panel_layout.theme_dawn #stack_panel.errorflash { animation-name: errorflash_stack_theme_dawn; }
+#panel_layout.theme_dawn #document_panel.errorflash { animation-name: errorflash_document_theme_dawn; }
+#panel_layout.theme_dawn span.keybinding { color: #822; background-color: #edb; border-color: #a66; }
+#panel_layout.theme_dawn div.help h2 { color: #400; border-color: #822; }
+#panel_layout.theme_dawn div.markdown hr { background-color: #dce695; }
+
+/* Dusk theme */*
+#panel_layout.theme_dusk div.panel { background-color: #447; }
+#panel_layout.theme_dusk { color: #ddf; /*    scrollbar-color: #996 #eee; */ }
+#panel_layout.theme_dusk a, #panel_layout.theme_dusk a:visited { color: #bb8aeb; }
+#panel_layout.theme_dusk #document_panel, #panel_layout.theme_dusk #aux_panel { background-color: #336; }
+#panel_layout.theme_dusk #document_panel div.selected, #panel_layout.theme_dusk div.selection_indicator.visible, #panel_layout.theme_dusk ul.files_list li.selected_file { background-color: #66a; }
+#panel_layout.theme_dusk div.stack_items textarea { background-color: #336; color: #bbf; }
+#panel_layout.theme_dusk #stack_panel.errorflash { animation-name: errorflash_stack_theme_dusk; }
+#panel_layout.theme_dusk #stack_panel {
+    box-shadow: inset 0 0 1em 0 #000;
+    -webkit-box-shadow: inset 0 0 1em 0 #000;
+    -moz-box-shadow: inset 0 0 1em 0 #000;
+
+}
+#panel_layout.theme_dusk #document_panel.errorflash { animation-name: errorflash_document_theme_dusk; }
+#panel_layout.theme_dusk span.keybinding { color: #c7c5ca; background-color: #204080; border-color: #808080; }
+#panel_layout.theme_dusk div.help h2 { border-color: #56999f; }
+#panel_layout.theme_dusk div.markdown hr { background-color: #56999f; }
+#panel_layout.theme_dusk div.markdown h1, #panel_layout.theme_dusk div.markdown h2, #panel_layout.theme_dusk div.markdown h3, #panel_layout.theme_dusk div.tag_expr {
+    background-color: #2c67a7;
+    border-color: #7796b8;
+}
+#panel_layout.theme_dusk #popup_panel {
+    background-color: #020;
+    box-shadow: 0 0 1em 2px #000;
+    -webkit-box-shadow: 0 0 1em 2px #000;
+    -moz-box-shadow: 0 0 1em 2px #000;
+}
+
+/* Dark theme */
+#panel_layout.theme_dark div.panel { background-color: #222; }
+#panel_layout.theme_dark { color: white; }
+#panel_layout.theme_dark a, #panel_layout.theme_dark a:visited { color: #99f; }
+#panel_layout.theme_dark #document_panel, #panel_layout.theme_dark #aux_panel { background-color: black; }
+#panel_layout.theme_dark #document_panel div.selected, #panel_layout.theme_dark div.selection_indicator.visible, #panel_layout.theme_dark ul.files_list li.selected_file { background-color: #336; }
+#panel_layout.theme_dark div.stack_items textarea { background-color: #336; color: white; }
+#panel_layout.theme_dark #stack_panel.errorflash { animation-name: errorflash_stack_theme_dark; }
+#panel_layout.theme_dark #stack_panel {
+    box-shadow: inset 0 0 1em 0 #000;
+    -webkit-box-shadow: inset 0 0 1em 0 #000;
+    -moz-box-shadow: inset 0 0 1em 0 #000;
+
+}
+#panel_layout.theme_dark #document_panel.errorflash { animation-name: errorflash_document_theme_dark; }
+#panel_layout.theme_dark span.keybinding { color: #6f6; background-color: #040; }
+#panel_layout.theme_dark div.help h2 { border-color: #868686; }
+#panel_layout.theme_dark div.markdown hr { background-color: #868686; }
+#panel_layout.theme_dark div.markdown h1, #panel_layout.theme_dark div.markdown h2, #panel_layout.theme_dark div.markdown h3, #panel_layout.theme_dark div.tag_expr {
+    background-color: #422;
+    border-color: #833;
+}
+#panel_layout.theme_dark #popup_panel {
+    background-color: #200;
+    box-shadow: 0 0 1em 2px #000;
+    -webkit-box-shadow: 0 0 1em 2px #000;
+    -moz-box-shadow: 0 0 1em 2px #000;
+}
+
+
+
+/* These are to support settings.layout.rightalign_math options. */
+.rightalign_math .katex-display.fleqn > .katex {
+    text-align: right;
+    padding-left: 0;
+    padding-right: 1em;
+}
+.rightalign_math div.tag_expr {
+    left: 0.25em;
+    right: initial;
+}
+
+
+.defer_expr { color: #080; }  /* TODO: customize based on theme */
+
+
+#panel_layout { height: 100%; }
+#stack_panel {
+    position: absolute;
+    height: 100%;
+    overflow-x: scroll;
+    overflow-y: auto;
+    box-shadow: inset 0 0 1em 0 #ccc;
+    -webkit-box-shadow: inset 0 0 1em 0 #ccc;
+    -moz-box-shadow: inset 0 0 1em 0 #ccc;
+}
+
+#stack_panel div.indicator {
+    float: right;
+    padding-right: 1em;
+    margin-top: 0.25em;
+    font-size: 120%;
+}
+#stack_panel div.indicator span.notification {
+    color: #060;
+    background-color: #ffe;
+    padding: 0.1em 0.2em;
+    border: 1px solid #888;
+}
+#stack_panel div.indicator span.highlighted { color: #393; font-weight: bold; }
+#stack_panel div.indicator span.mode { color: #888; font-family: monospace; }
+
+div.stack_items {
+    position: absolute;
+    bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
+    width: 100%;
+}
+/* minieditor for editing stack top */
+div.stack_items textarea {
+    width: 100%;
+    height: 10em;
+    margin: 0;
+    padding: 0.25em 1em;
+    padding-right: 0;
+    background-color: #eef;
+    border: none;
+    border-top: 2px solid #ddd;
+    font-family: monospace;
+    /*font-size: 120%;*/
+}
+div.stack_items textarea:focus { outline: none; }
+
+
+#document_panel {
+    position: absolute;
+    overflow: hidden;
+}
+#document_panel div.selected { background-color: #eef; }
+#document_container {
+    position: absolute;
+    overflow: scroll;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+div.document_items div.selection_indicator {
+    padding: 0.2em 1em;
+    text-align: right;
+    margin-bottom: 0.25em;
+}
+div.document_items div.selection_indicator span.filename {
+    font-weight: bold;
+}
+div.document_items div.selection_indicator.visible { background-color: #eef; }
+div.document_items div.bottom_spacer { min-height: 8em; }
+
+
+#popup_panel {
+    position: absolute;
+    overflow: auto;
+    top: 5%;
+    height: 90%;
+    left: 8%;
+    width: 84%;
+    z-index: 30;
+    background-color: white;
+    box-shadow: 0 0 1em 2px #bbb;
+    -webkit-box-shadow: 0 0 1em 2px #bbb;
+    -moz-box-shadow: 0 0 1em 2px #bbb;
+}
+
+
+span.keybinding {
+    font-size: 120%;
+    font-weight: bold;
+    font-family: monospace;
+    background-color: #eef8ee;
+    color: #040;
+    border: 1px solid #bdb;
+    padding: 0 0.3em;
+}
+
+
+#files_panel { padding: 0.5em 1em; }
+#files_panel h2, div.help h1 {
+    border-bottom: 2px solid #ddf;
+    margin: 0.5em 0;
+    padding: 0;
+}
+
+table.file_table {
+    border: 1px solid #666;;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+table.file_table th { background-color: #ddd; text-align: left; }
+table.file_table tr.selected_file td { background-color: #ddf; }
+table.file_table tr.current_file td.filename { font-weight: bold; }
+table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: left; }
+
+
+div.help { padding: 0.5em 1em; }
+div.help h2 {
+    font-size: 120%;
+    border-bottom: 2px solid #ddd;
+    margin: 0;
+    margin-top: 1em;
+    margin-bottom: 0.25em;
+    padding: 0.15em 0;
+}
+div.help p { margin: 0.7em 0; }
+
+ul.keybindings { margin: 0; padding: 0; margin-left: 3em; }
+ul.keybindings li { list-style-type: none; text-indent: -2em; margin: 0.2em 0; }
+table.keybindings {
+    border: none;
+    border-collapse: collapse;
+    margin: 0;
+}
+table.keybindings td { padding: 0.1em 0.5em; }
+
+
+/* TODO: temporary */
+table.keymap {
+    border: 1px solid #aaa;
+    border-collapse: collapse;
+    margin: 1em;
+}
+table.keymap th, table.keymap td {
+    padding: 0.2em 0.5em;
+    border: 1px solid #eee;
+    font-family: monospace;
+}
+table.keymap td.mode {
+    color: #666;
+}
+table.keymap th {
+    background-color: #ccc;
+    text-align: left;
+}
+
+
+.katex-display {
+    margin: 0.25em 0;
+    text-align: left;
+}
+.katex-display.fleqn > .katex {
+    padding-left: 0;
+}
+.katex .katex-html {
+    /* Attempt to get math fonts and normal text to match in size better. 
+       katex-html seems to start at 1.21em font size. */
+    font-size: 92%;
+}
+
