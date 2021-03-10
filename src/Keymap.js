@@ -461,6 +461,7 @@ const EditorKeymap = {
 	'P': "insert \\pm",
 	'q': "insert ?",
 	's': "insert \\sum",
+	't': "insert \\intercal",
 	'T': "insert \\triangle",
 	'U': "insert \\bigcup",
 	'v': "insert \\vee",
