@@ -271,6 +271,7 @@ const EditorKeymap = {
 	'N': "named_function log",
 	'o': "name apply_fn;parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
 	'p': "parenthesize;operator Pr",  // Pr(x) (probability)
+	'P': "operator phase",
 	'q': "operator sqrt",
 	'Q': "operator sqrt[3]",
 	's': "named_function sin",
