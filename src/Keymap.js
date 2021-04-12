@@ -34,9 +34,8 @@ const EditorKeymap = {
 	// Immediate action special keys
 	'Shift+Enter': "edit_stack_top",
 	' ': "concat autoparenthesize",
-	'=': "infix =",
+	'=': "mode relational",
 	'<': "delimiters \\langle \\rangle",
-	'>': "mode infix_ext",
 	'+': "infix_plus_or_minus +",
 	'-': "infix_plus_or_minus -",
 	']': "operator boldsymbol",
@@ -381,19 +380,16 @@ const EditorKeymap = {
     // comma prefix: combine two objects with an infix operation
     infix: {
 	'a': "apply_infix",
-	'b': "infix \\setminus",
+	'b': "infix \\bullet",
 	'c': "infix \\cap",
+	'd': "infix \\setminus",  // (set [d]ifference)
 	'e': "infix \\equiv",
 	'g': "infix \\gets",
-	'i': "infix \\in",
-	'I': "infix \\notin",
 	'k': "delimiters . . \\vert 2",  // alias for | ([k]onditional)
-	'm': "infix \\pmod",  // y (mod x)
+	'm': "infix \\mapsto",
 	'M': "infix \\mp",
-	'n': "infix \\ne",
 	'o': "infix \\circ",
 	'O': "stackrel overset",
-	'p': "infix \\propto",
 	'P': "infix \\pm",
 	's': "infix \\,",
 	't': "infix \\to",
@@ -408,38 +404,41 @@ const EditorKeymap = {
 	'|': "delimiters . . \\vert 2",  // "infix |",
 	'=': "infix \\Rightarrow",
 	'-': "infix \\ominus",
+	'+': "infix \\oplus",
 	'.': "infix \\cdot",
 	',': "infix ,",  // comma without thinspace
 	' ': "infix ,\\,",  // comma plus thinspace
 	':': "infix :",
 	';': "infix semicolon\\:",
+	'%': "infix \\pmod",  // y (mod x)
 	'*': "infix *",
-	'+': "infix \\oplus",
 	"\\": "delimiters . . / 2",
 	'/': "infix /"
     },
 
-    // [>] prefix; extended infix
-    // TODO: make letter commands case-insensitive here, maybe
-    infix_ext: {
+    relational: {
 	'a': "infix \\approx",
-	'b': "infix \\bullet",
 	'c': "infix \\cong",  // =~  congruent
 	'e': "infix \\iff",  // mnemonic: equiv
-	'g': "infix \\gg",
-	'l': "infix \\ll",
-	'm': "infix \\mapsto",
+	'g': "infix >",
+	'G': "infix \\gg",
+	'i': "infix \\in",
+	'I': "infix \\notin",
+	'l': "infix <",
+	'L': "infix \\ll",
+	'n': "infix \\ne",
+	'p': "infix \\propto",
 	's': "infix \\subseteq",
 	'S': "infix \\subset",
-	'.': "infix \\ge",
-	',': "infix \\le",
-	'>': "infix >",
+	'=': "infix =",
 	'<': "infix <",
+	'>': "infix >",
+	'[': "infix \\le",
+	']': "infix \\ge",
 	':': "infix \\coloneqq",
-	'~': "infix \\sim",
-	'|': "delimiters . . \\Vert 2"
+	'~': "infix \\sim"
     },
-    
+
     // apostrophe prefix: assorted standalone math symbols
     symbol: {
 	'0': "insert \\varnothing",

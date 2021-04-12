@@ -118,9 +118,8 @@
 	</li>
         <li><span class="keybinding">]</span> Apply a <strong>bold font</strong> to the stack top.</li>
         <li>
-          <span class="keybinding">=</span> <span class="keybinding">+</span>
-          <span class="keybinding">-</span>
-          Join two expressions with the corresponding infix operation
+          <span class="keybinding">+</span> <span class="keybinding">-</span>
+          Join two expressions with a + or - operator between them
           (see also <a href="#infix">infix expressions</a>).
         </li>
         <li>
@@ -145,7 +144,7 @@
         <li><span class="keybinding">'</span> <em>(apostrophe)</em> Create <a href="#symbols">standalone math symbols</a>.</li>
         <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#decorations">decoration</a> to the stack top.</li>
         <li><span class="keybinding">,</span> <em>(comma)</em> Combine two items into an <a href="#infix">infix expression</a>.</li>
-        <li><span class="keybinding">&gt;</span> Additional less-frequently-used <a href="#infix_ext">infix expressions</a>.</li>
+        <li><span class="keybinding">=</span> Combine two items with a <a href="#relational">relational operator</a>.</li>
         <li><span class="keybinding">/</span> Apply various <a href="#operators">functions and operators</a> to arguments from the stack.</li>
         <li><span class="keybinding">/</span><span class="keybinding">d</span> Build different kinds of <a href="#derivatives">derivatives</a>.</li>
         <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#integrals">integral limits</a>.</li>
@@ -359,58 +358,52 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">b</span> <code>x\setminus y</code></td>
+            <td><span class="keybinding">b</span> <code>x\bullet y</code></td>
             <td><span class="keybinding">c</span> <code>x\cap y</code></td>
+            <td><span class="keybinding">d</span> <code>x\setminus y</code></td>
             <td><span class="keybinding">e</span> <code>x\equiv y</code></td>
-            <td><span class="keybinding">g</span> <code>x\gets y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">i</span> <code>x\in y</code></td>
-            <td><span class="keybinding">I</span> <code>x\notin y</code></td>
-            <td><span class="keybinding">m</span> <code>x\pmod y</code></td>
+            <td><span class="keybinding">g</span> <code>x\gets y</code></td>
+            <td><span class="keybinding">k</span> <code>\left. x \middle\vert y \right.</code></td>
+            <td><span class="keybinding">m</span> <code>x\mapsto y</code></td>
             <td><span class="keybinding">M</span> <code>x\mp y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">n</span> <code>x\ne y</code></td>
             <td><span class="keybinding">o</span> <code>x\circ y</code></td>
-            <td><span class="keybinding">p</span> <code>x\propto y</code></td>
             <td><span class="keybinding">P</span> <code>x\pm y</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">s</span> <code>x\, y</code></td>
             <td><span class="keybinding">t</span> <code>x\to y</code></td>
+          </tr>
+          <tr>
             <td><span class="keybinding">u</span> <code>x\cup y</code></td>
             <td><span class="keybinding">v</span> <code>x\vee y</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">w</span> <code>x\wedge y</code></td>
             <td><span class="keybinding">x</span> <code>x\times y</code></td>
-            <td><span class="keybinding">X</span> <code>x\otimes y</code></td>
-            <td><span class="keybinding">|</span> <code>x | y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">/</span> <code>x / y</code> (fixed size)</td>
-            <td><span class="keybinding">\</span> <code>x / y</code> (variable size)</td>
+            <td><span class="keybinding">X</span> <code>x\otimes y</code></td>
             <td><span class="keybinding">[</span> <code>x\llcorner y</code></td>
             <td><span class="keybinding">]</span> <code>x\lrcorner y</code></td>
+            <td><span class="keybinding">|</span> <code>x | y</code></td>
           </tr>
           <tr>
             <td><span class="keybinding">=</span> <code>x\Rightarrow y</code></td>
             <td><span class="keybinding">-</span> <code>x\ominus y</code></td>
             <td><span class="keybinding">+</span> <code>x\oplus y</code></td>
-            <td><span class="keybinding">,</span> <code>x,y</code></td>
+            <td><span class="keybinding">.</span> <code>x\cdot y</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">,</span> <code>x,y</code></td>
             <td><span class="keybinding">&nbsp;</span> <code>x,\,y</code></td>
             <td><span class="keybinding">:</span> <code>x : y</code></td>
             <td><span class="keybinding">;</span> <code>x;\,y</code></td>
-            <td><span class="keybinding">*</span> <code>x * y</code></td>
 	  </tr>
-	  <tr>
-            <td><span class="keybinding">.</span> <code>x\cdot y</code></td>
-	    <td></td>
-	    <td></td>
-	    <td></td>
+          <tr>
+            <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
+            <td><span class="keybinding">*</span> <code>x * y</code></td>
+            <td><span class="keybinding">/</span> <code>x / y</code> (fixed size)</td>
+            <td><span class="keybinding">\</span> <code>x / y</code> (variable size)</td>
           </tr>
       </tbody></table>
       <p>
@@ -433,37 +426,48 @@
       </ul>
 
       <h2>
-        <a name="infix_ext">Infix Expressions (Extended)</a>
-        <span class="keybinding">&gt;</span>
+        <a name="relational">Relational Operators</a>
+        <span class="keybinding">=</span>
       </h2>
       <p>
-	This prefix is for accessing other infix operators not available
-	on <span class="keybinding">,</span>
+	Similar to <span class="keybinding">,</span>, these commands combine two items
+	into an "equation" by placing a relational operator between them.
       </p>
       <table class="keybindings"><tbody>
           <tr>
 	    <td><span class="keybinding">a</span> <code>x\approx y</code></td>
-	    <td><span class="keybinding">b</span> <code>x\bullet y</code></td>
             <td><span class="keybinding">c</span> <code>x\cong y</code></td>
             <td><span class="keybinding">e</span> <code>x\iff y</code></td>
+	    <td>
+	      <span class="keybinding">g</span> or <span class="keybinding">&gt;</span>
+	      <code>x &gt; y</code>
+	    </td>
 	  </tr>
           <tr>
-	    <td><span class="keybinding">g</span> <code>x\gg y</code></td>
-            <td><span class="keybinding">l</span> <code>x\ll y</code></td>
-            <td><span class="keybinding">m</span> <code>x\mapsto y</code></td>
+            <td><span class="keybinding">G</span> <code>x\gg y</code></td>
+            <td><span class="keybinding">i</span> <code>x\in y</code></td>
+            <td><span class="keybinding">I</span> <code>x\notin y</code></td>
+	    <td>
+	      <span class="keybinding">l</span> or <span class="keybinding">&lt;</span>
+	      <code>x &lt; y</code>
+	    </td>
+	  </tr>
+          <tr>
+            <td><span class="keybinding">L</span> <code>x\ll y</code></td>
+            <td><span class="keybinding">n</span> <code>x\ne y</code></td>
+	    <td><span class="keybinding">p</span> <code>x\propto y</code></td>
             <td><span class="keybinding">s</span> <code>x\subseteq y</code></td>
 	  </tr>
           <tr>
-	    <td><span class="keybinding">S</span> <code>x\subset y</code></td>
-            <td><span class="keybinding">.</span> <code>x\ge y</code></td>
-            <td><span class="keybinding">,</span> <code>x\le y</code></td>
-            <td><span class="keybinding">&gt;</span> <code>x &gt; y</code></td>
+            <td><span class="keybinding">S</span> <code>x\subset y</code></td>
+            <td><span class="keybinding">=</span> <code>x = y</code></td>
+	    <td><span class="keybinding">[</span> <code>x\le y</code></td>
+            <td><span class="keybinding">]</span> <code>x\ge y</code></td>
 	  </tr>
           <tr>
-	    <td><span class="keybinding">&lt;</span> <code>x &lt; y</code></td>
             <td><span class="keybinding">:</span> <code>x\coloneqq y</code></td>
             <td><span class="keybinding">~</span> <code>x\sim y</code></td>
-            <td><span class="keybinding">|</span> <code>\left. x \middle\Vert y \right.</code></td>
+	    <td colspan="2"></td>
 	  </tr>
       </tbody></table>
 
