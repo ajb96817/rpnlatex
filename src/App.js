@@ -35,6 +35,7 @@ class App extends React.Component {
 	    document_storage: new DocumentStorage(),
             input_context: new InputContext(this, settings),
             undo_stack: new UndoStack(),
+	    clipboard_item: null
         };
         this.state.undo_stack.clear(this.state.app_state);
 	this.state.import_export_state.document_storage = this.state.document_storage;

@@ -1065,6 +1065,21 @@ class InputContext {
 	    this.error_flash_stack();
     }
 
+    do_copy_to_clipboard(stack) {
+	const [new_stack, item] = stack.pop(1);
+	this.app_component.state.clipboard_item = item;
+	this.notify("Copied to clipboard");
+	return new_stack.push(item);
+    }
+
+    do_paste_from_clipboard(stack) {
+	const item = this.app_component.state.clipboard_item;
+	if(item)
+	    return stack.push(item);
+	else
+	    this.error_flash_stack();
+    }
+
     // screen_percentage=0 means try to scroll so that the top of the selection is flush with the top of the document panel.
     // screen_percentage=100 tries to make the bottom of the selection flush with the bottom of the panel.
     // Anything in between is a linear interpolation between the two.

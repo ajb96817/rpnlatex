@@ -17,6 +17,7 @@ const EditorKeymap = {
 	'Ctrl+3': "insert 3;superscript",
 	'Ctrl+4': "insert 4;superscript",
 	'Ctrl+a': "swap",
+	'Ctrl+c': "copy_to_clipboard",
 	'Ctrl+e': "name exp;insert e;operator mathrm;swap;superscript",  // exp(x) - same as [/] [e]
 	'Ctrl+i': "pop_to_document",
 	'Ctrl+j': "extract_from_document",
@@ -27,6 +28,7 @@ const EditorKeymap = {
 	'Ctrl+p': "delimiters ( )",
 	'Ctrl+s': "save_file",
 	'Ctrl+u': "superscript",
+	'Ctrl+v': "paste_from_clipboard",
 	'Ctrl+y': "redo",
 	'Ctrl+z': "undo",
 	'Ctrl+ ': "infix \\,",
@@ -102,8 +104,8 @@ const EditorKeymap = {
 
     // Tab prefix: stack/misc operations
     stack: {
+	'c': "copy_to_clipboard",
 	'd': "pop",
-	'g': "mode get_tagged",
 	'i': "pop_to_document",
 	'I': "copy_to_document",
 	'j': "extract_from_document",
@@ -111,6 +113,7 @@ const EditorKeymap = {
 	'l': "recenter_document 50",
 	'n': "nip",
 	'o': "over",
+	'p': "paste_from_clipboard",
 	'r': "rot",
 	't': "tuck",
 	'u': "unrot",
@@ -126,10 +129,6 @@ const EditorKeymap = {
 	// temporary
 	'f': "toggle_popup files",
 	'k': "toggle_popup keymap"
-    },
-
-    get_tagged: {
-	'[alnum]': "recall_tagged_item"
     },
 
     // $ prefix: configuration
@@ -383,7 +382,6 @@ const EditorKeymap = {
 	'b': "infix \\bullet",
 	'c': "infix \\cap",
 	'd': "infix \\setminus",  // (set [d]ifference)
-	'e': "infix \\equiv",
 	'g': "infix \\gets",
 	'k': "delimiters . . \\vert 2",  // alias for | ([k]onditional)
 	'm': "infix \\mapsto",
@@ -419,7 +417,8 @@ const EditorKeymap = {
     relational: {
 	'a': "infix \\approx",
 	'c': "infix \\cong",  // =~  congruent
-	'e': "infix \\iff",  // mnemonic: equiv
+	'e': "infix \\equiv",
+	'E': "infix \\iff",
 	'g': "infix >",
 	'G': "infix \\gg",
 	'i': "infix \\in",
@@ -428,6 +427,7 @@ const EditorKeymap = {
 	'L': "infix \\ll",
 	'n': "infix \\ne",
 	'p': "infix \\propto",
+	'q': "infix =",
 	's': "infix \\subseteq",
 	'S': "infix \\subset",
 	'=': "infix =",
