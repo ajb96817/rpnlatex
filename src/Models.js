@@ -1630,18 +1630,6 @@ class Document {
 	    return this.delete_selection().move_selection_by(offset).insert_item(item);
     }
 
-    // Look for an ExprItem that is tagged with the given text string.
-    // Searches the document backwards starting at the end.
-    search_for_item_with_tag(tag_text) {
-	for(let i = this.items.length-1; i >= 0; i--) {
-	    const item = this.items[i];
-	    if(item.item_type() === 'expr' && item.tag_expr &&
-	       item.tag_expr.expr_type() === 'text' && item.tag_expr.text.trim() === tag_text)
-		return item;
-	}
-	return null;
-    }
-
     to_json() {
         return {
             object_type: 'document',

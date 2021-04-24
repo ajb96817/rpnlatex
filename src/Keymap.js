@@ -383,11 +383,13 @@ const EditorKeymap = {
 	'c': "infix \\cap",
 	'd': "infix \\setminus",  // (set [d]ifference)
 	'g': "infix \\gets",
-	'k': "delimiters . . \\vert 2",  // alias for | ([k]onditional)
+	'k': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2",  // x | y  ([k]onditional)
+	'l': "infix \\parallel",
 	'm': "infix \\mapsto",
 	'M': "infix \\mp",
 	'o': "infix \\circ",
 	'O': "stackrel overset",
+	'p': "infix \\perp",
 	'P': "infix \\pm",
 	's': "infix \\,",
 	't': "infix \\to",
@@ -436,7 +438,8 @@ const EditorKeymap = {
 	'[': "infix \\le",
 	']': "infix \\ge",
 	':': "infix \\coloneqq",
-	'~': "infix \\sim"
+	'~': "infix \\sim",
+	'|': "infix \\vDash"
     },
 
     // apostrophe prefix: assorted standalone math symbols

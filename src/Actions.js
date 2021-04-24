@@ -1055,16 +1055,6 @@ class InputContext {
 	return new_stack.push(new ExprItem(tagged_item.expr, tag_expr));
     }
 
-    // Search document for a tag that matches the key pressed, and put it on the stack.
-    do_recall_tagged_item(stack) {
-	const tag_text = this.last_keypress;
-	const item = this.app_state.document.search_for_item_with_tag(tag_text);
-	if(item)
-	    return stack.push(item);
-	else
-	    this.error_flash_stack();
-    }
-
     do_copy_to_clipboard(stack) {
 	const [new_stack, item] = stack.pop(1);
 	this.app_component.state.clipboard_item = item;
