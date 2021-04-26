@@ -364,47 +364,51 @@
             <td><span class="keybinding">g</span> <code>x\gets y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>\left. x \middle\vert y \right.</code></td>
+            <td><span class="keybinding">k</span> <code>\left. x\, \middle\vert y\, \right.</code></td>
+            <td><span class="keybinding">l</span> <code>x\parallel y</code></td>
             <td><span class="keybinding">m</span> <code>x\mapsto y</code></td>
             <td><span class="keybinding">M</span> <code>x\mp y</code></td>
-            <td><span class="keybinding">o</span> <code>x\circ y</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">o</span> <code>x\circ y</code></td>
+            <td><span class="keybinding">p</span> <code>x\perp y</code></td>
             <td><span class="keybinding">P</span> <code>x\pm y</code></td>
             <td><span class="keybinding">s</span> <code>x\, y</code></td>
+          </tr>
+          <tr>
             <td><span class="keybinding">t</span> <code>x\to y</code></td>
             <td><span class="keybinding">u</span> <code>x\cup y</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">v</span> <code>x\vee y</code></td>
             <td><span class="keybinding">w</span> <code>x\wedge y</code></td>
+          </tr>
+          <tr>
             <td><span class="keybinding">x</span> <code>x\times y</code></td>
             <td><span class="keybinding">X</span> <code>x\otimes y</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">[</span> <code>x\llcorner y</code></td>
             <td><span class="keybinding">]</span> <code>x\lrcorner y</code></td>
+          </tr>
+          <tr>
             <td><span class="keybinding">|</span> <code>x | y</code></td>
             <td><span class="keybinding">=</span> <code>x\Rightarrow y</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">-</span> <code>x\ominus y</code></td>
             <td><span class="keybinding">+</span> <code>x\oplus y</code></td>
+          </tr>
+          <tr>
             <td><span class="keybinding">.</span> <code>x\cdot y</code></td>
             <td><span class="keybinding">,</span> <code>x,y</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">&nbsp;</span> <code>x,\,y</code></td>
             <td><span class="keybinding">:</span> <code>x : y</code></td>
-            <td><span class="keybinding">;</span> <code>x;\,y</code></td>
-            <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
 	  </tr>
           <tr>
+            <td><span class="keybinding">;</span> <code>x;\,y</code></td>
+            <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
             <td><span class="keybinding">*</span> <code>x * y</code></td>
             <td><span class="keybinding">/</span> <code>x / y</code> (fixed size)</td>
-            <td><span class="keybinding">\</span> <code>x / y</code> (variable size)</td>
-	    <td></td>
           </tr>
+	  <tr>
+            <td colspan="2"><span class="keybinding">\</span> <code>x / y</code> (variable size)</td>
+	    <td colspan="2"></td>
+	  </tr>
       </tbody></table>
       <p>
         The following subcommands are also available in this mode:
@@ -468,7 +472,7 @@
             <td><span class="keybinding">]</span> <code>x\ge y</code></td>
             <td><span class="keybinding">:</span> <code>x\coloneqq y</code></td>
             <td><span class="keybinding">~</span> <code>x\sim y</code></td>
-	    <td></td>
+            <td><span class="keybinding">|</span> <code>x\vDash y</code></td>
 	  </tr>
       </tbody></table>
 
@@ -1097,8 +1101,17 @@
 	  Move the stack top into the document at the current selection position.
 	</li>
         <li>
+	  <span class="keybinding">I</span>
+	  Copy the stack top into the document at the current selection position without removing it
+	  from the stack.
+	</li>
+        <li>
 	  <span class="keybinding">j</span>
 	  Move the current document selection back onto the stack.
+	</li>
+        <li>
+	  <span class="keybinding">J</span>
+	  Copy the current document selection onto the stack without removing it from the document.
 	</li>
         <li>
 	  <span class="keybinding">l</span>
@@ -1205,6 +1218,10 @@
 	  Recenter the document view around the current document selection.
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">l</span>)
 	</li>
+        <li><span class="keybinding">Ctrl+m</span>
+	  <code>x \to -x</code>
+	  Prepend a minus sign to the stack top.
+	</li>
         <li><span class="keybinding">Ctrl+o</span>
 	  <code>f\enspace x \to f(x)</code>
 	  (same as <span class="keybinding">/</span><span class="keybinding">o</span>)
@@ -1223,6 +1240,10 @@
         <li>
 	  <span class="keybinding">Ctrl+y</span> Redo actions undone by 'undo'.
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">.</span>)
+	</li>
+        <li>
+	  <span class="keybinding">Ctrl+,</span> (comma) Join two items with a comma
+	  (same as <span class="keybinding">,</span><span class="keybinding">,</span>)
 	</li>
       </ul>
 	  

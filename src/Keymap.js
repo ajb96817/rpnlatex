@@ -32,6 +32,7 @@ const EditorKeymap = {
 	'Ctrl+y': "redo",
 	'Ctrl+z': "undo",
 	'Ctrl+ ': "infix \\,",
+	'Ctrl+,': "infix ,",
 
 	// Immediate action special keys
 	'Shift+Enter': "edit_stack_top",
