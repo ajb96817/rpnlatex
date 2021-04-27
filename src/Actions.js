@@ -362,7 +362,7 @@ class InputContext {
     do_start_new_file(stack) {
 	let file_manager_state = this.app_component.state.file_manager_state;
 	let document_storage = this.app_component.state.document_storage;
-        let new_filename = file_manager_state.generate_unused_filename('untitled');
+        let new_filename = file_manager_state.generate_unused_filename(file_manager_state.current_filename || 'untitled');
         new_filename = window.prompt('Enter a filename for the new document', new_filename);
         if(!new_filename) return;
         new_filename = document_storage.sanitize_filename(new_filename || '');
@@ -772,14 +772,22 @@ class InputContext {
 
     do_append_text_input(stack) {
         const key = this.last_keypress;
-        this.switch_to_mode('accumulate');  // stay in text accumulation mode
-        this.perform_undo_or_redo = 'suppress';  // (minor action)
         const [new_stack, expr] = stack.pop_exprs(1);
         let new_expr;
-        if(expr.expr_type() === 'accumulator' && expr.is_valid_character(key))
-            new_expr = expr.with_extra_character(key);
+        if(expr.expr_type() === 'accumulator') {
+	    if(expr.is_valid_character(key))
+		new_expr = expr.with_extra_character(key);
+	    else if(expr.accumulator_type === 'latex' && key === ' ') {
+		// Special case: Space key will finish latex accumulation.
+		return this.do_finish_text_input(stack);
+	    }
+	    else
+		new_expr = expr;
+	}
         else
             new_expr = expr;
+        this.switch_to_mode('accumulate');  // stay in text accumulation mode
+        this.perform_undo_or_redo = 'suppress';  // (minor action)
         return new_stack.push_expr(new_expr);
     }
 
