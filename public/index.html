@@ -666,7 +666,8 @@
         <span class="keybinding">)</span>
       </h2>
       <p>
-        These commands enclose the stack top in various kinds of delimiter pairs.  The delimiters are implemented with the <tt>\left</tt> and <tt>\right</tt> commands in LaTeX, so they expand to fit the size of their contents.
+        These commands enclose the stack top in various kinds of delimiter pairs.
+	The delimiters automatically expand to fit the size of their contents.
       </p>
       <p>
         Note that the most commonly-used delimiters are available directly as
@@ -1097,6 +1098,9 @@
 	  <span class="keybinding">Tab</span><span class="keybinding">p</span>.
 	</li>
         <li>
+          <span class="keybinding">f</span> Open the File Manager (see below).
+        </li>
+        <li>
 	  <span class="keybinding">i</span>
 	  Move the stack top into the document at the current selection position.
 	</li>
@@ -1108,6 +1112,11 @@
         <li>
 	  <span class="keybinding">j</span>
 	  Move the current document selection back onto the stack.
+	</li>
+        <li>
+	  <span class="keybinding">k</span>
+	  Pop up a reference guide with all the available keybindings, organized by mode.
+	  Editing these keybindings is not currently supported.
 	</li>
         <li>
 	  <span class="keybinding">J</span>
@@ -1132,9 +1141,6 @@
         <li>
           <span class="keybinding">.</span> <em>Redo:</em> Replay states that were
           previously undone.  You can also use <span class="keybinding">Ctrl+y</span>.
-        </li>
-        <li>
-          <span class="keybinding">f</span> Open the File Manager (see below).
         </li>
       </ul>
 
@@ -1180,8 +1186,8 @@
 	<a name="control_keys">Control Keys</a>
       </h2>
       <p>
-	In general, this editor avoids the use of Control and Alt keys for maximum browser compatibility.
-	However, there are some Control key based shortcuts available for optional use:
+	For maximum browser compatibility, Control and Alt keys are not required.
+	However, these Control key based shortcuts are available for optional use:
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">Ctrl+0</span> Add a 0 subscript: <code>x_0</code></li>
@@ -1190,7 +1196,7 @@
 	  <span class="keybinding">Ctrl+2</span> <span class="keybinding">Ctrl+3</span> <span class="keybinding">Ctrl+4</span>
 	  Add other superscripts: <code>x^2, x^3, x^4</code></li>
         <li><span class="keybinding">Ctrl+a</span>
-	  Swap the top two stack top items.
+	  Swap the top two stack top items
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">w</span>)
 	</li>
         <li><span class="keybinding">Ctrl+c</span>
@@ -1202,43 +1208,49 @@
 	  (same as <span class="keybinding">/</span><span class="keybinding">e</span>)
 	</li>
 	<li><span class="keybinding">Ctrl+i</span>
-	  Move the stack top into the document at the current selection position.
+	  Move the stack top into the document at the current selection position
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">i</span>)
 	</li>
 	<li><span class="keybinding">Ctrl+j</span>
-	  Move the current document selection back onto the stack.
+	  Move the current document selection back onto the stack
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">j</span>)
 	</li>
 	<li>
 	  <span class="keybinding">Ctrl+k</span> or
 	  <span class="keybinding">Ctrl+Space</span>
 	  Join the top two stack entries with a space between them.
+	  (same as <span class="keybinding">,</span><span class="keybinding">s</span>)
 	</li>
         <li><span class="keybinding">Ctrl+l</span>
-	  Recenter the document view around the current document selection.
+	  Recenter the document view around the current document selection
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">l</span>)
 	</li>
         <li><span class="keybinding">Ctrl+m</span>
 	  <code>x \to -x</code>
-	  Prepend a minus sign to the stack top.
+	  Prepend a minus sign to the stack top
 	</li>
         <li><span class="keybinding">Ctrl+o</span>
 	  <code>f\enspace x \to f(x)</code>
 	  (same as <span class="keybinding">/</span><span class="keybinding">o</span>)
 	</li>
-        <li><span class="keybinding">Ctrl+p</span> Enclose the stack top in parentheses.</li>
-        <li><span class="keybinding">Ctrl+s</span> Save the current file.</li>
-        <li><span class="keybinding">Ctrl+u</span> Make superscript (same as <span class="keybinding">`</span>).</li>
+        <li><span class="keybinding">Ctrl+p</span>
+	  Enclose the stack top in parentheses
+	  (same as <span class="keybinding">(</span>)
+	</li>
+        <li><span class="keybinding">Ctrl+s</span> Save the current file</li>
+        <li><span class="keybinding">Ctrl+u</span>
+	  Make superscript (same as <span class="keybinding">`</span>)
+	</li>
         <li><span class="keybinding">Ctrl+v</span>
 	  Paste clipboard to stack top
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">p</span>)
 	</li>
         <li><span class="keybinding">Ctrl+z</span>
-	  Undo last action.
+	  Undo last action
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">Tab</span>)
 	</li>
         <li>
-	  <span class="keybinding">Ctrl+y</span> Redo actions undone by 'undo'.
+	  <span class="keybinding">Ctrl+y</span> Redo actions undone by 'undo'
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">.</span>)
 	</li>
         <li>
