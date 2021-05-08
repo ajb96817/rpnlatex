@@ -665,9 +665,14 @@ class FileManagerState {
 	});
     }
 
+    // basename -> basename_1
+    // basename_1 -> basename_2
+    // The first available name is used, so basename_50 -> basename_2
+    // if basename_2 is available but basename_1 is taken.
     generate_unused_filename(basename) {
 	if(this.unavailable || !this.file_list)
 	    return basename;
+	basename = basename.replace(/_\d+$/, '')
 	for(let n = 1; n < 1000; n++) {
 	    const candidate = basename + '_' + n;
 	    if(!this.file_list.some(file => file.filename === candidate))
