@@ -480,7 +480,7 @@ class InputContext {
         let inserted_text;
         switch(item.item_type()) {
         case 'markdown': inserted_text = item.source_text; break;
-        case 'expr': inserted_text = '`' + item.expr.to_latex() + '`'; break;
+        case 'expr': inserted_text = '$' + item.expr.to_latex() + '$'; break;
         default: inserted_text = '???'; break;
         }
         this._insert_text_into_minieditor(inserted_text);
@@ -504,7 +504,8 @@ class InputContext {
 
     do_finish_editing(stack) {
         if(!this.minieditor.active) return;
-        const content = (this.minieditor.text || '').trim();
+	let editor_elt = this.minieditor.ref.current;
+	const content = ((editor_elt ? editor_elt.value : null) || '').trim();
         const [new_stack, old_item] = stack.pop(1);
         this.minieditor = {active: false};
         if(content.length > 0) {

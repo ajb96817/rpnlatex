@@ -1453,8 +1453,10 @@ class MarkdownItem extends Item {
 
     is_empty() { return this.source_text.trim().length === 0; }
 
-    // TODO: handle $ $ instead of just ` `
     render_markdown(source_text) {
+	// Replace $ by ` before sending it to Marked.
+	// This isn't ideal but the custom tokenizer code below doesn't seem to work.
+	source_text = source_text.replaceAll('$', '`');
         return marked.parse(source_text);
     }
 
