@@ -1106,6 +1106,12 @@ class InputContext {
 	const percentage = parseInt(percentage_string || '50') / 100.0;
 	panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
     }
+
+    do_export_as_text(stack) {
+	let exported_text = this.app_state.document.to_text();
+	navigator.clipboard.writeText(exported_text);
+	this.notify("Copied to clipboard");
+    }
 }
 
 

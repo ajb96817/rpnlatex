@@ -806,6 +806,8 @@ class Expr {
         return json;
     }
 
+    to_text() { return "$$\n" + this.to_latex() + "\n$$"; }
+
     // Invoke fn once for each subexpression in this expression tree (including 'this').
     // The visiting is performed depth-first, left-to-right, so should correspond visually
     // to the left-to-right rendering of the expression.
@@ -1411,12 +1413,12 @@ class Item {
         this.serial = Item.next_serial();
     }
 
-    item_type() { return '???'; }
-
     react_key(prefix) { return prefix + '_' + this.serial; }
 
-    // Subclasses need to override this.
+    // Subclasses need to override these:
+    item_type() { return '???'; }
     to_json() { return {}; }
+    to_text() { return '???'; }
 }
 
 // iOS Safari workaround
@@ -1439,6 +1441,8 @@ class ExprItem extends Item {
 	if(this.tag_expr) json.tag_expr = this.tag_expr.to_json();
 	return json;
     }
+
+    to_text() { return this.expr.to_text(); }
 }
 
 
@@ -1485,6 +1489,9 @@ class MarkdownItem extends Item {
     to_json() {
         return {item_type: 'markdown', source_text: this.source_text};
     }
+
+    // TODO: convert Markdown syntax to something LaTeX-compatible
+    to_text() { return this.source_text; }
 }
 
 
@@ -1643,6 +1650,10 @@ class Document {
             items: this.items.map(item => item.to_json()),
 	    selection_index: this.selection_index
         };
+    }
+
+    to_text() {
+	return this.items.map(item => item.to_text()).join("\n\n");
     }
 }
 

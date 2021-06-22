@@ -126,6 +126,7 @@ const EditorKeymap = {
 	'Tab': "undo",
 	'.': "redo",
 	' ': "dup",
+	'!': "export_as_text",
 
 	// temporary
 	'f': "toggle_popup files",
