@@ -640,7 +640,7 @@
 	</li>
 	<li>
 	  <span class="keybinding">/</span><span class="keybinding">'</span>
-	  <em>Resolve deferred:</em>
+	  <em>Substitute:</em>
 	  Substitute the stack top item for the defer marker in the item below it.  If there is more than one defer
 	  marker, only the first one is substituted.
 	  Example: <code>\sqrt{1+\circledast} \enspace x^2 \to \sqrt{1+x^2}</code>
@@ -1129,7 +1129,10 @@
           previously undone.  You can also use <span class="keybinding">Ctrl+y</span>.
         </li>
         <li>
-          <span class="keybinding">!</span> <em>Export:</em> Copy the document content to the clipboard as LaTeX text.
+          <span class="keybinding">!</span> <em>Export document:</em> Copy the document content to the clipboard as LaTeX text.
+        </li>
+        <li>
+          <span class="keybinding">@</span> <em>Export stack top:</em> Copy the stack top item to the clipboard as LaTeX text.
         </li>
       </ul>
 
@@ -1217,6 +1220,7 @@
         <li><span class="keybinding">Ctrl+m</span>
 	  <code>x \to -x</code>
 	  Prepend a minus sign to the stack top
+	  (same as <span class="keybinding">.</span><span class="keybinding">-</span>)
 	</li>
         <li><span class="keybinding">Ctrl+o</span>
 	  <code>f\enspace x \to f(x)</code>

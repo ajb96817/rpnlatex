@@ -1107,10 +1107,18 @@ class InputContext {
 	panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
     }
 
-    do_export_as_text(stack) {
-	let exported_text = this.app_state.document.to_text();
+    do_export_document_as_text(stack) {
+	const exported_text = this.app_state.document.to_text();
 	navigator.clipboard.writeText(exported_text);
-	this.notify("Copied to clipboard");
+	this.notify("Copied document to clipboard");
+    }
+
+    do_export_stack_top_as_text(stack) {
+	const [new_stack, item] = stack.pop(1);
+	const exported_text = item.to_text();
+	navigator.clipboard.writeText(exported_text);
+	this.notify("Copied stack top to clipboard");
+	return new_stack.push(item)
     }
 }
 

@@ -126,7 +126,8 @@ const EditorKeymap = {
 	'Tab': "undo",
 	'.': "redo",
 	' ': "dup",
-	'!': "export_as_text",
+	'!': "export_document_as_text",
+	'@': "export_stack_top_as_text",
 
 	// temporary
 	'f': "toggle_popup files",
@@ -418,6 +419,7 @@ const EditorKeymap = {
 	'/': "infix /"
     },
 
+    // = prefix: relational operators
     relational: {
 	'a': "infix \\approx",
 	'c': "infix \\cong",  // =~  congruent
