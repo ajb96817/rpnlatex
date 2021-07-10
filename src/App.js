@@ -11,8 +11,6 @@ import {
     ImportExportState, FileManagerState
 } from './Models';
 import InputContext from './Actions';
-
-// TODO: temporary
 import KeybindingTable from './Keymap';
 
 

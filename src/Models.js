@@ -983,9 +983,7 @@ class DeferExpr extends Expr {
 	// TODO: Maybe use KaTeX HTML support to give it a CSS class to color it
 	// according to the current color theme.
 	// const expr = new CommandExpr('circledast');
-
 	const expr = new CommandExpr('htmlClass', [new TextExpr('defer_expr'), new CommandExpr('circledast')]);
-	
 	emitter.expr(expr);
     }
 }
