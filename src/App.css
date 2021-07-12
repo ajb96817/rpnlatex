@@ -65,6 +65,8 @@ div.markdown {
     margin: 0.1em 0;
     padding-left: 1em;
     border-left: 0.25em solid #88f;
+    padding-top: 1px;
+    padding-bottom: 1px;
 }
 div.markdown p {
     margin: 0.25em 0;
@@ -86,7 +88,7 @@ div.markdown hr {
     margin-right: 1em;
     /*border: 1px solid #ccc;*/
     border: none;
-    background-color: #888;
+    background-color: #999;
 }
 
 
