@@ -204,7 +204,9 @@ const EditorKeymap = {
 	'k': "delimiters \\vert \\rangle",  // |x> Dirac ket
 	'm': "delimiters \\lmoustache \\rmoustache",
 	'n': "delimiters \\lVert \\rVert",  // n = Norm
+	'N': "delimiters \\lVert \\rVert",  // alias for n
 	'w': "delimiters . \\vert",  // "where"
+	'W': "delimiters . \\vert",  // alias for w
 	'|': "delimiters \\vert \\vert",
 	'<': "delimiters \\langle \\rangle",
 	'(': "delimiters ( )",
