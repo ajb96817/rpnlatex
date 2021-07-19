@@ -44,7 +44,8 @@ class InputContext {
     // NOTE: was_handled just indicates that a keybinding was found; it doesn't necessarily mean
     // that the command succeeded without error.
     handle_key(app_state, key) {
-        if(key === 'Shift') return [false, app_state];  // TODO
+        if(key === 'Shift' || key === 'Alt' || key === 'Control')
+	    return [false, app_state];
 
         // Special case: if stack top is an AccumulatorExpr, make sure we're in 'accumulate' input mode.
         if(app_state.stack.depth() > 0 && app_state.stack.peek(1).item_type() === 'expr' &&
