@@ -129,6 +129,12 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk div.markdown hr { background-color: #56999f; }
 #panel_layout.theme_dusk div.markdown h1, #panel_layout.theme_dusk div.markdown h2, #panel_layout.theme_dusk div.markdown h3, #panel_layout.theme_dusk div.tag_expr { background-color: #2c67a7; border-color: #7796b8; }
 #panel_layout.theme_dusk #popup_panel { background-color: #020; box-shadow: 0 0 1em 2px #000; }
+#panel_layout.theme_dusk table.file_table th { background-color: #448; }
+#panel_layout.theme_dusk table.file_table tr.selected_file td { background-color: #486; }
+#panel_layout.theme_dusk table.keymap { border-color: #666; }
+#panel_layout.theme_dusk table.keymap th, #panel_layout.theme_dusk table.keymap td { border-color: #666; }
+#panel_layout.theme_dusk table.keymap td.mode { color: #ccc; }
+#panel_layout.theme_dusk table.keymap th { background-color: #448; }
 
 /* Dark theme */
 #panel_layout.theme_dark div.panel { background-color: #222; }
@@ -146,6 +152,12 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark div.markdown h1, #panel_layout.theme_dark div.markdown h2, #panel_layout.theme_dark div.markdown h3, #panel_layout.theme_dark div.tag_expr { background-color: #422; border-color: #833;
 }
 #panel_layout.theme_dark #popup_panel { background-color: #200; box-shadow: 0 0 1em 2px #000; }
+#panel_layout.theme_dark table.file_table th { background-color: #448; }
+#panel_layout.theme_dark table.file_table tr.selected_file td { background-color: #486; }
+#panel_layout.theme_dark table.keymap { border-color: #666; }
+#panel_layout.theme_dark table.keymap th, #panel_layout.theme_dark table.keymap td { border-color: #666; }
+#panel_layout.theme_dark table.keymap td.mode { color: #ccc; }
+#panel_layout.theme_dark table.keymap th { background-color: #448; }
 
 
 
