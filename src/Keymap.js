@@ -418,7 +418,8 @@ const EditorKeymap = {
 	'%': "infix \\pmod",  // y (mod x)
 	'*': "infix *",
 	"\\": "delimiters . . / 2",
-	'/': "infix /"
+	'/': "infix /",
+	'>': "infix \\cdots"
     },
 
     // = prefix: relational operators
