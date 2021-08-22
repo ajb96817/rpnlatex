@@ -341,10 +341,11 @@ const EditorKeymap = {
 
     // /i prefix
     integral_limits: {
-        'r': "name limits_real;insert -\\infty;subscript;insert \\infty;superscript",  // -oo .. oo : [r]eals
-        'n': "name limits_negative;insert -\\infty;subscript;insert 0;superscript",  // -oo .. o : [n]egative 
+        'r': "name limits_real;insert -\\infty;subscript;insert \\infty;superscript",  // -oo..oo : [r]eals
+        'n': "name limits_negative;insert -\\infty;subscript;insert 0;superscript",  // -oo..0 : [n]egative 
         'p': "name limits_positive;insert 0;subscript;insert \\infty;superscript",  // 0..oo : [p]ositive
         'u': "name limits_unit;insert 0;subscript;insert 1;superscript",  // 0..1 : [u]nit
+        'U': "name limits_unit;insert -1;subscript;insert 1;superscript",  // -1..1 : symmetric [U]nit
         't': "name limits_trig;insert 0;subscript;insert 2\\pi;superscript",  // 0..2pi : [t]rigonometric
         'T': "name limits_sym_trig;insert -\\pi;subscript;insert \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
     },

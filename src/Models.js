@@ -757,8 +757,27 @@ class Expr {
                 [new TextExpr(left.text + right.exprs[0].text)
                 ].concat(right.exprs.slice(1)));
         }
-        else
+        else if(left_type === 'command' && right_type === 'command')
+	    return Expr.combine_command_pair(left, right);
+	else
             return new SequenceExpr([left, right]);
+    }
+
+    // Combine two CommandExprs with some special-casing for particular
+    // command pairs (combining integral symbols currently).
+    static combine_command_pair(left, right) {
+	const left_name = left.command_name, right_name = right.command_name;
+	let new_command_name = null;
+	if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
+	if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
+	if(left_name === 'int' && right_name === 'iint') new_command_name = 'iiint';
+	if(left_name === 'oint' && right_name === 'oint') new_command_name = 'oiint';
+	if(left_name === 'oiint' && right_name === 'oint') new_command_name = 'oiiint';
+	if(left_name === 'oint' && right_name === 'oiint') new_command_name = 'oiiint';
+	if(new_command_name)
+	    return new CommandExpr(new_command_name);
+	else
+	    return new SequenceExpr([left, right]);
     }
     
     // TODO: remove if not actually needed
