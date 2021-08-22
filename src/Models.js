@@ -18,10 +18,10 @@ class Keymap {
         if(mode_map['[digit]'] && /^[0-9]$/.test(key)) return mode_map['[digit]'];
         if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key)) return mode_map['[alnum]'];
         if(mode_map['default']) return mode_map['default'];
-	if(mode === 'base' || mode === 'editor')
-	    return null;
-	else
-	    return 'cancel';
+        if(mode === 'base' || mode === 'editor')
+            return null;
+        else
+            return 'cancel';
     }
 }
 
@@ -45,77 +45,77 @@ class Settings {
         this.current_keymap = new Keymap();
         this.selected_theme = 'default';
         this.last_opened_filename = null;
-	this.popup_mode = null;  // null, 'help', 'files', 'keymap'
-	this.layout = this.default_layout();
+        this.popup_mode = null;  // null, 'help', 'files', 'keymap'
+        this.layout = this.default_layout();
     }
 
     default_layout() {
-	return {
-	    zoom_factor: 0,
-	    stack_rightalign_math: false,
-	    document_rightalign_math: false,
-	    stack_side: 'left',
-	    stack_split: 50
-	};
+        return {
+            zoom_factor: 0,
+            stack_rightalign_math: false,
+            document_rightalign_math: false,
+            stack_side: 'left',
+            stack_split: 50
+        };
     }
 
     apply_layout_to_dom(stack_panel_elt, document_panel_elt, popup_panel_elt) {
-	const layout = this.layout;
+        const layout = this.layout;
 
-	// Show or hide popup panel.
-	popup_panel_elt.style.display = this.popup_mode ? 'block' : 'none';
+        // Show or hide popup panel.
+        popup_panel_elt.style.display = this.popup_mode ? 'block' : 'none';
 
-	// Set overall scale factor.
-	const root_elt = document.getElementById('root');
-	const percentage = Math.round(100*Math.pow(1.05, layout.zoom_factor || 0));
-	root_elt.style.fontSize = percentage + '%';
+        // Set overall scale factor.
+        const root_elt = document.getElementById('root');
+        const percentage = Math.round(100*Math.pow(1.05, layout.zoom_factor || 0));
+        root_elt.style.fontSize = percentage + '%';
 
-	// Set up panel layout.
-	let [stack_bounds, document_bounds] = this._split_rectangle(
-	    {x: 0, y: 0, w: 100, h: 100}, layout.stack_side, layout.stack_split);
+        // Set up panel layout.
+        let [stack_bounds, document_bounds] = this._split_rectangle(
+            {x: 0, y: 0, w: 100, h: 100}, layout.stack_side, layout.stack_split);
 
-	this._apply_bounds(stack_panel_elt, stack_bounds);
-	this._apply_bounds(document_panel_elt, document_bounds);
+        this._apply_bounds(stack_panel_elt, stack_bounds);
+        this._apply_bounds(document_panel_elt, document_bounds);
     }
 
     // Split a parent bounding rectangle into "primary" and "secondary"
     // subrectangles according to the given 'side' and split %.
     _split_rectangle(bounds, side, split_percent) {
-	const w1 = Math.round(split_percent*bounds.w/100);
-	const w2 = bounds.w - w1;
-	const h1 = Math.round(split_percent*bounds.h/100);
-	const h2 = bounds.h - h1;
-	switch(side) {
-	case 'left':
-	    return [
-		{x: bounds.x, y: bounds.y, w: w1, h: bounds.h},
-		{x: bounds.x+w1, y: bounds.y, w: w2, h: bounds.h}
-	    ];
-	case 'right':
-	    return [
-		{x: bounds.x+w2, y: bounds.y, w: w1, h: bounds.h},
-		{x: bounds.x, y: bounds.y, w: w2, h: bounds.h}
-	    ];
-	case 'top':
-	    return [
-		{x: bounds.x, y: bounds.y, w: bounds.w, h: h1},
-		{x: bounds.x, y: bounds.y+h1, w: bounds.w, h: h2}
-	    ];
-	case 'bottom':
-	    return [
-		{x: bounds.x, y: bounds.y+h2, w: bounds.w, h: h1},
-		{x: bounds.x, y: bounds.y, w: bounds.w, h: h2}
-	    ];
-	default:
-	    return [bounds, bounds];
-	}
+        const w1 = Math.round(split_percent*bounds.w/100);
+        const w2 = bounds.w - w1;
+        const h1 = Math.round(split_percent*bounds.h/100);
+        const h2 = bounds.h - h1;
+        switch(side) {
+        case 'left':
+            return [
+                {x: bounds.x, y: bounds.y, w: w1, h: bounds.h},
+                {x: bounds.x+w1, y: bounds.y, w: w2, h: bounds.h}
+            ];
+        case 'right':
+            return [
+                {x: bounds.x+w2, y: bounds.y, w: w1, h: bounds.h},
+                {x: bounds.x, y: bounds.y, w: w2, h: bounds.h}
+            ];
+        case 'top':
+            return [
+                {x: bounds.x, y: bounds.y, w: bounds.w, h: h1},
+                {x: bounds.x, y: bounds.y+h1, w: bounds.w, h: h2}
+            ];
+        case 'bottom':
+            return [
+                {x: bounds.x, y: bounds.y+h2, w: bounds.w, h: h1},
+                {x: bounds.x, y: bounds.y, w: bounds.w, h: h2}
+            ];
+        default:
+            return [bounds, bounds];
+        }
     }
 
     _apply_bounds(elt, bounds) {
-	elt.style.left = bounds.x + '%';
-	elt.style.top = bounds.y + '%';
-	elt.style.width = bounds.w + '%';
-	elt.style.height = bounds.h + '%';
+        elt.style.left = bounds.x + '%';
+        elt.style.top = bounds.y + '%';
+        elt.style.width = bounds.w + '%';
+        elt.style.height = bounds.h + '%';
     }
 
     save() {
@@ -138,15 +138,15 @@ Settings.saved_keys = [
 // Helper for generating LaTeX strings from Expr objects.
 class LatexEmitter {
     constructor() {
-	this.tokens = [];
-	this.last_token_type = null;
+        this.tokens = [];
+        this.last_token_type = null;
     }
 
     emit_token(text, token_type) {
-	if(text.length > 0) {
-	    this.tokens.push(text);
-	    this.last_token_type = token_type;
-	}
+        if(text.length > 0) {
+            this.tokens.push(text);
+            this.last_token_type = token_type;
+        }
     }
 
     expr(expr) { expr.emit_latex(this); }
@@ -154,74 +154,74 @@ class LatexEmitter {
     grouped_expr(expr, force_braces) { this.grouped((() => this.expr(expr)), force_braces); }
 
     grouped(fn, force_braces) {
-	let [old_tokens, old_last_token_type] = [this.tokens, this.last_token_type];
-	[this.tokens, this.last_token_type] = [[], null];
+        let [old_tokens, old_last_token_type] = [this.tokens, this.last_token_type];
+        [this.tokens, this.last_token_type] = [[], null];
 
-	fn();
+        fn();
 
-	const [tokens, last_token_type] = [this.tokens, this.last_token_type];
-	this.tokens = old_tokens;
-	this.last_token_type = old_last_token_type;
+        const [tokens, last_token_type] = [this.tokens, this.last_token_type];
+        this.tokens = old_tokens;
+        this.last_token_type = old_last_token_type;
 
-	// The only real 'special' case is a group with exactly 1 token.
-	// In that case we may be able to omit the surrounding braces if
-	// it's a 1-character string or a single \latexcommand.  In all other
-	// cases the braces need to be included.
-	if(force_braces === 'force' || tokens.length === 0 || tokens.length > 1) {
-	    this.text('{');
-	    this.text(tokens.join(''));
-	    this.text('}');
-	}
-	else {  // tokens.length === 1 && !force_braces
-	    if(last_token_type === 'text') {
-		if(tokens[0].length === 1)
-		    this.text(tokens[0]);
-		else {
-		    this.text('{');
-		    this.text(tokens[0]);
-		    this.text('}');
-		}
-	    }
-	    else if(force_braces === 'force_commands') {
-		this.text('{');
-		this.emit_token(tokens[0], 'command');
-		this.text('}');
-	    }
-	    else
-		this.emit_token(tokens[0], 'command');
-	}
+        // The only real 'special' case is a group with exactly 1 token.
+        // In that case we may be able to omit the surrounding braces if
+        // it's a 1-character string or a single \latexcommand.  In all other
+        // cases the braces need to be included.
+        if(force_braces === 'force' || tokens.length === 0 || tokens.length > 1) {
+            this.text('{');
+            this.text(tokens.join(''));
+            this.text('}');
+        }
+        else {  // tokens.length === 1 && !force_braces
+            if(last_token_type === 'text') {
+                if(tokens[0].length === 1)
+                    this.text(tokens[0]);
+                else {
+                    this.text('{');
+                    this.text(tokens[0]);
+                    this.text('}');
+                }
+            }
+            else if(force_braces === 'force_commands') {
+                this.text('{');
+                this.emit_token(tokens[0], 'command');
+                this.text('}');
+            }
+            else
+                this.emit_token(tokens[0], 'command');
+        }
     }
 
     // Emit 'raw' LaTeX code.
     text(text) {
-	if(this.last_token_type === 'command') {
-	    // Determine if a space is needed after the last command; this depends
-	    // on whether two non-special characters are adjacent.
-	    const last_token = this.tokens[this.tokens.length-1];
-	    if(this._is_latex_identifier_char(last_token.charAt(last_token.length-1)) &&
-	       (this._is_latex_identifier_char(text.charAt(0)) /*|| text.charAt(0) === '{'*/))
-		this.emit_token(' ', 'text');
-	}
-	this.emit_token(text, 'text');
+        if(this.last_token_type === 'command') {
+            // Determine if a space is needed after the last command; this depends
+            // on whether two non-special characters are adjacent.
+            const last_token = this.tokens[this.tokens.length-1];
+            if(this._is_latex_identifier_char(last_token.charAt(last_token.length-1)) &&
+               (this._is_latex_identifier_char(text.charAt(0)) /*|| text.charAt(0) === '{'*/))
+                this.emit_token(' ', 'text');
+        }
+        this.emit_token(text, 'text');
     }
 
     _is_latex_identifier_char(ch) {
-	return /^[a-zA-Z]$/.test(ch);
+        return /^[a-zA-Z]$/.test(ch);
     }
 
     // \latexcommand (something that isn't a single special-character command like \,)
     command(command_name, command_options) {
-	if(command_options)
-	    command_name = command_name + '[' + command_options + ']';
-	this.emit_token("\\" + command_name, 'command');
+        if(command_options)
+            command_name = command_name + '[' + command_options + ']';
+        this.emit_token("\\" + command_name, 'command');
     }
 
     // Treated like text or a command depending on whether it starts with a backslash.
     text_or_command(text) {
-	if(text.startsWith("\\"))
-	    this.command(text.slice(1));
-	else
-	    this.text(text);
+        if(text.startsWith("\\"))
+            this.command(text.slice(1));
+        else
+            this.text(text);
     }
 
     begin_environment(envname) { this.text("\\begin{" + envname + "}\n"); }
@@ -232,10 +232,10 @@ class LatexEmitter {
 
     // Table row separators for e.g. \begin{matrix}
     row_separator() {
-	// Give a little more space between rows, for fractions.
-	// See KaTeX "common issues" page.
-	this.text("\\\\[0.1em]\n");
-	//this.text("\\\\\n");
+        // Give a little more space between rows, for fractions.
+        // See KaTeX "common issues" page.
+        this.text("\\\\[0.1em]\n");
+        //this.text("\\\\\n");
     }
 
     finished_string() { return this.tokens.join(''); }
@@ -254,12 +254,12 @@ class AppState {
     constructor(stack, document) {
         this.stack = stack || this._default_stack();
         this.document = document || new Document([], 0);
-	this.is_dirty = false;
+        this.is_dirty = false;
     }
 
     _default_stack() {
-	const item = new MarkdownItem('Welcome to the editor.  Press [**?**] to toggle help.');
-	return new Stack([item]);
+        const item = new MarkdownItem('Welcome to the editor.  Press [**?**] to toggle help.');
+        return new Stack([item]);
     }
 
     same_as(app_state) {
@@ -272,7 +272,7 @@ class AppState {
         return {
             stack: this.stack.to_json(),
             document: this.document.to_json(),
-	    format: 1
+            format: 1
         };
     }
 }
@@ -338,52 +338,52 @@ class UndoStack {
 
 class DocumentStorage {
     constructor() {
-	this.open_request = null;
-	this.database = null;
+        this.open_request = null;
+        this.database = null;
     }
 
     open_database(onsuccess) {
-	if(!indexedDB) return;
-	this.on_open_success = onsuccess;
-	this.open_request = indexedDB.open('rpnlatex', 1);
-	this.open_request.onupgradeneeded = this.handle_upgrade_database.bind(this);
-	this.open_request.onsuccess = this.handle_open_success.bind(this);
-	this.open_request.onerror = this.handle_open_error.bind(this);
+        if(!indexedDB) return;
+        this.on_open_success = onsuccess;
+        this.open_request = indexedDB.open('rpnlatex', 1);
+        this.open_request.onupgradeneeded = this.handle_upgrade_database.bind(this);
+        this.open_request.onsuccess = this.handle_open_success.bind(this);
+        this.open_request.onerror = this.handle_open_error.bind(this);
     }
 
     handle_upgrade_database(event) {
-	this.database = this.open_request.result;
-	switch(event.oldVersion) {
-	case 0: this.build_initial_schema(); break;
-	default: break;
-	}
+        this.database = this.open_request.result;
+        switch(event.oldVersion) {
+        case 0: this.build_initial_schema(); break;
+        default: break;
+        }
     }
 
     build_initial_schema() {
-	this.database.createObjectStore('documents', {keyPath: 'filename'});
-	this.database.createObjectStore('documents_metadata', {keyPath: 'filename'});
+        this.database.createObjectStore('documents', {keyPath: 'filename'});
+        this.database.createObjectStore('documents_metadata', {keyPath: 'filename'});
     }
 
     handle_open_error(event) {
-	//alert("Unable to open IndexedDB for document storage.  You will be unable to save or load documents.\nThis may happen in Private Browsing mode on some browsers.\nError message: " + this.open_request.error);
-	this.open_request = null;
+        //alert("Unable to open IndexedDB for document storage.  You will be unable to save or load documents.\nThis may happen in Private Browsing mode on some browsers.\nError message: " + this.open_request.error);
+        this.open_request = null;
     }
 
     handle_open_success(event) {
-	this.database = this.open_request.result;
-	this.open_request = null;
-	this.database.onversionchange = function () {
-	    this.database.close();
-	    this.database = null;
-	    alert('Warning: database is outdated, please reload the page.');
-	};
-	if(this.on_open_success) this.on_open_success();
+        this.database = this.open_request.result;
+        this.open_request = null;
+        this.database.onversionchange = function () {
+            this.database.close();
+            this.database = null;
+            alert('Warning: database is outdated, please reload the page.');
+        };
+        if(this.on_open_success) this.on_open_success();
     }
 
     create_transaction(readwrite) {
-	return this.database.transaction(
-	    ['documents', 'documents_metadata'],
-	    readwrite ? 'readwrite' : 'readonly');
+        return this.database.transaction(
+            ['documents', 'documents_metadata'],
+            readwrite ? 'readwrite' : 'readonly');
     }
 
     sanitize_filename(filename) {
@@ -392,92 +392,92 @@ class DocumentStorage {
     }
 
     load_state(filename, onsuccess, onerror) {
-	if(!this.database) return onerror();
-	let transaction = this.create_transaction(false);
-	let document_store = transaction.objectStore('documents');
-	let request = document_store.get(filename);
-	request.onsuccess = () => {
-	    // NOTE: request.result will be undefined if the filename key wasn't
-	    // found.  This still counts as a 'success'.
-	    const json = request.result;
-	    if(json) {
-		const app_state = AppState.from_json(request.result);
-		onsuccess(filename, app_state);
-	    }
-	    else
-		onerror(filename, '???');  // TODO
-	};
-	request.onerror = () => {
-	    onerror(filename, '???');  // TODO
-	};
+        if(!this.database) return onerror();
+        let transaction = this.create_transaction(false);
+        let document_store = transaction.objectStore('documents');
+        let request = document_store.get(filename);
+        request.onsuccess = () => {
+            // NOTE: request.result will be undefined if the filename key wasn't
+            // found.  This still counts as a 'success'.
+            const json = request.result;
+            if(json) {
+                const app_state = AppState.from_json(request.result);
+                onsuccess(filename, app_state);
+            }
+            else
+                onerror(filename, '???');  // TODO
+        };
+        request.onerror = () => {
+            onerror(filename, '???');  // TODO
+        };
     }
 
     save_state(app_state, filename, onsuccess, onerror) {
-	if(!this.database) return onerror();
+        if(!this.database) return onerror();
         let serialized_json = app_state.to_json();
-	serialized_json.filename = filename;
+        serialized_json.filename = filename;
 
-	// Estimate the file size by serializing JSON.
-	// IndexedDB also does this serialization itself, but there doesn't
-	// seem to be any way to reuse that result directly.
-	const filesize = JSON.stringify(serialized_json).length;
+        // Estimate the file size by serializing JSON.
+        // IndexedDB also does this serialization itself, but there doesn't
+        // seem to be any way to reuse that result directly.
+        const filesize = JSON.stringify(serialized_json).length;
 
-	const metadata_json = {
-	    filename: filename,
-	    filesize: filesize,
-	    description: '',  // TODO
-	    stack_item_count: app_state.stack.depth(),
-	    document_item_count: app_state.document.items.length,
-	    timestamp: new Date()
-	};
-	
-	let transaction = this.create_transaction(true);
-	transaction.objectStore('documents').put(serialized_json);
-	transaction.objectStore('documents_metadata').put(metadata_json);
-	if(onsuccess) transaction.oncomplete = onsuccess;
-	if(onerror) transaction.onabort = onerror;
+        const metadata_json = {
+            filename: filename,
+            filesize: filesize,
+            description: '',  // TODO
+            stack_item_count: app_state.stack.depth(),
+            document_item_count: app_state.document.items.length,
+            timestamp: new Date()
+        };
+        
+        let transaction = this.create_transaction(true);
+        transaction.objectStore('documents').put(serialized_json);
+        transaction.objectStore('documents_metadata').put(metadata_json);
+        if(onsuccess) transaction.oncomplete = onsuccess;
+        if(onerror) transaction.onabort = onerror;
     }
 
     delete_state(filename, onsuccess, onerror) {
-	if(!this.database) return onerror();
-	let transaction = this.create_transaction(true);
-	transaction.objectStore('documents').delete(filename);
-	transaction.objectStore('documents_metadata').delete(filename);
-	if(onsuccess) transaction.oncomplete = onsuccess;
-	if(onerror) transaction.onabort = onerror;
+        if(!this.database) return onerror();
+        let transaction = this.create_transaction(true);
+        transaction.objectStore('documents').delete(filename);
+        transaction.objectStore('documents_metadata').delete(filename);
+        if(onsuccess) transaction.oncomplete = onsuccess;
+        if(onerror) transaction.onabort = onerror;
     }
 
     fetch_file_list(onsuccess, onerror) {
-	if(!this.database) return onerror();
-	let transaction = this.create_transaction(false);
-	let request = transaction.objectStore('documents_metadata').getAll();
-	request.onsuccess = () => {
-	    request.result.forEach(row => {
-		// Parse the timestamp
-		const ts_value = Date.parse(row.timestamp);
-		row.timestamp = ts_value ? new Date(ts_value) : null;
-	    });
-	    onsuccess(request.result);
-	};
-	request.onerror = onerror;
+        if(!this.database) return onerror();
+        let transaction = this.create_transaction(false);
+        let request = transaction.objectStore('documents_metadata').getAll();
+        request.onsuccess = () => {
+            request.result.forEach(row => {
+                // Parse the timestamp
+                const ts_value = Date.parse(row.timestamp);
+                row.timestamp = ts_value ? new Date(ts_value) : null;
+            });
+            onsuccess(request.result);
+        };
+        request.onerror = onerror;
     }
 
     // Fetch all documents using a cursor.  'onrowfetched' is invoked once per document
     // and then 'onfinished' is invoked at the end.
     fetch_all_documents(onrowfetched, onfinished, onerror) {
-	if(!this.database) return onerror();
-	let transaction = this.create_transaction(false);
-	let cursor = transaction.objectStore('documents').openCursor();
-	cursor.onsuccess = (event) => {
-	    const c = event.target.result;
-	    if(c) {
-		onrowfetched(c.value);
-		c.continue();
-	    }
-	    else
-		onfinished();
-	};
-	cursor.onerror = onerror;
+        if(!this.database) return onerror();
+        let transaction = this.create_transaction(false);
+        let cursor = transaction.objectStore('documents').openCursor();
+        cursor.onsuccess = (event) => {
+            const c = event.target.result;
+            if(c) {
+                onrowfetched(c.value);
+                c.continue();
+            }
+            else
+                onfinished();
+        };
+        cursor.onerror = onerror;
     }
 }
 
@@ -485,184 +485,184 @@ class DocumentStorage {
 // Manage state of importing/exporting zip archives.
 class ImportExportState {
     constructor() {
-	// States:
-	//   'idle' - if this.download_url is populated, an export download is ready
-	//   'error' - export failed, this.error_message is populated
-	//   'loading' - in the process of loading from the database cursor
-	//   'zipping' - creation of zip file in progress
-	//   'uploading' - user is uploading an archive zipfile
-	//   'importing' - uploaded zipfile is being processed/imported
-	this.state = 'idle';
+        // States:
+        //   'idle' - if this.download_url is populated, an export download is ready
+        //   'error' - export failed, this.error_message is populated
+        //   'loading' - in the process of loading from the database cursor
+        //   'zipping' - creation of zip file in progress
+        //   'uploading' - user is uploading an archive zipfile
+        //   'importing' - uploaded zipfile is being processed/imported
+        this.state = 'idle';
 
-	this.document_storage = null;  // will be initialized by AppState
+        this.document_storage = null;  // will be initialized by AppState
 
-	// Number of imported documents handled so far.
-	this.import_count = 0;
+        // Number of imported documents handled so far.
+        this.import_count = 0;
 
-	// Number of failures noted this import (if >0, this.error_message will also be set).
-	this.failed_count = 0;
-	this.error_message = null;
+        // Number of failures noted this import (if >0, this.error_message will also be set).
+        this.failed_count = 0;
+        this.error_message = null;
 
-	// Holds the last-generated blob download URL, if any.
-	this.download_url = null;
+        // Holds the last-generated blob download URL, if any.
+        this.download_url = null;
 
-	// This will be set on a successful import.
-	this.import_result_string = null;
+        // This will be set on a successful import.
+        this.import_result_string = null;
 
-	// This will be set to true if the main file list (FileManagerState) needs to be refreshed from the DB.
-	this.file_list_needs_update = false;
+        // This will be set to true if the main file list (FileManagerState) needs to be refreshed from the DB.
+        this.file_list_needs_update = false;
 
-	// This can be set to a function to monitor state changes.
-	this.onstatechange = null;
+        // This can be set to a function to monitor state changes.
+        this.onstatechange = null;
     }
 
     // TODO: -> state_description()
     textual_state() {
-	switch(this.state) {
-	case 'idle': return this.download_url ? 'Download Ready' : 'Ready for import or export';
-	case 'error': return 'Error: ' + this.error_message;
-	case 'loading': return 'Extacting database...';
-	case 'zipping': return 'Compressing files...';
-	case 'uploading': return 'Uploading data...';
-	case 'importing': return 'Importing documents: ' + this.import_count + ' so far';
-	default: return '???';
-	}
+        switch(this.state) {
+        case 'idle': return this.download_url ? 'Download Ready' : 'Ready for import or export';
+        case 'error': return 'Error: ' + this.error_message;
+        case 'loading': return 'Extacting database...';
+        case 'zipping': return 'Compressing files...';
+        case 'uploading': return 'Uploading data...';
+        case 'importing': return 'Importing documents: ' + this.import_count + ' so far';
+        default: return '???';
+        }
     }
 
     download_available() {
-	return this.state === 'idle' && this.download_url;
+        return this.state === 'idle' && this.download_url;
     }
 
     generate_download_filename() {
-	const date = new Date();
-	return [
-	    'rpnlatex_', date.getFullYear().toString(), '_',
-	    date.toLocaleString('default', {month: 'short'}).toLowerCase(),
-	    '_', date.getDate().toString().padStart(2, '0'), '.zip'
-	].join('');
+        const date = new Date();
+        return [
+            'rpnlatex_', date.getFullYear().toString(), '_',
+            date.toLocaleString('default', {month: 'short'}).toLowerCase(),
+            '_', date.getDate().toString().padStart(2, '0'), '.zip'
+        ].join('');
     }
 
     change_state(new_state) {
-	this.state = new_state;
-	if(this.onstatechange)
-	    this.onstatechange(this);
+        this.state = new_state;
+        if(this.onstatechange)
+            this.onstatechange(this);
     }
     
     start_exporting() {
-	let document_storage = this.document_storage;
-	this.zip = new JSZip();
-	document_storage.fetch_all_documents(
-	    (row) => this.add_document_json_to_zip(row),
-	    () => this.start_compressing(),
-	    () => {
-		this.error_message = 'Unable to export the document database.';
-		this.change_state('error');
-	    });
-	this.change_state('loading');
+        let document_storage = this.document_storage;
+        this.zip = new JSZip();
+        document_storage.fetch_all_documents(
+            (row) => this.add_document_json_to_zip(row),
+            () => this.start_compressing(),
+            () => {
+                this.error_message = 'Unable to export the document database.';
+                this.change_state('error');
+            });
+        this.change_state('loading');
     }
 
     add_document_json_to_zip(json) {
-	this.zip.file(json.filename + '.json', JSON.stringify(json));
+        this.zip.file(json.filename + '.json', JSON.stringify(json));
     }
 
     start_compressing() {
-	this.change_state('zipping');
-	this.zip.generateAsync({type: 'blob'}).then(content_blob => {
-	    this.finished_compressing(content_blob);
-	});
+        this.change_state('zipping');
+        this.zip.generateAsync({type: 'blob'}).then(content_blob => {
+            this.finished_compressing(content_blob);
+        });
     }
 
     clear_download_url() {
-	if(this.download_url) {
-	    URL.revokeObjectURL(this.download_url);
-	    this.download_url = null;
-	}
+        if(this.download_url) {
+            URL.revokeObjectURL(this.download_url);
+            this.download_url = null;
+        }
     }
 
     finished_compressing(content_blob) {
-	this.clear_download_url();
-	this.download_url = URL.createObjectURL(content_blob);
-	this.zip = null;
-	this.change_state('idle');
+        this.clear_download_url();
+        this.download_url = URL.createObjectURL(content_blob);
+        this.zip = null;
+        this.change_state('idle');
     }
 
     // zipfile is a File object from a <input type="file"> element.
     start_importing(zipfile) {
-	this.clear_download_url();
-	this.import_result_string = null;
-	if(zipfile.type !== 'application/zip') {
-	    alert('Import files must be zip archives.');
-	    return;
-	}
-	this.change_state('uploading');
-	let reader = new FileReader();
-	reader.addEventListener(
-	    'load',
-	    event => this.process_uploaded_data(event.target.result));
-	reader.readAsArrayBuffer(zipfile);
+        this.clear_download_url();
+        this.import_result_string = null;
+        if(zipfile.type !== 'application/zip') {
+            alert('Import files must be zip archives.');
+            return;
+        }
+        this.change_state('uploading');
+        let reader = new FileReader();
+        reader.addEventListener(
+            'load',
+            event => this.process_uploaded_data(event.target.result));
+        reader.readAsArrayBuffer(zipfile);
     }
 
     process_uploaded_data(data) {
-	this.import_count = 0;
-	this.error_message = null;
-	this.change_state('importing');
-	JSZip.loadAsync(data).then(zipfile => {
-	    let promises = [];
-	    for(let filename in zipfile.files) {
-		const file = zipfile.files[filename];
-		if(filename.endsWith('.json')) {
-		    promises.push(
-			file.async('string').then(
-			    content => this.import_file(file.name.slice(0, file.name.length-5), content)));
-		}
-		else {
-		    this.error_message = 'Invalid filename in archive: ' + filename;
-		    this.failed_count++;
-		}
-	    }
-	    Promise.all(promises).then(
-		() => {
-		    if(this.failed_count > 0)
-			this.import_result_string = 'Errors encountered: ' + this.error_message;
-		    else
-			this.import_result_string = 'Successfully imported ' + this.import_count + ' document' + (this.import_count === 1 ? '' : 's');
-		    this.change_state('idle');
-		    this.file_list_needs_update = true;
-		});
-	});
+        this.import_count = 0;
+        this.error_message = null;
+        this.change_state('importing');
+        JSZip.loadAsync(data).then(zipfile => {
+            let promises = [];
+            for(let filename in zipfile.files) {
+                const file = zipfile.files[filename];
+                if(filename.endsWith('.json')) {
+                    promises.push(
+                        file.async('string').then(
+                            content => this.import_file(file.name.slice(0, file.name.length-5), content)));
+                }
+                else {
+                    this.error_message = 'Invalid filename in archive: ' + filename;
+                    this.failed_count++;
+                }
+            }
+            Promise.all(promises).then(
+                () => {
+                    if(this.failed_count > 0)
+                        this.import_result_string = 'Errors encountered: ' + this.error_message;
+                    else
+                        this.import_result_string = 'Successfully imported ' + this.import_count + ' document' + (this.import_count === 1 ? '' : 's');
+                    this.change_state('idle');
+                    this.file_list_needs_update = true;
+                });
+        });
     }
 
     import_file(filename, content) {
-	let document_storage = this.document_storage;
-	let parsed, app_state;
-	try {
-	    parsed = JSON.parse(content);
-	    app_state = AppState.from_json(parsed);
-	} catch(e) {
-	    this.error_message = 'Invalid document found in zip file: ' + filename;
-	    this.failed_count++;
-	    return;
-	}
-	document_storage.save_state(app_state, filename);
-	this.import_count++;
-	this.change_state('importing');
+        let document_storage = this.document_storage;
+        let parsed, app_state;
+        try {
+            parsed = JSON.parse(content);
+            app_state = AppState.from_json(parsed);
+        } catch(e) {
+            this.error_message = 'Invalid document found in zip file: ' + filename;
+            this.failed_count++;
+            return;
+        }
+        document_storage.save_state(app_state, filename);
+        this.import_count++;
+        this.change_state('importing');
     }
 }
 
 
 class FileManagerState {
     constructor(file_list, selected_filename, current_filename) {
-	this.file_list = file_list;
-	this.selected_filename = selected_filename;
-	this.current_filename = current_filename;
-	this.unavailable = false;  // set to true if there's a database error
+        this.file_list = file_list;
+        this.selected_filename = selected_filename;
+        this.current_filename = current_filename;
+        this.unavailable = false;  // set to true if there's a database error
     }
 
     sort_file_list(field, ascending) {
-	this.file_list.sort((a, b) => {
-	    const a_value = a[field], b_value = b[field];
-	    return (ascending ? 1 : -1)*(a_value === b_value ? 0 : (a_value < b_value ? -1 : 1));
-	});
+        this.file_list.sort((a, b) => {
+            const a_value = a[field], b_value = b[field];
+            return (ascending ? 1 : -1)*(a_value === b_value ? 0 : (a_value < b_value ? -1 : 1));
+        });
     }
 
     // basename -> basename_1
@@ -670,33 +670,33 @@ class FileManagerState {
     // The first available name is used, so basename_50 -> basename_2
     // if basename_2 is available but basename_1 is taken.
     generate_unused_filename(basename) {
-	if(this.unavailable || !this.file_list)
-	    return basename;
-	basename = basename.replace(/_\d+$/, '')
-	for(let n = 1; n < 1000; n++) {
-	    const candidate = basename + '_' + n;
-	    if(!this.file_list.some(file => file.filename === candidate))
-		return candidate;
-	}
-	return basename + '_toomany';
+        if(this.unavailable || !this.file_list)
+            return basename;
+        basename = basename.replace(/_\d+$/, '')
+        for(let n = 1; n < 1000; n++) {
+            const candidate = basename + '_' + n;
+            if(!this.file_list.some(file => file.filename === candidate))
+                return candidate;
+        }
+        return basename + '_toomany';
     }
 
     // For moving up or down in the list of files.
     find_adjacent_filename(filename, offset) {
-	if(this.unavailable || !this.file_list) return null;
-	let new_filename = null;
-	let file_list = this.file_list;
-	file_list.forEach((f, index) => {
-	    if(f.filename === filename) {
-		let new_index = index+offset;
-		if(new_index < 0) new_index = 0;
-		if(new_index >= file_list.length) new_index = file_list.length-1;
-		new_filename = file_list[new_index].filename;
-	    }
-	});
-	if(!new_filename && file_list.length > 0)
-	    new_filename = file_list[0].filename;
-	return new_filename;
+        if(this.unavailable || !this.file_list) return null;
+        let new_filename = null;
+        let file_list = this.file_list;
+        file_list.forEach((f, index) => {
+            if(f.filename === filename) {
+                let new_index = index+offset;
+                if(new_index < 0) new_index = 0;
+                if(new_index >= file_list.length) new_index = file_list.length-1;
+                new_filename = file_list[new_index].filename;
+            }
+        });
+        if(!new_filename && file_list.length > 0)
+            new_filename = file_list[0].filename;
+        return new_filename;
     }
 }
 
@@ -706,12 +706,12 @@ class Expr {
         switch(json.expr_type) {
         case 'command':
             return new CommandExpr(json.command_name, this._list(json.operand_exprs), json.options);
-	case 'prefix':
-	    return new PrefixExpr(this._expr(json.base_expr), this._expr(json.prefix_expr));
+        case 'prefix':
+            return new PrefixExpr(this._expr(json.base_expr), this._expr(json.prefix_expr));
         case 'infix':
             return new InfixExpr(this._expr(json.operator_expr), this._expr(json.left_expr), this._expr(json.right_expr));
-	case 'defer':
-	    return new DeferExpr();
+        case 'defer':
+            return new DeferExpr();
         case 'text':
             return new TextExpr(json.text);
         case 'sequence':
@@ -720,8 +720,8 @@ class Expr {
             return new DelimiterExpr(json.left_type, json.right_type, json.middle_type, this._list(json.inner_exprs));
         case 'subscriptsuperscript':
             return new SubscriptSuperscriptExpr(this._expr(json.base_expr), this._expr(json.subscript_expr), this._expr(json.superscript_expr));
-	case 'array':
-	    return new ArrayExpr(json.array_type, json.row_count, json.column_count, this._list2d(json.element_exprs));
+        case 'array':
+            return new ArrayExpr(json.array_type, json.row_count, json.column_count, this._list2d(json.element_exprs));
         case 'accumulator':
             return new AccumulatorExpr(json.accumulator_type, json.text);
         default:
@@ -763,20 +763,20 @@ class Expr {
     
     // TODO: remove if not actually needed
     static combine_exprs(exprs) {
-	switch(exprs.length) {
-	case 0: return null;
-	case 1: return exprs[0];
-	case 2: return Expr.combine_pair(exprs[0], exprs[1]);
-	default: return Expr.combine_pair(exprs[0], Expr.combine_exprs(exprs.slice(1)));
-	}
+        switch(exprs.length) {
+        case 0: return null;
+        case 1: return exprs[0];
+        case 2: return Expr.combine_pair(exprs[0], exprs[1]);
+        default: return Expr.combine_pair(exprs[0], Expr.combine_exprs(exprs.slice(1)));
+        }
     }
     
     expr_type() { return '???'; }
 
     to_latex() {
-	let emitter = new LatexEmitter();
-	this.emit_latex(emitter);
-	return emitter.finished_string();
+        let emitter = new LatexEmitter();
+        this.emit_latex(emitter);
+        return emitter.finished_string();
     }
 
     emit_latex(emitter) { emitter.text('INVALID'); }
@@ -796,7 +796,7 @@ class Expr {
                 value = obj.to_json();
             else if(typeof(obj) === 'object') {
                 // Assume it's an Array.  It could also be a 2-dimensional array, in which case the subclasses
-		// need to extend to_json() instead of relying on this default.
+                // need to extend to_json() instead of relying on this default.
                 value = obj.map(elt => elt.to_json());
             }
             else // Strings, numbers, etc.
@@ -815,20 +815,20 @@ class Expr {
 
     // Find the first DeferExpr that exists in this expression.  Returns null if none.
     find_defer() {
-	let found = null;
-	this.visit(expr => {
-	    if(expr.expr_type() === 'defer' && !found)
-		found = expr;
-	});
-	return found;
+        let found = null;
+        this.visit(expr => {
+            if(expr.expr_type() === 'defer' && !found)
+                found = expr;
+        });
+        return found;
     }
 
     // Return a (possibly) new Expr with old_expr substituted for new_expr, if old_expr is present.
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr)
-	    return new_expr;
-	else
-	    return this;
+        if(this === old_expr)
+            return new_expr;
+        else
+            return this;
     }
 }
 
@@ -852,7 +852,7 @@ class CommandExpr extends Expr {
             this.command_name = command_name;
             this.options = options === undefined ? null : options;
         }
-	this.operand_exprs = operand_exprs || [];
+        this.operand_exprs = operand_exprs || [];
     }
 
     operand_count() { return this.operand_exprs.length; }
@@ -860,23 +860,23 @@ class CommandExpr extends Expr {
     json_keys() { return ['command_name', 'operand_exprs', 'options']; }
 
     emit_latex(emitter) {
-	emitter.command(this.command_name, this.options);
-	// Braces need to be forced around each operand, even single-letter operands.
-	this.operand_exprs.forEach(operand_expr => emitter.grouped_expr(operand_expr, 'force'));
+        emitter.command(this.command_name, this.options);
+        // Braces need to be forced around each operand, even single-letter operands.
+        this.operand_exprs.forEach(operand_expr => emitter.grouped_expr(operand_expr, 'force'));
     }
 
     visit(fn) {
-	fn(this);
-	this.operand_exprs.forEach(operand_expr => operand_expr.visit(fn));
+        fn(this);
+        this.operand_exprs.forEach(operand_expr => operand_expr.visit(fn));
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	return new CommandExpr(
-	    this.command_name,
-	    this.operand_exprs.map(operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
-	    this.options
-	);
+        if(this === old_expr) return new_expr;
+        return new CommandExpr(
+            this.command_name,
+            this.operand_exprs.map(operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
+            this.options
+        );
     }
 }
 
@@ -887,9 +887,9 @@ class CommandExpr extends Expr {
 // with infix '+', etc.
 class PrefixExpr extends Expr {
     constructor(base_expr, prefix_expr) {
-	super();
-	this.base_expr = base_expr;
-	this.prefix_expr = prefix_expr;
+        super();
+        this.base_expr = base_expr;
+        this.prefix_expr = prefix_expr;
     }
 
     expr_type() { return 'prefix'; }
@@ -897,21 +897,21 @@ class PrefixExpr extends Expr {
     json_keys() { return ['base_expr', 'prefix_expr']; }
 
     emit_latex(emitter) {
-	emitter.expr(this.prefix_expr);
-	emitter.expr(this.base_expr);
+        emitter.expr(this.prefix_expr);
+        emitter.expr(this.base_expr);
     }
 
     visit(fn) {
-	this.prefix_expr.visit(fn);
-	fn(this);
-	this.base_expr.visit(fn);
+        this.prefix_expr.visit(fn);
+        fn(this);
+        this.base_expr.visit(fn);
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	return new PrefixExpr(
-	    this.base_expr.substitute_expr(old_expr, new_expr),
-	    this.prefix_expr.substitute_expr(old_expr, new_expr));
+        if(this === old_expr) return new_expr;
+        return new PrefixExpr(
+            this.base_expr.substitute_expr(old_expr, new_expr),
+            this.prefix_expr.substitute_expr(old_expr, new_expr));
     }
 }
 
@@ -953,23 +953,23 @@ class InfixExpr extends Expr {
     }
 
     emit_latex(emitter) {
-	if(this.left_expr) emitter.expr(this.left_expr);
-	emitter.expr(this.operator_expr);
+        if(this.left_expr) emitter.expr(this.left_expr);
+        emitter.expr(this.operator_expr);
         if(this.right_expr) emitter.expr(this.right_expr);
     }
 
     visit(fn) {
-	if(this.left_expr) this.left_expr.visit(fn);
-	fn(this);
-	if(this.right_expr) this.right_expr.visit(fn);
+        if(this.left_expr) this.left_expr.visit(fn);
+        fn(this);
+        if(this.right_expr) this.right_expr.visit(fn);
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	return new InfixExpr(
-	    this.operator_expr.substitute_expr(old_expr, new_expr),
-	    this.left_expr.substitute_expr(old_expr, new_expr),
-	    this.right_expr.substitute_expr(old_expr, new_expr));
+        if(this === old_expr) return new_expr;
+        return new InfixExpr(
+            this.operator_expr.substitute_expr(old_expr, new_expr),
+            this.left_expr.substitute_expr(old_expr, new_expr),
+            this.right_expr.substitute_expr(old_expr, new_expr));
     }
 }
 
@@ -980,11 +980,11 @@ class DeferExpr extends Expr {
     json_keys() { return []; }
 
     emit_latex(emitter) {
-	// TODO: Maybe use KaTeX HTML support to give it a CSS class to color it
-	// according to the current color theme.
-	// const expr = new CommandExpr('circledast');
-	const expr = new CommandExpr('htmlClass', [new TextExpr('defer_expr'), new CommandExpr('circledast')]);
-	emitter.expr(expr);
+        // TODO: Maybe use KaTeX HTML support to give it a CSS class to color it
+        // according to the current color theme.
+        // const expr = new CommandExpr('circledast');
+        const expr = new CommandExpr('htmlClass', [new TextExpr('defer_expr'), new CommandExpr('circledast')]);
+        emitter.expr(expr);
     }
 }
 
@@ -1015,18 +1015,18 @@ class SequenceExpr extends Expr {
     json_keys() { return ['exprs']; }
 
     emit_latex(emitter) {
-	this.exprs.forEach(expr => emitter.expr(expr));
+        this.exprs.forEach(expr => emitter.expr(expr));
     }
 
     visit(fn) {
-	fn(this);
-	this.exprs.forEach(expr => expr.visit(fn));
+        fn(this);
+        this.exprs.forEach(expr => expr.visit(fn));
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	return new SequenceExpr(
-	    this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
+        if(this === old_expr) return new_expr;
+        return new SequenceExpr(
+            this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
     }
 }
 
@@ -1059,29 +1059,29 @@ class DelimiterExpr extends Expr {
     json_keys() { return ['left_type', 'right_type', 'middle_type', 'inner_exprs']; }
 
     emit_latex(emitter) {
-	emitter.command('left');
-	emitter.text_or_command(this.left_type);
-	this.inner_exprs.forEach((expr, index) => {
-	    if(index > 0) {
-		emitter.command('middle');
-		emitter.text_or_command(this.middle_type || '|');
-	    }
-	    emitter.expr(expr);
-	});
-	emitter.command('right');
-	emitter.text_or_command(this.right_type);
+        emitter.command('left');
+        emitter.text_or_command(this.left_type);
+        this.inner_exprs.forEach((expr, index) => {
+            if(index > 0) {
+                emitter.command('middle');
+                emitter.text_or_command(this.middle_type || '|');
+            }
+            emitter.expr(expr);
+        });
+        emitter.command('right');
+        emitter.text_or_command(this.right_type);
     }
 
     visit(fn) {
-	fn(this);
-	this.inner_exprs.forEach(expr => expr.visit(fn));
+        fn(this);
+        this.inner_exprs.forEach(expr => expr.visit(fn));
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	return new DelimiterExpr(
-	    this.left_type, this.right_type, this.middle_type,
-	    this.inner_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
+        if(this === old_expr) return new_expr;
+        return new DelimiterExpr(
+            this.left_type, this.right_type, this.middle_type,
+            this.inner_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
     }
 }
 
@@ -1100,39 +1100,39 @@ class SubscriptSuperscriptExpr extends Expr {
     json_keys() { return ['base_expr', 'subscript_expr', 'superscript_expr']; }
 
     emit_latex(emitter) {
-	// If the base_expr is a command, don't put it inside grouping braces.
-	// This accounts for attaching subscripts or superscripts to commands
-	// with arguments such as \underbrace{xyz}_{abc}.
-	if(this.base_expr.expr_type() === 'command')
-	    emitter.expr(this.base_expr);
-	else
-	    emitter.grouped_expr(this.base_expr);
-	if(this.subscript_expr) {
-	    emitter.text('_');
-	    // 'force_commands' ensures that single LaTeX commands are still grouped, even
-	    // though single-letter super/subscripts are still OK to leave ungrouped.
-	    // e.g.: x^{\sum} instead of x^\sum, but x^2 is fine.
-	    emitter.grouped_expr(this.subscript_expr, 'force_commands');
-	}
-	if(this.superscript_expr) {
-	    emitter.text('^');
-	    emitter.grouped_expr(this.superscript_expr, 'force_commands');
-	}
+        // If the base_expr is a command, don't put it inside grouping braces.
+        // This accounts for attaching subscripts or superscripts to commands
+        // with arguments such as \underbrace{xyz}_{abc}.
+        if(this.base_expr.expr_type() === 'command')
+            emitter.expr(this.base_expr);
+        else
+            emitter.grouped_expr(this.base_expr);
+        if(this.subscript_expr) {
+            emitter.text('_');
+            // 'force_commands' ensures that single LaTeX commands are still grouped, even
+            // though single-letter super/subscripts are still OK to leave ungrouped.
+            // e.g.: x^{\sum} instead of x^\sum, but x^2 is fine.
+            emitter.grouped_expr(this.subscript_expr, 'force_commands');
+        }
+        if(this.superscript_expr) {
+            emitter.text('^');
+            emitter.grouped_expr(this.superscript_expr, 'force_commands');
+        }
     }
 
     visit(fn) {
-	fn(this);
-	this.base_expr.visit(fn);
-	if(this.subscript_expr) this.subscript_expr.visit(fn);
-	if(this.superscript_expr) this.superscript_expr.visit(fn);
+        fn(this);
+        this.base_expr.visit(fn);
+        if(this.subscript_expr) this.subscript_expr.visit(fn);
+        if(this.superscript_expr) this.superscript_expr.visit(fn);
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	return new SubscriptSuperscriptExpr(
-	    this.base_expr.substitute_expr(old_expr, new_expr),
-	    this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
-	    this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
+        if(this === old_expr) return new_expr;
+        return new SubscriptSuperscriptExpr(
+            this.base_expr.substitute_expr(old_expr, new_expr),
+            this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
+            this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
     }
 }
 
@@ -1144,7 +1144,7 @@ class ArrayExpr extends Expr {
     //    'infix': place alignment markers before infix, if any
     //    'colon': if there is a ':' infix, remove it and place alignment marker where it was
     static split_elements(exprs, split_mode) {
-	return exprs.map(expr => ArrayExpr._split_expr(expr, split_mode));
+        return exprs.map(expr => ArrayExpr._split_expr(expr, split_mode));
     }
 
     // Split up 'expr' into separately-aligned 'columns'.
@@ -1168,28 +1168,28 @@ class ArrayExpr extends Expr {
     }
     
     constructor(array_type, row_count, column_count, element_exprs) {
-	super();
-	this.array_type = array_type;
-	this.row_count = row_count;
-	this.column_count = column_count;
-	this.element_exprs = element_exprs;
+        super();
+        this.array_type = array_type;
+        this.row_count = row_count;
+        this.column_count = column_count;
+        this.element_exprs = element_exprs;
     }
 
     expr_type() { return 'array'; }
     json_keys() { return ['array_type', 'row_count', 'column_count']; }
 
     is_matrix() {
-	const t = this.array_type;
-	// TODO: t.endsWith('matrix')?
-	return (t === 'bmatrix' || t === 'Bmatrix' || t === 'matrix' ||
-		t === 'pmatrix' || t === 'vmatrix' || t === 'Vmatrix');
+        const t = this.array_type;
+        // TODO: t.endsWith('matrix')?
+        return (t === 'bmatrix' || t === 'Bmatrix' || t === 'matrix' ||
+                t === 'pmatrix' || t === 'vmatrix' || t === 'Vmatrix');
     }
 
     to_json() {
-	let json = super.to_json();
-	json.element_exprs = this.element_exprs.map(
-	    row_exprs => row_exprs.map(expr => expr.to_json()));
-	return json;
+        let json = super.to_json();
+        json.element_exprs = this.element_exprs.map(
+            row_exprs => row_exprs.map(expr => expr.to_json()));
+        return json;
     }
 
     // Return a new ArrayExpr like this one, but with ellipses inserted before the
@@ -1244,29 +1244,29 @@ class ArrayExpr extends Expr {
     }
 
     emit_latex(emitter) {
-	emitter.begin_environment(this.array_type);
-	this.element_exprs.forEach((row_exprs, row_index) => {
-	    if(row_index > 0) emitter.row_separator();
-	    row_exprs.forEach((expr, col_index) => {
-		if(col_index > 0) emitter.align_separator();
-		if(expr) emitter.expr(expr);
-	    });
-	});
-	emitter.end_environment(this.array_type);
+        emitter.begin_environment(this.array_type);
+        this.element_exprs.forEach((row_exprs, row_index) => {
+            if(row_index > 0) emitter.row_separator();
+            row_exprs.forEach((expr, col_index) => {
+                if(col_index > 0) emitter.align_separator();
+                if(expr) emitter.expr(expr);
+            });
+        });
+        emitter.end_environment(this.array_type);
     }
 
     visit(fn) {
-	fn(this);
-	this.element_exprs.forEach(
-	    row_exprs => row_exprs.forEach(expr => expr.visit(fn)));
+        fn(this);
+        this.element_exprs.forEach(
+            row_exprs => row_exprs.forEach(expr => expr.visit(fn)));
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	const new_element_exprs = this.element_exprs.map(
-	    row_exprs => row_exprs.map(
-		expr => expr.substitute_expr(old_expr, new_expr)));
-	return new ArrayExpr(this.array_type, this.row_count, this.column_count, new_element_exprs);
+        if(this === old_expr) return new_expr;
+        const new_element_exprs = this.element_exprs.map(
+            row_exprs => row_exprs.map(
+                expr => expr.substitute_expr(old_expr, new_expr)));
+        return new ArrayExpr(this.array_type, this.row_count, this.column_count, new_element_exprs);
     }
 }
 
@@ -1295,21 +1295,21 @@ class AccumulatorExpr extends Expr {
 
     is_valid_character(ch) {
         if(this.accumulator_type === 'latex') {
-	    // LaTeX commands can only contain upper/lowercase letters,
-	    // with the exception of single-character commands like \:
-	    const alpha_regex = /^[a-zA-Z]$/;
-	    if(this.text.length === 0 && ch.length === 1)
-		return true;
-	    else if(this.text.length === 1 && !alpha_regex.test(this.text))
-		return false;
-	    else
-		return alpha_regex.test(ch);
-	}
+            // LaTeX commands can only contain upper/lowercase letters,
+            // with the exception of single-character commands like \:
+            const alpha_regex = /^[a-zA-Z]$/;
+            if(this.text.length === 0 && ch.length === 1)
+                return true;
+            else if(this.text.length === 1 && !alpha_regex.test(this.text))
+                return false;
+            else
+                return alpha_regex.test(ch);
+        }
         else {
-	    // Allow anything in 'normal' text, but suppress multi-character
-	    // strings like "Alt" that can come in from keyboard events.
+            // Allow anything in 'normal' text, but suppress multi-character
+            // strings like "Alt" that can come in from keyboard events.
             return ch.length === 1;
-	}
+        }
     }
 
     is_empty() { return this.text.length === 0; }
@@ -1328,46 +1328,46 @@ class AccumulatorExpr extends Expr {
 
     // TODO: may want to make this a general utility method, but it's only used here so far.
     _latex_escape(text) {
-	const replacements = {
-	    '_': "\\_",
-	    '^': "\\wedge",
-	    '%': "\\%",
-	    "'": "\\prime",
-	    "`": "\\backprime",
-	    ' ': "\\,",
-	    '$': "\\$",
-	    '&': "\\&",
-	    '#': "\\#",
-	    '}': "\\}",
-	    '{': "\\{",
-	    '~': "\\sim",
-	    "\\": "\\backslash",
-	};
-	return text.replaceAll(/[_^%'` $&#}{~\\]/g, match => replacements[match]);
+        const replacements = {
+            '_': "\\_",
+            '^': "\\wedge",
+            '%': "\\%",
+            "'": "\\prime",
+            "`": "\\backprime",
+            ' ': "\\,",
+            '$': "\\$",
+            '&': "\\&",
+            '#': "\\#",
+            '}': "\\}",
+            '{': "\\{",
+            '~': "\\sim",
+            "\\": "\\backslash",
+        };
+        return text.replaceAll(/[_^%'` $&#}{~\\]/g, match => replacements[match]);
     }
 
     emit_latex(emitter) {
-	emitter.expr(this._to_display_expr());
+        emitter.expr(this._to_display_expr());
     }
 
     // Return an Expr used to display this accumulator while it's being edited.
     _to_display_expr() {
-	switch(this.accumulator_type) {
-	case 'latex':
-	    return new SequenceExpr([
-		new CommandExpr('backslash'),
-		new CommandExpr('mathrm', [
-		    this.is_empty() ? new CommandExpr('thinspace') : new TextExpr(this._latex_escape(this.text))
-		])]);
-	case 'text':
-	    return new CommandExpr('boxed', [
-		new SequenceExpr([
-		    new CommandExpr('vphantom', [new TextExpr('I')]),
-		    this.is_empty() ? new CommandExpr(',') : new TextExpr(this._latex_escape(this.text))
-		])]);
-	default:
-	    return new TextExpr('???');
-	}
+        switch(this.accumulator_type) {
+        case 'latex':
+            return new SequenceExpr([
+                new CommandExpr('backslash'),
+                new CommandExpr('mathrm', [
+                    this.is_empty() ? new CommandExpr('thinspace') : new TextExpr(this._latex_escape(this.text))
+                ])]);
+        case 'text':
+            return new CommandExpr('boxed', [
+                new SequenceExpr([
+                    new CommandExpr('vphantom', [new TextExpr('I')]),
+                    this.is_empty() ? new CommandExpr(',') : new TextExpr(this._latex_escape(this.text))
+                ])]);
+        default:
+            return new TextExpr('???');
+        }
     }
 }
 
@@ -1384,12 +1384,12 @@ class Item {
     static from_json(json) {
         switch(json.item_type) {
         case 'expr': return new ExprItem(
-	    Expr.from_json(json.expr),
-	    json.tag_expr ? Expr.from_json(json.tag_expr) : null);
+            Expr.from_json(json.expr),
+            json.tag_expr ? Expr.from_json(json.tag_expr) : null);
         case 'markdown':
-	    return new MarkdownItem(json.source_text);
+            return new MarkdownItem(json.source_text);
         default:
-	    return new MarkdownItem('invalid item type ' + json.item_type);
+            return new MarkdownItem('invalid item type ' + json.item_type);
         }
     }
 
@@ -1398,7 +1398,7 @@ class Item {
     // Otherwise, it's treated as Markdown text.
     static from_string(string) {
         string = (string || '').trim();
-	// NOTE: .slice(2) here is to avoid pathological cases '$$', '$$$'
+        // NOTE: .slice(2) here is to avoid pathological cases '$$', '$$$'
         if(string.startsWith('$$') && string.slice(2).endsWith('$$')) {
             const latex = string.slice(2, -2);
             return new ExprItem(new TextExpr(latex));
@@ -1429,15 +1429,15 @@ class ExprItem extends Item {
     constructor(expr, tag_expr) {
         super()
         this.expr = expr;
-	this.tag_expr = tag_expr;
+        this.tag_expr = tag_expr;
     }
 
     item_type() { return 'expr'; }
 
     to_json() {
-	let json = {item_type: 'expr', expr: this.expr.to_json()};
-	if(this.tag_expr) json.tag_expr = this.tag_expr.to_json();
-	return json;
+        let json = {item_type: 'expr', expr: this.expr.to_json()};
+        if(this.tag_expr) json.tag_expr = this.tag_expr.to_json();
+        return json;
     }
 
     to_text() { return this.expr.to_text(); }
@@ -1456,9 +1456,9 @@ class MarkdownItem extends Item {
     is_empty() { return this.source_text.trim().length === 0; }
 
     render_markdown(source_text) {
-	// Replace $ by ` before sending it to Marked.
-	// This isn't ideal but the custom tokenizer code below doesn't seem to work.
-	source_text = source_text.replaceAll('$', '`');
+        // Replace $ by ` before sending it to Marked.
+        // This isn't ideal but the custom tokenizer code below doesn't seem to work.
+        source_text = source_text.replaceAll('$', '`');
         return marked.parse(source_text);
     }
 
@@ -1549,11 +1549,11 @@ class Stack {
     }
 
     pop_matrices(n) {
-	const [new_stack, ...exprs] = this.pop_exprs(n);
-	if(exprs.every(expr => expr.expr_type() === 'array' && expr.is_matrix()))
-	    return [new_stack, ...exprs];
-	else
-	    this.type_error();
+        const [new_stack, ...exprs] = this.pop_exprs(n);
+        if(exprs.every(expr => expr.expr_type() === 'array' && expr.is_matrix()))
+            return [new_stack, ...exprs];
+        else
+            this.type_error();
     }
 
     _unchecked_pop(n) {
@@ -1585,8 +1585,8 @@ class Stack {
 class Document {
     static from_json(json) {
         return new Document(
-	    json.items.map(item_json => Item.from_json(item_json)),
-	    json.selection_index || 0);
+            json.items.map(item_json => Item.from_json(item_json)),
+            json.selection_index || 0);
     }
 
     // NOTE: selection_index can be in the range 0..items.length (inclusive).
@@ -1638,20 +1638,20 @@ class Document {
            this.selection_index + offset <= 0 ||
            this.selection_index + offset > this.items.length)
             return null;
-	else
-	    return this.delete_selection().move_selection_by(offset).insert_item(item);
+        else
+            return this.delete_selection().move_selection_by(offset).insert_item(item);
     }
 
     to_json() {
         return {
             object_type: 'document',
             items: this.items.map(item => item.to_json()),
-	    selection_index: this.selection_index
+            selection_index: this.selection_index
         };
     }
 
     to_text() {
-	return this.items.map(item => item.to_text()).join("\n\n");
+        return this.items.map(item => item.to_text()).join("\n\n");
     }
 }
 
