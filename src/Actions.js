@@ -591,21 +591,31 @@ class InputContext {
         return new_stack.push_expr(result_expr);
     }
 
-    // \sin{x} etc.  Works like do_operator except the argument is autoparenthesized.
+    // \sin{x} etc.  Works similarly to do_operator except the argument is autoparenthesized.
     // If superscript_text is given, the text is applied as a superscript to the function
     // itself (not to the argument).
     do_named_function(stack, funcname, superscript_text) {
-	const [new_stack, arg_expr] = stack.pop_exprs(1);
+	let [new_stack, arg_expr] = stack.pop_exprs(1);
+	const orig_funcname = funcname;
+	if(superscript_text !== undefined) {
+	    // \sin^2{arg} etc.  This is a little awkward because the "head" of the command (\sin^2) is
+	    // no longer a simple LaTeX command like other CommandExprs.  Fortunately, things work out fine
+	    // treating it as such by just textually concatenating the superscript (putting in explicit braces
+	    // if necessary).  For example: "sin^2" or "sin^{-1}".
+	    if(superscript_text.length > 1)
+		superscript_text = '{' + superscript_text + '}';
+	    funcname = funcname + '^' + superscript_text;
+	}
+	arg_expr = DelimiterExpr.autoparenthesize(arg_expr);
+
+        // \sech and \csch are are missing in LaTeX for some reason so they need to be special cased here.
 	let expr;
-        // Special cases for \sech and \csch which are missing in LaTeX for some reason.
-	if(funcname === 'sech' || funcname === 'csch')
-	    expr = new CommandExpr('operatorname', [new TextExpr(funcname)]);
+	if(orig_funcname === 'sech' || orig_funcname === 'csch')
+	    expr = new CommandExpr('operatorname', [new TextExpr(funcname), arg_expr]);
 	else
-	    expr = new CommandExpr(funcname);
-	if(superscript_text !== undefined)
-	    expr = new SubscriptSuperscriptExpr(expr, null, new TextExpr(superscript_text));
-	const result_expr = Expr.combine_pair(expr, DelimiterExpr.autoparenthesize(arg_expr));
-	return new_stack.push_expr(result_expr);
+	    expr = new CommandExpr(funcname, [arg_expr]);
+
+	return new_stack.push_expr(expr);
     }
 
     // Same as do_operator, except if the object the hat is being added to is a literal 'i' or 'j',
