@@ -519,7 +519,7 @@ class ImportExportState {
     // TODO: -> state_description()
     textual_state() {
         switch(this.state) {
-        case 'idle': return this.download_url ? 'Download Ready' : 'Ready for import or export';
+        case 'idle': return this.download_url ? 'Download Ready' : 'Ready for export or import';
         case 'error': return 'Error: ' + this.error_message;
         case 'loading': return 'Extacting database...';
         case 'zipping': return 'Compressing files...';
@@ -778,16 +778,6 @@ class Expr {
 	    return new CommandExpr(new_command_name);
 	else
 	    return new SequenceExpr([left, right]);
-    }
-    
-    // TODO: remove if not actually needed
-    static combine_exprs(exprs) {
-        switch(exprs.length) {
-        case 0: return null;
-        case 1: return exprs[0];
-        case 2: return Expr.combine_pair(exprs[0], exprs[1]);
-        default: return Expr.combine_pair(exprs[0], Expr.combine_exprs(exprs.slice(1)));
-        }
     }
     
     expr_type() { return '???'; }
