@@ -3,7 +3,7 @@ const EditorKeymap = {
     base: {
         // Self-insert keys
         '[alnum]': "self_insert",
-        '!': "insert !;concat",
+        '!': "autoparenthesize;insert !;concat",
         '#': "insert \\#",
         '@': "insert @",
         '^': "superscript",
