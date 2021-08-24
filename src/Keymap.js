@@ -503,7 +503,11 @@ const EditorKeymap = {
 
     // . prefix: expression decorators (fonts, hats, etc)
     decoration: {
-        '1': "insert -1;superscript",  // raise to -1 power
+        '0': "insert 0;subscript",
+        '1': "insert -1;superscript",
+        '2': "insert 2;superscript",
+        '3': "insert 3;superscript",
+        '4': "insert 4;superscript",
         'a': "operator overrightarrow",  // TODO: [R] maybe instead
         'b': "operator mathbb",
         'c': "mode color",
