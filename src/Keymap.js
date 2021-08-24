@@ -24,7 +24,7 @@ const EditorKeymap = {
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-	'Ctrl+o': "name apply_fn;operator mathopen;swap;parenthesize;concat",  // same as [/] [o]
+        'Ctrl+o': "name apply_fn;operator mathopen;swap;parenthesize;concat",  // same as [/] [o]
         'Ctrl+p': "delimiters ( )",
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
@@ -397,6 +397,7 @@ const EditorKeymap = {
         'O': "stackrel overset",
         'p': "infix \\perp",
         'P': "infix \\pm",
+        'q': "swap;insert ,;concat;swap;infix \\quad",
         's': "infix \\,",
         't': "infix \\to",
         'u': "infix \\cup",

@@ -378,9 +378,11 @@ class InputContext {
             document_storage.save_state(this.app_state, file_manager_state.current_filename);
         }
 
-        // This basically works like loading from a blank file
+        // This basically works like loading from a blank file.
         let new_state = new AppState();
-        this.new_document = new_state.document;
+
+        // Start the document with a default header showing the filename.
+        this.new_document = new_state.document.insert_item(new MarkdownItem('# ' + new_filename));
         file_manager_state.selected_filename = file_manager_state.current_filename = new_filename;
         this.settings.last_opened_filename = new_filename;
         this.settings.save();

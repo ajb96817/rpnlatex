@@ -337,28 +337,24 @@ class DocumentComponent extends React.Component {
         subcomponents.push(
             $e('div', {className: 'bottom_spacer', key: 'bottom_spacer'}));
 
-        // Top of document selection indicator.
+        // Top of document "spacer", which is used to indicate that items are to be
+        // inserted at the top of the document.  Unlike the bottom spacer, the top
+        // spacer can be the current document selection.
         const top_is_selected = document.selection_index === 0;
-        const class_name = 'selection_indicator' + (top_is_selected ? ' visible' : '');
-        const filename = (this.props.filename || '???') + (this.props.is_dirty ? '*' : '');
         if(top_is_selected)
             this.selected_item_ref = React.createRef();
-        const selection_indicator = $e(
+        const top_spacer = $e(
             'div', {
-                className: class_name,
-                key: 'selection_indicator',
+                className: 'top_spacer' + (top_is_selected ? ' selected' : ''),
+                key: 'top_spacer',
                 ref: top_is_selected ? this.selected_item_ref : null
-            },
-            this.props.filename && $e('span', {}, '[ '),
-            this.props.filename && $e('span', {className: 'filename'}, filename),
-            this.props.filename && $e('span', {}, ' ]')
-        );
+            });
         
         let class_names = ['document_items'];
         if(this.props.settings.layout.document_rightalign_math)
             class_names.push('rightalign_math');
         return $e('div', {className: class_names.join(' ')},
-                  [selection_indicator].concat(subcomponents));
+                  [top_spacer].concat(subcomponents));
     }
 
     componentDidUpdate() {

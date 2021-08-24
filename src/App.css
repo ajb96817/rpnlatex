@@ -238,15 +238,8 @@ div.stack_items textarea:focus { outline: none; }
     height: 100%;
     z-index: 1;
 }
-div.document_items div.selection_indicator {
-    padding: 0.2em 1em;
-    text-align: right;
-    margin-bottom: 0.25em;
-}
-div.document_items div.selection_indicator span.filename {
-    font-weight: bold;
-}
-div.document_items div.selection_indicator.visible { background-color: #eef; }
+
+div.document_items div.top_spacer { min-height: 0.5em; }
 div.document_items div.bottom_spacer { min-height: 8em; }
 
 
