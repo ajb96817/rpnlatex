@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "./static/css/main.16b1e691.chunk.css",
-    "main.js": "./static/js/main.e9567355.chunk.js",
-    "main.js.map": "./static/js/main.e9567355.chunk.js.map",
+    "main.css": "./static/css/main.8f7abd94.chunk.css",
+    "main.js": "./static/js/main.748652ca.chunk.js",
+    "main.js.map": "./static/js/main.748652ca.chunk.js.map",
     "runtime-main.js": "./static/js/runtime-main.ec3b257d.js",
     "runtime-main.js.map": "./static/js/runtime-main.ec3b257d.js.map",
     "static/js/2.ed6801de.chunk.js": "./static/js/2.ed6801de.chunk.js",
@@ -10,14 +10,14 @@
     "index.html": "./index.html",
     "service-worker.js": "./service-worker.js",
     "service-worker.js.map": "./service-worker.js.map",
-    "static/css/main.16b1e691.chunk.css.map": "./static/css/main.16b1e691.chunk.css.map",
+    "static/css/main.8f7abd94.chunk.css.map": "./static/css/main.8f7abd94.chunk.css.map",
     "static/js/2.ed6801de.chunk.js.LICENSE.txt": "./static/js/2.ed6801de.chunk.js.LICENSE.txt",
     "static/media/katex.css": "./static/media/KaTeX_Typewriter-Regular.ea67dc3c.ttf"
   },
   "entrypoints": [
     "static/js/runtime-main.ec3b257d.js",
     "static/js/2.ed6801de.chunk.js",
-    "static/css/main.16b1e691.chunk.css",
-    "static/js/main.e9567355.chunk.js"
+    "static/css/main.8f7abd94.chunk.css",
+    "static/js/main.748652ca.chunk.js"
   ]
 }
