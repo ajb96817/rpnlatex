@@ -186,9 +186,12 @@ textarea { font-size: 16px; }
 }
 
 #stack_panel div.indicator {
-    float: right;
-    padding-right: 1em;
-    margin-top: 0.25em;
+    /* float: right; */
+    position: absolute;
+    right: 0.5em;
+    top: 0.25em;
+    /* padding-right: 1em; */
+    /* margin-top: 0.25em; */
     font-size: 120%;
 }
 #stack_panel div.indicator span.notification {

@@ -157,12 +157,12 @@ class App extends React.Component {
         return $e(
             'div', {id: 'panel_layout', className: 'theme_' + this.state.settings.selected_theme},
             $e('div', {className: 'panel stack_panel', id: 'stack_panel', ref: this.stack_panel_ref},
-               $e(ModeIndicatorComponent, {app_state: app_state, input_context: this.state.input_context}),
                $e(StackItemsComponent, {
                    settings: this.state.settings,
                    stack: app_state.stack,
                    input_context: this.state.input_context
-               })),
+               }),
+               $e(ModeIndicatorComponent, {app_state: app_state, input_context: this.state.input_context})),
             $e('div', {className: 'panel document_panel', id: 'document_panel', ref: this.document_panel_ref},
                $e('div', {id: 'document_container'},
                   $e(DocumentComponent, {
