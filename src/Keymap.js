@@ -94,12 +94,16 @@ const EditorKeymap = {
     keymap: {
         'ArrowUp': 'scroll_popup_panel -25',
         'ArrowDown': 'scroll_popup_panel 25',
+        'PageUp': 'scroll_popup_panel -95',
+        'PageDown': 'scroll_popup_panel 95',
         'default': "toggle_popup keymap"
     },
 
     help: {
-        'ArrowUp': 'scroll_popup_panel -40',
-        'ArrowDown': 'scroll_popup_panel 40',
+        'ArrowUp': 'scroll_popup_panel -25',
+        'ArrowDown': 'scroll_popup_panel 25',
+        'PageUp': 'scroll_popup_panel -95',
+        'PageDown': 'scroll_popup_panel 95',
         'default': "toggle_popup help"
     },
 

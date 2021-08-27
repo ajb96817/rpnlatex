@@ -15,7 +15,7 @@
     <div id="helptext" style="display: none;">
       <h1>User Guide</h1>
       <p>
-        This is an editor meant for quickly entering mathematical formulas and text.  It runs as a standalone
+        This is an editor meant for quickly entering mathematical formulas.  It runs as a standalone
         web application (no server needed) and generates LaTeX-compatible typesetting code.
       </p>
       <p>
@@ -28,7 +28,7 @@
         working on something to place into the document.
       </p>
       <p>
-        Mathematical formulas and expressions are entered using <em>reverse Polish notation</em> (RPN) which means
+        Expressions are entered using <em>reverse Polish notation</em> (RPN) which means
         that operands come before their operators.  For example, to enter the expression <code>x+y</code> you would
         first type <strong>x</strong>, then <strong>y</strong> followed by <strong>+</strong> to apply the addition
         operation.
@@ -42,7 +42,7 @@
       </p>
       <p>
         Note that items on the stack have a small colored bar shown to the left of them.  This indicates the item's "type",
-        which can be either a symbolic mathematical expression (grey) or a
+        which can be either a symbolic expression (grey) or a
         <a href="https://www.markdownguide.org/" target="_blank">Markdown</a>-formatted piece of text (light blue).
       </p>
       <p>
@@ -52,7 +52,7 @@
 
       <h2>Single-Key Commands</h2>
       <ul class="keybindings">
-        <li><span class="keybinding">?</span> Toggle between showing this help and showing the document.</li>
+        <li><span class="keybinding">?</span> Toggle this help popup on and off.</li>
         <li>
           <span class="keybinding">a-z</span> <span class="keybinding">A-Z</span> <span class="keybinding">0-9</span>
           Letters and numbers place single-character strings onto the stack.
@@ -133,7 +133,7 @@
         sections.
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">'</span> <em>(apostrophe)</em> Create <a href="#symbols">standalone math symbols</a>.</li>
+        <li><span class="keybinding">'</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
         <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#decorations">decoration</a> to the stack top.</li>
         <li><span class="keybinding">,</span> <em>(comma)</em> Combine two items into an <a href="#infix">infix expression</a>.</li>
         <li><span class="keybinding">=</span> Combine two items with a <a href="#relational">relational operator</a>.</li>
@@ -1280,17 +1280,9 @@
 	  (same as <span class="keybinding">Tab</span><span class="keybinding">.</span>)
 	</li>
         <li>
-	  <span class="keybinding">Ctrl+,</span> (comma) Join two items with a comma
+	  <span class="keybinding">Ctrl+,</span> Join two items with a comma
 	  (same as <span class="keybinding">,</span><span class="keybinding">,</span>)
 	</li>
-      </ul>
-	  
-      <h2><a name="stack">Acknowledgements</a></h2>
-      <ul>
-	<li><a href="https://katex.org/" target="_blank">KaTeX</a> is used for the formula typesetting.</li>
-	<li><a href="https://reactjs.org/" target="_blank">React.js</a> as the Javascript app framework.</li>
-	<li><a href="https://marked.js.org/" target="_blank">Marked</a> for rendering of Markdown text.</li>
-	<li><a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a> for importing and exporting ZIP files.</li>
       </ul>
     </div>
   </body>

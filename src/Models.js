@@ -969,6 +969,7 @@ class InfixExpr extends Expr {
 
     visit(fn) {
         if(this.left_expr) this.left_expr.visit(fn);
+        this.operator_expr.visit(fn);
         fn(this);
         if(this.right_expr) this.right_expr.visit(fn);
     }
