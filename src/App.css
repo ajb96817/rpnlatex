@@ -186,12 +186,9 @@ textarea { font-size: 16px; }
 }
 
 #stack_panel div.indicator {
-    /* float: right; */
     position: absolute;
     right: 0.5em;
     top: 0.25em;
-    /* padding-right: 1em; */
-    /* margin-top: 0.25em; */
     font-size: 120%;
 }
 #stack_panel div.indicator span.notification {
@@ -205,8 +202,9 @@ textarea { font-size: 16px; }
 
 div.stack_items {
     position: absolute;
-    bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
     width: 100%;
+    bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
+    border-bottom: 2px solid #ddd;
 }
 /* minieditor for editing stack top */
 div.stack_items textarea {
