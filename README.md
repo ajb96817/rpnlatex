@@ -20,7 +20,6 @@ To build/run from source (not needed unless you want to change something):
   * Run 'npm install'
   * Run 'npm start'
   * Open the displayed server URL in a web browser
-  * Press '?' to view the online help
-  * To build a packaged release, run 'npm build' and the release will be created in the build/ subdirectory
+  * To build a packaged release, run 'npm run build' and the release will be created in the build/ subdirectory
 
 A pre-built version is available here: http://andrewbrault.com/rpnlatex
