@@ -290,6 +290,8 @@ const EditorKeymap = {
         'U': "name sup;insert \\limits;swap;subscript;insert \\sup;swap;concat",
         'v': "name Var;parenthesize;insert Var;operator operatorname;swap;concat",
         'V': "name Cov;swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
+        'x': "name expectation;insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
+        'X': "name expectation2;insert E;operator mathbb;swap;subscript;operator mathopen;swap;delimiters [ ];concat",  // E_x[y] (with subscript)
         ';': "apply_tag",
         '/': "operator frac 2",
         "\\": "operator tfrac 2",
