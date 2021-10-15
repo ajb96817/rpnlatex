@@ -395,6 +395,8 @@ const EditorKeymap = {
         'b': "infix \\bullet",
         'c': "infix \\cap",
         'd': "infix \\setminus",  // (set [d]ifference)
+        'f': "infix \\quad\\mathrm{if}\\quad",
+        'F': "infix \\quad\\mathrm{iff}\\quad",
         'g': "infix \\gets",
         'k': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2",  // x | y  ([k]onditional)
         'l': "infix \\parallel",
