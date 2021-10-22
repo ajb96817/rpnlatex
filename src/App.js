@@ -186,6 +186,9 @@ class App extends React.Component {
         if(event.altKey || event.metaKey)
             return;
         const key = this._keyname_from_event(event);
+        if(key === 'Meta' || key === 'Ctrl+Control')
+            return;
+        
         let app_state = this.state.app_state;
         let [was_handled, new_app_state] = this.state.input_context.handle_key(app_state, key);
         if(was_handled) {
