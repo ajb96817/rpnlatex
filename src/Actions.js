@@ -352,11 +352,9 @@ class InputContext {
         const selected_filename = this.app_component.state.file_manager_state.selected_filename;
         if(!selected_filename)
             return this.error_flash_document();
-
-        // Save current document first.
-        // TODO: This creates a bit of a race condition, may want to revisit.
-        this.do_save_file(stack);
-        
+        if(this.app_state.is_dirty)
+            if(window.confirm("The current document has been modified.  Save it now?"))
+                return this.do_save_file(stack);  // Abort actually loading the new file
         this.app_component.start_loading_filename(selected_filename);
     }
 
