@@ -24,7 +24,7 @@ const EditorKeymap = {
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-        'Ctrl+o': "name apply_fn;operator mathopen;swap;parenthesize;concat",  // same as [/] [o]
+        'Ctrl+o': "name apply_fn;parenthesize;swap;operator mathopen;swap;concat",  // same as [/] [o]
         'Ctrl+p': "delimiters ( )",
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
@@ -276,8 +276,8 @@ const EditorKeymap = {
         'M': "named_function max",
         'n': "named_function ln",
         'N': "named_function log",
-        'o': "operator mathopen;swap;parenthesize;concat",   // x f -> f(x)  "of"; \mathopen closes up the spacing after 'f'
-        'O': "operator mathopen;unrot;infix ,;parenthesize;concat",  // x y f -> f(x,y)
+        'o': "name apply_fn;parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
+        'O': "name apply_fn2;infix ,;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x,y)
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "operator phase",
         'q': "operator sqrt",

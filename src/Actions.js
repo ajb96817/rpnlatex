@@ -352,9 +352,16 @@ class InputContext {
         const selected_filename = this.app_component.state.file_manager_state.selected_filename;
         if(!selected_filename)
             return this.error_flash_document();
-        if(this.app_state.is_dirty)
-            if(window.confirm("The current document has been modified.  Save it now?"))
-                return this.do_save_file(stack);  // Abort actually loading the new file
+        if(this.app_state.is_dirty) {
+            if(window.confirm("The current document has been modified.  Save it now?")) {
+                // Abort actually loading the new file; otherwise a
+                // race condition between save and load is created due
+                // to document_storage calls being asynchronous.  This
+                // could be worked around by chaining the load after
+                // the save but this is the only place it's a problem.
+                return this.do_save_file(stack);
+            }
+        }
         this.app_component.start_loading_filename(selected_filename);
     }
 
@@ -481,7 +488,7 @@ class InputContext {
         let inserted_text;
         switch(item.item_type()) {
         case 'markdown': inserted_text = item.source_text; break;
-        case 'expr': inserted_text = '$' + item.expr.to_latex() + '$'; break;
+        case 'expr': inserted_text = ['$', item.expr.to_latex(), '$'].join(''); break;
         default: inserted_text = '???'; break;
         }
         this._insert_text_into_minieditor(inserted_text);
