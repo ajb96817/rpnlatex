@@ -518,7 +518,8 @@ const EditorKeymap = {
         '4': "insert 4;superscript",
         'a': "operator overrightarrow",  // TODO: [R] maybe instead
         'b': "operator mathbb",
-        'c': "mode color",
+        'c': "insert 1;swap;infix_plus_or_minus -",
+        'C': "mode color",
         'd': "insert \\dagger;superscript",
         'D': "insert \\ddagger;superscript",
         'e': "operator bold",  // bold roman (sort of)
