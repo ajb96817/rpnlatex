@@ -120,6 +120,7 @@ const EditorKeymap = {
         'o': "over",
         'p': "paste_from_clipboard",
         'r': "rot",
+	's': "save_file",
         't': "tuck",
         'u': "unrot",
         'v': "reverse_n",
