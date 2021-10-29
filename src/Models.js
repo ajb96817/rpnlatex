@@ -1153,6 +1153,8 @@ class ArrayExpr extends Expr {
     //    'none': do nothing, just put each entry_expr in its own row
     //    'infix': place alignment markers before infix, if any
     //    'colon': if there is a ':' infix, remove it and place alignment marker where it was
+    //    'colon_if': like 'colon', but place the word "if" before the right-hand side if there
+    //                is a ':' infix.  If there is no ':' infix, the right-hand side becomes 'otherwise'.
     static split_elements(exprs, split_mode) {
         return exprs.map(expr => ArrayExpr._split_expr(expr, split_mode));
     }
@@ -1172,6 +1174,19 @@ class ArrayExpr extends Expr {
                 return [expr.left_expr, expr.right_expr];
             else
                 return [expr, null];
+        case 'colon_if':
+            if(expr.expr_type() === 'infix' && expr.operator_text() === ':')
+                return [
+                    expr.left_expr,
+                    Expr.combine_pair(
+                        Expr.combine_pair(
+                            new CommandExpr('mathrm', [new TextExpr('if')]),
+                            new CommandExpr('enspace'), []),
+                        expr.right_expr)];
+            else
+                return [
+                    expr.left_expr,
+                    new CommandExpr('mathrm', [new TextExpr('otherwise')])];
         default:
             return [expr];
         }

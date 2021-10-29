@@ -583,6 +583,8 @@ const EditorKeymap = {
         'd': "dissolve_matrix",
         'e': "name ellipsis_list;build_list ,\\,;insert ,\\,\\dots;concat",
         'E': "insert_matrix_ellipses",
+        'f': "build_align cases_if",
+        'F': "build_align rcases_if",
         'g': "build_align gathered",
         'k': "build_substack",
         'm': "build_matrix_row matrix",

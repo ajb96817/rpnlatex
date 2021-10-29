@@ -852,6 +852,22 @@
           <span class="keybinding">C</span>
           Same as the above, but the brace is on the right instead of the left.
         </li>
+        <li>
+          <span class="keybinding">f</span> and <span class="keybinding">F</span>
+          Same as <span class="keybinding">c</span> and <span class="keybinding">C</span>,
+          but prepend the word "if" to the right-hand side of expressions joined with a colon.
+          If there is no colon, the right-hand side becomes the word "otherwise" instead.  Example:
+          <code>x^2 : x \ge 1; x^3 : 0 \le x \le 1; x^4</code>
+          <br />
+          becomes:
+          <code>
+            \begin{cases}
+              x^2 & \mathrm{if}\enspace x \ge 1 \\
+              x^3 & \mathrm{if}\enspace 0 \le x \le 1 \\
+              x^4 & \mathrm{otherwise}
+            \end{cases}
+          </code>
+        </li>
       </ul>
 
       <p>

@@ -1018,6 +1018,8 @@ class InputContext {
         switch(align_type) {
         case 'gathered': case 'gather': split_mode = 'none'; break;
         case 'cases': case 'rcases': split_mode = 'colon'; break;
+        case 'cases_if': split_mode = 'colon_if'; align_type = 'cases'; break;
+        case 'rcases_if': split_mode = 'colon_if'; align_type = 'rcases'; break;
         default: split_mode = 'infix'; break;
         }
 
