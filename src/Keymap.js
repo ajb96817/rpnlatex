@@ -280,7 +280,7 @@ const EditorKeymap = {
         'o': "name apply_fn;parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
         'O': "name apply_fn2;infix ,;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x,y)
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
-        'P': "operator phase",
+        'P': "name conditional_prob;insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
         's': "named_function sin",
