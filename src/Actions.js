@@ -1120,11 +1120,14 @@ class InputContext {
         container.scrollTop = new_scrolltop;
     }
 
-    do_scroll_popup_panel(stack, percentage_string) {
-        let panel_elt = document.getElementById('popup_panel');
+    do_scroll(stack, panel_name, direction_string, percentage_string) {
+        let panel_elt = document.getElementById(panel_name);
         if(!panel_elt) return;
         const percentage = parseInt(percentage_string || '50') / 100.0;
-        panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
+        if(direction_string === 'horizontal')
+            panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage)
+        else
+            panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
     }
 
     do_export_document_as_text(stack) {

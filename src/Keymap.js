@@ -33,6 +33,8 @@ const EditorKeymap = {
         'Ctrl+z': "undo",
         'Ctrl+ ': "infix \\,",
         'Ctrl+,': "infix ,",
+        'Ctrl+ArrowRight': "scroll document_container horizontal 75",
+        'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
 
         // Immediate action special keys
         'Shift+Enter': "edit_stack_top",
@@ -55,6 +57,10 @@ const EditorKeymap = {
         'PageDown': "change_document_selection +5",
         'Home': "change_document_selection -10000",
         'End': "change_document_selection +10000",
+
+        // Stack scrolling commands
+        'ArrowRight': "scroll stack_panel horizontal 75",
+        'ArrowLeft': "scroll stack_panel horizontal -75",
 
         // Prefix keys
         'Tab': "mode stack",
@@ -92,18 +98,18 @@ const EditorKeymap = {
     },
 
     keymap: {
-        'ArrowUp': 'scroll_popup_panel -25',
-        'ArrowDown': 'scroll_popup_panel 25',
-        'PageUp': 'scroll_popup_panel -95',
-        'PageDown': 'scroll_popup_panel 95',
+        'ArrowUp': 'scroll popup_panel vertical -25',
+        'ArrowDown': 'scroll popup_panel vertical 25',
+        'PageUp': 'scroll popup_panel vertical -95',
+        'PageDown': 'scroll popup_panel vertical 95',
         'default': "toggle_popup keymap"
     },
 
     help: {
-        'ArrowUp': 'scroll_popup_panel -25',
-        'ArrowDown': 'scroll_popup_panel 25',
-        'PageUp': 'scroll_popup_panel -95',
-        'PageDown': 'scroll_popup_panel 95',
+        'ArrowUp': 'scroll popup_panel vertical -25',
+        'ArrowDown': 'scroll popup_panel vertical 25',
+        'PageUp': 'scroll popup_panel vertical -95',
+        'PageDown': 'scroll popup_panel vertical 95',
         'default': "toggle_popup help"
     },
 
@@ -113,8 +119,10 @@ const EditorKeymap = {
         'd': "pop",
         'i': "pop_to_document",
         'I': "copy_to_document",
+        'f': "toggle_popup files",
         'j': "extract_from_document",
         'J': "recall_from_document",
+        'k': "toggle_popup keymap",
         'l': "recenter_document 50",
         'n': "nip",
         'o': "over",
@@ -133,10 +141,8 @@ const EditorKeymap = {
         ' ': "dup",
         '!': "export_document_as_text",
         '@': "export_stack_top_as_text",
-
-        // temporary
-        'f': "toggle_popup files",
-        'k': "toggle_popup keymap"
+        'ArrowRight': "scroll document_container horizontal 75",
+        'ArrowLeft': "scroll document_container horizontal -75"
     },
 
     // $ prefix: configuration
