@@ -939,7 +939,7 @@ class InfixExpr extends Expr {
         this.operator_expr = operator_expr;
         this.left_expr = left_expr;
         this.right_expr = right_expr;
-        this.split = split;
+        this.split = split || null;  // to avoid 'undefined's in the JSON
     }
 
     expr_type() { return 'infix'; }
