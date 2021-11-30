@@ -300,6 +300,7 @@ const EditorKeymap = {
         'x': "name expectation;insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
         'X': "name expectation2;insert E;operator mathbb;swap;subscript;operator mathopen;swap;delimiters [ ];concat",  // E_x[y] (with subscript)
         ';': "apply_tag",
+        ',': "split_infix",
         '/': "operator frac 2",
         "\\": "operator tfrac 2",
         '}': "name underbrace;swap;operator underbrace;swap;subscript",

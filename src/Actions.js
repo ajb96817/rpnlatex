@@ -735,6 +735,21 @@ class InputContext {
         return new_stack.push_expr(new InfixExpr(operator_expr, left_expr, right_expr));
     }
 
+    do_split_infix(stack) {
+        let [new_stack, infix_expr] = stack.pop_exprs(1);
+        if(infix_expr.expr_type() !== 'infix') {
+            this.error_flash_stack();
+            return;
+        }
+        const split_mode = infix_expr.split;
+        let new_split_mode = null;
+        if(split_mode === 'after') new_split_mode = 'before';
+        else if(split_mode === 'before') new_split_mode = null;
+        else new_split_mode = 'after';
+        const new_infix_expr = infix_expr.with_split_mode(new_split_mode);
+        return new_stack.push_expr(new_infix_expr);
+    }
+
     // Take an infix expression and another expression from the stack.
     // Turn it into an \overset or \underset infix expression that stacks the expression
     // above or below the original infix operator.

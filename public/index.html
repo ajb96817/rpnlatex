@@ -563,15 +563,27 @@
 	</li>
         <li><span class="keybinding">{</span> <code>y\enspace x \to \overbrace{y}^x</code> (overbrace)
         <li><span class="keybinding">}</span> <code>y\enspace x \to \underbrace{y}_x</code> (underbrace)
+	<li><span class="keybinding">,</span> <em>(comma) Split equation</em> (see below)</li>
 	<li><span class="keybinding">;</span> <em>Apply tag</em> (see below)</li>
-	<li><span class="keybinding">'</span> <em>Resolve deferred</em> (see <a href="#defer">Deferred Operations</a>)</li>
+	<li><span class="keybinding">'</span> <em>(apostrophe) Resolve deferred</em> (see <a href="#defer">Deferred Operations</a>)</li>
 	<li>
 	  <span class="keybinding">Enter</span> <code>z\enspace y\enspace x \to z_y^x</code>
 	  (shortcut for adding a subscript and superscript at once)
 	</li>
       </ul>
       <p>
-	<strong>Tags:</strong> The <span class="keybinding">/</span><span class="keybinding">;</span>
+        <strong>Equation splitting:</strong>
+        The <span class="keybinding">/</span><span class="keybinding">,</span>
+        command allows for splitting equations across multiple lines.  The stack top must be an expression
+        just joined with an <a href="#infix">infix</a> or <a href="#relational">relational</a> operator.
+        This command inserts a line break after the operator.  A second application of this command to the
+        same expression will change it to break before the operator instead, and a third will put it back to not
+        having a line break.  Further line breaks can be inserted after adding more terms and operators
+        to the expression.
+      </p>
+      <p>
+	<strong>Tags:</strong>
+        The <span class="keybinding">/</span><span class="keybinding">;</span>
 	command takes the stack top and adds it as a &quot;tag&quot;
 	to the expression beneath it.  The tag is typically a text object created with
 	<span class="keybinding">&quot;</span>, but can be any expression.  Tags can be used as equation

@@ -709,7 +709,8 @@ class Expr {
         case 'prefix':
             return new PrefixExpr(this._expr(json.base_expr), this._expr(json.prefix_expr));
         case 'infix':
-            return new InfixExpr(this._expr(json.operator_expr), this._expr(json.left_expr), this._expr(json.right_expr));
+            return new InfixExpr(this._expr(json.operator_expr), this._expr(json.left_expr),
+                                 this._expr(json.right_expr), json.split || null);
         case 'defer':
             return new DeferExpr();
         case 'text':
@@ -931,16 +932,19 @@ class PrefixExpr extends Expr {
 // NOTE: it's possible for left_expr or right_expr to be null; in that case, the corresponding
 // "side" isn't rendered.
 class InfixExpr extends Expr {
-    constructor(operator_expr, left_expr, right_expr) {
+    // split can be null, 'before', or 'after'.
+    // If it's non-null, the equation is split via \\ and \qquad, either before or after the infix.
+    constructor(operator_expr, left_expr, right_expr, split) {
         super();
         this.operator_expr = operator_expr;
         this.left_expr = left_expr;
         this.right_expr = right_expr;
+        this.split = split;
     }
 
     expr_type() { return 'infix'; }
 
-    json_keys() { return ['operator_expr', 'left_expr', 'right_expr']; }
+    json_keys() { return ['operator_expr', 'left_expr', 'right_expr', 'split']; }
 
     // If the infix operator is a simple command like '+' or '\cap', return it
     // (without the initial \ if it has one).  If it's anything more complex, return null.
@@ -963,7 +967,15 @@ class InfixExpr extends Expr {
 
     emit_latex(emitter) {
         if(this.left_expr) emitter.expr(this.left_expr);
+        if(this.split === 'before') {
+            emitter.command("\\");
+            emitter.command("qquad");
+        }
         emitter.expr(this.operator_expr);
+        if(this.split === 'after') {
+            emitter.command("\\");
+            emitter.command("qquad");
+        }
         if(this.right_expr) emitter.expr(this.right_expr);
     }
 
@@ -979,7 +991,14 @@ class InfixExpr extends Expr {
         return new InfixExpr(
             this.operator_expr.substitute_expr(old_expr, new_expr),
             this.left_expr.substitute_expr(old_expr, new_expr),
-            this.right_expr.substitute_expr(old_expr, new_expr));
+            this.right_expr.substitute_expr(old_expr, new_expr),
+            this.split);
+    }
+
+    // Returns an InfixExpr like this one, but with the specified split mode set.
+    with_split_mode(new_split_mode) {
+        return new InfixExpr(
+            this.operator_expr, this.left_expr, this.right_expr, new_split_mode);
     }
 }
 
