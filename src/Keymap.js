@@ -128,7 +128,7 @@ const EditorKeymap = {
         'o': "over",
         'p': "paste_from_clipboard",
         'r': "rot",
-	's': "save_file",
+        's': "save_file",
         't': "tuck",
         'u': "unrot",
         'v': "reverse_n",
@@ -147,14 +147,11 @@ const EditorKeymap = {
 
     // $ prefix: configuration
     config: {
-        // 'a': "mode config_aux",
-        // 'c': "config alternate_layout",
         'm': "mode config_math_alignment",
         'r': "config reset_layout",
         's': "mode config_stack",
         't': "mode config_theme",
         'z': "mode config_zoom",
-
         '$': "insert \\$"
     },
     // $m
