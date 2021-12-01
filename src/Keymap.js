@@ -632,45 +632,61 @@ const EditorKeymap = {
         'a': "insert \\alpha",     'b': "insert \\beta",
         'c': "insert \\chi",       'd': "insert \\delta",
         'e': "insert \\epsilon",   'f': "insert \\phi",
-        'g': "insert \\gamma",     'h': "insert \\eta",
-        'i': "insert \\iota",      'j': "insert \\varphi",
-        'k': "insert \\kappa",     'l': "insert \\lambda",
-        'm': "insert \\mu",        'n': "insert \\nu",
-        'o': "insert \\omega",     'p': "insert \\pi",
-        'q': "insert \\vartheta",  'r': "insert \\rho",
-        's': "insert \\sigma",     't': "insert \\tau",
-        'u': "insert \\upsilon",   'v': "insert \\theta",
-        'w': "insert \\omega",     'x': "insert \\xi",
-        'y': "insert \\psi",       'z': "insert \\zeta",
+        'h': "insert \\eta",       'i': "insert \\iota",
+        'j': "insert \\varphi",    'k': "insert \\kappa",
+        'l': "insert \\lambda",    'm': "insert \\mu",
+        'n': "insert \\nu",        'o': "insert \\omega",
+        'p': "insert \\pi",        'q': "insert \\vartheta",
+        'r': "insert \\rho",       's': "insert \\sigma",
+        't': "insert \\tau",       'u': "insert \\upsilon",
+        'v': "insert \\theta",     'w': "insert \\omega",
+        'x': "insert \\xi",        'y': "insert \\psi",
+        'z': "insert \\zeta",
 
+        ':': "mode variant_greek",
         ';': "infix semicolon"
     },
     // : prefix: uppercase Greek letters
     uppercase_greek: {
         'd': "insert \\Delta",     'e': "insert \\varepsilon",
         'f': "insert \\Phi",       'g': "insert \\Gamma",
-        'l': "insert \\Lambda",    'm': "insert \\varpi",
-        'o': "insert \\Omega",     'p': "insert \\Pi",
-        'q': "insert \\vartheta",  'r': "insert \\varrho",
-        's': "insert \\Sigma",     't': "insert \\varsigma",
-        'u': "insert \\Upsilon",   'v': "insert \\Theta",
-        'w': "insert \\Omega",     'x': "insert \\Xi",
-        'y': "insert \\Psi",
+        'k': "insert \\varkappa",  'l': "insert \\Lambda",
+        'm': "insert \\varpi",     'o': "insert \\Omega",
+        'p': "insert \\Pi",        'q': "insert \\vartheta",
+        'r': "insert \\varrho",    's': "insert \\Sigma",
+        't': "insert \\varsigma",  'u': "insert \\Upsilon",
+        'v': "insert \\Theta",     'w': "insert \\Omega",
+        'x': "insert \\Xi",        'y': "insert \\Psi",
+        '6': "insert \\digamma",   '^': "insert \\digamma",
         'n': "insert \\nabla",  // special case
 
-        // TODO: case-insensitive keybindings
+        // TODO: support for case-insensitive keybindings in general
         'D': "insert \\Delta",     'E': "insert \\varepsilon",
         'F': "insert \\Phi",       'G': "insert \\Gamma",
-        'L': "insert \\Lambda",    'M': "insert \\varpi",
-        'O': "insert \\Omega",     'P': "insert \\Pi",
-        'Q': "insert \\vartheta",  'R': "insert \\varrho",
-        'S': "insert \\Sigma",     'T': "insert \\varsigma",
-        'U': "insert \\Upsilon",   'V': "insert \\Theta",
-        'W': "insert \\Omega",     'X': "insert \\Xi",
-        'Y': "insert \\Psi",
+        'K': "insert \\varkappa",  'L': "insert \\Lambda",
+        'M': "insert \\varpi",     'O': "insert \\Omega",
+        'P': "insert \\Pi",        'Q': "insert \\vartheta",
+        'R': "insert \\varrho",    'S': "insert \\Sigma",
+        'T': "insert \\varsigma",  'U': "insert \\Upsilon",
+        'V': "insert \\Theta",     'W': "insert \\Omega",
+        'X': "insert \\Xi",        'Y': "insert \\Psi",
         'N': "insert \\nabla",
 
         ':': "infix :"
+    },
+    // "variant" uppercase Greek letters - these are italic versions of the normal ones
+    variant_greek: {
+        'd': "insert \\varDelta",    'D': "insert \\varDelta",
+        'f': "insert \\varPhi",      'F': "insert \\varPhi",
+        'g': "insert \\varGamma",    'G': "insert \\varGamma",
+        'l': "insert \\varLambda",   'L': "insert \\varLambda",
+        'o': "insert \\varOmega",    'O': "insert \\varOmega",
+        'p': "insert \\varPi",       'P': "insert \\varPi",
+        'q': "insert \\varTheta",    'Q': "insert \\varTheta",
+        's': "insert \\varSigma",    'S': "insert \\varSigma",
+        'u': "insert \\varUpsilon",  'U': "insert \\varUpsilon",
+        'x': "insert \\varXi",       'X': "insert \\varXi",
+        'y': "insert \\varPsi",      'Y': "insert \\varPsi"
     }
 };
 
