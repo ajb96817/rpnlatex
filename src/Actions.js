@@ -736,7 +736,7 @@ class InputContext {
     }
 
     do_split_infix(stack) {
-        let [new_stack, infix_expr] = stack.pop_exprs(1);
+        const [new_stack, infix_expr] = stack.pop_exprs(1);
         if(infix_expr.expr_type() !== 'infix') {
             this.error_flash_stack();
             return;

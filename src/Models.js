@@ -966,7 +966,8 @@ class InfixExpr extends Expr {
     }
 
     emit_latex(emitter) {
-        if(this.left_expr) emitter.expr(this.left_expr);
+        if(this.left_expr)
+            emitter.expr(this.left_expr);
         if(this.split === 'before') {
             emitter.command("\\");
             emitter.command("qquad");
@@ -976,7 +977,8 @@ class InfixExpr extends Expr {
             emitter.command("\\");
             emitter.command("qquad");
         }
-        if(this.right_expr) emitter.expr(this.right_expr);
+        if(this.right_expr)
+            emitter.expr(this.right_expr);
     }
 
     visit(fn) {

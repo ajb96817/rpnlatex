@@ -387,11 +387,13 @@ const EditorKeymap = {
         // gradient
         'g': "name gradient;insert \\nabla;swap;concat",
         // divergence
-        'd': "name divergence;insert \\nabla;insert \\cdot;concat;swap;concat",
+        '.': "name divergence;insert \\nabla;insert \\cdot;concat;swap;concat",
         // curl
         'c': "name curl;insert \\nabla;insert \\times;concat;swap;concat",
         // Laplacian
-        'l': "name laplacian;insert \\nabla;insert 2;superscript;swap;concat"
+        'l': "name laplacian;insert \\nabla;insert 2;superscript;swap;concat",
+        // x -> dx
+        'd': "insert d;operator mathrm;swap;concat"
     },
 
     // comma prefix: combine two objects with an infix operation
