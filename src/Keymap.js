@@ -465,7 +465,9 @@ const EditorKeymap = {
         ']': "infix \\ge",
         ':': "infix \\coloneqq",
         '~': "infix \\sim",
-        '|': "infix \\vDash"
+        '|': "infix \\vDash",
+        '0': "insert 0;infix \\ge",
+        '1': "insert 1;infix \\ge"
     },
 
     // apostrophe prefix: assorted standalone math symbols
