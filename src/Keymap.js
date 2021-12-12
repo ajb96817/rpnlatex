@@ -393,7 +393,11 @@ const EditorKeymap = {
         // Laplacian
         'l': "name laplacian;insert \\nabla;insert 2;superscript;swap;concat",
         // x -> dx
-        'd': "insert d;operator mathrm;swap;concat"
+        'd': "insert d;operator mathrm;swap;concat",
+        // x -> d^2x
+        '2': "insert d;operator mathrm;insert 2;superscript;swap;concat",
+        '3': "insert d;operator mathrm;insert 3;superscript;swap;concat",
+        '4': "insert d;operator mathrm;insert 4;superscript;swap;concat"
     },
 
     // comma prefix: combine two objects with an infix operation
