@@ -666,7 +666,31 @@
             <td><span class="keybinding">3</span> <code>x \to \mathrm{d}^3 x</code></td>
             <td><span class="keybinding">4</span> <code>x \to \mathrm{d}^4 x</code></td>
           </tr>
+          <tr>
+            <td><span class="keybinding">i</span> <code>y\enspace x \to y\,\mathrm{d}x</code></td>
+            <td><span class="keybinding">I</span> <code>y\enspace x \to y\mathrm{d}x\,</code></td>
+          </tr>
       </tbody></table>
+      <p>
+        <strong>NOTE:</strong>
+        <span class="keybinding">i</span> and <span class="keybinding">I</span> are meant
+        for attaching a differential to an existing integral expression with appropriate spacing.
+        <span class="keybinding">i</span> places a thin space between the integrand and
+        the differential, while <span class="keybinding">I</span> is for placing the
+        differential directly against the integral sign while leaving a thin space
+        after it for the integrand.
+      </p>
+      <p>
+        <code>\int x^2 \quad x\enspace</code>
+        <span class="keybinding">/</span><span class="keybinding">d</span><span class="keybinding">i</span>
+        <code>\to \int x^2\,\mathrm{d}x</code>
+      </p>
+      <p>
+        <code>\int \quad x\enspace</code><span class="keybinding">/</span><span class="keybinding">d</span><span class="keybinding">I</span>
+        <code>\to \int\mathrm{d}x\enspace</code>
+        <span class="keybinding">x</span><span class="keybinding">.</span><span class="keybinding">2</span><span class="keybinding">&nbsp;</span>
+        <code>\to \int\mathrm{d}x\,x^2</code>
+      </p>
 
       <h2>
         <a name="integrals">Integral Limits <span class="keybinding">/</span><span class="keybinding">i</span></a>

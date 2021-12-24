@@ -397,7 +397,11 @@ const EditorKeymap = {
         // x -> d^2x
         '2': "insert d;operator mathrm;insert 2;superscript;swap;concat",
         '3': "insert d;operator mathrm;insert 3;superscript;swap;concat",
-        '4': "insert d;operator mathrm;insert 4;superscript;swap;concat"
+        '4': "insert d;operator mathrm;insert 4;superscript;swap;concat",
+        // y x -> y dx
+        'i': "swap;insert \\,;concat;swap;insert d;operator mathrm;swap;concat;concat",
+        // y x -> ydx (with thinspace after the dx)
+        'I': "insert d;operator mathrm;swap;concat;concat;insert \\,;concat"
     },
 
     // comma prefix: combine two objects with an infix operation
