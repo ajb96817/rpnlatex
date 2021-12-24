@@ -369,17 +369,17 @@ const EditorKeymap = {
         // \partial^2 y / \partial x^2
         'J': "name partial2_yx;insert 2;superscript;insert \\partial;swap;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
         // dy/dx
-        'k': "name dy_dx;insert d;swap;concat;swap;insert d;swap;concat;swap;operator frac 2",
+        'k': "name dy_dx;insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;swap;concat;swap;operator frac 2",
         // d^2(y) / dx^2
-        'K': "name d2_y_dx2;insert 2;superscript;insert d;swap;concat;swap;insert d;insert 2;superscript;swap;concat;swap;operator frac 2",
+        'K': "name d2_y_dx2;insert 2;superscript;insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;insert 2;superscript;swap;concat;swap;operator frac 2",
         // \partial / \partial x
         'q': "name partial_x;insert \\partial;swap;concat;insert \\partial;swap;operator frac 2",
         // \partial^2 / \partial x^2
         'Q': "name partial2_x2;insert 2;superscript;insert \\partial;swap;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
         // d/dx
-        'x': "name d_dx;insert d;swap;concat;insert d;swap;operator frac 2",
+        'x': "name d_dx;insert d;operator mathrm;swap;concat;insert d;operator mathrm;swap;operator frac 2",
         // d^2 / dx^2
-        'X': "name d2_dx2;insert 2;superscript;insert d;swap;concat;insert d;insert 2;superscript;swap;operator frac 2",
+        'X': "name d2_dx2;insert 2;superscript;insert d;operator mathrm;swap;concat;insert d;operator mathrm;insert 2;superscript;swap;operator frac 2",
         // \partial^2 / \partial x\,\partial y
         'm': "name partial2_x_y;insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
         // \partial^2 z / \partial x\,\partial y
