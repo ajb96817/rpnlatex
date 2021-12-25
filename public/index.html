@@ -861,13 +861,29 @@
         The following commands all take an integer on the stack top, then assemble that many other items from the
         stack into a <code>1\times N</code> row matrix of the indicated type.
       </p>
+      <table class="keybindings"><tbody>
+          <tr>
+            <td><span class="keybinding">(</span><code>\;\begin{pmatrix}a & b & c\end{pmatrix}</code></td>
+            <td><span class="keybinding">[</span><code>\;\begin{bmatrix}a & b & c\end{bmatrix}</code></td>
+            <td><span class="keybinding">{</span><code>\;\begin{Bmatrix}a & b & c\end{Bmatrix}</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">v</span><code>\;\begin{vmatrix}a & b & c\end{vmatrix}</code></td>
+            <td><span class="keybinding">V</span><code>\;\begin{Vmatrix}a & b & c\end{Vmatrix}</code></td>
+            <td><span class="keybinding">m</span><code>\;\begin{matrix}a & b & c\end{matrix}</code></td>
+          </tr>
+      </tbody></table>
+      <p>
+        <strong>NOTE:</strong> As a shortcut for building <code>2\times 2</code> matrices,
+        the <span class="keybinding">2</span> command assembles 4 items from the stack in row-major order:
+      </p>
       <ul class="keybindings">
-        <li><span class="keybinding">(</span> Build the row surrounded by parenthesis.</li>
-        <li><span class="keybinding">[</span> Build the row surrounded by square brackets.</li>
-        <li><span class="keybinding">{</span> Build the row surrounded by curly braces.</li>
-        <li><span class="keybinding">v</span> Build the row surrounded by vertical bars.</li>
-        <li><span class="keybinding">V</span> Build the row surrounded by double vertical bars.</li>
-        <li><span class="keybinding">m</span> Build the row without delimiters.</li>
+        <li>
+          <span class="keybinding">2</span>
+          <code>a\enspace b\enspace c\enspace d\enspace \to
+            \begin{bmatrix} a & b \\ c & d \end{bmatrix}
+          </code>
+        </li>
       </ul>
 
       <p>

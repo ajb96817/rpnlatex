@@ -618,7 +618,8 @@ const EditorKeymap = {
         'Enter': "stack_matrices",
         '(': "build_matrix_row pmatrix",
         '[': "build_matrix_row bmatrix",
-        '{': "build_matrix_row Bmatrix"
+        '{': "build_matrix_row Bmatrix",
+        '2': "name matrix_2x2;insert 2;build_matrix_row bmatrix;unrot;insert 2;build_matrix_row bmatrix;swap;stack_matrices"
     },
 
     editor: {
