@@ -564,8 +564,8 @@ const EditorKeymap = {
         'W': "apply_hat widecheck",
         'x': "operator boxed",
         'X': "operator sout",  // strikeout
-        '.': "operator dot",
-        "\"": "operator ddot",
+        '.': "apply_hat dot",
+        "\"": "apply_hat ddot",
         ' ': "insert \\,;concat",  // append thin space
         "'": "autoparenthesize;prime",
         '*': "insert *;superscript",
