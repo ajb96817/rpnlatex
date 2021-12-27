@@ -627,7 +627,7 @@
         <a name="derivatives">Derivative Building <span class="keybinding">/</span><span class="keybinding">d</span></a>
       </h2>
       <p>
-        These are some shortcuts for quickly creating common types of expressions involving derivatives.
+        These are some shortcuts for quickly creating common types of expressions involving derivatives and differentials.
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -887,6 +887,33 @@
       </ul>
 
       <p>
+        <b>Matrix Manipulation:</b> These commands operate on existing matrices.
+      </p>
+      <ul class="keybindings">
+        <li><span class="keybinding">d</span>
+          &quot;Dissolve&quot; a matrix, putting all its entries onto the stack
+          in row-major order.
+        </li>
+        <li><span class="keybinding">E</span>
+          Insert spaces and ellipses before the last row and column in a matrix,
+          in order to notate a matrix that is not fully written out.
+        </li>
+        <li><span class="keybinding">s</span>
+          Split a matrix into its component rows, putting each row onto the stack.
+          To split by columns instead, use the <span class="keybinding">T</span> transpose
+          command first.
+        </li>
+        <li><span class="keybinding">T</span>
+          Transpose a matrix by exchanging its rows and columns.
+        </li>
+        <li>
+          <span class="keybinding">Enter</span> or <span class="keybinding">|</span>
+          Stack two matrices on top of each other.  Both must have the same number of columns.
+          This is the main way to build matrices from individual rows.
+        </li>
+      </ul>
+
+      <p>
         <b>Alignment Building:</b>
         These commands build LaTeX alignment enviroments.
         Like the matrix row building operations, these also take an integer on the stack top
@@ -975,33 +1002,6 @@
           Build a <em>stacked limits</em> object used for adding multiple subscripts or superscripts to a large
           operator such as <code>\sum</code>.  Place the resulting object as the subscript or superscript of
           the operator and they will be lined up in a stack underneath or above.
-        </li>
-      </ul>
-
-      <p>
-        <b>Matrix Manipulation:</b> These commands operate on existing matrices.
-      </p>
-      <ul class="keybindings">
-        <li><span class="keybinding">d</span>
-          &quot;Dissolve&quot; a matrix, putting all its entries onto the stack
-          in row-major order.
-        </li>
-        <li><span class="keybinding">E</span>
-          Insert spaces and ellipses before the last row and column in a matrix,
-          in order to notate a matrix that is not fully written out.
-        </li>
-        <li><span class="keybinding">s</span>
-          Split a matrix into its component rows, putting each row onto the stack.
-          To split by columns instead, use the <span class="keybinding">T</span> transpose
-          command first.
-        </li>
-        <li><span class="keybinding">T</span>
-          Transpose a matrix by exchanging its rows and columns.
-        </li>
-        <li>
-          <span class="keybinding">Enter</span> or <span class="keybinding">|</span>
-          Stack two matrices on top of each other.  Both must have the same number of columns.
-          This is the main way to build matrices from individual rows.
         </li>
       </ul>
 
