@@ -410,6 +410,7 @@ const EditorKeymap = {
         'b': "infix \\bullet",
         'c': "infix \\cap",
         'd': "infix \\setminus",  // (set [d]ifference)
+        'e': "infix ,\\dots,",
         'f': "infix \\quad\\mathrm{if}\\quad",
         'F': "infix \\quad\\mathrm{iff}\\quad",
         'g': "infix \\gets",
