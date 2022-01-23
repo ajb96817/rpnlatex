@@ -37,6 +37,10 @@ const EditorKeymap = {
         'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
 
         // Immediate action special keys
+        'Enter': "subscript",
+        '_': "subscript",
+        'Backspace': "pop",
+        "`": "superscript",
         'Shift+Enter': "edit_stack_top",
         ' ': "concat autoparenthesize",
         '=': "mode relational",
@@ -64,9 +68,6 @@ const EditorKeymap = {
 
         // Prefix keys
         'Tab': "mode stack",
-        'Enter': "subscript",
-        'Backspace': "pop",
-        "`": "superscript",
         "'": "mode symbol",
         '.': "mode decoration",
         ',': "mode infix",
@@ -77,8 +78,7 @@ const EditorKeymap = {
         '%': "mode calligraphic",
         '&': "mode script",
         '/': "mode operator",
-        '_': "accumulate text",
-        "\\": "accumulate latex",
+        "\\": "start_text_entry",
         '|': "mode array",
         '$': "mode config",
         '?': "toggle_popup help",
@@ -192,13 +192,14 @@ const EditorKeymap = {
         '-': "config zoom_factor -"
     },
 
-    // " and \ prefixes (text/latex accumulator)
-    accumulate: {
-        'Enter': "finish_text_input",
-        'Shift+Enter': "finish_text_input roman",
-        'Escape': "pop",  // (cancel text input)
-        'Backspace': "backspace_text_input",
-        'default': "append_text_input"
+    // \ prefix (text/latex accumulator)
+    text_entry: {
+        'Enter': "finish_text_entry",
+        '=': "finish_text_entry roman",
+        "\\": "finish_text_entry latex",
+        'Escape': "cancel_text_entry", // "pop",  // (cancel text input)
+        'Backspace': "backspace_text_entry",
+        'default': "append_text_entry"
     },
 
     // right-bracket prefix: special delimiters

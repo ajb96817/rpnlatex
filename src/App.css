@@ -221,6 +221,20 @@ div.stack_items textarea {
 }
 div.stack_items textarea:focus { outline: none; }
 
+div.stack_items div.text_entry {
+    text-align: left;  /* overrides .rightalign_math if needed */
+    font-family: monospace;
+    font-size: 120%;
+    border-top: 2px solid #aaa;
+    background-color: #eef;
+    margin: 0.1em 0;
+    padding: 0.25em 1.25em;
+    color: black;
+}
+div.stack_items div.empty_text_entry {
+    color: #888;
+}
+
 
 #document_panel {
     position: absolute;

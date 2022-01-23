@@ -3,7 +3,6 @@ import {
     /*Settings, */ AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    AccumulatorExpr,
     Item, ExprItem, MarkdownItem, Stack /*, Document*/
 } from './Models';
 
@@ -36,7 +35,11 @@ class InputContext {
         // Tracks minieditor state for editing the stack-top.
         this.minieditor = {active: false};
 
-        // Tracks multi-part custom_delimiters commands
+        // If non-null, text-entry mode is active and the entry line will appear at the
+        // bottom of the stack panel.
+        this.text_entry = null;
+
+        // Tracks multi-part custom_delimiters commands.
         this.custom_delimiters = {};
     }
 
@@ -47,10 +50,10 @@ class InputContext {
         if(key === 'Shift' || key === 'Alt' || key === 'Control')
             return [false, app_state];
 
-        // Special case: if stack top is an AccumulatorExpr, make sure we're in 'accumulate' input mode.
-        if(app_state.stack.depth() > 0 && app_state.stack.peek(1).item_type() === 'expr' &&
-           app_state.stack.peek(1).expr.expr_type() === 'accumulator')
-            this.mode = 'accumulate';
+        // Special case: if there's a current text_entry being accumulated, force
+        // the 'text_entry' mode.
+        if(this.text_entry !== null)
+            this.mode = 'text_entry';
 
         // If the popup panel is active, always use its dedicated keymap.
         const effective_mode = this.settings.popup_mode || this.mode;
@@ -542,6 +545,12 @@ class InputContext {
             return new_stack.push(old_item);
     }
 
+    do_cancel_text_entry(stack) {
+        this.text_entry = null;
+        this.perform_undo_or_redo = 'suppress';
+        return stack;
+    }
+
     do_insert_markdown(stack, text) {
         return stack.push(new MarkdownItem(text));
     }
@@ -657,10 +666,10 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
-    do_accumulate(stack, accumulate_type) {
-        this.switch_to_mode('accumulate');
-        this.perform_undo_or_redo = 'suppress';  // (minor action)
-        return stack.push_expr(new AccumulatorExpr(accumulate_type, ''));
+    do_start_text_entry(stack) {
+        this.text_entry = '';
+        this.perform_undo_or_redo = 'suppress';
+        return stack;
     }
 
     do_custom_delimiter(stack, delimiter_type) {
@@ -804,59 +813,67 @@ class InputContext {
             return stack.type_error();
     }
 
-    do_append_text_input(stack) {
+    do_append_text_entry(stack) {
         const key = this.last_keypress;
-        const [new_stack, expr] = stack.pop_exprs(1);
-        let new_expr;
-        if(expr.expr_type() === 'accumulator') {
-            if(expr.is_valid_character(key))
-                new_expr = expr.with_extra_character(key);
-            else if(expr.accumulator_type === 'latex' && key === ' ') {
-                // Special case: Space key will finish latex accumulation.
-                return this.do_finish_text_input(stack);
-            }
-            else
-                new_expr = expr;
-        }
-        else
-            new_expr = expr;
-        this.switch_to_mode('accumulate');  // stay in text accumulation mode
-        this.perform_undo_or_redo = 'suppress';  // (minor action)
-        return new_stack.push_expr(new_expr);
+        let text = this.text_entry || '';
+        if(key.length === 1)
+            this.text_entry = text + key;
+        this.perform_undo_or_redo = 'suppress';
+        return stack;
     }
 
-    do_backspace_text_input(stack) {
-        this.switch_to_mode('accumulate');  // stay in text accumulation mode
-        this.perform_undo_or_redo = 'suppress';  // (minor action)
-        const [new_stack, expr] = stack.pop_exprs(1);
-        let new_expr;
-        if(expr.expr_type() === 'accumulator') {
-            if(expr.is_empty()) {
-                // Backspace on an already-empty accumulator just drops it from the stack.
-                this.switch_to_mode('base');
-                return new_stack;
-            }
-            new_expr = expr.without_last_character();
-        }
+    do_backspace_text_entry(stack) {
+        let text = this.text_entry || '';
+        this.perform_undo_or_redo = 'suppress';
+        if(text.length > 0)
+            this.text_entry = text.slice(0, -1);
         else
-            new_expr = expr;
-        return new_stack.push_expr(new_expr);
+            this.text_entry = null;
+        return stack;
     }
 
     // If textstyle is supplied, apply the given text style to the entered text.
-    // (currently only "roman" allowed)
-    do_finish_text_input(stack, textstyle) {
-        const [new_stack, expr] = stack.pop_exprs(1);
-        if(expr.expr_type() === 'accumulator') {
-            let new_expr = expr.finished_expr();
-            if(!new_expr)
-                return new_stack;
-            if(textstyle === 'roman')
-                new_expr = new CommandExpr('mathrm', [new_expr]);
-            return new_stack.push_expr(new_expr);
+    // (allowed values: "roman", "latex")
+    do_finish_text_entry(stack, textstyle) {
+        this.perform_undo_or_redo = 'suppress';
+        if(this.text_entry === null)
+            return stack;  // shouldn't happen
+        let new_expr;
+        if(textstyle === 'roman')
+            new_expr = new CommandExpr('mathrm', [new TextExpr(this._latex_escape(this.text_entry))]);
+        else if(textstyle === 'latex') {
+            const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
+            if(sanitized.length === 0) {
+                this.text_entry = null;
+                return stack;
+            }
+            new_expr = new TextExpr("\\" + sanitized);
         }
         else
-            return new_stack;  // shouldn't normally happen
+            new_expr = new TextExpr(this._latex_escape(this.text_entry));
+        
+        this.text_entry = null;
+        return stack.push_expr(new_expr);
+    }
+
+    // TODO: may want to make this a general utility method, but it's only used here so far.
+    _latex_escape(text) {
+        const replacements = {
+            '_': "\\_",
+            '^': "\\wedge",
+            '%': "\\%",
+            "'": "\\prime",
+            "`": "\\backprime",
+            ' ': "\\,",
+            '$': "\\$",
+            '&': "\\&",
+            '#': "\\#",
+            '}': "\\}",
+            '{': "\\{",
+            '~': "\\sim",
+            "\\": "\\backslash",
+        };
+        return text.replaceAll(/[_^%'` $&#}{~\\]/g, match => replacements[match]);
     }
 
     // expr_count is the number of items to pop from the stack to put inside the delimiters.

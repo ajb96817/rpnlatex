@@ -263,6 +263,9 @@ class ModeIndicatorComponent extends React.Component {
     render() {
         let indicator_item = undefined;
         const notification_text = this.props.input_context.notification_text;
+        let input_mode = this.props.input_context.mode;
+        if(this.props.input_context.text_entry !== null)
+            input_mode = 'text_entry';
         if(notification_text) {
             // Auto-highlight anything after the colon in the notification message.
             const colon = notification_text.indexOf(':');
@@ -274,10 +277,10 @@ class ModeIndicatorComponent extends React.Component {
             else
                 indicator_item = $e('span', {className: 'notification'}, notification_text);
         }
-        else if(this.props.input_context.mode !== 'base')
+        else if(input_mode !== 'base')
             indicator_item = $e(
                 'span', {className: 'mode'},
-                this.props.input_context.mode.replaceAll('_', ' '));
+                input_mode.replaceAll('_', ' '));
         return $e('div', {className: 'indicator'}, indicator_item);
     }
 }
@@ -310,6 +313,14 @@ class StackItemsComponent extends React.Component {
                     });
             }
         });
+        if(input_context.text_entry !== null) {
+            const component = $e(
+                TextEntryComponent, {
+                    text: input_context.text_entry,
+                    key: 'textentry'
+                });
+            item_components.push(component);
+        }
         let class_names = ['stack_items'];
         if(this.props.settings.layout.stack_rightalign_math)
             class_names.push('rightalign_math');
@@ -398,6 +409,19 @@ class MiniEditorComponent extends React.Component {
         const initial_text = this.props.input_context.minieditor.text;
         if(initial_text) textarea.value = initial_text; 
         textarea.focus();
+    }
+}
+
+
+// Accumulate a single line of text for literal or Latex command entry
+// (backslash key activates this).
+class TextEntryComponent extends React.Component {
+    render() {
+        const text = this.props.text;
+        const is_empty = text.length === 0;
+        return $e(
+            'div', {className: (is_empty ? 'text_entry empty_text_entry' : 'text_entry')},
+            is_empty ? '...' : text);
     }
 }
 

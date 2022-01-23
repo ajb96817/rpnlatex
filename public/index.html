@@ -63,16 +63,14 @@
           These keys also place the corresponding symbol onto the stack.
         </li>
         <li>
-          <span class="keybinding">_</span> <em>(underscore)</em> Typing an underscore character starts <em>text accumulation</em> mode
-          where you can enter a longer text string - use <span class="keybinding">Enter</span> to finish your input or
-          <span class="keybinding">Esc</span> to cancel.
-          You can also use <span class="keybinding">Shift+Enter</span> to typeset your input as Roman text instead of the
-          default Italic math typeface.
-        </li>
-        <li>
-          <span class="keybinding">\</span> Similar to <em>text accumulation</em> mode, but this allows you to enter
-          an arbitrary LaTeX command (starting with a backslash); the command is placed on the stack and may be manipulated further by
-          other commands.
+          <span class="keybinding">\</span> <em>(backslash)</em> Typing a backslash starts <em>text entry</em> mode
+          where you can enter a longer text string.  To finish your input, use one of:
+          <ul>
+            <li><span class="keybinding">Enter</span> - typeset your input as normal Italic math text</li>
+            <li><span class="keybinding">=</span> - typeset your input as Roman text</li>
+            <li><span class="keybinding">\</span> - create an arbitrary LaTeX command (e.g. \sqrt)</li>
+            <li><span class="keybinding">Esc</span> - cancel text entry</li>
+          </ul>
         </li>
         <li>
           <span class="keybinding">&nbsp;</span> <em>(space)</em> Concatenate the top two stack entries (implicit multiplication).
@@ -85,10 +83,11 @@
           Append a ! to the stack top (factorial notation).
         </li>
         <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
-        <li><span class="keybinding">Enter</span> Make subscript: <code>y\enspace x \to y_x</code></li>
+        <li><span class="keybinding">Enter</span> or <span class="keybinding">_</span> Make subscript: <code>y\enspace x \to y_x</code></li>
         <li>
           <span class="keybinding">Shift+Enter</span>
-          Start editing the stack top as text.  Use <span class="keybinding">Shift+Enter</span> again to
+          Start editing the stack top as text in a multiline text editor.
+          Use <span class="keybinding">Shift+Enter</span> again to
           save your changes or <span class="keybinding">Esc</span> to cancel.
         </li>
         <li>

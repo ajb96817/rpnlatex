@@ -723,8 +723,6 @@ class Expr {
             return new SubscriptSuperscriptExpr(this._expr(json.base_expr), this._expr(json.subscript_expr), this._expr(json.superscript_expr));
         case 'array':
             return new ArrayExpr(json.array_type, json.row_count, json.column_count, this._list2d(json.element_exprs));
-        case 'accumulator':
-            return new AccumulatorExpr(json.accumulator_type, json.text);
         default:
             return new TextExpr('invalid expr type ' + json.expr_type);
         }
@@ -1317,107 +1315,6 @@ class ArrayExpr extends Expr {
 }
 
 
-// Accumulate text character-by-character into a string.
-// accumulator_type can be:
-//    latex: turns into a \arbitrarylatexcommand
-//    text: turns into a TextExpr
-class AccumulatorExpr extends Expr {
-    constructor(accumulator_type, text) {
-        super();
-        this.accumulator_type = accumulator_type;
-        this.text = text;
-    }
-
-    expr_type() { return 'accumulator'; }
-    json_keys() { return ['accumulator_type', 'text']; }
-
-    with_extra_character(c) {
-        return new AccumulatorExpr(this.accumulator_type, this.text + c);
-    }
-
-    without_last_character() {
-        return new AccumulatorExpr(this.accumulator_type, this.text.slice(0, -1));
-    }
-
-    is_valid_character(ch) {
-        if(this.accumulator_type === 'latex') {
-            // LaTeX commands can only contain upper/lowercase letters,
-            // with the exception of single-character commands like \:
-            const alpha_regex = /^[a-zA-Z]$/;
-            if(this.text.length === 0 && ch.length === 1)
-                return true;
-            else if(this.text.length === 1 && !alpha_regex.test(this.text))
-                return false;
-            else
-                return alpha_regex.test(ch);
-        }
-        else {
-            // Allow anything in 'normal' text, but suppress multi-character
-            // strings like "Alt" that can come in from keyboard events.
-            return ch.length === 1;
-        }
-    }
-
-    is_empty() { return this.text.length === 0; }
-
-    // Create an Expr for this accumulator assuming it's finished.
-    // Returns null if empty.
-    finished_expr() {
-        const text = this.text.trim();
-        if(text.length === 0) return null;
-        switch(this.accumulator_type) {
-        case 'latex': return new CommandExpr(text);
-        case 'text': return new TextExpr(this._latex_escape(text));
-        default: return null;
-        }
-    }
-
-    // TODO: may want to make this a general utility method, but it's only used here so far.
-    _latex_escape(text) {
-        const replacements = {
-            '_': "\\_",
-            '^': "\\wedge",
-            '%': "\\%",
-            "'": "\\prime",
-            "`": "\\backprime",
-            ' ': "\\,",
-            '$': "\\$",
-            '&': "\\&",
-            '#': "\\#",
-            '}': "\\}",
-            '{': "\\{",
-            '~': "\\sim",
-            "\\": "\\backslash",
-        };
-        return text.replaceAll(/[_^%'` $&#}{~\\]/g, match => replacements[match]);
-    }
-
-    emit_latex(emitter) {
-        emitter.expr(this._to_display_expr());
-    }
-
-    // Return an Expr used to display this accumulator while it's being edited.
-    _to_display_expr() {
-        switch(this.accumulator_type) {
-        case 'latex':
-            return new SequenceExpr([
-                new CommandExpr('backslash'),
-                new CommandExpr('mathrm', [
-                    this.is_empty() ? new CommandExpr('thinspace') : new TextExpr(this._latex_escape(this.text))
-                ])]);
-        case 'text':
-            return new CommandExpr('boxed', [
-                new SequenceExpr([
-                    new CommandExpr('vphantom', [new TextExpr('I')]),
-                    this.is_empty() ? new CommandExpr(',') : new TextExpr(this._latex_escape(this.text))
-                ])]);
-        default:
-            return new TextExpr('???');
-        }
-    }
-}
-
-
 // Represents an entry in the stack or document.
 class Item {
     // Used for React collection keys.  Each entry in a React component list is
@@ -1706,6 +1603,6 @@ export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    AccumulatorExpr, Item, ExprItem, MarkdownItem, Stack, Document
+    Item, ExprItem, MarkdownItem, Stack, Document
 };
 
