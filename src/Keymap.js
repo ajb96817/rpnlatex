@@ -195,9 +195,9 @@ const EditorKeymap = {
     // \ prefix (text/latex accumulator)
     text_entry: {
         'Enter': "finish_text_entry",
-        '=': "finish_text_entry roman",
+        'Shift+Enter': "finish_text_entry roman",
         "\\": "finish_text_entry latex",
-        'Escape': "cancel_text_entry", // "pop",  // (cancel text input)
+        'Escape': "cancel_text_entry",
         'Backspace': "backspace_text_entry",
         'default': "append_text_entry"
     },

@@ -545,12 +545,6 @@ class InputContext {
             return new_stack.push(old_item);
     }
 
-    do_cancel_text_entry(stack) {
-        this.text_entry = null;
-        this.perform_undo_or_redo = 'suppress';
-        return stack;
-    }
-
     do_insert_markdown(stack, text) {
         return stack.push(new MarkdownItem(text));
     }
@@ -664,12 +658,6 @@ class InputContext {
 
         const new_expr = new CommandExpr('textcolor', [new TextExpr(colorname), expr]);
         return new_stack.push_expr(new_expr);
-    }
-
-    do_start_text_entry(stack) {
-        this.text_entry = '';
-        this.perform_undo_or_redo = 'suppress';
-        return stack;
     }
 
     do_custom_delimiter(stack, delimiter_type) {
@@ -813,22 +801,33 @@ class InputContext {
             return stack.type_error();
     }
 
+    do_start_text_entry(stack) {
+        this.text_entry = '';
+        this.perform_undo_or_redo = 'suppress';
+        return stack;
+    }
+
+    do_cancel_text_entry(stack) {
+        this.text_entry = null;
+        this.perform_undo_or_redo = 'suppress';
+        return stack;
+    }
+
     do_append_text_entry(stack) {
         const key = this.last_keypress;
-        let text = this.text_entry || '';
         if(key.length === 1)
-            this.text_entry = text + key;
+            this.text_entry = (this.text_entry || '') + key;
         this.perform_undo_or_redo = 'suppress';
         return stack;
     }
 
     do_backspace_text_entry(stack) {
         let text = this.text_entry || '';
-        this.perform_undo_or_redo = 'suppress';
         if(text.length > 0)
             this.text_entry = text.slice(0, -1);
         else
             this.text_entry = null;
+        this.perform_undo_or_redo = 'suppress';
         return stack;
     }
 
@@ -851,7 +850,6 @@ class InputContext {
         }
         else
             new_expr = new TextExpr(this._latex_escape(this.text_entry));
-        
         this.text_entry = null;
         return stack.push_expr(new_expr);
     }
