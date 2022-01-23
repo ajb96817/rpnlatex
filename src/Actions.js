@@ -32,6 +32,15 @@ class InputContext {
         //    'clear' - undo stack will be reset (e.g. when loading a new document)
         this.perform_undo_or_redo = null;
 
+        // Current prefix argument for commands like Swap; can be one of:
+        //   null - no current prefix argument
+        //   >= 1 - normal prefix argument
+        //   -1   - "all" prefix argument (apply to all available items)
+        // Prefix arguments are cleared after any normal command is executed
+        // or if there's an error.  "Normal" command means anything that's not
+        // another prefix argument key.
+        this.prefix_argument = null;
+
         // Tracks minieditor state for editing the stack-top.
         this.minieditor = {active: false};
 
@@ -126,11 +135,16 @@ class InputContext {
 
                 // Switch back into base mode if the mode was not explicitly set by the handler.
                 this.mode = this.new_mode || 'base';
+
+                // Clear the prefix argument if the last command was not explicitly 'prefix_argument'.
+                if(command_name !== 'prefix_argument')
+                    this.prefix_argument = null;
             } catch(e) {
                 if(e.message === 'stack_underflow' || e.message === 'stack_type_error') {
                     this.error_flash_stack();
                     this.perform_undo_or_redo = null;
                     this.mode = 'base';
+                    this.prefix_argument = null;
                     return null;
                 }
                 else throw e;
@@ -238,6 +252,25 @@ class InputContext {
 
     do_undo() { this.perform_undo_or_redo = 'undo'; }
     do_redo() { this.perform_undo_or_redo = 'redo'; }
+
+    do_prefix_argument() {
+        const key = this.last_keypress;
+        this.perform_undo_or_redo = 'suppress';
+        this.switch_to_mode(this.mode);
+        let new_prefix_argument = null;
+        if(/^[0-9]$/.test(key)) {
+            const value = parseInt(key);
+            if(this.prefix_argument !== null && this.prefix_argument > 0) {
+                // Multi-digit prefix argument
+                new_prefix_argument = 10*this.prefix_argument + value;
+            }
+            else if(value > 0)
+                new_prefix_argument = value;
+        }
+        else if(key === '*')
+            new_prefix_argument = -1;
+        this.prefix_argument = new_prefix_argument;
+    }
 
     do_dup(stack) {
         const [new_stack, item] = stack.pop(1);

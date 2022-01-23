@@ -261,10 +261,18 @@ class App extends React.Component {
 // Shows current input mode in top-right corner of stack display
 class ModeIndicatorComponent extends React.Component {
     render() {
+        const input_context = this.props.input_context;
         let indicator_item = undefined;
-        const notification_text = this.props.input_context.notification_text;
-        let input_mode = this.props.input_context.mode;
-        if(this.props.input_context.text_entry !== null)
+        const notification_text = input_context.notification_text;
+        let input_mode = input_context.mode;
+        if(input_context.prefix_argument !== null) {
+            // Show current prefix argument in mode indicator
+            if(input_context.prefix_argument < 0)
+                input_mode = input_mode + '(*)';
+            else
+                input_mode = input_mode + '(' + input_context.prefix_argument.toString() + ')';
+        }
+        if(input_context.text_entry !== null)
             input_mode = 'text_entry';
         if(notification_text) {
             // Auto-highlight anything after the colon in the notification message.

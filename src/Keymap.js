@@ -115,6 +115,7 @@ const EditorKeymap = {
 
     // Tab prefix: stack/misc operations
     stack: {
+        '[prefixarg]': "prefix_argument",
         'c': "copy_to_clipboard",
         'd': "pop",
         'i': "pop_to_document",
@@ -594,6 +595,7 @@ const EditorKeymap = {
 
     // | prefix: array/matrix operations
     array: {
+        '[prefixarg]': "prefix_argument",
         'a': "build_align aligned",
         'c': "build_align cases",
         'C': "build_align rcases",
@@ -620,7 +622,7 @@ const EditorKeymap = {
         '(': "build_matrix_row pmatrix",
         '[': "build_matrix_row bmatrix",
         '{': "build_matrix_row Bmatrix",
-        '2': "name matrix_2x2;insert 2;build_matrix_row bmatrix;unrot;insert 2;build_matrix_row bmatrix;swap;stack_matrices"
+        '@': "name matrix_2x2;insert 2;build_matrix_row bmatrix;unrot;insert 2;build_matrix_row bmatrix;swap;stack_matrices"
     },
 
     editor: {
