@@ -467,6 +467,7 @@ const EditorKeymap = {
         'q': "infix =",
         's': "infix \\subseteq",
         'S': "infix \\subset",
+	't': "infix \\sim",
         '=': "infix =",
         '<': "infix <",
         '>': "infix >",
