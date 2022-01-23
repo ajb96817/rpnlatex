@@ -1206,7 +1206,7 @@ class ArrayExpr extends Expr {
                         expr.right_expr)];
             else
                 return [
-                    expr.left_expr,
+                    expr,
                     new CommandExpr('mathrm', [new TextExpr('otherwise')])];
         default:
             return [expr];
