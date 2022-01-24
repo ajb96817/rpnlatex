@@ -1186,36 +1186,29 @@
         <a name="stack">Stack Manipulation and Utilities</a>
         <span class="keybinding">Tab</span>
       </h2>
-      <p>These commands manipulate the stack with traditional RPN operations:</p>
-      <table class="keybindings"><tbody>
-          <tr>
-            <td><span class="keybinding">d</span> <em>Drop:</em> (x &rarr;)</td>
-            <td><span class="keybinding">n</span> <em>Nip:</em> (y x &rarr; x)</td>
-          </tr>
-          <tr>
-            <td><span class="keybinding">o</span> <em>Over:</em> (y x &rarr; y x y)</td>
-            <td><span class="keybinding">r</span> <em>Rotate:</em> (z y x &rarr; y x z)</td>
-          </tr>
-          <tr>
-            <td><span class="keybinding">u</span> <em>Unrotate:</em> (z y x &rarr; x z y)</td>
-            <td><span class="keybinding">t</span> <em>Tuck:</em> (y x &rarr; x y x)</td>
-          </tr>
-          <tr>
-            <td><span class="keybinding">w</span> <em>Swap:</em> (y x &rarr; x y)</td>
-            <td><span class="keybinding">Enter</span> or <span class="keybinding">&nbsp;</span> <em>Dup:</em> (x &rarr; x x)</td>
-          </tr>
-          <tr>
-            <td colspan="2"><span class="keybinding">v</span> <em>Reverse N:</em> (a1 a2 ... aN N &rarr; aN ... a2 a1)</td>
-          </tr>
-          <tr>
-            <td colspan="2"><span class="keybinding">V</span> <em>Reverse All:</em>
-              Reverse the order of all stack items
-            </td>
-          </tr>
-      </tbody></table>
+      <p>
+        The following commands manipulate the stack with traditional RPN operations.
+        These can optionally take numeric <em>prefix arguments</em> which specify the number
+        of stack items to operate on.  Prefix arguments are entered by typing one or more digits
+        after the <span class="keybinding">Tab</span> and before one of the following subcommand
+        keys.  Also, instead of a digit, * (asterisk) may be used to indicate that the operation
+        should apply to the entire stack.  For example, to reverse the entire stack you can type
+        <span class="keybinding">Tab</span><span class="keybinding">*</span><span class="keybinding">w</span>.
+        In the descriptions below, N refers to the prefix argument if given, otherwise the default is used.
+      </p>
+      <ul class="keybindings">
+        <li><span class="keybinding">Enter</span> <em>(Dup)</em> Duplicate the top N items (default 1).</li>
+        <li><span class="keybinding">d</span> <em>(Drop)</em> Remove the top N items (default 1).</li>
+        <li><span class="keybinding">n</span> <em>(Nip)</em> Delete the Nth item from the top (default 2).</li>
+        <li><span class="keybinding">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
+        <li><span class="keybinding">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
+        <li><span class="keybinding">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
+        <li><span class="keybinding">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
+        <li><span class="keybinding">w</span> <em>(Swap)</em> Reverse the order of the top N items (default 2).</li>
+      </ul>
       <p>
         <strong>NOTE:</strong>
-        <span class="keybinding">Backspace</span> can also be used to drop items from the stack
+        <span class="keybinding">Backspace</span> can also be used to drop single items from the stack
         instead of <span class="keybinding">Tab</span><span class="keybinding">d</span>.
       </p>
       <p>
@@ -1227,7 +1220,7 @@
           <span class="keybinding">c</span>
           Copy the stack top into an internal clipboard slot.
           The copied item can later be pasted to the stack with
-          <span class="keybinding">Tab</span><span class="keybinding">p</span>.
+          <span class="keybinding">Tab</span><span class="keybinding">v</span>.
         </li>
         <li>
           <span class="keybinding">f</span> Open the File Manager (see below).
@@ -1259,16 +1252,15 @@
           Recenter the document view around the current document selection.
         </li>
         <li>
-          <span class="keybinding">p</span>
+          <span class="keybinding">s</span>
+          Save the current document to browser storage.
+        </li>
+        <li>
+          <span class="keybinding">v</span>
           Paste the item most recently copied to the clipboard
           (with <span class="keybinding">Tab</span><span class="keybinding">c</span>)
           onto the stack.
         </li>
-        <li>
-          <span class="keybinding">s</span>
-          Save the current document to browser storage.
-        </li>
-        <li><span class="keybinding">X</span> Clear the stack of all items.</li>
         <li><span class="keybinding">Tab</span>
           <em>Undo:</em> Revert stack and document back to the last 
           state they were in.  Up to 100 undo states are available.

@@ -1,9 +1,9 @@
 
 import {
-    /*Settings, */ AppState,
+    AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, MarkdownItem, Stack /*, Document*/
+    Item, ExprItem, MarkdownItem
 } from './Models';
 
 
@@ -272,59 +272,79 @@ class InputContext {
         this.prefix_argument = new_prefix_argument;
     }
 
-    do_dup(stack) {
-        const [new_stack, item] = stack.pop(1);
-        return new_stack.push_all([item, item]);
+    // Unconditionally clear the current prefix argument, if any.
+    // This is used within macros to avoid unwanted uses of the prefix
+    // argument by things like 'swap' within the macro definition.
+    // This is a bit of a hack and should be revisited at some point.
+    do_clear_prefix_argument() {
+        this.prefix_argument = null;
     }
+
+    // Convenience function for interpreting the prefix_argument in commands that support it.
+    _get_prefix_argument(default_value, all_value) {
+        if(this.prefix_argument === null)
+            return default_value;
+        else if(this.prefix_argument < 0)
+            return all_value;
+        else
+            return this.prefix_argument;
+    }
+
+    // Duplicate stack top; with prefix argument, duplicate the N top items.
+    do_dup(stack) {
+        const arg = this._get_prefix_argument(1, stack.depth());
+        const [new_stack, ...items] = stack.pop(arg);
+        return new_stack.push_all(items.concat(items));
+    }
+    // Drop stack top; with prefix argument, drop the top N items.
     do_pop(stack) {
+        const arg = this._get_prefix_argument(1, stack.depth());
         // eslint-disable-next-line no-unused-vars
-        const [new_stack, popped_item] = stack.pop(1);
+        const [new_stack, ...items] = stack.pop(arg);
         return new_stack;
     }
-    // a b -> b
+    // Drop Nth stack item (default=2, i.e.: a b -> b)
     do_nip(stack) {
+        const arg = this._get_prefix_argument(2, stack.depth());
         // eslint-disable-next-line no-unused-vars
-        const [new_stack, a, b] = stack.pop(2);
-        return new_stack.push(b);
+        const [new_stack, ...items] = stack.pop(arg);
+        return new_stack.push_all(items.slice(1));
     }
+    // Reverse top N stack items (default=2)
     do_swap(stack) {
-        const [new_stack, a, b] = stack.pop(2);
-        return new_stack.push_all([b, a]);
-    }
-    // a b -> b a b
-    do_tuck(stack) {
-        const [new_stack, a, b] = stack.pop(2);
-        return new_stack.push_all([b, a, b]);
-    }
-    // a b -> a b a
-    do_over(stack) {
-        const [new_stack, a, b] = stack.pop(2);
-        return new_stack.push_all([a, b, a]);
-    }
-    // a b c -> b c a
-    do_rot(stack) {
-        const [new_stack, a, b, c] = stack.pop(3);
-        return new_stack.push_all([b, c, a]);
-    }
-    // a b c -> c a b
-    do_unrot(stack) {
-        const [new_stack, a, b, c] = stack.pop(3);
-        return new_stack.push_all([c, a, b]);
-    }
-    // a_1 a_2 ... a_n N -> a_n ... a_2 a_1
-    do_reverse_n(stack) {
-        const [new_stack, item_count] = stack.pop_positive_integer();
-        const [new_stack_2, ...items] = new_stack.pop(item_count);
-        items.reverse();
-        return new_stack_2.push_all(items);
-    }
-    do_reverse_all(stack) {
-        const [new_stack, ...items] = stack.pop(stack.depth());
+        const arg = this._get_prefix_argument(2, stack.depth());
+        const [new_stack, ...items] = stack.pop(arg);
         items.reverse();
         return new_stack.push_all(items);
     }
-    do_clear_stack() {
-        return new Stack([]);
+    // Copy stack top above the current Nth stack item
+    // Default argument of 2 is: a b -> b a b
+    // Argument of 1 acts as "dup".
+    do_tuck(stack) {
+        const arg = this._get_prefix_argument(2, stack.depth());
+        const [new_stack, ...items] = stack.pop(arg);
+        return new_stack.push_all(items.slice(-1).concat(items));
+    }
+    // Pick the Nth item from the stack and copy it to the stack top.
+    // Default argument of 2 is: a b -> a b a
+    do_over(stack) {
+        const arg = this._get_prefix_argument(2, stack.depth());
+        const [new_stack, ...items] = stack.pop(arg);
+        return new_stack.push_all(items.concat([items[0]]));
+    }
+    // Rotate N top stack items (default=3: a b c -> b c a)
+    do_rot(stack) {
+        const arg = this._get_prefix_argument(3, stack.depth());
+        const [new_stack, ...items] = stack.pop(arg);
+        const new_items = items.slice(1).concat([items[0]]);
+        return new_stack.push_all(new_items);
+    }
+    // Rotate N top stack items backwards (default=3: a b c -> c a b)
+    do_unrot(stack) {
+        const arg = this._get_prefix_argument(3, stack.depth());
+        const [new_stack, ...items] = stack.pop(arg);
+        const new_items = items.slice(-1).concat(items.slice(0, -1));
+        return new_stack.push_all(new_items);
     }
 
     do_change_document_selection(stack, amount_string) {
