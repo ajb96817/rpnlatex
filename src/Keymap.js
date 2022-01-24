@@ -225,15 +225,7 @@ const EditorKeymap = {
 
     // right-curly-brace prefix: custom delimiter builder mode
     custom_delimiters: {
-        '1': "custom_delimiter_arity 1",
-        '2': "custom_delimiter_arity 2",
-        '3': "custom_delimiter_arity 3",
-        '4': "custom_delimiter_arity 4",
-        '5': "custom_delimiter_arity 5",
-        '6': "custom_delimiter_arity 6",
-        '7': "custom_delimiter_arity 7",
-        '8': "custom_delimiter_arity 8",
-        '9': "custom_delimiter_arity 9",
+        '[digit]': "prefix_argument",
         'c': "custom_delimiter \\lceil",
         'C': "custom_delimiter \\rceil",
         'f': "custom_delimiter \\lfloor",
@@ -619,7 +611,7 @@ const EditorKeymap = {
         '(': "build_matrix_row pmatrix",
         '[': "build_matrix_row bmatrix",
         '{': "build_matrix_row Bmatrix",
-        '@': "clear_prefix_argument;insert 2;build_matrix_row bmatrix;unrot;insert 2;build_matrix_row bmatrix;swap;stack_matrices",
+        '@': "insert 2;build_matrix_row bmatrix;unrot;insert 2;build_matrix_row bmatrix;swap;stack_matrices",
         'Enter': "stack_matrices"
     },
 

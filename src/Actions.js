@@ -12,12 +12,19 @@ import {
 class InputContext {
     constructor(app_component, settings) {
         this.app_component = app_component;
+        this.settings = settings;
+
+        // Current keymap mode.
         this.mode = 'base';
+
+        // do_* actions can set this to switch into a new mode after the action (see switch_to_mode()).
         this.new_mode = null;
+
+        // do_* actions can set this to update the document state.
         this.new_document = null;
+        
         this.files_changed = false;
         this.file_saved = false;
-        this.settings = settings;
 
         // If set, this will be displayed as a transient notification in
         // the stack area.  Cleared after every keypress.
@@ -40,6 +47,9 @@ class InputContext {
         // or if there's an error.  "Normal" command means anything that's not
         // another prefix argument key.
         this.prefix_argument = null;
+
+        // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
+        this.preserve_prefix_argument = false;
 
         // Tracks minieditor state for editing the stack-top.
         this.minieditor = {active: false};
@@ -120,6 +130,10 @@ class InputContext {
                 // This indicates that the app state's dirty flag should be cleared.
                 this.file_saved = false;
 
+                // If this is set to true, the prefix_argument will be kept as it as (otherwise it's reset to
+                // null after each action).
+                this.preserve_prefix_argument = false;
+
                 this.notification_text = null;
 
                 // Execute the handler and assemble the new state.
@@ -137,7 +151,7 @@ class InputContext {
                 this.mode = this.new_mode || 'base';
 
                 // Clear the prefix argument if the last command was not explicitly 'prefix_argument'.
-                if(command_name !== 'prefix_argument')
+                if(!this.preserve_prefix_argument)
                     this.prefix_argument = null;
             } catch(e) {
                 if(e.message === 'stack_underflow' || e.message === 'stack_type_error' ||
@@ -258,6 +272,7 @@ class InputContext {
         const key = this.last_keypress;
         this.perform_undo_or_redo = 'suppress';
         this.switch_to_mode(this.mode);
+        this.preserve_prefix_argument = true;
         let new_prefix_argument = null;
         if(/^[0-9]$/.test(key)) {
             const value = parseInt(key);
@@ -271,14 +286,6 @@ class InputContext {
         else if(key === '*')
             new_prefix_argument = -1;
         this.prefix_argument = new_prefix_argument;
-    }
-
-    // Unconditionally clear the current prefix argument, if any.
-    // This is used within macros to avoid unwanted uses of the prefix
-    // argument by things like 'swap' within the macro definition.
-    // This is a bit of a hack and should be revisited at some point.
-    do_clear_prefix_argument() {
-        this.prefix_argument = null;
     }
 
     // Convenience function for interpreting the prefix_argument in commands that support it.
@@ -729,32 +736,38 @@ class InputContext {
         this.switch_to_mode('custom_delimiters');
         if(!delimiter_type) {
             // Start new sequence
-            this.custom_delimiters = {arity: 1};
+            this.custom_delimiters = {};
+            this.preserve_prefix_argument = true;
             return;
         }
         if(!this.custom_delimiters.left) {
+            // First delimiter (left side)
             this.custom_delimiters.left = delimiter_type;
+            this.preserve_prefix_argument = true;
             return;
         }
         if(!this.custom_delimiters.right) {
+            // Second delimiter (right side)
             this.custom_delimiters.right = delimiter_type;
-            if(this.custom_delimiters.arity === 1)
+            if(this.prefix_argument === null || this.prefix_argument <= 1)
                 return this._finish_custom_delimiters(stack);
-            else return;
+            else {
+                // Prefix argument of 2 or more has been entered; wait for 3rd delimiter.
+                this.preserve_prefix_argument = true;
+                return;
+            }
         }
+        // Third delimiter (middle)
         this.custom_delimiters.middle = delimiter_type;
         return this._finish_custom_delimiters(stack);
-    }
-
-    do_custom_delimiter_arity(stack, arity_string) {
-        this.switch_to_mode('custom_delimiters');
-        this.custom_delimiters.arity = parseInt(arity_string);
     }
 
     _finish_custom_delimiters(stack) {
         this.switch_to_mode('base');
         const d = this.custom_delimiters;
-        const [new_stack, ...exprs] = stack.pop_exprs(d.arity);
+        let arity = this.prefix_argument || 1;
+        if(arity < 1) arity = 1;
+        const [new_stack, ...exprs] = stack.pop_exprs(arity);
         const new_expr = new DelimiterExpr(d.left, d.right, d.middle, exprs);
         this.custom_delimiters = {};
         return new_stack.push_expr(new_expr);
