@@ -137,6 +137,7 @@
         sections.
       </p>
       <ul class="keybindings">
+        <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
         <li><span class="keybinding">'</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
         <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#decorations">decoration</a> to the stack top.</li>
         <li><span class="keybinding">,</span> <em>(comma)</em> Combine two items into an <a href="#infix">infix expression</a>.</li>
@@ -158,10 +159,111 @@
           <span class="keybinding">%</span><span class="keybinding">%</span> inserts a literal %.
         </li>
         <li><span class="keybinding">$</span> Change <a href="#configuration">configuration settings</a>.</li>
-        <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
         <li>
           <span class="keybinding">Ctrl</span>
           Some <a href="#control_keys">Control key</a> shortcuts are also available.
+        </li>
+      </ul>
+
+      <h2>
+        <a name="stack">Stack Manipulation and Utilities</a>
+        <span class="keybinding">Tab</span>
+      </h2>
+      <p>
+        The following commands manipulate the stack with traditional RPN operations.
+        These can optionally take numeric <em>prefix arguments</em> which specify the number
+        of stack items to operate on.  Prefix arguments are entered by typing one or more digits
+        after the <span class="keybinding">Tab</span> and before one of the following subcommand
+        keys.  Also, instead of a digit, * (asterisk) may be used to indicate that the operation
+        should apply to the entire stack.  For example, to reverse the entire stack you can type
+        <span class="keybinding">Tab</span><span class="keybinding">*</span><span class="keybinding">w</span>.
+        In the descriptions below, N refers to the prefix argument if given, otherwise the default is used.
+      </p>
+      <ul class="keybindings">
+        <li><span class="keybinding">Enter</span> <em>(Dup)</em> Duplicate the top N items (default 1).</li>
+        <li><span class="keybinding">d</span> <em>(Drop)</em> Remove the top N items (default 1).</li>
+        <li><span class="keybinding">n</span> <em>(Nip)</em> Delete the Nth item from the top (default 2).</li>
+        <li><span class="keybinding">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
+        <li><span class="keybinding">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
+        <li><span class="keybinding">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
+        <li><span class="keybinding">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
+        <li><span class="keybinding">w</span> <em>(Swap)</em> Reverse the order of the top N items (default 2).</li>
+      </ul>
+      <p>
+        <strong>NOTE:</strong>
+        <span class="keybinding">Backspace</span> can also be used to drop single items from the stack
+        instead of <span class="keybinding">Tab</span><span class="keybinding">d</span>.
+      </p>
+      <p>
+        There are also some utility functions available through this
+        <span class="keybinding">Tab</span> prefix:
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="keybinding">c</span>
+          Copy the stack top into an internal clipboard slot.
+          The copied item can later be pasted to the stack with
+          <span class="keybinding">Tab</span><span class="keybinding">v</span>.
+        </li>
+        <li>
+          <span class="keybinding">f</span> Open the File Manager (see below).
+        </li>
+        <li>
+          <span class="keybinding">i</span>
+          Move the stack top into the document at the current selection position.
+          Multiple items can be moved at once using a prefix argument.
+        </li>
+        <li>
+          <span class="keybinding">I</span>
+          Copy the stack top into the document at the current selection position without removing it
+          from the stack.  Multiple items can be copied at once using a prefix argument.
+
+        </li>
+        <li>
+          <span class="keybinding">j</span>
+          Move the current document selection back onto the stack.
+        </li>
+        <li>
+          <span class="keybinding">J</span>
+          Copy the current document selection onto the stack without removing it from the document.
+        </li>
+        <li>
+          <span class="keybinding">k</span>
+          Pop up a reference guide with all the available keybindings, organized by mode.
+          Editing these keybindings is not currently supported.
+        </li>
+        <li>
+          <span class="keybinding">l</span>
+          Recenter the document view around the current document selection.
+        </li>
+        <li>
+          <span class="keybinding">s</span>
+          Save the current document to browser storage.
+        </li>
+        <li>
+          <span class="keybinding">v</span>
+          Paste the item most recently copied to the clipboard
+          (with <span class="keybinding">Tab</span><span class="keybinding">c</span>)
+          onto the stack.
+        </li>
+        <li><span class="keybinding">Tab</span>
+          <em>Undo:</em> Revert stack and document back to the last 
+          state they were in.  Up to 100 undo states are available.
+          <span class="keybinding">Ctrl+z</span> also performs undo.
+        </li>
+        <li>
+          <span class="keybinding">.</span> <em>Redo:</em> Replay states that were
+          previously undone.  You can also use <span class="keybinding">Ctrl+y</span>.
+        </li>
+        <li>
+          <span class="keybinding">!</span> <em>Export document:</em> Copy the document content to the clipboard as LaTeX text.
+        </li>
+        <li>
+          <span class="keybinding">@</span> <em>Export stack top:</em> Copy the stack top item to the clipboard as LaTeX text.
+        </li>
+        <li>
+          <span class="keybinding">&larr;</span> <span class="keybinding">&rarr;</span>
+          <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide.
         </li>
       </ul>
 
@@ -1179,106 +1281,6 @@
         <li>
           <span class="keybinding">$</span>
           Put a literal $ symbol onto the stack.
-        </li>
-      </ul>
-
-      <h2>
-        <a name="stack">Stack Manipulation and Utilities</a>
-        <span class="keybinding">Tab</span>
-      </h2>
-      <p>
-        The following commands manipulate the stack with traditional RPN operations.
-        These can optionally take numeric <em>prefix arguments</em> which specify the number
-        of stack items to operate on.  Prefix arguments are entered by typing one or more digits
-        after the <span class="keybinding">Tab</span> and before one of the following subcommand
-        keys.  Also, instead of a digit, * (asterisk) may be used to indicate that the operation
-        should apply to the entire stack.  For example, to reverse the entire stack you can type
-        <span class="keybinding">Tab</span><span class="keybinding">*</span><span class="keybinding">w</span>.
-        In the descriptions below, N refers to the prefix argument if given, otherwise the default is used.
-      </p>
-      <ul class="keybindings">
-        <li><span class="keybinding">Enter</span> <em>(Dup)</em> Duplicate the top N items (default 1).</li>
-        <li><span class="keybinding">d</span> <em>(Drop)</em> Remove the top N items (default 1).</li>
-        <li><span class="keybinding">n</span> <em>(Nip)</em> Delete the Nth item from the top (default 2).</li>
-        <li><span class="keybinding">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
-        <li><span class="keybinding">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
-        <li><span class="keybinding">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
-        <li><span class="keybinding">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
-        <li><span class="keybinding">w</span> <em>(Swap)</em> Reverse the order of the top N items (default 2).</li>
-      </ul>
-      <p>
-        <strong>NOTE:</strong>
-        <span class="keybinding">Backspace</span> can also be used to drop single items from the stack
-        instead of <span class="keybinding">Tab</span><span class="keybinding">d</span>.
-      </p>
-      <p>
-        There are also some utility functions available through this
-        <span class="keybinding">Tab</span> prefix:
-      </p>
-      <ul class="keybindings">
-        <li>
-          <span class="keybinding">c</span>
-          Copy the stack top into an internal clipboard slot.
-          The copied item can later be pasted to the stack with
-          <span class="keybinding">Tab</span><span class="keybinding">v</span>.
-        </li>
-        <li>
-          <span class="keybinding">f</span> Open the File Manager (see below).
-        </li>
-        <li>
-          <span class="keybinding">i</span>
-          Move the stack top into the document at the current selection position.
-        </li>
-        <li>
-          <span class="keybinding">I</span>
-          Copy the stack top into the document at the current selection position without removing it
-          from the stack.
-        </li>
-        <li>
-          <span class="keybinding">j</span>
-          Move the current document selection back onto the stack.
-        </li>
-        <li>
-          <span class="keybinding">J</span>
-          Copy the current document selection onto the stack without removing it from the document.
-        </li>
-        <li>
-          <span class="keybinding">k</span>
-          Pop up a reference guide with all the available keybindings, organized by mode.
-          Editing these keybindings is not currently supported.
-        </li>
-        <li>
-          <span class="keybinding">l</span>
-          Recenter the document view around the current document selection.
-        </li>
-        <li>
-          <span class="keybinding">s</span>
-          Save the current document to browser storage.
-        </li>
-        <li>
-          <span class="keybinding">v</span>
-          Paste the item most recently copied to the clipboard
-          (with <span class="keybinding">Tab</span><span class="keybinding">c</span>)
-          onto the stack.
-        </li>
-        <li><span class="keybinding">Tab</span>
-          <em>Undo:</em> Revert stack and document back to the last 
-          state they were in.  Up to 100 undo states are available.
-          <span class="keybinding">Ctrl+z</span> also performs undo.
-        </li>
-        <li>
-          <span class="keybinding">.</span> <em>Redo:</em> Replay states that were
-          previously undone.  You can also use <span class="keybinding">Ctrl+y</span>.
-        </li>
-        <li>
-          <span class="keybinding">!</span> <em>Export document:</em> Copy the document content to the clipboard as LaTeX text.
-        </li>
-        <li>
-          <span class="keybinding">@</span> <em>Export stack top:</em> Copy the stack top item to the clipboard as LaTeX text.
-        </li>
-        <li>
-          <span class="keybinding">&larr;</span> <span class="keybinding">&rarr;</span>
-          <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide.
         </li>
       </ul>
 

@@ -486,26 +486,21 @@ class InputContext {
         );
     }
 
-    do_pop_to_document(stack, arg) {
-        const [new_stack, item] = stack.pop(1);
-        this.new_document = this.app_state.document.insert_item(item);
-        return new_stack;
+    // If 'preserve' is set, items are kept on the stack after copying them
+    // into the document.  Otherwise, the items are removed from the stack.
+    do_pop_to_document(stack, preserve) {
+        const arg = this._get_prefix_argument(1, stack.depth());
+        const [new_stack, ...items] = stack.pop(arg);
+        let new_document = this.app_state.document;
+        for(let n = 0; n < items.length; n++)
+            new_document = new_document.insert_item(items[n]);
+        this.new_document = new_document;
+        return preserve ? new_stack.push_all(items) : new_stack;
     }
 
-    do_copy_to_document(stack, arg) {
-        const item = stack.peek(1);
-        this.new_document = this.app_state.document.insert_item(item);
-    }
-
-    do_recall_from_document(stack, arg) {
-        const item = this.app_state.document.selected_item();
-        if(item)
-            return stack.push(item);
-        else
-            this.error_flash_document();
-    }
-
-    do_extract_from_document(stack, arg) {
+    // TODO: make extract/recall_from_document use prefix arg and 'preserve' option.
+    
+    do_extract_from_document(stack) {
         const item = this.app_state.document.selected_item();
         if(item) {
             this.new_document = this.app_state.document.delete_selection();
@@ -514,6 +509,35 @@ class InputContext {
         else
             this.error_flash_document();
     }
+
+    do_recall_from_document(stack) {
+        const item = this.app_state.document.selected_item();
+        if(item)
+            return stack.push(item);
+        else
+            this.error_flash_document();
+    }
+
+/*    // If 'preserve' is set, items are copied from the document onto stack.
+    // Otherwise, the items are moved from the document into the stack.
+    do_extract_from_document(stack, preserve) {
+        // TODO: implement prefix_argument==-1 (extract all items)
+        let arg = this._get_prefix_argument(1, 1);
+        const new_items = [];
+        let new_document = this.app_state.document;
+
+        while(arg-- > 0) {
+            const item = new_document.selected_item();
+            if(item) {
+                new_document = new_document.delete_selection();
+                new_items.push(item);
+            }
+            else
+                return this.error_flash_document();
+        }
+        this.new_document = new_document;
+        return stack.push_all(new_items);
+    } */
 
     do_edit_stack_top(stack) {
         const item = stack.peek(1);

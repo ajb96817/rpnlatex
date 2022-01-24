@@ -119,7 +119,7 @@ const EditorKeymap = {
         'c': "copy_to_clipboard",
         'd': "pop",
         'i': "pop_to_document",
-        'I': "copy_to_document",
+        'I': "pop_to_document preserve",
         'f': "toggle_popup files",
         'j': "extract_from_document",
         'J': "recall_from_document",
