@@ -87,7 +87,6 @@ const EditorKeymap = {
 
     files: {
         'default': "toggle_popup files",
-        
         'd': "delete_selected_file",
         'n': "start_new_file",
         'Enter': "load_selected_file",
@@ -108,6 +107,8 @@ const EditorKeymap = {
     help: {
         'ArrowUp': 'scroll popup_panel vertical -25',
         'ArrowDown': 'scroll popup_panel vertical 25',
+        'ArrowLeft': 'do_cancel',
+        'ArrowRight': 'do_cancel',
         'PageUp': 'scroll popup_panel vertical -95',
         'PageDown': 'scroll popup_panel vertical 95',
         'default': "toggle_popup help"

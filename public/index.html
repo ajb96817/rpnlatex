@@ -30,7 +30,7 @@
       <p>
         Expressions are entered using <em>reverse Polish notation</em> (RPN) which means
         that operands come before their operators.  For example, to enter the expression <code>x+y</code> you would
-        first type <strong>x</strong>, then <strong>y</strong> followed by <strong>+</strong> to apply the addition
+        first type <strong><tt>x</tt></strong>, then <strong><tt>y</tt></strong> followed by <strong><tt>+</tt></strong> to apply the addition
         operation.
       </p>
       <p>
@@ -68,7 +68,7 @@
           <ul>
             <li><span class="keybinding">Enter</span> - typeset your input as normal Italic math text</li>
             <li><span class="keybinding">Shift+Enter</span> - typeset your input as Roman text</li>
-            <li><span class="keybinding">\</span> - create an arbitrary LaTeX command (e.g. \sqrt)</li>
+            <li><span class="keybinding">\</span> - create an arbitrary LaTeX command (e.g. <tt>\sqrt</tt>)</li>
             <li><span class="keybinding">Esc</span> - cancel text entry</li>
           </ul>
         </li>
@@ -83,7 +83,7 @@
         </li>
         <li>
           <span class="keybinding">!</span>
-          Append a ! to the stack top (factorial notation).
+          Append a <tt>!</tt> to the stack top (factorial notation).
         </li>
         <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
         <li>
@@ -100,7 +100,7 @@
         <li>
           <span class="keybinding">Shift+Down</span>
           When the text editor is open, pull down the next item from the stack and insert it into
-          the text being edited.  Math expressions will be surrounded by $ signs so that they render
+          the text being edited.  Math expressions will be surrounded by <tt>$</tt> signs so that they render
           inline within the text.
         </li>
         <li>
@@ -112,7 +112,7 @@
         <li><span class="keybinding">]</span> Apply a <strong>bold font</strong> to the stack top.</li>
         <li>
           <span class="keybinding">+</span> <span class="keybinding">-</span>
-          Join two expressions with a + or - operator between them
+          Join two expressions with a <tt>+</tt> or <tt>-</tt> operator between them
           (see also <a href="#infix">infix expressions</a>).
         </li>
         <li>
@@ -1400,7 +1400,7 @@
         </li>
         <li><span class="keybinding">Ctrl+v</span>
           Paste clipboard to stack top
-          (same as <span class="keybinding">Tab</span><span class="keybinding">p</span>)
+          (same as <span class="keybinding">Tab</span><span class="keybinding">v</span>)
         </li>
         <li><span class="keybinding">Ctrl+z</span>
           Undo last action
