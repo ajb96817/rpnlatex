@@ -302,7 +302,8 @@ class InputContext {
     do_dup(stack) {
         const arg = this._get_prefix_argument(1, stack.depth());
         const [new_stack, ...items] = stack.pop(arg);
-        return new_stack.push_all(items.concat(items));
+        const new_items = items.map(item => item.clone());  // keep item serial_numbers unique
+        return new_stack.push_all(items.concat(new_items));
     }
     // Drop stack top; with prefix argument, drop the top N items.
     do_pop(stack) {
@@ -330,14 +331,15 @@ class InputContext {
     do_tuck(stack) {
         const arg = this._get_prefix_argument(2, stack.depth());
         const [new_stack, ...items] = stack.pop(arg);
-        return new_stack.push_all(items.slice(-1).concat(items));
+        const last_item = items[items.length-1];
+        return new_stack.push_all([last_item.clone()].concat(items));
     }
     // Pick the Nth item from the stack and copy it to the stack top.
     // Default argument of 2 is: a b -> a b a
     do_over(stack) {
         const arg = this._get_prefix_argument(2, stack.depth());
         const [new_stack, ...items] = stack.pop(arg);
-        return new_stack.push_all(items.concat([items[0]]));
+        return new_stack.push_all(items.concat([items[0].clone()]));
     }
     // Rotate N top stack items (default=3: a b c -> b c a)
     do_rot(stack) {
@@ -500,7 +502,7 @@ class InputContext {
         const [new_stack, ...items] = stack.pop(arg);
         let new_document = this.app_state.document;
         for(let n = 0; n < items.length; n++)
-            new_document = new_document.insert_item(items[n]);
+            new_document = new_document.insert_item(items[n].clone());
         this.new_document = new_document;
         return preserve ? new_stack.push_all(items) : new_stack;
     }
@@ -517,7 +519,7 @@ class InputContext {
         for(let n = 0; n < arg; n++) {
             const item = new_document.selected_item();
             new_document = new_document.delete_selection();
-            new_items.push(item);
+            new_items.push(item.clone());
         }
         new_items.reverse();
         if(!preserve)

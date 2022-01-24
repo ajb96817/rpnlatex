@@ -1352,6 +1352,12 @@ class Item {
     item_type() { return '???'; }
     to_json() { return {}; }
     to_text() { return '???'; }
+
+    // Return a new Item of the same type and contents (shallow copy) but with a new serial_number.
+    // This is mainly needed for React, which needs a distinct React key for each item in
+    // a list (like the list of stack items).  Things like 'dup' that can duplicate objects
+    // need to make sure to use clone() so that every Item in the stack/document is distinct.
+    clone() { return null; }
 }
 
 // iOS Safari workaround
@@ -1376,6 +1382,8 @@ class ExprItem extends Item {
     }
 
     to_text() { return this.expr.to_text(); }
+
+    clone() { return new ExprItem(this.expr, this.tag_expr); }
 }
 
 
@@ -1425,6 +1433,8 @@ class MarkdownItem extends Item {
 
     // TODO: convert Markdown syntax to something LaTeX-compatible
     to_text() { return this.source_text; }
+
+    clone() { return new MarkdownItem(this.source_text); }
 }
 
 
