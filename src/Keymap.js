@@ -118,6 +118,7 @@ const EditorKeymap = {
     stack: {
         '[digit]': "prefix_argument",
         '*': "prefix_argument",
+        'a': "swap",
         'c': "copy_to_clipboard",
         'd': "pop",
         'i': "pop_to_document",
@@ -134,7 +135,6 @@ const EditorKeymap = {
         't': "tuck",
         'u': "unrot",
         'v': "paste_from_clipboard",
-        'w': "swap",
         'Enter': "dup",
         'Tab': "undo",
         '.': "redo",

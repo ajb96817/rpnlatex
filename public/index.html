@@ -176,18 +176,18 @@
         after the <span class="keybinding">Tab</span> and before one of the following subcommand
         keys.  Also, instead of a digit, * (asterisk) may be used to indicate that the operation
         should apply to the entire stack.  For example, to reverse the entire stack you can type
-        <span class="keybinding">Tab</span><span class="keybinding">*</span><span class="keybinding">w</span>.
+        <span class="keybinding">Tab</span><span class="keybinding">*</span><span class="keybinding">a</span>.
         In the descriptions below, N refers to the prefix argument if given, otherwise the default is used.
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">Enter</span> <em>(Dup)</em> Duplicate the top N items (default 1).</li>
+        <li><span class="keybinding">a</span> <em>(Swap)</em> Reverse the order of the top N items (default 2).</li>
         <li><span class="keybinding">d</span> <em>(Drop)</em> Remove the top N items (default 1).</li>
         <li><span class="keybinding">n</span> <em>(Nip)</em> Delete the Nth item from the top (default 2).</li>
         <li><span class="keybinding">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
         <li><span class="keybinding">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
-        <li><span class="keybinding">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
         <li><span class="keybinding">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
-        <li><span class="keybinding">w</span> <em>(Swap)</em> Reverse the order of the top N items (default 2).</li>
+        <li><span class="keybinding">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
       </ul>
       <p>
         <strong>NOTE:</strong>
@@ -1351,7 +1351,7 @@
         </li>
         <li><span class="keybinding">Ctrl+a</span>
           Swap the top two stack top items
-          (same as <span class="keybinding">Tab</span><span class="keybinding">w</span>)
+          (same as <span class="keybinding">Tab</span><span class="keybinding">a</span>)
         </li>
         <li><span class="keybinding">Ctrl+c</span>
           Copy stack top to clipboard
