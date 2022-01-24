@@ -87,25 +87,17 @@ class Settings {
         const h2 = bounds.h - h1;
         switch(side) {
         case 'left':
-            return [
-                {x: bounds.x, y: bounds.y, w: w1, h: bounds.h},
-                {x: bounds.x+w1, y: bounds.y, w: w2, h: bounds.h}
-            ];
+            return [{x: bounds.x,    y: bounds.y, w: w1, h: bounds.h},
+                    {x: bounds.x+w1, y: bounds.y, w: w2, h: bounds.h}];
         case 'right':
-            return [
-                {x: bounds.x+w2, y: bounds.y, w: w1, h: bounds.h},
-                {x: bounds.x, y: bounds.y, w: w2, h: bounds.h}
-            ];
+            return [{x: bounds.x+w2, y: bounds.y, w: w1, h: bounds.h},
+                    {x: bounds.x,    y: bounds.y, w: w2, h: bounds.h}];
         case 'top':
-            return [
-                {x: bounds.x, y: bounds.y, w: bounds.w, h: h1},
-                {x: bounds.x, y: bounds.y+h1, w: bounds.w, h: h2}
-            ];
+            return [{x: bounds.x, y: bounds.y,    w: bounds.w, h: h1},
+                    {x: bounds.x, y: bounds.y+h1, w: bounds.w, h: h2}];
         case 'bottom':
-            return [
-                {x: bounds.x, y: bounds.y+h2, w: bounds.w, h: h1},
-                {x: bounds.x, y: bounds.y, w: bounds.w, h: h2}
-            ];
+            return [{x: bounds.x, y: bounds.y+h2, w: bounds.w, h: h1},
+                    {x: bounds.x, y: bounds.y,    w: bounds.w, h: h2}];
         default:
             return [bounds, bounds];
         }

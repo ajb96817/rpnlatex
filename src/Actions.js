@@ -314,7 +314,6 @@ class InputContext {
     // Drop Nth stack item (default=2, i.e.: a b -> b)
     do_nip(stack) {
         const arg = this._get_prefix_argument(2, stack.depth());
-        // eslint-disable-next-line no-unused-vars
         const [new_stack, ...items] = stack.pop(arg);
         return new_stack.push_all(items.slice(1));
     }
@@ -506,46 +505,25 @@ class InputContext {
         return preserve ? new_stack.push_all(items) : new_stack;
     }
 
-    // TODO: make extract/recall_from_document use prefix arg and 'preserve' option.
-    
-    do_extract_from_document(stack) {
-        const item = this.app_state.document.selected_item();
-        if(item) {
-            this.new_document = this.app_state.document.delete_selection();
-            return stack.push(item);
-        }
-        else
-            this.error_flash_document();
-    }
-
-    do_recall_from_document(stack) {
-        const item = this.app_state.document.selected_item();
-        if(item)
-            return stack.push(item);
-        else
-            this.error_flash_document();
-    }
-
-/*    // If 'preserve' is set, items are copied from the document onto stack.
-    // Otherwise, the items are moved from the document into the stack.
     do_extract_from_document(stack, preserve) {
-        // TODO: implement prefix_argument==-1 (extract all items)
-        let arg = this._get_prefix_argument(1, 1);
-        const new_items = [];
+        const arg = this._get_prefix_argument(1, -1);
+        if(arg <= 0) return stack;
         let new_document = this.app_state.document;
-
-        while(arg-- > 0) {
+        // Make sure there are enough items above the current document selection
+        // to extract.
+        if(new_document.selection_index < arg)
+            return this.error_flash_document();
+        let new_items = [];
+        for(let n = 0; n < arg; n++) {
             const item = new_document.selected_item();
-            if(item) {
-                new_document = new_document.delete_selection();
-                new_items.push(item);
-            }
-            else
-                return this.error_flash_document();
+            new_document = new_document.delete_selection();
+            new_items.push(item);
         }
-        this.new_document = new_document;
+        new_items.reverse();
+        if(!preserve)
+            this.new_document = new_document;
         return stack.push_all(new_items);
-    } */
+    }
 
     do_edit_stack_top(stack) {
         const item = stack.peek(1);
