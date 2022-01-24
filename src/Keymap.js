@@ -527,7 +527,7 @@ const EditorKeymap = {
         '4': "insert 4;superscript",
         'a': "operator overrightarrow",  // TODO: [R] maybe instead
         'b': "operator mathbb",
-        'c': "insert 1;swap;infix_plus_or_minus -",
+        'c': "autoparenthesize;insert 1;swap;infix_plus_or_minus -",
         'C': "mode color",
         'd': "insert \\dagger;superscript",
         'D': "insert \\ddagger;superscript",
@@ -537,6 +537,7 @@ const EditorKeymap = {
         'g': "operator mathring",
         'h': "apply_hat hat",
         'H': "apply_hat widehat",
+        'i': "insert 1;infix_plus_or_minus +",
         'k': "operator mathfrak",
         'l': "insert \\parallel;subscript",
         'm': "operator mathtt",
