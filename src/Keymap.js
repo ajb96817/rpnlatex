@@ -115,7 +115,8 @@ const EditorKeymap = {
 
     // Tab prefix: stack/misc operations
     stack: {
-        '[prefixarg]': "prefix_argument",
+        '[digit]': "prefix_argument",
+        '*': "prefix_argument",
         'c': "copy_to_clipboard",
         'd': "pop",
         'i': "pop_to_document",
@@ -591,19 +592,19 @@ const EditorKeymap = {
 
     // | prefix: array/matrix operations
     array: {
-        '[prefixarg]': "prefix_argument",
+        '[digit]': "prefix_argument",
         'a': "build_align aligned",
         'c': "build_align cases",
         'C': "build_align rcases",
         'd': "dissolve_matrix",
-        'e': "name ellipsis_list;build_list ,\\,;insert ,\\,\\dots;concat",
+        'e': "build_list ,\\,;insert ,\\,\\dots;concat",
         'E': "insert_matrix_ellipses",
         'f': "build_align cases_if",
         'F': "build_align rcases_if",
         'g': "build_align gathered",
         'k': "build_substack",
         'm': "build_matrix_row matrix",
-        'p': "name plus_list;build_list +;insert +\\cdots;concat",
+        'p': "build_list +;insert +\\cdots;concat",
         's': "split_matrix",
         'T': "matrix_transpose",
         'v': "build_matrix_row vmatrix",
@@ -611,14 +612,14 @@ const EditorKeymap = {
         '|': "stack_matrices",
         ',': "build_list ,",
         ' ': "build_list ,\\,",
-        '.': "name ellipsis_list_2;build_list ,\\, ,\\,\\dots,\\,",
+        '.': "build_list ,\\, ,\\,\\dots,\\,",
         ';': "build_list semicolon\\,",
-        '+': "clear_prefix_argument;name plus_list_2;insert +;swap;build_infix_list \\cdots ",
-        'Enter': "stack_matrices",
+        '+': "build_infix_list + \\cdots",
         '(': "build_matrix_row pmatrix",
         '[': "build_matrix_row bmatrix",
         '{': "build_matrix_row Bmatrix",
-        '@': "clear_prefix_argument;name matrix_2x2;insert 2;build_matrix_row bmatrix;unrot;insert 2;build_matrix_row bmatrix;swap;stack_matrices"
+        '@': "clear_prefix_argument;insert 2;build_matrix_row bmatrix;unrot;insert 2;build_matrix_row bmatrix;swap;stack_matrices",
+        'Enter': "stack_matrices"
     },
 
     editor: {

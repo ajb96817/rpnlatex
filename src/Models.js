@@ -16,7 +16,6 @@ class Keymap {
         if(mode_map[key]) return mode_map[key];
         if(mode_map['[alpha]'] && /^[a-zA-Z]$/.test(key)) return mode_map['[alpha]'];
         if(mode_map['[digit]'] && /^[0-9]$/.test(key)) return mode_map['[digit]'];
-        if(mode_map['[prefixarg]'] && /^[0-9*]$/.test(key)) return mode_map['[prefixarg]'];
         if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key)) return mode_map['[alnum]'];
         if(mode_map['default']) return mode_map['default'];
         if(mode === 'base' || mode === 'editor')
@@ -1480,16 +1479,6 @@ class Stack {
         if(!this.check_exprs(n)) this.type_error();
         const [new_stack, ...items] = this._unchecked_pop(n);
         return [new_stack, ...items.map(item => item.expr)];
-    }
-
-    // n >= 1
-    pop_positive_integer() {
-        const [new_stack, expr] = this.pop_exprs(1);
-        if(expr.expr_type() === 'text') {
-            const value = parseInt(expr.text);
-            if(value >= 1) return [new_stack, value];
-        }
-        this.type_error();
     }
 
     pop_matrices(n) {

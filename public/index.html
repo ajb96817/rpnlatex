@@ -954,8 +954,17 @@
         matrices, vectors and lists.
       </p>
       <p>
+        <strong>NOTE:</strong>
+        Several of these commands take required <em>prefix arguments</em> to indicate the number of
+        items to work on.  These are entered by typing one or more digits after the
+        <span class="keybinding">|</span> key and before the subcommand key.  For example,
+        to build a matrix row with 3 columns you can type
+        <span class="keybinding">|</span><span class="keybinding">3</span><span class="keybinding">(</span>.
+        This prefix argument is referred to as N in the descriptions below.
+      </p>
+      <p>
         <b>Matrix Row Building:</b>
-        The following commands take an integer on the stack top, then assemble that many other items from the
+        The following commands assemble N items from the
         stack into a <code>1\times N</code> row matrix of the indicated type.
       </p>
       <table class="keybindings"><tbody>
@@ -1012,23 +1021,23 @@
 
       <p>
         <b>Alignment Building:</b>
-        These commands build LaTeX alignment enviroments.
-        Like the matrix row building operations, these also take an integer on the stack top
+        These commands build LaTeX alignment environments.
+        Like the matrix row building operations, these also take a required prefix argument
         indicating how many items to combine.
       </p>
       <ul class="keybindings">
         <li>
           <span class="keybinding">a</span>
-          Stack equations together into a LaTeX <tt>align</tt> environment, aligned by their infix operator, if any.
+          Stack N equations together into a LaTeX <tt>align</tt> environment, aligned by their infix operator, if any.
         </li>
         <li>
           <span class="keybinding">g</span>
-          Stack equations together into a <tt>gathered</tt> environment,
+          Stack N equations together into a <tt>gathered</tt> environment,
           similar to <span class="keybinding">a</span> but each equation is centered on its own.
         </li>
         <li>
           <span class="keybinding">c</span>
-          Build a list of cases for a piecewise function definition.
+          Build a list of N cases for a piecewise function definition.
           If the component items are infix expressions joined with a colon (:), they will be split up and
           placed as the left and right parts of the case structure.  For example:
           <code>x^2 : x \ge 0; \enspace 0 : x &lt; 0</code>
@@ -1066,12 +1075,10 @@
       <p>
         <b>List Building:</b>
         These commands build concatenated lists from individual items.
-        As before, the number of items to concatenate must be placed on the stack top.
-        The lists created by these commands have no further structure, however, and
-        will not work as matrix rows themselves.
+        As before, the number of items to concatenate must be given as a prefix argument.
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">,</span> Concatenate with a comma between items.</li>
+        <li><span class="keybinding">,</span> Concatenate N items with a comma between each one.</li>
         <li><span class="keybinding">&nbsp;</span> Concatenate with a comma between items, but also place a thin space after each comma.</li>
         <li><span class="keybinding">;</span> Concatenate with a semicolon and thin space between items.</li>
         <li>

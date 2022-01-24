@@ -140,7 +140,8 @@ class InputContext {
                 if(command_name !== 'prefix_argument')
                     this.prefix_argument = null;
             } catch(e) {
-                if(e.message === 'stack_underflow' || e.message === 'stack_type_error') {
+                if(e.message === 'stack_underflow' || e.message === 'stack_type_error' ||
+                   e.message === 'prefix_argument_required') {
                     this.error_flash_stack();
                     this.perform_undo_or_redo = null;
                     this.mode = 'base';
@@ -286,6 +287,13 @@ class InputContext {
             return default_value;
         else if(this.prefix_argument < 0)
             return all_value;
+        else
+            return this.prefix_argument;
+    }
+
+    _require_prefix_argument() {
+        if(this.prefix_argument === null || this.prefix_argument <= 0)
+            throw new Error('prefix_argument_required');
         else
             return this.prefix_argument;
     }
@@ -1064,14 +1072,14 @@ class InputContext {
 
     // item1, item2, ..., N => {item1, item2, ...}
     do_build_matrix_row(stack, matrix_type) {
-        const [new_stack, expr_count] = stack.pop_positive_integer();
-        const [new_stack_2, ...exprs] = new_stack.pop_exprs(expr_count);
+        const expr_count = this._require_prefix_argument();
+        const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         const matrix_expr = new ArrayExpr(
             (matrix_type || 'bmatrix'),
             1, expr_count,
             [exprs]
         );
-        return new_stack_2.push_expr(matrix_expr);
+        return new_stack.push_expr(matrix_expr);
     }
 
     // Stack two ArrayExprs on top of each other.
@@ -1118,9 +1126,8 @@ class InputContext {
 
     do_build_align(stack, align_type) {
         // NOTE: if align_type = 'cases' or 'rcases', align on ':' infix if there is one, and then remove the infix
-        const [new_stack, expr_count] = stack.pop_positive_integer();
-        const [new_stack_2, ...exprs] = new_stack.pop_exprs(expr_count);
-
+        const expr_count = this._require_prefix_argument();
+        const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         let split_mode;
         switch(align_type) {
         case 'gathered': case 'gather': split_mode = 'none'; break;
@@ -1129,52 +1136,51 @@ class InputContext {
         case 'rcases_if': split_mode = 'colon_if'; align_type = 'rcases'; break;
         default: split_mode = 'infix'; break;
         }
-
         const element_exprs = ArrayExpr.split_elements(exprs, split_mode)
         const array_expr = new ArrayExpr(
             align_type, element_exprs.length, element_exprs[0].length, element_exprs);
-        return new_stack_2.push_expr(array_expr);
+        return new_stack.push_expr(array_expr);
     }
 
     // item1, item2, ..., N => "item1, item2, ..."
     // (concatenate N items from the stack with separator_text between each one)
     do_build_list(stack, separator_text, final_separator_text) {
-        const [new_stack, expr_count] = stack.pop_positive_integer();
-        const [new_stack_2, ...exprs] = new_stack.pop_exprs(expr_count);
+        const expr_count = this._require_prefix_argument();
+        const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         let expr = exprs[0];
         for(let i = 1; i < expr_count; i++) {
             const s = (final_separator_text && i === expr_count-1) ? final_separator_text : separator_text;
             expr = Expr.combine_pair(expr, new TextExpr(s));
             expr = Expr.combine_pair(expr, exprs[i]);
         }
-        return new_stack_2.push_expr(expr);
+        return new_stack.push_expr(expr);
     }
 
-    // Take [x_1,...,x_n, infix_operator, item_count] from the stack
-    // and build a nested InfixExpr.  'final_separator_text' is used as
-    // the next to last item if provided.
-    do_build_infix_list(stack, final_separator_text) {
-        const [new_stack, expr_count] = stack.pop_positive_integer();
-        const [new_stack_2, infix_operator_expr] = new_stack.pop_exprs(1);
-        const [new_stack_3, ...exprs] = new_stack_2.pop_exprs(expr_count);
+    // Take [x_1,...,x_n] from the stack and build a nested InfixExpr with
+    // the given text between each term as an infix opertor. 
+    // 'final_separator_text' is used as the next to last item if provided.
+    do_build_infix_list(stack, infix_text, final_separator_text) {
+        const expr_count = this._require_prefix_argument();
+        const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
+        const infix_operator_expr = new TextExpr(infix_text);
         let expr = exprs[expr_count-1];
         if(final_separator_text && expr_count > 1)
             expr = new InfixExpr(infix_operator_expr, new TextExpr(final_separator_text), expr);
         for(let i = expr_count-2; i >= 0; i--)
             expr = new InfixExpr(infix_operator_expr, exprs[i], expr);
-        return new_stack_3.push_expr(expr);
+        return new_stack.push_expr(expr);
     }
 
-    // Take [x_1, ..., x_n, item_count] from the stack and build
-    // a \substack{...} command.  This "cheats" by converting the stacked items
-    // to LaTeX and concatenating with \\ so any structure in the stacked items
-    // will be lost, same as do_build_list(), etc.
+    // Take [x_1, ..., x_n] from the stack and build a \substack{...} command.
+    // This "cheats" by converting the stacked items to LaTeX and concatenating
+    // with \\ so any structure in the stacked items will be lost, same as
+    // do_build_list(), etc.
     do_build_substack(stack) {
-        const [new_stack, expr_count] = stack.pop_positive_integer();
-        const [new_stack_2, ...exprs] = new_stack.pop_exprs(expr_count);
+        const expr_count = this._require_prefix_argument();
+        const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         const content = exprs.map(expr => expr.to_latex()).join("\\\\");
         const new_expr = new CommandExpr('substack', [new TextExpr(content)]);
-        return new_stack_2.push_expr(new_expr);
+        return new_stack.push_expr(new_expr);
     }
 
     do_apply_tag(stack) {
