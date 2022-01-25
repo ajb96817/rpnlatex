@@ -1200,7 +1200,7 @@ class InputContext {
     do_paste_from_clipboard(stack) {
         const item = this.app_component.state.clipboard_item;
         if(item)
-            return stack.push(item);
+            return stack.push(item.clone());
         else
             this.error_flash_stack();
     }
