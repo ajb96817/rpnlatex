@@ -131,13 +131,14 @@
 
       <h2>Prefix Keys</h2>
       <p>
-        All other operations require one of the following <em>prefix keys</em> to be pressed first.  These keys
+        All other operations require <em>prefix keys</em> to be pressed first.  These keys
         switch into a corresponding <em>mode</em>.  The current mode is displayed in grey in the upper-right
         corner of the stack.  Each mode has its own keymap of operations, which are detailed in the following
         sections.
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
+        <li><span class="keybinding">Tab</span><span class="keybinding">f</span> Open the <a href="#files">File Manager</a>.</li>
         <li><span class="keybinding">'</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
         <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#decorations">decoration</a> to the stack top.</li>
         <li><span class="keybinding">,</span> <em>(comma)</em> Combine two items into an <a href="#infix">infix expression</a>.</li>
@@ -267,6 +268,45 @@
           <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide.
         </li>
       </ul>
+
+      <h2>
+        <a name="files">File Management</a>
+        <span class="keybinding">Tab</span><span class="keybinding">f</span>
+      </h2>
+      <p>
+        Pressing <span class="keybinding">Tab</span><span class="keybinding">f</span>
+        opens the File Manager popup panel.
+        If your browser supports it, you can save and manage separate documents in
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank">indexedDB</a> storage.
+        Your data persists between browser sessions.  Each document has a filename but there is only one level
+        of storage - no subfolders.
+        There are also some utilities for exporting and importing your data as .zip files.
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="keybinding">&uarr;&darr;</span>
+          The arrow keys change the selection in your list of saved documents.
+        </li>
+        <li><span class="keybinding">Enter</span> Open the currently selected file.</li>
+        <li><span class="keybinding">d</span> Delete the currently selected file.</li>
+        <li><span class="keybinding">s</span>
+          Save the current document to browser storage.
+          You can also use <span class="keybinding">Tab</span><span class="keybinding">s</span>
+          or <span class="keybinding">Ctrl+s</span> from anywhere without opening
+          the file manager first.
+        </li>
+        <li><span class="keybinding">S</span> Save the current document with a new filename.</li>
+        <li><span class="keybinding">n</span> Start a new, blank document.</li>
+      </ul>
+      <p>
+        The <em>Export/Import</em> section of the file manager allows you to download your document
+        storage as a .zip file for backup purposes, and to restore your storage from a previously-saved
+        .zip file.  The .zip file will contain one file per document, in JSON text format.
+      </p>
+      <p>
+        To download a .zip archive, click the 'Prepare Export' link; this will build the archive
+        from your browser's storage and then present you a download link.
+      </p>
 
       <h2>
         <a name="symbols">Math Symbols</a>
@@ -1296,45 +1336,6 @@
           Put a literal $ symbol onto the stack.
         </li>
       </ul>
-
-      <h2>
-        <a name="files">File Management</a>
-        <span class="keybinding">Tab</span><span class="keybinding">f</span>
-      </h2>
-      <p>
-        Pressing <span class="keybinding">Tab</span><span class="keybinding">f</span>
-        opens the File Manager popup panel.
-        If your browser supports it, you can save and manage separate documents in
-        <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank">indexedDB</a> storage.
-        Your data persists between browser sessions.  Each document has a filename but there is only one level
-        of storage - no subfolders.
-        There are also some utilities for exporting and importing your data as .zip files.
-      </p>
-      <ul class="keybindings">
-        <li>
-          <span class="keybinding">&uarr;&darr;</span>
-          The arrow keys change the selection in your list of saved documents.
-        </li>
-        <li><span class="keybinding">Enter</span> Open the currently selected file.</li>
-        <li><span class="keybinding">d</span> Delete the currently selected file.</li>
-        <li><span class="keybinding">s</span>
-          Save the current document to browser storage.
-          You can also use <span class="keybinding">Tab</span><span class="keybinding">s</span>
-          or <span class="keybinding">Ctrl+s</span> from anywhere without opening
-          the file manager first.
-        </li>
-        <li><span class="keybinding">S</span> Save the current document with a new filename.</li>
-        <li><span class="keybinding">n</span> Start a new, blank document.</li>
-      </ul>
-      <p>
-        The <em>Export/Import</em> section of the file manager allows you to download your document
-        storage as a .zip file for backup purposes, and to restore your storage from a previously-saved
-        .zip file.  The .zip file will contain one file per document, in JSON text format.
-      </p>
-      <p>
-        To download a .zip archive, click the 'Prepare Export' link; this will build the archive
-        from your browser's storage and then present you a download link.
-      </p>
 
       <h2>
         <a name="control_keys">Control Keys</a>
