@@ -1066,9 +1066,10 @@ class InputContext {
         this.clear_all_flashes();
     }
 
-    // item1, item2, ..., N => {item1, item2, ...}
-    do_build_matrix_row(stack, matrix_type) {
-        const expr_count = this._require_prefix_argument();
+    // item1, item2, ... => {item1, item2, ...}
+    // column_count is optional; if omitted, the prefix argument is used.
+    do_build_matrix_row(stack, matrix_type, column_count) {
+        const expr_count = column_count ? parseInt(column_count) : this._require_prefix_argument();
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         const matrix_expr = new ArrayExpr(
             (matrix_type || 'bmatrix'),
