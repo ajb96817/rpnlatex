@@ -197,6 +197,7 @@ const EditorKeymap = {
         'Shift+Enter': "finish_text_entry roman",
         "\\": "finish_text_entry latex",
         'Escape': "cancel_text_entry",
+        'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry",
         'default': "append_text_entry"
     },
