@@ -912,9 +912,12 @@ class InputContext {
     // If textstyle is supplied, apply the given text style to the entered text.
     // (allowed values: "roman", "latex")
     do_finish_text_entry(stack, textstyle) {
-        this.perform_undo_or_redo = 'suppress';
         if(this.text_entry === null)
             return stack;  // shouldn't happen
+        if(this.text_entry.length === 0) {
+            this.text_entry = null;
+            return stack;
+        }
         let new_expr;
         if(textstyle === 'roman')
             new_expr = new CommandExpr('mathrm', [new TextExpr(this._latex_escape(this.text_entry))]);
