@@ -419,6 +419,7 @@ const EditorKeymap = {
         'Q': "infix \\quad\\mathrm{or}\\quad",
         's': "infix \\,",
         't': "infix \\to",
+        'T': "infix \\longrightarrow",
         'u': "infix \\cup",
         'U': "stackrel underset",
         'v': "infix \\vee",
@@ -538,7 +539,6 @@ const EditorKeymap = {
         'g': "operator mathring",
         'h': "apply_hat hat",
         'H': "apply_hat widehat",
-        'i': "insert 1;infix_plus_or_minus +",
         'k': "operator mathfrak",
         'l': "insert \\parallel;subscript",
         'm': "operator mathtt",
@@ -555,6 +555,7 @@ const EditorKeymap = {
         'U': "operator utilde",
         'v': "operator vec",
         'V': "apply_hat check",
+        'w': "apply_hat widehat",
         'W': "apply_hat widecheck",
         'x': "operator boxed",
         'X': "operator sout",  // strikeout
