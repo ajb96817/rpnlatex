@@ -693,6 +693,7 @@ class FileManagerState {
 }
 
 
+// Abstract superclass for expression trees.
 class Expr {
     static from_json(json) {
         switch(json.expr_type) {
@@ -916,7 +917,7 @@ class PrefixExpr extends Expr {
 }
 
 
-// Two expressions joined by textual infix (something like + or \wedge).
+// Represents two expressions joined by textual infix (something like + or \wedge).
 // This is similar to concatenated TextNodes, but using InfixExpr lets things like ArrayExpr
 // automatically detect where to put alignments when the contents are InfixExprs.
 // NOTE: it's possible for left_expr or right_expr to be null; in that case, the corresponding
@@ -1052,6 +1053,7 @@ class SequenceExpr extends Expr {
 }
 
 
+// Represents an expression enclosed in (flexible) left/right delimiters.
 // \left( ... \right)
 // If there is more than one inner_expr, they'll be separated with this.middle_type
 // e.g.: \left( x \middle| y \right)
@@ -1107,8 +1109,7 @@ class DelimiterExpr extends Expr {
 }
 
 
-// The base expression may have a subscript, a superscript, or both.
-// This needs special handling in LaTeX.
+// Represents a base expression with either a subscript or superscript, or both.
 class SubscriptSuperscriptExpr extends Expr {
     constructor(base_expr, subscript_expr, superscript_expr) {
         super();

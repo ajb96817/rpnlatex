@@ -270,7 +270,7 @@ class ModeIndicatorComponent extends React.Component {
             if(input_context.prefix_argument < 0)
                 input_mode = input_mode + '(*)';
             else
-                input_mode = input_mode + '(' + input_context.prefix_argument.toString() + ')';
+                input_mode = [input_mode, '(', input_context.prefix_argument.toString(), ')'].join('');
         }
         if(input_context.text_entry !== null)
             input_mode = 'text_entry';
