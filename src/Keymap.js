@@ -18,13 +18,13 @@ const EditorKeymap = {
         'Ctrl+4': "insert 4;superscript",
         'Ctrl+a': "swap",
         'Ctrl+c': "copy_to_clipboard",
-        'Ctrl+e': "name exp;insert e;operator mathrm;swap;superscript",  // exp(x) - same as [/] [e]
+        'Ctrl+e': "insert e;operator mathrm;swap;superscript",  // exp(x) - same as [/] [e]
         'Ctrl+i': "pop_to_document",
         'Ctrl+j': "extract_from_document",
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-        'Ctrl+o': "name apply_fn;parenthesize;swap;operator mathopen;swap;concat",  // same as [/] [o]
+        'Ctrl+o': "parenthesize;swap;operator mathopen;swap;concat",  // same as [/] [o]
         'Ctrl+p': "delimiters ( )",
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
@@ -96,14 +96,6 @@ const EditorKeymap = {
         'ArrowDown': "select_adjacent_file 1"
     },
 
-    keymap: {
-        'ArrowUp': 'scroll popup_panel vertical -25',
-        'ArrowDown': 'scroll popup_panel vertical 25',
-        'PageUp': 'scroll popup_panel vertical -95',
-        'PageDown': 'scroll popup_panel vertical 95',
-        'default': "toggle_popup keymap"
-    },
-
     help: {
         'ArrowUp': 'scroll popup_panel vertical -25',
         'ArrowDown': 'scroll popup_panel vertical 25',
@@ -126,7 +118,6 @@ const EditorKeymap = {
         'f': "toggle_popup files",
         'j': "extract_from_document",
         'J': "recall_from_document preserve",
-        'k': "toggle_popup keymap",
         'l': "recenter_document 50",
         'n': "nip",
         'o': "over",
@@ -171,7 +162,6 @@ const EditorKeymap = {
         '8': "config stack_split 80",
         '9': "config stack_split 90",
         '*': "config stack_split 100",
-
         'ArrowLeft': "config stack_side left",
         'ArrowRight': "config stack_side right",
         'ArrowUp': "config stack_side top",
@@ -220,7 +210,7 @@ const EditorKeymap = {
         '<': "delimiters \\langle \\rangle",
         '(': "delimiters ( )",
         '[': "delimiters [ ]",
-        ']': "name doublebrackets;insert \\llbracket;swap;concat;insert \\rrbracket;concat",
+        ']': "insert \\llbracket;swap;concat;insert \\rrbracket;concat",
         '{': "delimiters \\{ \\}"
     },
 
@@ -252,7 +242,7 @@ const EditorKeymap = {
 
     // forward-slash prefix: assorted functions/operators
     operator: {
-        '1': "name reciprocal;insert 1;swap;operator frac 2",
+        '1': "insert 1;swap;operator frac 2",
         '2': "mode squared",
         'a': "apply_operator 1",
         'A': "apply_operator 2",
@@ -261,43 +251,43 @@ const EditorKeymap = {
         'C': "named_function csc",
         'd': "mode derivative",
         'D': "named_function det",
-        'e': "name exp;insert e;operator mathrm;swap;superscript",  // exp(x)
+        'e': "insert e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
         'f': "delimiters . . / 2",  // NOTE: duplicates [,f]
         'g': "insert \\argmin;swap;subscript",
         'G': "insert \\argmax;swap;subscript",
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
-        'l': "name lim;insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{x}
+        'l': "insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{x}
         'm': "named_function min",
         'M': "named_function max",
         'n': "named_function ln",
         'N': "named_function log",
-        'o': "name apply_fn;parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
-        'O': "name apply_fn2;infix ,;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x,y)
+        'o': "parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
+        'O': "infix ,;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x,y)
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
-        'P': "name conditional_prob;insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
+        'P': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
         's': "named_function sin",
         'S': "named_function sec",
         't': "named_function tan",
         'T': "named_function cot",
-        'u': "name inf;insert \\limits;swap;subscript;insert \\inf;swap;concat",
-        'U': "name sup;insert \\limits;swap;subscript;insert \\sup;swap;concat",
-        'v': "name Var;parenthesize;insert Var;operator operatorname;swap;concat",
-        'V': "name Cov;swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
-        'x': "name expectation;insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
-        'X': "name expectation2;insert E;operator mathbb;swap;subscript;operator mathopen;swap;delimiters [ ];concat",  // E_x[y] (with subscript)
+        'u': "insert \\limits;swap;subscript;insert \\inf;swap;concat",
+        'U': "insert \\limits;swap;subscript;insert \\sup;swap;concat",
+        'v': "parenthesize;insert Var;operator operatorname;swap;concat",
+        'V': "swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
+        'x': "insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
+        'X': "insert E;operator mathbb;swap;subscript;operator mathopen;swap;delimiters [ ];concat",  // E_x[y] (with subscript)
         ';': "apply_tag",
         ',': "split_infix",
         '/': "operator frac 2",
         "\\": "operator tfrac 2",
-        '}': "name underbrace;swap;operator underbrace;swap;subscript",
-        '{': "name overbrace;swap;operator overbrace;swap;superscript",
+        '}': "swap;operator underbrace;swap;subscript",
+        '{': "swap;operator overbrace;swap;superscript",
         '-': "mode inverse",
         "'": "substitute_defer",
-        'Enter': "name subsuperscript;unrot;subscript;swap;superscript"  // apply superscript and subscript at once
+        'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once
     },
 
     // TODO: maybe make a more general way of doing these
@@ -346,51 +336,51 @@ const EditorKeymap = {
 
     // /i prefix
     integral_limits: {
-        'r': "name limits_real;insert -\\infty;subscript;insert \\infty;superscript",  // -oo..oo : [r]eals
-        'n': "name limits_negative;insert -\\infty;subscript;insert 0;superscript",  // -oo..0 : [n]egative 
-        'p': "name limits_positive;insert 0;subscript;insert \\infty;superscript",  // 0..oo : [p]ositive
-        'u': "name limits_unit;insert 0;subscript;insert 1;superscript",  // 0..1 : [u]nit
-        'U': "name limits_unit;insert -1;subscript;insert 1;superscript",  // -1..1 : symmetric [U]nit
-        't': "name limits_trig;insert 0;subscript;insert 2\\pi;superscript",  // 0..2pi : [t]rigonometric
-        'T': "name limits_sym_trig;insert -\\pi;subscript;insert \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
+        'r': "insert -\\infty;subscript;insert \\infty;superscript",  // -oo..oo : [r]eals
+        'n': "insert -\\infty;subscript;insert 0;superscript",  // -oo..0 : [n]egative 
+        'p': "insert 0;subscript;insert \\infty;superscript",  // 0..oo : [p]ositive
+        'u': "insert 0;subscript;insert 1;superscript",  // 0..1 : [u]nit
+        'U': "insert -1;subscript;insert 1;superscript",  // -1..1 : symmetric [U]nit
+        't': "insert 0;subscript;insert 2\\pi;superscript",  // 0..2pi : [t]rigonometric
+        'T': "insert -\\pi;subscript;insert \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
     },
 
     // /d prefix: derivative operations
     derivative: {
         // \partial y / \partial x
-        'j': "name partial_yx;insert \\partial;swap;concat;swap;insert \\partial;swap;concat;swap;operator frac 2",
+        'j': "insert \\partial;swap;concat;swap;insert \\partial;swap;concat;swap;operator frac 2",
         // \partial^2 y / \partial x^2
-        'J': "name partial2_yx;insert 2;superscript;insert \\partial;swap;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
+        'J': "insert 2;superscript;insert \\partial;swap;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
         // dy/dx
-        'k': "name dy_dx;insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;swap;concat;swap;operator frac 2",
+        'k': "insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;swap;concat;swap;operator frac 2",
         // d^2(y) / dx^2
-        'K': "name d2_y_dx2;insert 2;superscript;insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;insert 2;superscript;swap;concat;swap;operator frac 2",
+        'K': "insert 2;superscript;insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;insert 2;superscript;swap;concat;swap;operator frac 2",
         // \partial / \partial x
-        'q': "name partial_x;insert \\partial;swap;concat;insert \\partial;swap;operator frac 2",
+        'q': "insert \\partial;swap;concat;insert \\partial;swap;operator frac 2",
         // \partial^2 / \partial x^2
-        'Q': "name partial2_x2;insert 2;superscript;insert \\partial;swap;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
+        'Q': "insert 2;superscript;insert \\partial;swap;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
         // d/dx
-        'x': "name d_dx;insert d;operator mathrm;swap;concat;insert d;operator mathrm;swap;operator frac 2",
+        'x': "insert d;operator mathrm;swap;concat;insert d;operator mathrm;swap;operator frac 2",
         // d^2 / dx^2
-        'X': "name d2_dx2;insert 2;superscript;insert d;operator mathrm;swap;concat;insert d;operator mathrm;insert 2;superscript;swap;operator frac 2",
+        'X': "insert 2;superscript;insert d;operator mathrm;swap;concat;insert d;operator mathrm;insert 2;superscript;swap;operator frac 2",
         // \partial^2 / \partial x\,\partial y
-        'm': "name partial2_x_y;insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
+        'm': "insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
         // \partial^2 z / \partial x\,\partial y
-        'M': "name partial2_z_x_y;insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
+        'M': "insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
         // gradient
-        'g': "name gradient;insert \\nabla;swap;concat",
+        'g': "insert \\nabla;swap;concat",
         // divergence
-        '.': "name divergence;insert \\nabla;insert \\cdot;concat;swap;concat",
+        '.': "insert \\nabla;insert \\cdot;concat;swap;concat",
         // curl
-        'c': "name curl;insert \\nabla;insert \\times;concat;swap;concat",
+        'c': "insert \\nabla;insert \\times;concat;swap;concat",
         // Laplacian
-        'l': "name laplacian;insert \\nabla;insert 2;superscript;swap;concat",
+        'l': "insert \\nabla;insert 2;superscript;swap;concat",
         // x -> dx
-        'd': "insert d;operator mathrm;swap;concat",
+        'd': "operator mathrm;swap;concat",
         // x -> d^2x
-        '2': "insert d;operator mathrm;insert 2;superscript;swap;concat",
-        '3': "insert d;operator mathrm;insert 3;superscript;swap;concat",
-        '4': "insert d;operator mathrm;insert 4;superscript;swap;concat",
+        '2': "operator mathrm;insert 2;superscript;swap;concat",
+        '3': "operator mathrm;insert 3;superscript;swap;concat",
+        '4': "operator mathrm;insert 4;superscript;swap;concat",
         // y x -> y dx
         'i': "swap;insert \\,;concat;swap;insert d;operator mathrm;swap;concat;concat",
         // y x -> ydx (with thinspace after the dx)
@@ -476,8 +466,8 @@ const EditorKeymap = {
     symbol: {
         '0': "insert \\varnothing",
         '1': "insert -1",
-        '2': "name half_display;insert 1;insert 2;operator frac 2",  // 1/2 (display)
-        '3': "name half_inline;insert 1;insert 2;infix /",  // 1/2 (inline)
+        '2': "insert 1;insert 2;operator frac 2",  // 1/2 (display)
+        '3': "insert 1;insert 2;infix /",  // 1/2 (inline)
         '8': "insert \\infty",
         'a': "insert \\forall",
         'c': "insert \\cdot",
@@ -627,12 +617,12 @@ const EditorKeymap = {
     },
 
     script: {
-        '[alpha]': "name mathscr_letter;self_insert;to_case uppercase;operator mathscr",
+        '[alpha]': "self_insert;to_case uppercase;operator mathscr",
         '&': "insert \\&"
     },
 
     calligraphic: {
-        '[alpha]': "name mathcal_letter;self_insert;to_case uppercase;operator mathcal",
+        '[alpha]': "self_insert;to_case uppercase;operator mathcal",
         '%': "insert \\%"
     },
 

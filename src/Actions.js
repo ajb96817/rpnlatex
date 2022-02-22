@@ -841,9 +841,6 @@ class InputContext {
 
     do_cancel() {}
 
-    // Dummy 'command' to give explicit names to non-obvious commands for the keymap editor.
-    do_name() {}
-
     // Concatenate two Exprs, or two Markdown texts.
     // TODO: possibly allow Expr+Markdown too
     do_concat(stack, concat_mode) {
@@ -920,7 +917,8 @@ class InputContext {
         }
         let new_expr;
         if(textstyle === 'roman')
-            new_expr = new CommandExpr('mathrm', [new TextExpr(this._latex_escape(this.text_entry))]);
+            new_expr = new CommandExpr('mathrm', [
+                new TextExpr(this._latex_escape(this.text_entry))]);
         else if(textstyle === 'latex') {
             const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
             if(sanitized.length === 0) {

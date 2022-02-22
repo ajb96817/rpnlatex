@@ -131,10 +131,6 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk #popup_panel { background-color: #020; box-shadow: 0 0 1em 2px #000; }
 #panel_layout.theme_dusk table.file_table th { background-color: #448; }
 #panel_layout.theme_dusk table.file_table tr.selected_file td { background-color: #486; }
-#panel_layout.theme_dusk table.keymap { border-color: #666; }
-#panel_layout.theme_dusk table.keymap th, #panel_layout.theme_dusk table.keymap td { border-color: #666; }
-#panel_layout.theme_dusk table.keymap td.mode { color: #ccc; }
-#panel_layout.theme_dusk table.keymap th { background-color: #448; }
 
 /* Dark theme */
 #panel_layout.theme_dark div.panel { background-color: #222; }
@@ -154,10 +150,6 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark #popup_panel { background-color: #200; box-shadow: 0 0 1em 2px #000; }
 #panel_layout.theme_dark table.file_table th { background-color: #448; }
 #panel_layout.theme_dark table.file_table tr.selected_file td { background-color: #486; }
-#panel_layout.theme_dark table.keymap { border-color: #666; }
-#panel_layout.theme_dark table.keymap th, #panel_layout.theme_dark table.keymap td { border-color: #666; }
-#panel_layout.theme_dark table.keymap td.mode { color: #ccc; }
-#panel_layout.theme_dark table.keymap th { background-color: #448; }
 
 
 
@@ -319,26 +311,6 @@ table.keybindings {
     margin: 0;
 }
 table.keybindings td { padding: 0.1em 0.5em; }
-
-
-/* TODO: temporary */
-table.keymap {
-    border: 1px solid #aaa;
-    border-collapse: collapse;
-    margin: 1em;
-}
-table.keymap th, table.keymap td {
-    padding: 0.2em 0.5em;
-    border: 1px solid #eee;
-    font-family: monospace;
-}
-table.keymap td.mode {
-    color: #666;
-}
-table.keymap th {
-    background-color: #ccc;
-    text-align: left;
-}
 
 
 .katex-display {

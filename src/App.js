@@ -11,7 +11,6 @@ import {
     ImportExportState, FileManagerState
 } from './Models';
 import InputContext from './Actions';
-import KeybindingTable from './Keymap';
 
 
 const $e = React.createElement;
@@ -677,12 +676,6 @@ class PopupPanelComponent extends React.Component {
                     file_manager_state: this.props.file_manager_state
                 }));
         }
-        else if(popup_mode === 'keymap') {
-            subcomponent = $e(
-                'div', {id: 'keymap_container'},
-                $e(KeymapTableComponent, {keymap: KeybindingTable})
-            );
-        }
         return $e(
             'div', {id: 'popup_panel', ref: this.props.popup_panel_ref},
             subcomponent,
@@ -724,58 +717,6 @@ class PopupPanelComponent extends React.Component {
                 katex.render(latex_code, code_elt,
                              { throwOnError: false, displayMode: false });
         }
-    }
-}
-
-
-class KeymapTableComponent extends React.Component {
-    render() {
-        return $e(
-            'table', {className: 'keymap'},
-            $e('thead', {},
-               $e('tr', {},
-                  $e('th', {className: 'mode'}, 'Mode'),
-                  $e('th', {className: 'keyname'}, 'Key'),
-                  $e('th', {className: 'command'}, 'Command'))),
-            $e('tbody', {}, this.render_rows()));
-    }
-
-    render_rows() {
-        const modes = this.get_sorted_mode_names();
-        const sections = modes.map(mode => this.rows_for_mode(mode));
-        return [].concat(...sections);
-    }
-
-    get_sorted_mode_names() {
-        const keymap = this.props.keymap;
-        let modes = [...Object.keys(keymap)];
-        modes.sort();
-        return modes;
-    }
-
-    rows_for_mode(mode) {
-        const entries = this.props.keymap[mode];
-        let keys = [...Object.keys(entries)];
-        keys.sort();
-        return keys.map(key => this.row_for_mode_and_key(mode, key, entries[key]));
-    }
-
-    row_for_mode_and_key(mode, key, command) {
-        const react_key = mode + '_' + key;
-
-        // If command starts with 'name ...', show the given name in italics instead of the actual command sequence.
-        let command_elt;
-        if(command.startsWith('name ') && command.indexOf(';'))
-            command_elt = $e('em', {}, command.slice(5, command.indexOf(';')));
-        else
-            command_elt = $e('span', {}, command);
-        
-        return $e(
-            'tr', {key: react_key},
-            $e('td', {className: 'mode'}, mode),
-            $e('td', {className: 'keyname'},
-               $e('span', {className: 'keybinding'}, key)),
-            $e('td', {className: 'command'}, command_elt));
     }
 }
 
