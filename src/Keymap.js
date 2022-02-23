@@ -529,6 +529,8 @@ const EditorKeymap = {
         'g': "operator mathring",
         'h': "apply_hat hat",
         'H': "apply_hat widehat",
+        'i': "insert -;superscript",
+        'I': "insert +;superscript",
         'k': "operator mathfrak",
         'l': "insert \\parallel;subscript",
         'm': "operator mathtt",
