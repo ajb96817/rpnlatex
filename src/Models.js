@@ -596,6 +596,7 @@ class ImportExportState {
 
     process_uploaded_data(data) {
         this.import_count = 0;
+        this.failed_count = 0;
         this.error_message = null;
         this.change_state('importing');
         JSZip.loadAsync(data).then(zipfile => {
