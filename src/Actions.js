@@ -925,7 +925,7 @@ class InputContext {
                 this.text_entry = null;
                 return stack;
             }
-            new_expr = new TextExpr("\\" + sanitized);
+            new_expr = new CommandExpr(sanitized);
         }
         else
             new_expr = new TextExpr(this._latex_escape(this.text_entry));
