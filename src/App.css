@@ -106,6 +106,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dawn { color: #400; /*    scrollbar-color: #996 #eee; */ }
 #panel_layout.theme_dawn a, #panel_layout.theme_dawn a:visited { color: #e46; }
 #panel_layout.theme_dawn #document_panel, #panel_layout.theme_dawn #aux_panel { background-color: #ffd; }
+#panel_layout.theme_dawn div.stack_items div.selected { background-color: #dda; }
 #panel_layout.theme_dawn #document_panel div.selected, #panel_layout.theme_dawn ul.files_list li.selected_file { background-color: #e0f0e0; }
 #panel_layout.theme_dawn div.stack_items textarea { background-color: #336; color: white; }
 #panel_layout.theme_dawn #stack_panel.errorflash { animation-name: errorflash_stack_theme_dawn; }
@@ -120,6 +121,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk a, #panel_layout.theme_dusk a:visited { color: #bb8aeb; }
 #panel_layout.theme_dusk #document_panel, #panel_layout.theme_dusk #aux_panel { background-color: #336; }
 #panel_layout.theme_dusk #document_panel div.selected, #panel_layout.theme_dusk ul.files_list li.selected_file { background-color: #66a; }
+#panel_layout.theme_dusk div.stack_items div.selected { background-color: #225; }
 #panel_layout.theme_dusk div.stack_items textarea { background-color: #336; color: #bbf; }
 #panel_layout.theme_dusk #stack_panel.errorflash { animation-name: errorflash_stack_theme_dusk; }
 #panel_layout.theme_dusk #stack_panel { box-shadow: inset 0 0 1em 0 #000; }
@@ -138,6 +140,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark a, #panel_layout.theme_dark a:visited { color: #99f; }
 #panel_layout.theme_dark #document_panel, #panel_layout.theme_dark #aux_panel { background-color: black; }
 #panel_layout.theme_dark #document_panel div.selected, #panel_layout.theme_dark ul.files_list li.selected_file { background-color: #333; }
+#panel_layout.theme_dark div.stack_items div.selected { background-color: #333; }
 #panel_layout.theme_dark div.stack_items textarea { background-color: #336; color: white; }
 #panel_layout.theme_dark #stack_panel.errorflash { animation-name: errorflash_stack_theme_dark; }
 #panel_layout.theme_dark #stack_panel { box-shadow: inset 0 0 1em 0 #000; }
@@ -223,9 +226,8 @@ div.stack_items div.text_entry {
     padding: 0.25em 1.25em;
     color: black;
 }
-div.stack_items div.empty_text_entry {
-    color: #888;
-}
+div.stack_items div.empty_text_entry { color: #888; }
+div.stack_items div.selected { background-color: #eef; }
 
 
 #document_panel {

@@ -266,10 +266,10 @@ class ModeIndicatorComponent extends React.Component {
         let input_mode = input_context.mode;
         if(input_context.prefix_argument !== null) {
             // Show current prefix argument in mode indicator
-            if(input_context.prefix_argument < 0)
-                input_mode = input_mode + '(*)';
-            else
-                input_mode = [input_mode, '(', input_context.prefix_argument.toString(), ')'].join('');
+            input_mode = [
+                input_mode, '(',
+                (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()), ')'
+            ].join('');
         }
         if(input_context.text_entry !== null)
             input_mode = 'text_entry';
@@ -311,10 +311,16 @@ class StackItemsComponent extends React.Component {
                     });
             }
             else {
+                // If there's an active prefix argument for stack commands, highlight the stack items that
+                // will be affected.
+                let selected = (
+                    input_context.mode === 'stack' &&
+                        (input_context.prefix_argument < 0 ||
+                         this.props.stack.items.length-index <= input_context.prefix_argument));
                 return $e(
                     ItemComponent, {
                         item: item,
-                        selected: false,  // TODO (selecting stack items not implemented yet)
+                        selected: selected,
                         item_ref: React.createRef(),
                         key: item.react_key(index)
                     });

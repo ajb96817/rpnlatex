@@ -127,6 +127,7 @@ const EditorKeymap = {
         'u': "unrot",
         'v': "paste_from_clipboard",
         'Enter': "dup",
+        'Backspace': "pop",
         'Tab': "undo",
         '.': "redo",
         '!': "export_document_as_text",
