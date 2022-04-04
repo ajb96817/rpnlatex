@@ -287,6 +287,8 @@ const EditorKeymap = {
         '}': "swap;operator underbrace;swap;subscript",
         '{': "swap;operator overbrace;swap;superscript",
         '-': "mode inverse",
+        '=': "unrot;infix =;insert \\sum;swap;subscript;swap;superscript",
+        '+': "infix \\ge;insert \\sum;swap;subscript",
         "'": "substitute_defer",
         'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once
     },
