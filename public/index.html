@@ -104,16 +104,15 @@
           inline within the text.
         </li>
         <li>
-          <span class="keybinding">(</span> <span class="keybinding">[</span>
-          <span class="keybinding">&lt;</span> <span class="keybinding">{</span>
-          Enclose the stack top in paired delimiters: <code>(x), [x]</code>, etc.
+          <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span>
+          Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
           These delimiters automatically adjust to fit their contents.
         </li>
         <li><span class="keybinding">]</span> Apply a <strong>bold font</strong> to the stack top.</li>
         <li>
           <span class="keybinding">+</span> <span class="keybinding">-</span>
-          Join two expressions with a <tt>+</tt> or <tt>-</tt> operator between them
-          (see also <a href="#infix">infix expressions</a>).
+          <span class="keybinding">&lt;</span> <span class="keybinding">&gt;</span>
+          Join two expressions with the corresponding operator between them.
         </li>
         <li>
           <span class="keybinding">&uarr;</span> <span class="keybinding">&darr;</span>
@@ -605,19 +604,13 @@
             <td><span class="keybinding">E</span> <code>x\iff y</code></td>
           </tr>
           <tr>
-            <td>
-              <span class="keybinding">g</span> or <span class="keybinding">&gt;</span>
-              <code>x &gt; y</code>
-            </td>
+            <td><span class="keybinding">g</span> <code>x &gt; y</code></td>
             <td><span class="keybinding">G</span> <code>x\gg y</code></td>
             <td><span class="keybinding">i</span> <code>x\in y</code></td>
             <td><span class="keybinding">I</span> <code>x\notin y</code></td>
           </tr>
           <tr>
-            <td>
-              <span class="keybinding">l</span> or <span class="keybinding">&lt;</span>
-              <code>x &lt; y</code>
-            </td>
+            <td><span class="keybinding">l</span> <code>x &lt; y</code></td>
             <td><span class="keybinding">L</span> <code>x\ll y</code></td>
             <td><span class="keybinding">n</span> <code>x\ne y</code></td>
             <td><span class="keybinding">p</span> <code>x\propto y</code></td>
@@ -626,10 +619,10 @@
             <td><span class="keybinding">s</span> <code>x\subseteq y</code></td>
             <td><span class="keybinding">S</span> <code>x\subset y</code></td>
             <td><span class="keybinding">=</span> or <span class="keybinding">q</span> <code>x = y</code></td>
-            <td><span class="keybinding">[</span> <code>x\le y</code></td>
+            <td><span class="keybinding">&lt;</span> or <span class="keybinding">[</span> <code>x\le y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">]</span> <code>x\ge y</code></td>
+            <td><span class="keybinding">&gt;</span> or <span class="keybinding">]</span> <code>x\ge y</code></td>
             <td><span class="keybinding">:</span> <code>x\coloneqq y</code></td>
             <td><span class="keybinding">~</span> or <span class="keybinding">t</span> <code>x\sim y</code></td>
             <td><span class="keybinding">|</span> <code>x\vDash y</code></td>
@@ -710,10 +703,8 @@
           <span class="keybinding">}</span> <code>y\enspace x \to \underbrace{y}_x</code> (underbrace)
         </li>
         <li>
-          <span class="keybinding">=</span>
-          <code>z\enspace y\enspace x \to \displaystyle\sum_{z=y}^x\enspace</code>
-          <span class="keybinding">+</span>
-          <code>y\enspace x \to \displaystyle\sum_{y\ge x}</code>
+          <span class="keybinding">=</span> <code>z\enspace y\enspace x \to \displaystyle\sum_{z=y}^x\enspace</code>
+          <span class="keybinding">+</span> <code>y\enspace x \to \displaystyle\sum_{y\ge x}</code>
         </li>
         <li><span class="keybinding">,</span> <em>(comma) Split equation</em> (see below)</li>
         <li><span class="keybinding">;</span> <em>Apply tag</em> (see below)</li>
@@ -893,7 +884,7 @@
       </p>
       <p>
         Note that the most commonly-used delimiters are available directly as
-        <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span> <span class="keybinding">&lt;</span>
+        <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span>
         without needing a prefix key.
       </p>
       <table class="keybindings"><tbody>
