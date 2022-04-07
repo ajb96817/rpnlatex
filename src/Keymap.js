@@ -285,6 +285,8 @@ const EditorKeymap = {
         ',': "split_infix",
         '/': "operator frac 2",
         "\\": "operator tfrac 2",
+        '[': "delimiters [ ];swap;operator mathopen;swap;concat",  // f x -> f[x]
+        ']': "delimiters \\{ \\};swap;operator mathopen;swap;concat",  // f x -> f{x}
         '}': "swap;operator underbrace;swap;subscript",
         '{': "swap;operator overbrace;swap;superscript",
         '-': "mode inverse",
@@ -455,7 +457,7 @@ const EditorKeymap = {
         'q': "infix =",
         's': "infix \\subseteq",
         'S': "infix \\subset",
-	't': "infix \\sim",
+        't': "infix \\sim",
         '=': "infix =",
         '<': "infix \\le",
         '>': "infix \\ge",
