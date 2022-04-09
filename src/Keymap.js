@@ -284,7 +284,6 @@ const EditorKeymap = {
         ';': "apply_tag",
         ',': "split_infix",
         '/': "operator frac 2",
-        "\\": "operator tfrac 2",
         '[': "delimiters [ ];swap;operator mathopen;swap;concat",  // f x -> f[x]
         ']': "delimiters \\{ \\};swap;operator mathopen;swap;concat",  // f x -> f{x}
         '}': "swap;operator underbrace;swap;subscript",
