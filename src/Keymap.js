@@ -524,6 +524,7 @@ const EditorKeymap = {
         '2': "insert 2;superscript",
         '3': "insert 3;superscript",
         '4': "insert 4;superscript",
+	'8': "insert \\infty;infix \\to",
         'a': "operator overrightarrow",  // TODO: [R] maybe instead
         'b': "operator mathbb",
         'c': "autoparenthesize;insert 1;swap;infix_plus_or_minus -",
