@@ -255,7 +255,7 @@ const EditorKeymap = {
         'D': "named_function det",
         'e': "insert e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
-        'f': "delimiters . . / 2",  // NOTE: duplicates [,f]
+        'f': "delimiters . . / 2",  // NOTE: duplicates [,/]
         'g': "insert \\argmin;swap;subscript",
         'G': "insert \\argmax;swap;subscript",
         'h': "mode hyperbolic",

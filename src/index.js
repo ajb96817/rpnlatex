@@ -15,10 +15,8 @@ import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 //   document.getElementById('root')
 // );
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('root')
-);
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
 
 serviceWorkerRegistration.register();
 
