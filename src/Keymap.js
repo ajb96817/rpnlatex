@@ -35,6 +35,7 @@ const EditorKeymap = {
         'Ctrl+,': "infix ,",
         'Ctrl+ArrowRight': "scroll document_container horizontal 75",
         'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
+        'Ctrl+/': "operator frac 2",
 
         // Immediate action special keys
         'Enter': "subscript",
