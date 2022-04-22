@@ -785,7 +785,7 @@ class InputContext {
     }
 
     // Similar to do_infix but joins two expressions with an English phrase
-    // with Roman fond and extra spacing (\quad).
+    // with Roman font and extra spacing (\quad).
     do_conjunction(stack, phrase) {
         const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
         const operator_expr = new SequenceExpr([
@@ -793,15 +793,6 @@ class InputContext {
             new CommandExpr('mathrm', [new TextExpr(phrase.replaceAll('_', "\\,"))]),
             new CommandExpr('quad')]);
         return new_stack.push_expr(new InfixExpr(operator_expr, left_expr, right_expr));
-    }
-
-    // Same as do_conjunction but the phrase is attached to the beginning of a single stack item.
-    do_conjunction_prefix(stack, phrase) {
-        const [new_stack, expr] = stack.pop_exprs(1);
-        const operator_expr = new SequenceExpr([
-            new CommandExpr('mathrm', [new TextExpr(phrase.replaceAll('_', "\\,"))]),
-            new CommandExpr('quad')]);
-        return new_stack.push_expr(Expr.combine_pair(operator_expr, expr));
     }
 
     // Similar to do_infix but only takes 1 item from the stack and makes a PrefixExpr.

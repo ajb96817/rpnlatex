@@ -39,7 +39,7 @@ const EditorKeymap = {
 
         // Immediate action special keys
         'Enter': "subscript",
-        '_': "subscript",  // "mode conjunction",
+        '_': "subscript",
         'Backspace': "pop",
         "`": "superscript",
         'Shift+Enter': "edit_stack_top",
@@ -617,23 +617,6 @@ const EditorKeymap = {
         '{': "build_matrix_row Bmatrix",
         '@': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
         'Enter': "stack_matrices"
-    },
-
-    // ??? prefix: English mathematical conjunction words
-    // convention: capitals=prefix, lowercase=infix
-    conjunction: {
-        'a': "conjunction and",
-        'i': "conjunction if",
-        'f': "conjunction iff",
-        'L': "conjunction_prefix let",
-        'n': "conjunction when",
-        'o': "conjunction or",
-        'r': "conjunction for",
-        's': "conjunction such_that",
-        't': "conjunction therefore",
-        'T': "conjunction_prefix therefore",
-        'w': "conjunction where",
-        ':': "conjunction_prefix to_show"
     },
 
     editor: {
