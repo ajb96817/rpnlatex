@@ -39,7 +39,7 @@ const EditorKeymap = {
 
         // Immediate action special keys
         'Enter': "subscript",
-        '_': "subscript",
+        '_': "subscript",  // "mode conjunction",
         'Backspace': "pop",
         "`": "superscript",
         'Shift+Enter': "edit_stack_top",
@@ -400,21 +400,21 @@ const EditorKeymap = {
         'c': "infix \\cap",
         'd': "infix \\setminus",  // (set [d]ifference)
         'e': "infix ,\\dots,",
-        'f': "infix \\quad\\mathrm{if}\\quad",
-        'F': "infix \\quad\\mathrm{iff}\\quad",
+        'f': "conjunction if",
+        'F': "conjunction iff",
         'g': "infix \\gets",
         'k': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2",  // x | y  ([k]onditional)
         'l': "infix \\parallel",
         'm': "infix \\mapsto",
         'M': "infix \\mp",
-        'n': "infix \\quad\\mathrm{when}\\quad",
+        'n': "conjunction when",
         'o': "infix \\circ",
         'O': "stackrel overset",
         'p': "infix \\perp",
         'P': "infix \\pm",
-        'q': "infix \\quad\\mathrm{and}\\quad",
-        'Q': "infix \\quad\\mathrm{or}\\quad",
-        'r': "infix \\quad\\mathrm{for}\\quad",
+        'q': "conjunction and",
+        'Q': "conjunction or",
+        'r': "conjunction for",
         's': "infix \\,",
         't': "infix \\to",
         'T': "infix \\longrightarrow",
@@ -617,6 +617,23 @@ const EditorKeymap = {
         '{': "build_matrix_row Bmatrix",
         '@': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
         'Enter': "stack_matrices"
+    },
+
+    // ??? prefix: English mathematical conjunction words
+    // convention: capitals=prefix, lowercase=infix
+    conjunction: {
+        'a': "conjunction and",
+        'i': "conjunction if",
+        'f': "conjunction iff",
+        'L': "conjunction_prefix let",
+        'n': "conjunction when",
+        'o': "conjunction or",
+        'r': "conjunction for",
+        's': "conjunction such_that",
+        't': "conjunction therefore",
+        'T': "conjunction_prefix therefore",
+        'w': "conjunction where",
+        ':': "conjunction_prefix to_show"
     },
 
     editor: {
