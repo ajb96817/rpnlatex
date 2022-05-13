@@ -1255,12 +1255,13 @@ class InputContext {
         this.notify("Copied document to clipboard");
     }
 
-    do_export_stack_top_as_text(stack) {
-        const [new_stack, item] = stack.pop(1);
-        const exported_text = item.to_text();
+    do_export_stack_items_as_text(stack) {
+        const arg = this._get_prefix_argument(1, stack.depth());
+        // eslint-disable-next-line no-unused-vars
+        const [new_stack, ...items] = stack.pop(arg);
+        const exported_text = items.map(item => item.to_text()).join("\n\n");
         navigator.clipboard.writeText(exported_text);
-        this.notify("Copied stack top to clipboard");
-        return new_stack.push(item)
+        this.notify("Copied " + arg + " item" + (arg === 1 ? "" : "s") + " to clipboard");
     }
 }
 
