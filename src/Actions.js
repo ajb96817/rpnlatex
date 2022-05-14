@@ -1015,7 +1015,8 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
-    do_toggle_popup(stack, mode_string) {
+    // NOTE: if 'help_location' is given, jump to the given anchor in the help text.
+    do_toggle_popup(stack, mode_string, help_location) {
         // Hack: save help panel scroll position so we can restore it next
         // time the help is displayed.
         if(this.settings.popup_mode === 'help') {
@@ -1023,14 +1024,15 @@ class InputContext {
             if(elt && elt.scrollTop)
                 this.settings.help_scroll_top = elt.scrollTop;
         }
-        
         this.settings.popup_mode =
             (this.settings.popup_mode === mode_string) ? null : mode_string;
+        if(this.settings.popup_mode === 'help' && help_location)
+            this.settings.help_scroll_top = help_location;
         this.settings.save();
         this.app_component.apply_layout_to_dom();
     }
 
-    // Set various configuration options.
+    // set various configuration options.
     do_config(stack, config_option, value) {
         let settings = this.settings;
         let layout = settings.layout;
