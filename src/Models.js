@@ -1325,6 +1325,10 @@ class Item {
             json.tag_expr ? Expr.from_json(json.tag_expr) : null);
         case 'markdown':
             return new MarkdownItem(json.source_text);
+	case 'mixed':
+	    return new MixedItem(
+		json.subitems.map(item_json => Item.from_json(item_json)),
+		json.separators);
         default:
             return new MarkdownItem('invalid item type ' + json.item_type);
         }
@@ -1437,6 +1441,65 @@ class MarkdownItem extends Item {
     to_text() { return this.source_text; }
 
     clone() { return new MarkdownItem(this.source_text); }
+}
+
+
+// Heterogeneous list of concatenated ExprItem or Markdown item instances.
+// ExprItems in the list are displayed inline amongst the Markdown text (between $ $).
+// If there are N concatenated items then there are also N-1 elements in 'separators'
+// each of which is a text string (possibly empty) to be inserted between the items.
+// MixedItems are never "nested" - a subitem cannot be another MixedItem.  If MixedItems
+// are concatenated, the subitems are flattened and combined.
+class MixedItem extends Item {
+    // Combine two Items of different types into a MixedItem.
+    // For combining items of like types, use Expr.combine_pair, SequenceExpr,
+    // do_concat(), etc. instead.
+    static combine_items(left, right, separator) {
+	// Convert non-mixed items into mixed, so that only the general
+	// Mixed+Mixed case needs to be handled.
+	if(left.item_type() !== 'mixed') left = new MixedItem([left], []);
+	if(right.item_type() !== 'mixed') right = new MixedItem([right], []);
+	const new_subitems = left.subitems.concat(right.subitems);
+	const new_separators = left.separators.concat([separator], right.separators);
+	return new MixedItem(new_subitems, new_separators);
+    }
+    
+    constructor(subitems, separators) {
+	super();
+	this.subitems = subitems;
+	this.separators = separators;
+    }
+
+    item_type() { return 'mixed'; }
+
+    to_json() {
+	return {
+	    item_type: 'mixed',
+	    subitems: this.subitems.map(item => item.to_json()),
+	    separators: this.separators
+	};
+    }
+
+    to_text() {
+	let pieces = [];
+	for(let i = 0; i < this.subitems.length; i++) {
+	    if(i > 0) pieces.push(this.separators[i-1]);
+	    const item = this.subitems[i];
+	    // TODO: this duplicates code in do_import_item_into_editor
+	    let inserted_text;
+            switch(item.item_type()) {
+            case 'markdown': inserted_text = item.source_text; break;
+            case 'expr': inserted_text = ['$', item.expr.to_latex(), '$'].join(''); break;
+            default: inserted_text = '???'; break;
+            }
+	    pieces.push(inserted_text);
+	}
+	return pieces.join('');
+    }
+
+    clone() {
+	return new MixedItem(this.subitems, this.separators);
+    }
 }
 
 

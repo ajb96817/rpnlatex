@@ -536,12 +536,12 @@ class InputContext {
 
     do_edit_stack_top(stack) {
         const item = stack.peek(1);
-        let source_text;
-        switch(item.item_type()) {
-        case 'markdown': source_text = item.source_text; break;
-        case 'expr': source_text = ['$$', item.expr.to_latex(), '$$'].join(''); break;
-        default: source_text = '???'; break;
-        }
+        let source_text = item.to_text();
+        // switch(item.item_type()) {
+        // case 'markdown': source_text = item.source_text; break;
+        // case 'expr': source_text = ['$$', item.expr.to_latex(), '$$'].join(''); break;
+        // default: source_text = '???'; break;
+        // }
         this.switch_to_mode('editor');
         this.minieditor = {active: true, text: source_text};
     }
