@@ -321,6 +321,7 @@ class StackItemsComponent extends React.Component {
                     ItemComponent, {
                         item: item,
                         selected: selected,
+                        inline_math: this.props.settings.layout.inline_math,
                         item_ref: React.createRef(),
                         key: item.react_key(index)
                     });
@@ -353,6 +354,7 @@ class DocumentComponent extends React.Component {
                 ItemComponent, {
                     item: item,
                     selected: is_selected,
+                    inline_math: this.props.settings.layout.inline_math,
                     item_ref: item_ref,
                     key: item.react_key(index)
                 });
@@ -629,7 +631,7 @@ class ItemComponent extends React.Component {
         if(!node) return;  // shouldn't happen
         if(item.item_type() === 'expr') {
             // Render math with KaTeX
-            this._render_with_katex(item.expr.to_latex(), node, true);
+            this._render_with_katex(item.expr.to_latex(), node, !this.props.inline_math);
             if(item.tag_expr && this.tag_ref.current)
                 this._render_with_katex(item.tag_expr.to_latex(), this.tag_ref.current, false);
         }

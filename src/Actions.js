@@ -1035,6 +1035,7 @@ class InputContext {
     do_config(stack, config_option, value) {
         let settings = this.settings;
         let layout = settings.layout;
+        let full_refresh_needed = false;  // set to true if everything needs to be re-rendered afterwards
         switch(config_option) {
         case 'zoom_factor':
             switch(value) {
@@ -1056,6 +1057,10 @@ class InputContext {
                 break;
             }
             break;
+        case 'toggle_inline_math':
+            layout.inline_math = !layout.inline_math;
+            full_refresh_needed = true;
+            break;
         case 'stack_side':
             layout.stack_side = value;
             break;
@@ -1074,6 +1079,11 @@ class InputContext {
         settings.save();
         this.app_component.apply_layout_to_dom();
         this.clear_all_flashes();
+        if(full_refresh_needed) {
+            // All displayed ItemComponents need to be re-rendered.
+            this.new_document = this.app_state.document.clone_all_items();
+            return stack.clone_all_items();
+        }
     }
 
     // item1, item2, ... => {item1, item2, ...}

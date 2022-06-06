@@ -141,19 +141,20 @@ const EditorKeymap = {
 
     // $ prefix: configuration
     config: {
+        'i': "config toggle_inline_math",
         'm': "mode config_math_alignment",
         'r': "config reset_layout",
         's': "mode config_stack",
         't': "mode config_theme",
         'z': "mode config_zoom",
         '$': "insert \\$",
-        '?': "toggle_popup help config"
+        '?': "toggle_popup help configuration"
     },
     // $m
     config_math_alignment: {
         'd': "config math_align toggle_document",
         's': "config math_align toggle_stack",
-        '?': "toggle_popup help config"
+        '?': "toggle_popup help configuration"
     },
     // $s
     config_stack: {
@@ -172,7 +173,7 @@ const EditorKeymap = {
         'ArrowRight': "config stack_side right",
         'ArrowUp': "config stack_side top",
         'ArrowDown': "config stack_side bottom",
-        '?': "toggle_popup help config"
+        '?': "toggle_popup help configuration"
     },
     // $t
     config_theme: {
@@ -180,14 +181,14 @@ const EditorKeymap = {
         '1': "config theme dawn",
         '2': "config theme dusk",
         '3': "config theme dark",
-        '?': "toggle_popup help config"
+        '?': "toggle_popup help configuration"
     },
     // $z
     config_zoom: {
         '0': "config zoom_factor 0",
         '+': "config zoom_factor +",
         '-': "config zoom_factor -",
-        '?': "toggle_popup help config"
+        '?': "toggle_popup help configuration"
     },
 
     // \ prefix (text/latex accumulator)

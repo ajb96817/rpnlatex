@@ -54,6 +54,7 @@ class Settings {
             zoom_factor: 0,
             stack_rightalign_math: false,
             document_rightalign_math: false,
+            inline_math: false,
             stack_side: 'left',
             stack_split: 50
         };
@@ -1570,6 +1571,14 @@ class Stack {
     push(item) { return this.push_all([item]); }
     push_expr(expr) { return this.push_all_exprs([expr]); }
 
+    // Return a new Stack with cloned copies of all the items.
+    // The cloned items will have new React IDs, which will force a re-render of the items.
+    // This is used for things like changing between display and inline math mode, where
+    // the item content doesn't change but the way it's rendered does.
+    clone_all_items() {
+        return new Stack(this.items.map(item => item.clone()));
+    }
+
     underflow() { throw new Error('stack_underflow'); }
     type_error() { throw new Error('stack_type_error'); }
 
@@ -1640,6 +1649,11 @@ class Document {
             return null;
         else
             return this.delete_selection().move_selection_by(offset).insert_item(item);
+    }
+
+    // See Stack.clone_all_items()
+    clone_all_items() {
+        return new Document(this.items.map(item => item.clone()), this.selection_index);
     }
 
     to_json() {
