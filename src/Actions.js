@@ -928,7 +928,7 @@ class InputContext {
         }
         let new_expr;
         if(textstyle === 'roman')
-            new_expr = new CommandExpr('mathrm', [
+            new_expr = new CommandExpr('text', [
                 new TextExpr(this._latex_escape(this.text_entry))]);
         else if(textstyle === 'latex') {
             const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
@@ -952,7 +952,6 @@ class InputContext {
             '%': "\\%",
             "'": "\\prime",
             "`": "\\backprime",
-            ' ': "\\,",
             '$': "\\$",
             '&': "\\&",
             '#': "\\#",
@@ -961,7 +960,7 @@ class InputContext {
             '~': "\\sim",
             "\\": "\\backslash",
         };
-        return text.replaceAll(/[_^%'` $&#}{~\\]/g, match => replacements[match]);
+        return text.replaceAll(/[_^%'`$&#}{~\\]/g, match => replacements[match]);
     }
 
     // expr_count is the number of items to pop from the stack to put inside the delimiters.
