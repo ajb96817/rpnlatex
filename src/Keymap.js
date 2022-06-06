@@ -269,6 +269,7 @@ const EditorKeymap = {
         'G': "insert \\argmax;swap;subscript",
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
+        'k': "delimiters . . \\vert 2;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x|y)
         'l': "insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{x}
         'm': "named_function min",
         'M': "named_function max",
