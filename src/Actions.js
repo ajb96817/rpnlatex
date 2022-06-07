@@ -3,7 +3,7 @@ import {
     AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, MarkdownItem
+    Item, ExprItem, TextItem, MarkdownItem
 } from './Models';
 
 
@@ -774,14 +774,27 @@ class InputContext {
     }
 
     // opname can be either a \latex_command or a regular string like '+'
+    // The cases of Expr+Expr and Expr+Text (or Text+Text) are handled separately.
     do_infix(stack, opname) {
-        const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
-        let operator_expr;
-        if(opname.startsWith("\\"))  // TODO: handle this better
-            operator_expr = new CommandExpr(opname.slice(1));
+        const [new_stack, left_item, right_item] = stack.pop(2);
+        const left_type = left_item.item_type(), right_type = right_item.item_type();
+        if(left_type === 'expr' && right_type === 'expr') {
+            // Expr+Expr case.  Result is an InfixExpr item.
+            let operator_expr;
+            if(opname.startsWith("\\"))  // TODO: handle this better
+                operator_expr = new CommandExpr(opname.slice(1));
+            else
+                operator_expr = new TextExpr(opname);
+            return new_stack.push_expr(new InfixExpr(operator_expr, left_item.expr, right_item.expr));
+        }
+        else if((left_type === 'expr' || left_type === 'text') &&
+                (right_type === 'expr' || right_type === 'text')) {
+            // Expr+Text or Text+Expr or Text+Text
+            const new_item = TextItem.concatenate_items(left_item, right_item, opname);
+            return new_stack.push(new_item);
+        }
         else
-            operator_expr = new TextExpr(opname);
-        return new_stack.push_expr(new InfixExpr(operator_expr, left_expr, right_expr));
+            return stack.type_error();
     }
 
     // Similar to do_infix but joins two expressions with an English phrase
@@ -804,21 +817,6 @@ class InputContext {
         else
             operator_expr = new TextExpr(opname);
         return new_stack.push_expr(new PrefixExpr(base_expr, operator_expr));
-    }
-
-    // Same as do_infix(..., '+'/'-') but automatically converts to infix minus/plus if the
-    // right hand side starts with a unary -.
-    do_infix_plus_or_minus(stack, opname) {
-        let [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
-        let operator_expr;
-        if(right_expr.expr_type() === 'prefix' &&
-           right_expr.prefix_expr.expr_type() === 'text' && right_expr.prefix_expr.text === '-') {
-            operator_expr = new TextExpr(opname === '-' ? '+' : '-');
-            right_expr = right_expr.base_expr;
-        }
-        else
-            operator_expr = new TextExpr(opname);
-        return new_stack.push_expr(new InfixExpr(operator_expr, left_expr, right_expr));
     }
 
     do_split_infix(stack) {
@@ -852,25 +850,18 @@ class InputContext {
 
     do_cancel() {}
 
-    // Concatenate two Exprs, or two Markdown texts.
-    // TODO: possibly allow Expr+Markdown too
-    do_concat(stack, concat_mode) {
+    do_concat(stack, separator_text) {
         let [new_stack, left_item, right_item] = stack.pop(2);
-        if(left_item.item_type() === 'expr' && right_item.item_type() === 'expr') {
+        const left_type = left_item.item_type(), right_type = right_item.item_type();
+        if(left_type === 'expr' && right_type === 'expr') {
             let left_expr = left_item.expr, right_expr = right_item.expr;
-            if(concat_mode === 'autoparenthesize') {
-                // Parenthesize left and right arguments if they're low-precedence
-                // infix expressions.  e.g.:  x+y x-y -> (x+y)(x-y)
-                left_expr = DelimiterExpr.autoparenthesize(left_expr);
-                right_expr = DelimiterExpr.autoparenthesize(right_expr);
-            }
             const new_expr = Expr.combine_pair(left_expr, right_expr);
             return new_stack.push_expr(new_expr);
         }
-        else if(left_item.item_type() === 'markdown' && right_item.item_type() === 'markdown') {
-            // TODO: maybe add a newline separator in between if needed.
-            const new_text = left_item.source_text + right_item.source_text;
-            return new_stack.push(new MarkdownItem(new_text));
+        else if((left_type === 'expr' || left_type === 'text') &&
+                (right_type === 'expr' || right_type === 'text')) {
+            const new_item = TextItem.concatenate_items(left_item, right_item, separator_text);
+            return new_stack.push(new_item);
         }
         else
             return stack.type_error();
@@ -926,22 +917,31 @@ class InputContext {
             this.text_entry = null;
             return stack;
         }
-        let new_expr;
-        if(textstyle === 'roman')
-            new_expr = new CommandExpr('text', [
-                new TextExpr(this._latex_escape(this.text_entry))]);
-        else if(textstyle === 'latex') {
-            const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
-            if(sanitized.length === 0) {
-                this.text_entry = null;
-                return stack;
-            }
-            new_expr = new CommandExpr(sanitized);
+
+        if(textstyle === 'text') {
+            let item = TextItem.from_string(this.text_entry);
+            this.text_entry = null;
+            return stack.push(item);
         }
-        else
-            new_expr = new TextExpr(this._latex_escape(this.text_entry));
-        this.text_entry = null;
-        return stack.push_expr(new_expr);
+        else {
+            let new_expr;
+            if(textstyle === 'roman') {
+                new_expr = new CommandExpr('text', [
+                    new TextExpr(this._latex_escape(this.text_entry))]);
+            }
+            else if(textstyle === 'latex') {
+                const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
+                if(sanitized.length === 0) {
+                    this.text_entry = null;
+                    return stack;
+                }
+                new_expr = new CommandExpr(sanitized);
+            }
+            else
+                new_expr = new TextExpr(this._latex_escape(this.text_entry));
+            this.text_entry = null;
+            return stack.push_expr(new_expr);
+        }
     }
 
     // TODO: may want to make this a general utility method, but it's only used here so far.
@@ -990,9 +990,16 @@ class InputContext {
         return new_stack.push_expr(expr);
     }
 
-    do_autoparenthesize(stack) {
-        let [new_stack, expr] = stack.pop_exprs(1);
-        return new_stack.push_expr(DelimiterExpr.autoparenthesize(expr));
+    // If expr_count_string is provided, exactly that many expressions from the stack
+    // are autoparenthesized.  If any of them is not actually an ExprItem, nothing is done.
+    do_autoparenthesize(stack, expr_count_string) {
+        const expr_count = (expr_count_string === undefined) ? 1 : parseInt(expr_count_string);
+        const [new_stack, ...items] = stack.pop(expr_count);
+        if(items.every(item => item.item_type() === 'expr'))
+            return new_stack.push_all_exprs(
+                items.map(item => DelimiterExpr.autoparenthesize(item.expr)));
+        else
+            return stack;
     }
 
     // Combine arguments and command name from the stack into a CommandExpr

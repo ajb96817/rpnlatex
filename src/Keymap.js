@@ -43,12 +43,12 @@ const EditorKeymap = {
         'Backspace': "pop",
         "`": "superscript",
         'Shift+Enter': "edit_stack_top",
-        ' ': "concat autoparenthesize",
+        ' ': "autoparenthesize 2;concat",
         '=': "mode relational",
         '<': "infix <",
         '>': "infix >",
-        '+': "infix_plus_or_minus +",
-        '-': "infix_plus_or_minus -",
+        '+': "infix +",
+        '-': "infix -",
         ']': "operator boldsymbol",
         '[': "delimiters [ ]",
         '(': "delimiters ( )",
@@ -194,7 +194,7 @@ const EditorKeymap = {
     // \ prefix (text/latex accumulator)
     text_entry: {
         'Enter': "finish_text_entry",
-        'Shift+Enter': "finish_text_entry roman",
+        'Shift+Enter': "finish_text_entry text",
         "\\": "finish_text_entry latex",
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
@@ -543,7 +543,7 @@ const EditorKeymap = {
 	'8': "insert \\infty;infix \\to",
         'a': "operator overrightarrow",  // TODO: [R] maybe instead
         'b': "operator mathbb",
-        'c': "autoparenthesize;insert 1;swap;infix_plus_or_minus -",
+        'c': "autoparenthesize;insert 1;swap;infix -",
         'C': "mode color",
         'd': "insert \\dagger;superscript",
         'D': "insert \\ddagger;superscript",

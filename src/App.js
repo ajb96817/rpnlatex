@@ -614,6 +614,10 @@ class ItemComponent extends React.Component {
                 return $e(
                     'div', {className: 'expr_item'},
                     $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
+	case 'text':
+	    return $e(
+		'div', {className: 'text_item'},
+                $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
         case 'markdown':
             return $e('div', {
                 className: className + 'markdown',
@@ -635,6 +639,10 @@ class ItemComponent extends React.Component {
             if(item.tag_expr && this.tag_ref.current)
                 this._render_with_katex(item.tag_expr.to_latex(), this.tag_ref.current, false);
         }
+	else if(item.item_type() === 'text') {
+	    // TextItems are always rendered in inline mode
+	    this._render_with_katex(item.to_latex(), node, false);
+	}
         else if(item.item_type() === 'markdown') {
             // Render <code> elements with KaTeX
             let children = node.getElementsByTagName('code');

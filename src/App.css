@@ -41,13 +41,16 @@ body {
 
 
 div.expr_item {}
+div.text_item {}
 div.latex_fragment {
     margin: 0.1em 0;
     margin-left: 0;
     padding: 0.05em 0;
     padding-left: 1em;
-    border-left: 0.25em solid #aaa;
 }
+div.expr_item div.latex_fragment { border-left: 0.25em solid #aaa; }
+div.text_item div.latex_fragment { border-left: 0.25em solid #8c8; }
+
 div.tag_expr {
     /* TODO: customize colors per theme */
     position: absolute;

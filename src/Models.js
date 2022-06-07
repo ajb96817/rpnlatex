@@ -1321,15 +1321,15 @@ class Item {
 
     static from_json(json) {
         switch(json.item_type) {
-        case 'expr': return new ExprItem(
-            Expr.from_json(json.expr),
-            json.tag_expr ? Expr.from_json(json.tag_expr) : null);
+        case 'expr':
+            return new ExprItem(
+                Expr.from_json(json.expr),
+                json.tag_expr ? Expr.from_json(json.tag_expr) : null);
+        case 'text':
+            return new TextItem(
+                json.elements.map(element_json => TextItemElement.from_json(element_json)));
         case 'markdown':
             return new MarkdownItem(json.source_text);
-	case 'mixed':
-	    return new MixedItem(
-		json.subitems.map(item_json => Item.from_json(item_json)),
-		json.separators);
         default:
             return new MarkdownItem('invalid item type ' + json.item_type);
         }
@@ -1445,62 +1445,135 @@ class MarkdownItem extends Item {
 }
 
 
-// Heterogeneous list of concatenated ExprItem or Markdown item instances.
-// ExprItems in the list are displayed inline amongst the Markdown text (between $ $).
-// If there are N concatenated items then there are also N-1 elements in 'separators'
-// each of which is a text string (possibly empty) to be inserted between the items.
-// MixedItems are never "nested" - a subitem cannot be another MixedItem.  If MixedItems
-// are concatenated, the subitems are flattened and combined.
-class MixedItem extends Item {
-    // Combine two Items of different types into a MixedItem.
-    // For combining items of like types, use Expr.combine_pair, SequenceExpr,
-    // do_concat(), etc. instead.
-    static combine_items(left, right, separator) {
-	// Convert non-mixed items into mixed, so that only the general
-	// Mixed+Mixed case needs to be handled.
-	if(left.item_type() !== 'mixed') left = new MixedItem([left], []);
-	if(right.item_type() !== 'mixed') right = new MixedItem([right], []);
-	const new_subitems = left.subitems.concat(right.subitems);
-	const new_separators = left.separators.concat([separator], right.separators);
-	return new MixedItem(new_subitems, new_separators);
+class TextItemElement {
+    static from_json(json) {
+        if(json.expr)
+            return new TextItemExprElement(Expr.from_json(json.expr));
+        else if(json.text)
+            return new TextItemTextElement(json.text);
+        else
+            return new TextItemRawElement(json.raw);
+    }
+}
+
+
+class TextItemTextElement extends TextItemElement {
+    constructor(text) { super(); this.text = text; }
+
+    is_text() { return true; }
+    to_json() { return { 'text': this.text }; }
+    to_text() { return this.text; }
+
+    // TODO: -> to_display_latex() ?
+    to_latex() {
+        // This is a little messy because of how KaTeX handles line breaks.
+        // Normally, breaks are only allowed after operators like +, but when
+        // rendering TextItems, we want to allow breaks after each word.
+        // As a workaround, a separate \text{...} command is created for each
+        // word followed by \allowbreak commands.  \allowbreak does not work
+        // inside the actual \text{...}, otherwise we could presumably just output
+        // \text{word1\allowbreak word2\allowbreak}.
+        const tokens = this.text.split(/ +/);
+        let pieces = [];
+        for(let i = 0; i < tokens.length; i++) {
+            pieces.push("\\text{");
+            pieces.push(this._latex_escape(tokens[i]));
+            if(i < tokens.length-1)
+                pieces.push(' ');  // preserve spacing between words
+            pieces.push("}\\allowbreak ");
+        }
+        return pieces.join('');
+    }
+
+    _latex_escape(text) {
+        // TODO: make this table a global (or switch statement) so it doesn't constantly get remade
+        const replacements = {
+            '_': "\\_",
+            '^': "\\wedge",
+            '%': "\\%",
+            "'": "\\prime",
+            "`": "\\backprime",
+            '$': "\\$",
+            '&': "\\&",
+            '#': "\\#",
+            '}': "\\}",
+            '{': "\\{",
+            '~': "\\sim",
+            "\\": "\\backslash",
+        };
+        return text.replaceAll(/[_^%'`$&#}{~\\]/g, match => replacements[match]);
+    }
+}
+
+class TextItemExprElement extends TextItemElement {
+    constructor(expr) { super(); this.expr = expr; }
+    is_text() { return false; }
+    to_json() { return { 'expr': this.expr.to_json() }; }
+    to_text() { return '$' + this.expr.to_text() + '$'; }
+    to_latex() { return this.expr.to_latex(); }
+}
+
+
+// Represents a "raw" piece of LaTeX text (similar to TextExpr) within a TextItem.
+// This is used for things like combining a TextItem and ExprItem with an infix operator.
+// TextItemTextElement can't be used for the infix itself because we don't want to wrap it
+// in a \text{...} and we don't want to escape the operator's actual LaTeX command.
+class TextItemRawElement extends TextItemElement {
+    constructor(string) { super(); this.string = string; }
+    is_text() { return false; }
+    to_json() { return { 'raw': this.string }; }
+    to_text() { return this.string; }
+    to_latex() { return this.string; }
+}
+
+
+class TextItem extends Item {
+    static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
+    static from_expr(expr) { return new TextItem([new TextItemExprElement(expr)]); }
+
+    // item1/2 can each be TextItems or ExprItems.
+    static concatenate_items(item1, item2, separator_text) {
+        if(item1.item_type() === 'expr') item1 = TextItem.from_expr(item1.expr);
+        if(item2.item_type() === 'expr') item2 = TextItem.from_expr(item2.expr);
+        const elements = item1.elements.concat(
+            separator_text ? [new TextItemRawElement(separator_text)] : [],
+            item2.elements);
+        // Merge adjacent TextElements
+        let merged_elements = [elements[0]];
+        for(let i = 1; i < elements.length; i++) {
+            const last_index = merged_elements.length-1;
+            if(merged_elements[last_index].is_text() && elements[i].is_text())
+                merged_elements[last_index] = new TextItemTextElement(
+                    merged_elements[last_index].text + elements[i].text);
+            else
+                merged_elements.push(elements[i]);
+        }
+        return new TextItem(merged_elements);
     }
     
-    constructor(subitems, separators) {
-	super();
-	this.subitems = subitems;
-	this.separators = separators;
+    constructor(elements) {
+        super();
+        this.elements = elements;
     }
 
-    item_type() { return 'mixed'; }
+    item_type() { return 'text'; }
 
     to_json() {
-	return {
-	    item_type: 'mixed',
-	    subitems: this.subitems.map(item => item.to_json()),
-	    separators: this.separators
-	};
+        return {
+            item_type: 'text',
+            elements: this.elements.map(element => element.to_json())
+        };
     }
 
     to_text() {
-	let pieces = [];
-	for(let i = 0; i < this.subitems.length; i++) {
-	    if(i > 0) pieces.push(this.separators[i-1]);
-	    const item = this.subitems[i];
-	    // TODO: this duplicates code in do_import_item_into_editor
-	    let inserted_text;
-            switch(item.item_type()) {
-            case 'markdown': inserted_text = item.source_text; break;
-            case 'expr': inserted_text = ['$', item.expr.to_latex(), '$'].join(''); break;
-            default: inserted_text = '???'; break;
-            }
-	    pieces.push(inserted_text);
-	}
-	return pieces.join('');
+        return this.elements.map(element => element.to_text()).join('');
     }
 
-    clone() {
-	return new MixedItem(this.subitems, this.separators);
+    to_latex() {
+        return this.elements.map(element => element.to_latex()).join('');
     }
+
+    clone() { return new TextItem(this.elements); }
 }
 
 
@@ -1674,6 +1747,6 @@ export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, MarkdownItem, Stack, Document
+    Item, ExprItem, TextItem, MarkdownItem, Stack, Document
 };
 
