@@ -219,6 +219,8 @@ div.stack_items textarea {
 }
 div.stack_items textarea:focus { outline: none; }
 
+div.stack_items div.selected { background-color: #eef; }
+
 div.stack_items div.text_entry {
     text-align: left;  /* overrides .rightalign_math if needed */
     font-family: monospace;
@@ -229,8 +231,23 @@ div.stack_items div.text_entry {
     padding: 0.25em 1.25em;
     color: black;
 }
-div.stack_items div.empty_text_entry { color: #888; }
-div.stack_items div.selected { background-color: #eef; }
+
+/* blinking cursor effect */
+div.stack_items div.text_entry::after {
+    content: "";
+    width: 0.25em;
+    height: 1.2em;
+    margin-left: 0.1em;
+    background: #888;
+    display: inline-block;
+    position: relative;
+    top: 0.1em;
+    animation: blink 1.0s steps(1) infinite;
+}
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+}
 
 
 #document_panel {

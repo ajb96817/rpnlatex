@@ -432,11 +432,7 @@ class MiniEditorComponent extends React.Component {
 // (backslash key activates this).
 class TextEntryComponent extends React.Component {
     render() {
-        const text = this.props.text;
-        const is_empty = text.length === 0;
-        return $e(
-            'div', {className: (is_empty ? 'text_entry empty_text_entry' : 'text_entry')},
-            is_empty ? '...' : text);
+        return $e('div', {className: 'text_entry'}, this.props.text);
     }
 }
 
