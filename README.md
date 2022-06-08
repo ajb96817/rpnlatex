@@ -1,17 +1,31 @@
-# rpnlatex - RPN style math editor
+# rpnlatex - RPN style mathematical scratchpad
 
-Quick start:
+This is a browser-based editor meant for quickly entering and manipulating equations.
+It is meant as a scratchpad for solving math problems, as an alternative to pen and
+paper.  It has some limited document-preparation capabilities but for a full mathematical
+word processor you should use something like LyX instead.
 
-Download the latest release package from Github and unpack it, then open the 'index.html' file in a web browser.
+Equations are entered using a Reverse Polish Notation (RPN) input system inspired by
+HP calculators.  Please see the built-in user manual (available by typing '?') for more
+information.
 
-To host this from a webserver, simply copy all files to a location on the server and navigate to the URL in your browser.  No server-side dynamic features are needed on the webserver; it's only static files.
+## Quick start:
 
-If your browser supports Progressive Web Apps, you can use this as a PWA to get a little more screen space.  For example:
+Download the latest release package from Github and unpack it, then open the 'index.html'
+file in a web browser.
+
+To host this from a webserver, simply copy all files to a location on the server and
+navigate to the URL in your browser.  No server-side dynamic features are needed on the
+webserver; it's only static files.
+
+If your browser supports Progressive Web Apps, you can use this as a PWA to get a little
+more screen space.  For example:
 
   * iOS: Open the application in Safari.  Use the "send to" button and from there select "Add to Home Screen" to create a shortcut.  Use the shortcut to run in PWA mode.
   * Chrome: From the menu, select "More tools" then "Create shortcut".  After that, there should be a new menu item "Open in rpnlatex" which will start it in PWA mode.
 
-Note that you may need to host from a web server (as opposed to opening the local files directly in your browser) in order to take advantage of PWA.
+Note that you may need to host from a web server (as opposed to opening the local files
+directly in your browser) in order to take advantage of PWA.
 
 To build/run from source (not needed unless you want to change something):
 

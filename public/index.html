@@ -15,7 +15,7 @@
     <div id="helptext" style="display: none;">
       <h1>User Guide</h1>
       <p>
-        This is an editor meant for quickly entering mathematical formulas.  It runs as a standalone
+        This is a mathematical scratchpad meant for quickly entering and manipulating equations.  It runs as a standalone
         web application (no server needed) and generates LaTeX-compatible typesetting code.
       </p>
       <p>
@@ -42,8 +42,7 @@
       </p>
       <p>
         Note that items on the stack have a small colored bar shown to the left of them.  This indicates the item's "type",
-        which can be either a symbolic expression (grey) or a
-        <a href="https://www.markdownguide.org/" target="_blank">Markdown</a>-formatted piece of text (light blue).
+        which can be either a symbolic expression (grey), a piece of text (blue), or a separator (green).
       </p>
       <p>
         This editor is designed to be operated entirely from the keyboard.  Most operations can be performed using
@@ -63,14 +62,18 @@
           These keys also place the corresponding symbol onto the stack.
         </li>
         <li>
-          <span class="keybinding">\</span> <em>(backslash)</em> Typing a backslash starts <em>text entry</em> mode
-          where you can enter a longer text string.  To finish your input, use one of:
-          <ul>
-            <li><span class="keybinding">Enter</span> - typeset your input as normal Italic math text</li>
-            <li><span class="keybinding">Shift+Enter</span> - typeset your input as Roman text</li>
-            <li><span class="keybinding">\</span> - create an arbitrary LaTeX command (e.g. <tt>\sqrt</tt>)</li>
-            <li><span class="keybinding">Esc</span> - cancel text entry</li>
-          </ul>
+          <span class="keybinding">\</span> Typing a backslash starts <em>math text entry</em> mode
+          where you can enter a longer text string such as a multi-digit number.  Use <span class="keybinding">Enter</span>
+          to save your input as normal italic math text, or <span class="keybinding">Shift+Enter</span> to create text in
+          a non-italic (roman) font.  <span class="keybinding">Esc</span> to cancel.
+          Typing another <span class="keybinding">\</span> after the first puts you into <em>LaTeX entry</em> mode instead,
+          where you can enter an arbitrary LaTeX command (e.g. <tt>\sqrt</tt>).
+        </li>
+        <li>
+          <span class="keybinding">&quot;</span> Typing a quote starts <em>text entry</em> mode, which is similar to
+          <em>math text entry</em> mode but creates special text objects (with a blue marker to the left).  These objects
+          behave a little differently than ordinary mathematical expressions.  See <a href="#text_objects">text objects</a>
+          for more information.
         </li>
         <li>
           <span class="keybinding">&nbsp;</span> <em>(space)</em> Concatenate the top two stack entries.
@@ -86,23 +89,6 @@
           Append a <tt>!</tt> to the stack top (factorial notation).
         </li>
         <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
-        <li>
-          <span class="keybinding">Shift+Enter</span>
-          Start editing the stack top as text in a multiline text editor.
-          Use <span class="keybinding">Shift+Enter</span> again to
-          save your changes or <span class="keybinding">Esc</span> to cancel.
-        </li>
-        <li>
-          <span class="keybinding">&quot;</span>
-          Like <span class="keybinding">Shift+Enter</span>,
-          but starts a new, empty text rather than editing the stack top.
-        </li>
-        <li>
-          <span class="keybinding">Shift+Down</span>
-          When the text editor is open, pull down the next item from the stack and insert it into
-          the text being edited.  Math expressions will be surrounded by <tt>$</tt> signs so that they render
-          inline within the text.
-        </li>
         <li>
           <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span>
           Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
