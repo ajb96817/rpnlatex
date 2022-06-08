@@ -1406,7 +1406,7 @@ class SeparatorItem extends Item {
         return {item_type: 'separator', separator_type: this.separator_type};
     }
 
-    to_text() { return '---'; }
+    to_text() { return "\\rule"; }
 
     clone() { return new SeparatorItem(this.separator_type); }
 }
@@ -1480,7 +1480,7 @@ class TextItemExprElement extends TextItemElement {
     constructor(expr) { super(); this.expr = expr; }
     is_expr() { return true; }
     to_json() { return { 'expr': this.expr.to_json() }; }
-    to_text() { return '$' + this.expr.to_text() + '$'; }
+    to_text() { return '$' + this.expr.to_latex() + '$'; }
     to_latex() { return this.expr.to_latex(); }
 }
 
