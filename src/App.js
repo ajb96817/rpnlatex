@@ -583,12 +583,6 @@ class ItemComponent extends React.Component {
             return $e(
                 'div', {className: 'separator_item'},
                 $e('hr'));
-        case 'markdown':
-            return $e('div', {
-                className: className + 'markdown',
-                dangerouslySetInnerHTML: { __html: item.rendered_html },
-                ref: ref
-            });
         default:
             return $e('div', {}, '????');
         }
@@ -608,15 +602,6 @@ class ItemComponent extends React.Component {
 	    // TextItems are always rendered in inline mode
 	    this._render_with_katex(item.to_latex(), node, false);
 	}
-        else if(item.item_type() === 'markdown') {
-            // Render <code> elements with KaTeX
-            let children = node.getElementsByTagName('code');
-            for(let i = 0; i < children.length; i++) {
-                let codespan = children[i];
-                const latex_code = codespan.textContent || '';
-                this._render_with_katex(latex_code, codespan, false);
-            }
-        }
     }
 
     _render_with_katex(latex_code, node, display_mode) {

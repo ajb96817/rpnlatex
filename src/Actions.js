@@ -3,7 +3,7 @@ import {
     AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    ExprItem, TextItem, SeparatorItem, MarkdownItem
+    ExprItem, TextItem, SeparatorItem
 } from './Models';
 
 
@@ -458,7 +458,9 @@ class InputContext {
         let new_state = new AppState();
 
         // Start the document with a default header showing the filename.
-        this.new_document = new_state.document.insert_item(new MarkdownItem('# ' + new_filename));
+        const heading_item = TextItem.from_string(new_filename.replaceAll('_', ' '));
+        heading_item.is_heading = true;
+        this.new_document = new_state.document.insert_item(heading_item);
         file_manager_state.selected_filename = file_manager_state.current_filename = new_filename;
         this.settings.last_opened_filename = new_filename;
         this.settings.save();
@@ -533,10 +535,6 @@ class InputContext {
         return stack.push_all(new_items);
     }
 
-    do_insert_markdown(stack, text) {
-        return stack.push(new MarkdownItem(text));
-    }
-
     do_insert_separator(stack, separator_type) {
         return stack.push(new SeparatorItem(separator_type));
     }
@@ -560,7 +558,7 @@ class InputContext {
 
     // Used for \mathscr / \mathcal, which only have uppercase glyphs.
     // case_type: 'uppercase', 'lowercase'
-    // Stack top can be a ExprItem with a simple TextExpr, or else a MarkdownItem.
+    // Stack top should be an ExprItem with a simple TextExpr.
     do_to_case(stack, case_type) {
         const convert_fn = string => {
             switch(case_type) {
@@ -569,20 +567,13 @@ class InputContext {
             default: return string;
             }
         };
-        const [new_stack, item] = stack.pop(1);
-        switch(item.item_type()) {
-        case 'markdown':
-            return new_stack.push(new MarkdownItem(convert_fn(item.source_text)));
-        case 'expr':
-            {   let new_expr;
-                if(item.expr.expr_type() === 'text')
-                    new_expr = new TextExpr(convert_fn(item.expr.text));
-                else new_expr = item.expr;
-                return new_stack.push_expr(new_expr);
-            }
-        default:
-            return stack.type_error();
-        }
+        const [new_stack, expr] = stack.pop_exprs(1);
+        let new_expr;
+        if(expr.expr_type() === 'text')
+            new_expr = new TextExpr(convert_fn(expr.text));
+        else
+            new_expr = expr;
+        return new_stack.push_expr(new_expr);
     }
 
     // Pop arity_string items (default 1) and turn them into an Command expr.
@@ -1186,9 +1177,9 @@ class InputContext {
         if(tagged_item.item_type() !== 'expr')
             return stack.type_error();
         let tag_expr;
-        if(tag_item.item_type() === 'markdown')
-            tag_expr = new CommandExpr('text', [new TextExpr(tag_item.source_text.trim())]);
-        else if(tag_item.item_type() === 'expr')
+        // if(tag_item.item_type() === 'text')
+        //     tag_expr = new CommandExpr('text', [new TextExpr(tag_item.source_text.trim())]);
+        /*else*/ if(tag_item.item_type() === 'expr')
             tag_expr = tag_item.expr;
         else
             return stack.type_error();

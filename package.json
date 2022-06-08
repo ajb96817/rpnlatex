@@ -9,7 +9,6 @@
     "@testing-library/user-event": "^13.5.0",
     "jszip": "^3.5.0",
     "katex": "^0.15.3",
-    "marked": "^1.2.2",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-scripts": "4.0.0",

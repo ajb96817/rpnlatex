@@ -1,7 +1,6 @@
 
 
 import KeybindingTable from './Keymap';
-import marked from 'marked';
 import JSZip from 'jszip';
 
 
@@ -251,7 +250,7 @@ class AppState {
     }
 
     _default_stack() {
-        const item = new MarkdownItem('Welcome to the editor.  Press [**?**] to toggle help.');
+        const item = TextItem.from_string('Welcome to the editor.  Press [?] to toggle help.');
         return new Stack([item]);
     }
 
@@ -1331,26 +1330,24 @@ class Item {
                 !!json.is_heading);
         case 'separator':
             return new SeparatorItem(json.separator_type);
-        case 'markdown':
-            return new MarkdownItem(json.source_text);
         default:
-            return new MarkdownItem('invalid item type ' + json.item_type);
+            return TextItem.from_string('invalid item type ' + json.item_type);
         }
     }
 
-    // Create an appropriate Item subclass instance for the given string.
-    // If string is wrapped in $$ pairs, it's treated as an ExprItem containing raw LaTeX code.
-    // Otherwise, it's treated as Markdown text.
-    static from_string(string) {
-        string = (string || '').trim();
-        // NOTE: .slice(2) here is to avoid pathological cases '$$', '$$$'
-        if(string.startsWith('$$') && string.slice(2).endsWith('$$')) {
-            const latex = string.slice(2, -2);
-            return new ExprItem(new TextExpr(latex));
-        }
-        else
-            return new MarkdownItem(string);
-    }
+    // // Create an appropriate Item subclass instance for the given string.
+    // // If string is wrapped in $$ pairs, it's treated as an ExprItem containing raw LaTeX code.
+    // // Otherwise, it's treated as Markdown text.
+    // static from_string(string) {
+    //     string = (string || '').trim();
+    //     // NOTE: .slice(2) here is to avoid pathological cases '$$', '$$$'
+    //     if(string.startsWith('$$') && string.slice(2).endsWith('$$')) {
+    //         const latex = string.slice(2, -2);
+    //         return new ExprItem(new TextExpr(latex));
+    //     }
+    //     else
+    //         return new MarkdownItem(string);
+    // }
     
     constructor() {
         this.serial = Item.next_serial();
@@ -1394,37 +1391,6 @@ class ExprItem extends Item {
     to_text() { return this.expr.to_text(); }
 
     clone() { return new ExprItem(this.expr, this.tag_expr); }
-}
-
-
-// Represents a Markdown text object in the stack or document.
-class MarkdownItem extends Item {
-    constructor(source_text) {
-        super();
-        this.source_text = source_text;
-        // this.setup_tokenizer();
-        this.rendered_html = this.render_markdown(this.source_text);
-    }
-
-    is_empty() { return this.source_text.trim().length === 0; }
-
-    render_markdown(source_text) {
-        // Replace $ by ` before sending it to Marked.
-        // This isn't ideal but the custom tokenizer code below doesn't seem to work.
-        source_text = source_text.replaceAll('$', '`');
-        return marked.parse(source_text);
-    }
-
-    item_type() { return 'markdown'; }
-
-    to_json() {
-        return {item_type: 'markdown', source_text: this.source_text};
-    }
-
-    // TODO: convert Markdown syntax to something LaTeX-compatible
-    to_text() { return this.source_text; }
-
-    clone() { return new MarkdownItem(this.source_text); }
 }
 
 
@@ -1772,6 +1738,6 @@ export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, TextItem, SeparatorItem, MarkdownItem, Stack, Document
+    Item, ExprItem, TextItem, SeparatorItem, Stack, Document
 };
 
