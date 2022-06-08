@@ -800,12 +800,26 @@ class InputContext {
     // Similar to do_infix but joins two expressions with an English phrase
     // with Roman font and extra spacing (\quad).
     do_conjunction(stack, phrase) {
-        const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
-        const operator_expr = new SequenceExpr([
-            new CommandExpr('quad'),
-            new CommandExpr('mathrm', [new TextExpr(phrase.replaceAll('_', "\\,"))]),
-            new CommandExpr('quad')]);
-        return new_stack.push_expr(new InfixExpr(operator_expr, left_expr, right_expr));
+        const [new_stack, left_item, right_item] = stack.pop(2);
+        const left_type = left_item.item_type(), right_type = right_item.item_type();
+        if(left_type === 'expr' && right_type === 'expr') {
+            // Expr+Expr
+            const operator_expr = new SequenceExpr([
+                new CommandExpr('quad'),
+                new CommandExpr('mathrm', [new TextExpr(phrase.replaceAll('_', "\\,"))]),
+                new CommandExpr('quad')]);
+            return new_stack.push_expr(new InfixExpr(operator_expr, left_item.expr, right_item.expr));
+        }
+        else if((left_type === 'expr' || left_type === 'text') &&
+                (right_type === 'expr' || right_type === 'text')) {
+            // Expr+Text or Text+Expr or Text+Text
+            const conjunction_item = TextItem.from_string(' ' + phrase + ' ');
+            const new_item = TextItem.concatenate_items(
+                left_item, TextItem.concatenate_items(conjunction_item, right_item));
+            return new_stack.push(new_item);
+        }
+        else
+            return stack.type_error();
     }
 
     // Similar to do_infix but only takes 1 item from the stack and makes a PrefixExpr.
