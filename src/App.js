@@ -581,7 +581,7 @@ class ItemComponent extends React.Component {
                 $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
         case 'separator':
             return $e(
-                'div', {className: 'separator_item'},
+                'div', {className: className + 'separator_item'},
                 $e('hr'));
         default:
             return $e('div', {}, '????');

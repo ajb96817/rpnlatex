@@ -1,7 +1,7 @@
 # rpnlatex - RPN style mathematical scratchpad
 
 This is a browser-based editor meant for quickly entering and manipulating equations.
-It is meant as a scratchpad for solving math problems, as an alternative to pen and
+It can be used as a scratchpad for solving math problems, as an alternative to pen and
 paper.  It has some limited document-preparation capabilities but for a full mathematical
 word processor you should use something like LyX instead.
 
@@ -9,7 +9,7 @@ Equations are entered using a Reverse Polish Notation (RPN) input system inspire
 HP calculators.  Please see the built-in user manual (available by typing '?') for more
 information.
 
-## Quick start:
+## Quick start
 
 Download the latest release package from Github and unpack it, then open the 'index.html'
 file in a web browser.
@@ -26,6 +26,8 @@ more screen space.  For example:
 
 Note that you may need to host from a web server (as opposed to opening the local files
 directly in your browser) in order to take advantage of PWA.
+
+## Building from source
 
 To build/run from source (not needed unless you want to change something):
 
