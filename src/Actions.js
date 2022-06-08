@@ -51,9 +51,6 @@ class InputContext {
         // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
         this.preserve_prefix_argument = false;
 
-        // Tracks minieditor state for editing the stack-top.
-        this.minieditor = {active: false};
-
         // If non-null, text-entry mode is active and the entry line will appear at the
         // bottom of the stack panel.
         this.text_entry = null;
@@ -534,89 +531,6 @@ class InputContext {
         if(!preserve)
             this.new_document = new_document;
         return stack.push_all(new_items);
-    }
-
-    do_edit_stack_top(stack) {
-        const item = stack.peek(1);
-        let source_text = item.to_text();
-        // switch(item.item_type()) {
-        // case 'markdown': source_text = item.source_text; break;
-        // case 'expr': source_text = ['$$', item.expr.to_latex(), '$$'].join(''); break;
-        // default: source_text = '???'; break;
-        // }
-        this.switch_to_mode('editor');
-        this.minieditor = {active: true, text: source_text};
-    }
-
-    // Start editing a new blank item on the stack.
-    do_edit_new_item(stack) {
-        const new_stack = this.do_insert_markdown(stack, '');
-        this.do_edit_stack_top(new_stack);
-        return new_stack;
-    }
-
-    // Pull the item below the stack top (i.e. below the item currently being edited)
-    // into the current editor.
-    // If the imported item is a Markdown item, its text is integrated directly;
-    // otherwise an inline LaTeX fragment is created.
-    do_import_item_into_editor(stack) {
-        this.switch_to_mode('editor');
-        const [new_stack, item, edited_item] = stack.pop(2);
-        let inserted_text;
-        switch(item.item_type()) {
-        case 'markdown': inserted_text = item.source_text; break;
-        case 'expr': inserted_text = ['$', item.expr.to_latex(), '$'].join(''); break;
-        default: inserted_text = '???'; break;
-        }
-        this._insert_text_into_minieditor(inserted_text);
-        return new_stack.push(edited_item);
-    }
-
-    // Attempt to insert a text string into the active minieditor.
-    _insert_text_into_minieditor(text) {
-        if(!this.minieditor.active) return false;
-        let editor_elt = this.minieditor.ref.current;
-        if(!editor_elt) return false;
-        if(editor_elt.setRangeText)
-            editor_elt.setRangeText(text, editor_elt.selectionStart, editor_elt.selectionEnd, "end");
-        else {
-            // Fallback method for older browsers
-            editor_elt.focus();
-            document.execCommand('insertText', false, text);
-        }
-        return true;
-    }
-
-    do_finish_editing(stack) {
-        if(!this.minieditor.active) return;
-        let editor_elt = this.minieditor.ref.current;
-        const content = ((editor_elt ? editor_elt.value : null) || '').trim();
-        const [new_stack, old_item] = stack.pop(1);
-        this.minieditor = {active: false};
-        if(content.length > 0) {
-            const new_item = Item.from_string(content);
-            // If no textual changes were made to an Expr, just keep the old one instead of
-            // building a new TextExpr.  This preserves any expression structure that was there.
-            if(new_item.item_type() === 'expr' && old_item.item_type() === 'expr' &&
-               old_item.expr.to_latex() === new_item.expr.to_latex())
-                return new_stack.push(old_item);
-            else
-                return new_stack.push(Item.from_string(content));
-        }
-        else
-            return new_stack;
-    }
-
-    do_cancel_editing(stack) {
-        const [new_stack, old_item] = stack.pop(1);
-        this.minieditor = {active: false};
-
-        // If the item that was being edited was an empty Markdown item, drop it from the stack now.
-        // Otherwise, leave it untouched.
-        if(old_item.item_type() === 'markdown' && old_item.is_empty())
-            return new_stack;
-        else 
-            return new_stack.push(old_item);
     }
 
     do_insert_markdown(stack, text) {

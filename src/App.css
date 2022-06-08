@@ -204,21 +204,8 @@ div.stack_items {
     bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
     border-bottom: 2px solid #ddd;
 }
-/* minieditor for editing stack top */
-div.stack_items textarea {
-    width: 100%;
-    height: 10em;
-    margin: 0;
-    padding: 0.25em 1em;
-    padding-right: 0;
-    background-color: #eef;
-    border: none;
-    border-top: 2px solid #aaa;
-    font-family: monospace;
-    /*font-size: 120%;*/
-}
-div.stack_items textarea:focus { outline: none; }
 
+/* highlight stack items "selected" by prefix arguments */
 div.stack_items div.selected { background-color: #eef; }
 
 div.stack_items div.text_entry {

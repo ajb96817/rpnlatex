@@ -296,36 +296,21 @@ class ModeIndicatorComponent extends React.Component {
 class StackItemsComponent extends React.Component {
     render() {
         let input_context = this.props.input_context;
-        const minieditor_active = input_context.minieditor.active;
-        const minieditor_index = this.props.stack.items.length-1;
         const item_components = this.props.stack.items.map((item, index) => {
-            if(minieditor_active && index === minieditor_index) {
-                // This is the item currently being edited; display a textarea instead of the item itself.
-                // We need access to the textarea DOM node later (for setting the focus).
-                input_context.minieditor.ref = React.createRef();
-                return $e(
-                    MiniEditorComponent, {
-                        textarea_ref: input_context.minieditor.ref,
-                        input_context: input_context,
-                        key: 'minieditor'
-                    });
-            }
-            else {
-                // If there's an active prefix argument for stack commands, highlight the stack items that
-                // will be affected.
-                let selected = (
-                    input_context.mode === 'stack' &&
-                        (input_context.prefix_argument < 0 ||
-                         this.props.stack.items.length-index <= input_context.prefix_argument));
-                return $e(
-                    ItemComponent, {
-                        item: item,
-                        selected: selected,
-                        inline_math: this.props.settings.layout.inline_math,
-                        item_ref: React.createRef(),
-                        key: item.react_key(index)
-                    });
-            }
+            // If there's an active prefix argument for stack commands, highlight the stack items that
+            // will be affected.
+            let selected = (
+                input_context.mode === 'stack' &&
+                    (input_context.prefix_argument < 0 ||
+                     this.props.stack.items.length-index <= input_context.prefix_argument));
+            return $e(
+                ItemComponent, {
+                    item: item,
+                    selected: selected,
+                    inline_math: this.props.settings.layout.inline_math,
+                    item_ref: React.createRef(),
+                    key: item.react_key(index)
+                });
         });
         if(input_context.text_entry !== null) {
             const component = $e(
@@ -401,30 +386,6 @@ class DocumentComponent extends React.Component {
             container.scrollTop = item.offsetTop - extra_space;
         if(item.offsetTop + item.offsetHeight > container.scrollTop + container.offsetHeight)
             container.scrollTop = item.offsetTop + item.offsetHeight - container.offsetHeight + extra_space;
-    }
-}
-
-
-class MiniEditorComponent extends React.Component {
-    render() {
-        return $e('textarea', {
-            className: 'minieditor',
-            onInput: this.handleOnInput.bind(this),
-            spellCheck: 'false',
-            ref: this.props.textarea_ref
-        });
-    }
-
-    handleOnInput(event) {
-        const content = this.props.textarea_ref.current.value;
-        this.props.input_context.minieditor.text = content;
-    }
-
-    componentDidMount() {
-        let textarea = this.props.textarea_ref.current;
-        const initial_text = this.props.input_context.minieditor.text;
-        if(initial_text) textarea.value = initial_text; 
-        textarea.focus();
     }
 }
 

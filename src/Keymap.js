@@ -42,7 +42,6 @@ const EditorKeymap = {
         '_': "subscript",
         'Backspace': "pop",
         "`": "superscript",
-        'Shift+Enter': "edit_stack_top",
         ' ': "autoparenthesize 2;concat",
         '=': "mode relational",
         '<': "infix <",
@@ -653,14 +652,6 @@ const EditorKeymap = {
         '@': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
         'Enter': "stack_matrices",
         '?': "toggle_popup help arrays"
-    },
-
-    editor: {
-        'Tab': "finish_editing",
-        'Shift+Enter': "finish_editing",
-        // TODO: use ArrowUp for the following when in layouts where stack is on bottom
-        'Shift+ArrowDown': "import_item_into_editor",
-        'Escape': "cancel_editing",
     },
 
     script: {
