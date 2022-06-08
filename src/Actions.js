@@ -457,10 +457,12 @@ class InputContext {
         // This basically works like loading from a blank file.
         let new_state = new AppState();
 
-        // Start the document with a default header showing the filename.
-        const heading_item = TextItem.from_string(new_filename.replaceAll('_', ' '));
-        heading_item.is_heading = true;
-        this.new_document = new_state.document.insert_item(heading_item);
+        // // Start the document with a default header showing the filename.
+        // const heading_item = TextItem.from_string(new_filename.replaceAll('_', ' '));
+        // heading_item.is_heading = true;
+        // this.new_document = new_state.document.insert_item(heading_item);
+        this.new_document = new_state.document;
+
         file_manager_state.selected_filename = file_manager_state.current_filename = new_filename;
         this.settings.last_opened_filename = new_filename;
         this.settings.save();

@@ -406,12 +406,16 @@ const EditorKeymap = {
         'M': "insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
         // gradient
         'g': "insert \\nabla;swap;concat",
+        // gradient with respect to x
+        'G': "insert \\nabla;swap;subscript;swap;concat",
         // divergence
         '.': "insert \\nabla;insert \\cdot;concat;swap;concat",
         // curl
         'c': "insert \\nabla;insert \\times;concat;swap;concat",
         // Laplacian
         'l': "insert \\nabla;insert 2;superscript;swap;concat",
+        // d'Alembertian
+        'L': "insert \\Box;insert 2;superscript;swap;concat",
         // x -> dx
         'd': "insert d;operator mathrm;swap;concat",
         // x -> d^2x

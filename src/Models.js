@@ -1435,7 +1435,6 @@ class TextItemTextElement extends TextItemElement {
     to_json() { return { 'text': this.text }; }
     to_text() { return this.text; }
 
-    // TODO: -> to_display_latex() ?
     to_latex() {
         // This is a little messy because of how KaTeX handles line breaks.
         // Normally, breaks are only allowed after operators like +, but when
