@@ -850,7 +850,7 @@ class InputContext {
 
     do_cancel() {}
 
-    do_concat(stack, separator_text) {
+    do_concat(stack /*, separator_text*/) {
         let [new_stack, left_item, right_item] = stack.pop(2);
         const left_type = left_item.item_type(), right_type = right_item.item_type();
         if(left_type === 'expr' && right_type === 'expr') {
@@ -860,7 +860,7 @@ class InputContext {
         }
         else if((left_type === 'expr' || left_type === 'text') &&
                 (right_type === 'expr' || right_type === 'text')) {
-            const new_item = TextItem.concatenate_items(left_item, right_item, separator_text);
+            const new_item = TextItem.concatenate_items(left_item, right_item /*, separator_text*/);
             return new_stack.push(new_item);
         }
         else
@@ -948,19 +948,19 @@ class InputContext {
     _latex_escape(text) {
         const replacements = {
             '_': "\\_",
-            '^': "\\wedge",
+            '^': "\\wedge ",
             '%': "\\%",
-            "'": "\\prime",
-            "`": "\\backprime",
+//            "'": "\\prime ",
+            "`": "\\backprime ",
             '$': "\\$",
             '&': "\\&",
             '#': "\\#",
             '}': "\\}",
             '{': "\\{",
-            '~': "\\sim",
-            "\\": "\\backslash",
+            '~': "\\sim ",
+            "\\": "\\backslash "
         };
-        return text.replaceAll(/[_^%'`$&#}{~\\]/g, match => replacements[match]);
+        return text.replaceAll(/[_^%`$&#}{~\\]/g, match => replacements[match]);
     }
 
     // expr_count is the number of items to pop from the stack to put inside the delimiters.

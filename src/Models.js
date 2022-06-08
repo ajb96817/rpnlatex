@@ -1454,6 +1454,10 @@ class TextItemElement {
         else
             return new TextItemRawElement(json.raw);
     }
+
+    is_text() { return false; }
+    is_expr() { return false; }
+    is_raw() { return false; }
 }
 
 
@@ -1489,25 +1493,25 @@ class TextItemTextElement extends TextItemElement {
         // TODO: make this table a global (or switch statement) so it doesn't constantly get remade
         const replacements = {
             '_': "\\_",
-            '^': "\\wedge",
+            '^': "\\wedge ",
             '%': "\\%",
-            "'": "\\prime",
-            "`": "\\backprime",
+//            "'": "\\prime ",
+            "`": "\\backprime ",
             '$': "\\$",
             '&': "\\&",
             '#': "\\#",
             '}': "\\}",
             '{': "\\{",
-            '~': "\\sim",
-            "\\": "\\backslash",
+            '~': "\\sim ",
+            "\\": "\\backslash "
         };
-        return text.replaceAll(/[_^%'`$&#}{~\\]/g, match => replacements[match]);
+        return text.replaceAll(/[_^%`$&#}{~\\]/g, match => replacements[match]);
     }
 }
 
 class TextItemExprElement extends TextItemElement {
     constructor(expr) { super(); this.expr = expr; }
-    is_text() { return false; }
+    is_expr() { return true; }
     to_json() { return { 'expr': this.expr.to_json() }; }
     to_text() { return '$' + this.expr.to_text() + '$'; }
     to_latex() { return this.expr.to_latex(); }
@@ -1520,10 +1524,11 @@ class TextItemExprElement extends TextItemElement {
 // in a \text{...} and we don't want to escape the operator's actual LaTeX command.
 class TextItemRawElement extends TextItemElement {
     constructor(string) { super(); this.string = string; }
-    is_text() { return false; }
+    is_raw() { return true; }
     to_json() { return { 'raw': this.string }; }
     to_text() { return this.string; }
     to_latex() { return this.string; }
+    is_explicit_space() { return this.string === "\\,"; }
 }
 
 
@@ -1538,15 +1543,34 @@ class TextItem extends Item {
         const elements = item1.elements.concat(
             separator_text ? [new TextItemRawElement(separator_text)] : [],
             item2.elements);
-        // Merge adjacent TextElements
+        // Merge adjacent elements.  Rules are:
+        //   - Adjacent TextElements are concatenated directly.
+        //   - A RawElement representing an explicit space character (\,) is absorbed into
+        //     an adjacent TextElement as a normal space character (this is to make the spacing
+        //     less weird when attaching a text and expression via an infix space).
         let merged_elements = [elements[0]];
         for(let i = 1; i < elements.length; i++) {
             const last_index = merged_elements.length-1;
-            if(merged_elements[last_index].is_text() && elements[i].is_text())
+            const last_merged_element = merged_elements[last_index];
+            if(last_merged_element.is_text() && elements[i].is_text()) {
+                // Two adjacent TextElements.
                 merged_elements[last_index] = new TextItemTextElement(
-                    merged_elements[last_index].text + elements[i].text);
-            else
+                    last_merged_element.text + elements[i].text);
+            }
+            else if(last_merged_element.is_raw() && last_merged_element.is_explicit_space() &&
+                    elements[i].is_text()) {
+                // raw space + TextElement
+                merged_elements[last_index] = new TextItemTextElement(' ' + elements[i].text);
+            }
+            else if(last_merged_element.is_text() &&
+                    elements[i].is_raw() && elements[i].is_explicit_space()) {
+                // TextElement + raw space
+                merged_elements[last_index] = new TextItemTextElement(last_merged_element.text + ' ');
+            }
+            else {
+                // Any other combinations are left alone.
                 merged_elements.push(elements[i]);
+            }
         }
         return new TextItem(merged_elements);
     }
@@ -1565,14 +1589,8 @@ class TextItem extends Item {
         };
     }
 
-    to_text() {
-        return this.elements.map(element => element.to_text()).join('');
-    }
-
-    to_latex() {
-        return this.elements.map(element => element.to_latex()).join('');
-    }
-
+    to_text() { return this.elements.map(element => element.to_text()).join(''); }
+    to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
     clone() { return new TextItem(this.elements); }
 }
 

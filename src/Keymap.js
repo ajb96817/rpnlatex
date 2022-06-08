@@ -202,7 +202,7 @@ const EditorKeymap = {
         'default': "append_text_entry"
     },
 
-    // right-bracket prefix: special delimiters
+    // right-parenthesis prefix: special delimiters
     delimiters: {
         'b': "delimiters \\langle \\vert",  //  <x| Dirac bra
         'c': "delimiters \\lceil \\rceil",
