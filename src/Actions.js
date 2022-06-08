@@ -58,6 +58,13 @@ class InputContext {
         // bottom of the stack panel.
         this.text_entry = null;
 
+        // Type of text entry currently being performed.
+        //   'text_entry': ["] - text entry will become a TextItem
+        //   'math_text_entry': [\] - text entry will become a ExprItem with either normal italic math text
+        //               (if Enter is used) or \mathrm roman math text (if Shift+Enter)
+        //   'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
+        this.text_entry_type = null;
+
         // Tracks multi-part custom_delimiters commands.
         this.custom_delimiters = {};
     }
@@ -68,11 +75,6 @@ class InputContext {
     handle_key(app_state, key) {
         if(key === 'Shift' || key === 'Alt' || key === 'Control')
             return [false, app_state];
-
-        // Special case: if there's a current text_entry being accumulated, force
-        // the 'text_entry' mode.
-        if(this.text_entry !== null)
-            this.mode = 'text_entry';
 
         // If the popup panel is active, always use its dedicated keymap.
         const effective_mode = this.settings.popup_mode || this.mode;
@@ -892,14 +894,17 @@ class InputContext {
             return stack.type_error();
     }
 
-    do_start_text_entry(stack) {
+    do_start_text_entry(stack, text_entry_type) {
         this.text_entry = '';
+        this.text_entry_type = text_entry_type;
+        this.switch_to_mode(text_entry_type);
         this.perform_undo_or_redo = 'suppress';
         return stack;
     }
 
     do_cancel_text_entry(stack) {
         this.text_entry = null;
+        this.text_entry_type = null;
         this.perform_undo_or_redo = 'suppress';
         return stack;
     }
@@ -909,53 +914,75 @@ class InputContext {
         if(key.length === 1)
             this.text_entry = (this.text_entry || '') + key;
         this.perform_undo_or_redo = 'suppress';
+        this.switch_to_mode(this.mode);
         return stack;
     }
 
-    do_backspace_text_entry(stack) {
+    // If new_mode_when_empty is provided, switch to that mode if this
+    // backspace was done while the text field is empty.  This is currently
+    // used to switch back from latex entry mode to normal math entry mode.
+    do_backspace_text_entry(stack, new_mode_when_empty) {
         let text = this.text_entry || '';
-        if(text.length > 0)
+        if(text.length > 0) {
             this.text_entry = text.slice(0, -1);
-        else
-            this.text_entry = null;
+            this.switch_to_mode(this.mode);
+        }
+        else {
+            // Everything has been deleted; cancel text entry.
+            if(new_mode_when_empty) {
+                this.text_entry_type = new_mode_when_empty;
+                this.switch_to_mode(new_mode_when_empty);
+            }
+            else {
+                this.text_entry = null;
+                this.text_entry_type = null;
+            }
+        }
         this.perform_undo_or_redo = 'suppress';
         return stack;
     }
 
-    // If textstyle is supplied, apply the given text style to the entered text.
-    // (allowed values: "roman", "latex")
+    // textstyle determines what the entered text becomes:
+    //   'math' - ExprItem with plain italic math text
+    //   'roman_math' - ExprItem with \mathrm{...} text
+    //   'latex' - ExprItem with arbitrary latex command
+    //   'text' - TextItem
     do_finish_text_entry(stack, textstyle) {
         if(this.text_entry === null)
             return stack;  // shouldn't happen
         if(this.text_entry.length === 0) {
             this.text_entry = null;
+            this.text_entry_type = null;
             return stack;
         }
 
         if(textstyle === 'text') {
             let item = TextItem.from_string(this.text_entry);
             this.text_entry = null;
+            this.text_entry_type = null;
             return stack.push(item);
         }
-        else {
-            let new_expr;
-            if(textstyle === 'roman') {
-                new_expr = new CommandExpr('text', [
-                    new TextExpr(this._latex_escape(this.text_entry))]);
-            }
-            else if(textstyle === 'latex') {
-                const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
-                if(sanitized.length === 0) {
-                    this.text_entry = null;
-                    return stack;
-                }
-                new_expr = new CommandExpr(sanitized);
-            }
-            else
-                new_expr = new TextExpr(this._latex_escape(this.text_entry));
-            this.text_entry = null;
-            return stack.push_expr(new_expr);
+
+        // math or roman_math or latex
+        let new_expr;
+        if(textstyle === 'roman_math') {
+            new_expr = new CommandExpr('mathrm', [
+                new TextExpr(this._latex_escape(this.text_entry))]);
         }
+        else if(textstyle === 'latex') {
+            const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
+            if(sanitized.length === 0) {
+                this.text_entry = null;
+                this.text_entry_type = null;
+                return stack;
+            }
+            new_expr = new CommandExpr(sanitized);
+        }
+        else
+            new_expr = new TextExpr(this._latex_escape(this.text_entry));
+        this.text_entry = null;
+        this.text_entry_type = null;
+        return stack.push_expr(new_expr);
     }
 
     // TODO: may want to make this a general utility method, but it's only used here so far.

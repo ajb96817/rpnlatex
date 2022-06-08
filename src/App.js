@@ -271,8 +271,8 @@ class ModeIndicatorComponent extends React.Component {
                 (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()), ')'
             ].join('');
         }
-        if(input_context.text_entry !== null)
-            input_mode = 'text_entry';
+        // if(input_context.text_entry !== null)
+        //     input_mode = 'text_entry';
         if(notification_text) {
             // Auto-highlight anything after the colon in the notification message.
             const colon = notification_text.indexOf(':');
@@ -331,6 +331,7 @@ class StackItemsComponent extends React.Component {
             const component = $e(
                 TextEntryComponent, {
                     text: input_context.text_entry,
+                    entry_type: input_context.text_entry_type,
                     key: 'textentry'
                 });
             item_components.push(component);
@@ -432,7 +433,8 @@ class MiniEditorComponent extends React.Component {
 // (backslash key activates this).
 class TextEntryComponent extends React.Component {
     render() {
-        return $e('div', {className: 'text_entry'}, this.props.text);
+        const class_name = 'text_entry ' + this.props.entry_type + '_mode';
+        return $e('div', {className: class_name}, this.props.text);
     }
 }
 

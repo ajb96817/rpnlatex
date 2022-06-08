@@ -80,11 +80,11 @@ const EditorKeymap = {
         '%': "mode calligraphic",
         '&': "mode script",
         '/': "mode operator",
-        "\\": "start_text_entry",
+        "\\": "start_text_entry math_text_entry",
+        "\"": "start_text_entry text_entry",
         '|': "mode array",
         '$': "mode config",
-        '?': "toggle_popup help",
-        "\"": "edit_new_item"
+        '?': "toggle_popup help"
     },
 
     files: {
@@ -191,14 +191,33 @@ const EditorKeymap = {
         '?': "toggle_popup help configuration"
     },
 
-    // \ prefix (text/latex accumulator)
+    // " prefix (TextItem text)
     text_entry: {
-        'Enter': "finish_text_entry",
+        'Enter': "finish_text_entry text",
         'Shift+Enter': "finish_text_entry text",
-        "\\": "finish_text_entry latex",
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry",
+        'default': "append_text_entry"
+    },
+
+    // \ prefix (math text)
+    math_text_entry: {
+        'Enter': "finish_text_entry math",
+        'Shift+Enter': "finish_text_entry roman_math",
+        "\\": "start_text_entry latex_entry",
+        'Escape': "cancel_text_entry",
+        'Ctrl+z': "cancel_text_entry",
+        'Backspace': "backspace_text_entry",
+        'default': "append_text_entry"
+    },
+
+    // double \ prefix (latex command)
+    latex_entry: {
+        'Enter': "finish_text_entry latex",
+        'Escape': "cancel_text_entry",
+        'Ctrl+z': "cancel_text_entry",
+        'Backspace': "backspace_text_entry math_text_entry",
         'default': "append_text_entry"
     },
 

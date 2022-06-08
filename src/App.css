@@ -226,7 +226,7 @@ div.stack_items div.text_entry {
     font-family: monospace;
     font-size: 120%;
     border-top: 2px solid #aaa;
-    background-color: #eef;
+    /* background-color: #eef; */
     margin: 0.1em 0;
     padding: 0.25em 1.25em;
     color: black;
@@ -238,7 +238,7 @@ div.stack_items div.text_entry::after {
     width: 0.25em;
     height: 1.2em;
     margin-left: 0.1em;
-    background: #888;
+    background-color: #888;
     display: inline-block;
     position: relative;
     top: 0.1em;
@@ -247,6 +247,17 @@ div.stack_items div.text_entry::after {
 @keyframes blink {
     0% { opacity: 1; }
     50% { opacity: 0; }
+}
+
+/* different background colors for text entry depending on the mode */
+div.stack_items div.math_text_entry_mode { background-color: #eef; }
+div.stack_items div.text_entry_mode { background-color: #efe; }
+div.stack_items div.latex_entry_mode { background-color: #ddf; }
+
+/* show an initial backslash at the beginning when in latex entry mode */
+div.stack_items div.latex_entry_mode::before {
+    content: "\\";
+    font-weight: bold;
 }
 
 
