@@ -884,7 +884,7 @@ class InputContext {
         }
 
         if(textstyle === 'text') {
-            let item = TextItem.from_string(this.text_entry);
+            let item = TextItem.from_string_with_placeholders(this.text_entry);
             this.text_entry = null;
             this.text_entry_type = null;
             return stack.push(item);

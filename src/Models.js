@@ -1501,7 +1501,21 @@ class TextItemRawElement extends TextItemElement {
 
 class TextItem extends Item {
     static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
+
     static from_expr(expr) { return new TextItem([new TextItemExprElement(expr)]); }
+
+    // Like from_string, but if the string contains "[]" sequences, these are parsed out
+    // and converted into DeferExpr placeholders.
+    static from_string_with_placeholders(string) {
+        const pieces = string.split('[]');
+        let elements = [];
+        for(let i = 0; i < pieces.length; i++) {
+            elements.push(new TextItemTextElement(pieces[i]));
+            if(i < pieces.length-1)
+                elements.push(new TextItemExprElement(new DeferExpr()));
+        }
+        return new TextItem(elements);
+    }
 
     // item1/2 can each be TextItems or ExprItems.
     static concatenate_items(item1, item2, separator_text) {
@@ -1510,10 +1524,10 @@ class TextItem extends Item {
         const elements = item1.elements.concat(
             separator_text ? [new TextItemRawElement(separator_text)] : [],
             item2.elements);
-        // Merge adjacent elements.  Rules are:
+        // Coalesce adjacent elements.  Rules are:
         //   - Adjacent TextElements are concatenated directly.
-        //   - A RawElement representing an explicit space character (\,) is absorbed into
-        //     an adjacent TextElement as a normal space character (this is to make the spacing
+        //   - A RawElement representing an explicit space character (\,) is absorbed into an
+        //     adjacent TextElement as a normal space character (this is to make the spacing
         //     less weird when attaching a text and expression via an infix space).
         let merged_elements = [elements[0]];
         for(let i = 1; i < elements.length; i++) {
