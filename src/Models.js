@@ -1327,7 +1327,8 @@ class Item {
                 json.tag_expr ? Expr.from_json(json.tag_expr) : null);
         case 'text':
             return new TextItem(
-                json.elements.map(element_json => TextItemElement.from_json(element_json)));
+                json.elements.map(element_json => TextItemElement.from_json(element_json)),
+                !!json.is_heading);
         case 'markdown':
             return new MarkdownItem(json.source_text);
         default:
@@ -1572,26 +1573,30 @@ class TextItem extends Item {
                 merged_elements.push(elements[i]);
             }
         }
-        return new TextItem(merged_elements);
+        return new TextItem(merged_elements, item1.is_heading || item2.is_heading);
     }
-    
-    constructor(elements) {
+
+    constructor(elements, is_heading) {
         super();
         this.elements = elements;
+        this.is_heading = !!is_heading;
     }
 
     item_type() { return 'text'; }
 
     to_json() {
-        return {
+        let json = {
             item_type: 'text',
             elements: this.elements.map(element => element.to_json())
         };
+        // avoid lots of useless is_heading: false in the JSON
+        if(this.is_heading) json.is_heading = true;
+        return json;
     }
 
     to_text() { return this.elements.map(element => element.to_text()).join(''); }
     to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
-    clone() { return new TextItem(this.elements); }
+    clone() { return new TextItem(this.elements, this.is_heading); }
 }
 
 

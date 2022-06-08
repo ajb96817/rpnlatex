@@ -321,6 +321,7 @@ const EditorKeymap = {
         '=': "unrot;infix =;insert \\sum;swap;subscript;swap;superscript",
         '+': "infix \\ge;insert \\sum;swap;subscript",
         "'": "substitute_defer",
+        "\"": "toggle_is_heading",
         'Enter': "unrot;subscript;swap;superscript",  // apply superscript and subscript at once
         '?': "toggle_popup help operators"
     },

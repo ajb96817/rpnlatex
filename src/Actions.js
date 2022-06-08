@@ -3,7 +3,7 @@ import {
     AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, TextItem, MarkdownItem
+    ExprItem, TextItem, MarkdownItem
 } from './Models';
 
 
@@ -916,6 +916,21 @@ class InputContext {
             "\\": "\\backslash "
         };
         return text.replaceAll(/[_^%`$&#}{~\\]/g, match => replacements[match]);
+    }
+
+    do_toggle_is_heading(stack) {
+        let [new_stack, item] = stack.pop(1);
+        if(item.item_type() === 'expr') {
+            // Implicitly turn ExprItems into TextItems.
+            item = TextItem.from_expr(item.expr);
+        }
+        if(item.item_type() !== 'text')
+            this.error_flash_stack();
+        else {
+            item = item.clone();
+            item.is_heading = !item.is_heading;
+            return new_stack.push(item);
+        }
     }
 
     // expr_count is the number of items to pop from the stack to put inside the delimiters.

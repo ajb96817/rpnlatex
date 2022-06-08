@@ -559,7 +559,9 @@ class ItemComponent extends React.Component {
     render() {
         let item = this.props.item;
         let ref = this.props.item_ref;
-        const className = this.props.selected ? 'selected ' : '';
+        let className = this.props.selected ? 'selected ' : '';
+        if(item.item_type() === 'text' && item.is_heading)
+            className = 'heading_style ' + className;
         switch(item.item_type()) {
         case 'expr':
             if(item.tag_expr) {
