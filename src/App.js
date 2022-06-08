@@ -579,6 +579,10 @@ class ItemComponent extends React.Component {
 	    return $e(
 		'div', {className: 'text_item'},
                 $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
+        case 'separator':
+            return $e(
+                'div', {className: 'separator_item'},
+                $e('hr'));
         case 'markdown':
             return $e('div', {
                 className: className + 'markdown',

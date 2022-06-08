@@ -3,7 +3,7 @@ import {
     AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    ExprItem, TextItem, MarkdownItem
+    ExprItem, TextItem, SeparatorItem, MarkdownItem
 } from './Models';
 
 
@@ -535,6 +535,10 @@ class InputContext {
 
     do_insert_markdown(stack, text) {
         return stack.push(new MarkdownItem(text));
+    }
+
+    do_insert_separator(stack, separator_type) {
+        return stack.push(new SeparatorItem(separator_type));
     }
 
     do_insert(stack, text) {

@@ -1329,6 +1329,8 @@ class Item {
             return new TextItem(
                 json.elements.map(element_json => TextItemElement.from_json(element_json)),
                 !!json.is_heading);
+        case 'separator':
+            return new SeparatorItem(json.separator_type);
         case 'markdown':
             return new MarkdownItem(json.source_text);
         default:
@@ -1413,26 +1415,6 @@ class MarkdownItem extends Item {
         return marked.parse(source_text);
     }
 
-    // TODO: this doesn't work even though it's what's in the documentation
-    // setup_tokenizer() {
-    //  if(MarkdownItem.tokenizer_initialized) return;
-    //  const tokenizer = {
-    //      codespan(src) {
-    //          const match = src.match(/\$+([^\$\n]+?)\$+/);
-    //          if (match) {
-    //              return {
-    //                  type: 'codespan',
-    //                  raw: match[0],
-    //                  text: match[1].trim()
-    //              };
-    //          }
-    //          return false;
-    //      }
-    //  };
-    //  marked.use({tokenizer});
-    //  MarkdownItem.tokenizer_initialized = true;
-    // }
-
     item_type() { return 'markdown'; }
 
     to_json() {
@@ -1443,6 +1425,26 @@ class MarkdownItem extends Item {
     to_text() { return this.source_text; }
 
     clone() { return new MarkdownItem(this.source_text); }
+}
+
+
+// Item that visually separates parts of the document.
+// Currently the only supported separator_type is 'hrule'.
+class SeparatorItem extends Item {
+    constructor(separator_type) {
+        super();
+        this.separator_type = separator_type;
+    }
+
+    item_type() { return 'separator'; }
+
+    to_json() {
+        return {item_type: 'separator', separator_type: this.separator_type};
+    }
+
+    to_text() { return '---'; }
+
+    clone() { return new SeparatorItem(this.separator_type); }
 }
 
 
@@ -1770,6 +1772,6 @@ export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, TextItem, MarkdownItem, Stack, Document
+    Item, ExprItem, TextItem, SeparatorItem, MarkdownItem, Stack, Document
 };
 

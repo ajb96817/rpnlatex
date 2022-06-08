@@ -49,7 +49,23 @@ div.latex_fragment {
     padding-left: 12px;
 }
 div.expr_item div.latex_fragment { border-left: 5px solid #aaa; }
-div.text_item div.latex_fragment { border-left: 5px solid #8c8; }
+div.text_item div.latex_fragment { border-left: 5px solid #88f; }
+div.separator_item {
+    /* These paddings seem to be necessary to get the correct left border height.
+       Not sure why this is. */
+    padding-top: 1px;
+    padding-bottom: 1px;
+    border-left: 5px solid #6a6;
+}
+div.separator_item hr {
+    /* These hrules should visually look like the underline of section headings.
+       Should match what is in div.heading_style .katex-html. */
+    height: 3px;
+    margin-left: 12px;
+    margin-right: 1em;
+    border: none;
+    background-color: #9a9;
+}
 
 
 div.heading_style {
@@ -58,7 +74,7 @@ div.heading_style {
     font-weight: bold;
 }
 div.heading_style .katex-html {
-    border-bottom: 3px solid #a9a;
+    border-bottom: 3px solid #9a9;
 }
 
 div.tag_expr {
