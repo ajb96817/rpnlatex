@@ -820,10 +820,19 @@ class InputContext {
 
     do_append_text_entry(stack) {
         const key = this.last_keypress;
-        if(key.length === 1)
-            this.text_entry = (this.text_entry || '') + key;
         this.perform_undo_or_redo = 'suppress';
         this.switch_to_mode(this.mode);
+        if(key.length === 1) {
+            if(this.text_entry_type === 'latex_entry') {
+                // Disallow characters that are invalid as part of a LaTeX command.
+                // Technically, commands like \$ should be allowed here, but those are all
+                // accessible by their own keybindings already.  So only alphabetic characters
+                // are allowed in latex entry mode.
+                if(!/^[a-zA-Z]$/.test(key))
+                    return this.error_flash_stack();
+            }
+            this.text_entry = (this.text_entry || '') + key;
+        }
         return stack;
     }
 
@@ -879,13 +888,18 @@ class InputContext {
                 new TextExpr(this._latex_escape(this.text_entry))]);
         }
         else if(textstyle === 'latex') {
-            const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
-            if(sanitized.length === 0) {
-                this.text_entry = null;
-                this.text_entry_type = null;
-                return stack;
-            }
-            new_expr = new CommandExpr(sanitized);
+            // NOTE: do_append_text_entry should only allow alphabetic characters through,
+            // so no real need to do sanitization here any more.
+            
+            // const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
+            // if(sanitized.length === 0) {
+            //     this.text_entry = null;
+            //     this.text_entry_type = null;
+            //     return stack;
+            // }
+            // new_expr = new CommandExpr(sanitized);
+
+            new_expr = new CommandExpr(this.text_entry);
         }
         else
             new_expr = new TextExpr(this._latex_escape(this.text_entry));

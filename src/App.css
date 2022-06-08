@@ -232,9 +232,9 @@ div.stack_items div.text_entry::after {
 }
 
 /* different background colors for text entry depending on the mode */
-div.stack_items div.math_text_entry_mode { background-color: #eef; }
-div.stack_items div.text_entry_mode { background-color: #efe; }
-div.stack_items div.latex_entry_mode { background-color: #ddf; }
+div.stack_items div.math_text_entry_mode { background-color: #eee; }
+div.stack_items div.text_entry_mode { background-color: #eef; }
+div.stack_items div.latex_entry_mode { background-color: #ded; }
 
 /* show an initial backslash at the beginning when in latex entry mode */
 div.stack_items div.latex_entry_mode::before {
