@@ -371,7 +371,7 @@
             </td>
             <td colspan="2">
               <span class="keybinding">'</span>
-              <code>\circledast</code>
+              <code>\htmlClass{defer_expr}{\blacksquare}</code>
               (<a href="#defer">Defer</a>)
             </td>
           </tr>
@@ -878,7 +878,7 @@
         <li>
           <span class="keybinding">'</span><span class="keybinding">'</span>
           <em>Defer:</em>
-          Place a defer marker (<code>\circledast</code>)
+          Place a defer marker (<code>\htmlClass{defer_expr}{\blacksquare}</code>)
           onto the stack.  You can treat it like any other subexpression, applying operations to it and using it
           in other expressions.  All defer markers are identical.
         </li>
@@ -887,7 +887,7 @@
           <em>Substitute:</em>
           Substitute the stack top item for the defer marker in the item below it.  If there is more than one defer
           marker, only the first one is substituted.
-          Example: <code>\sqrt{1+\circledast} \enspace x^2 \to \sqrt{1+x^2}</code>
+          Example: <code>\sqrt{1 + \htmlClass{defer_expr}{\blacksquare}} \enspace x^2 \to \sqrt{1+x^2}</code>
         </li>
       </ul>
 

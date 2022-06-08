@@ -1003,10 +1003,8 @@ class DeferExpr extends Expr {
     json_keys() { return []; }
 
     emit_latex(emitter) {
-        // TODO: Maybe use KaTeX HTML support to give it a CSS class to color it
-        // according to the current color theme.
-        // const expr = new CommandExpr('circledast');
-        const expr = new CommandExpr('htmlClass', [new TextExpr('defer_expr'), new CommandExpr('circledast')]);
+        const expr = new CommandExpr('htmlClass', [
+            new TextExpr('defer_expr'), new TextExpr("\\blacksquare")]);
         emitter.expr(expr);
     }
 }
@@ -1565,6 +1563,24 @@ class TextItem extends Item {
     to_text() { return this.elements.map(element => element.to_text()).join(''); }
     to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
     clone() { return new TextItem(this.elements, this.is_heading); }
+
+    // If there is any DeferExpr among the elements in this TextItem, substitute
+    // the first one for substitution_expr and return the new TextItem.
+    // If there are no DeferExprs available, return null.
+    try_substitute_defer(substitution_expr) {
+        let new_elements = [...this.elements];  // make a shallow copy
+        for(let i = 0; i < new_elements.length; i++) {
+            if(new_elements[i].is_expr()) {
+                const defer_expr = new_elements[i].expr.find_defer();
+                if(defer_expr) {
+                    const new_expr = new_elements[i].expr.substitute_expr(defer_expr, substitution_expr);
+                    new_elements[i] = new TextItemExprElement(new_expr);
+                    return new TextItem(new_elements, this.is_heading);
+                }
+            }
+        }
+        return null;
+    }
 }
 
 

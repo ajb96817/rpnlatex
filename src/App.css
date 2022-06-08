@@ -166,7 +166,8 @@ textarea { font-size: 16px; }
 }
 
 
-.defer_expr { color: #080; }  /* TODO: customize based on theme */
+/* TODO: customize color based on theme */
+.defer_expr { color: #6c6; }  
 
 
 #panel_layout { height: 100%; }

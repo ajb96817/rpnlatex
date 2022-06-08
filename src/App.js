@@ -607,7 +607,7 @@ class ItemComponent extends React.Component {
     _render_with_katex(latex_code, node, display_mode) {
         if(latex_code === '' || latex_code === "\\,") {
             // Empty/blank latex expression - fake it with something so that it's visible.
-            latex_code = "\\htmlClass{defer_expr}{\\square}";
+            latex_code = "\\text{(blank)}";
         }
         try {
             // NOTE: trust: true here allows the use of \htmlClass etc.
@@ -687,7 +687,7 @@ class PopupPanelComponent extends React.Component {
             const latex_code = code_elt.textContent;
             if(latex_code)
                 katex.render(latex_code, code_elt,
-                             { throwOnError: false, displayMode: false });
+                             { throwOnError: false, displayMode: false, trust: true });
         }
     }
 }

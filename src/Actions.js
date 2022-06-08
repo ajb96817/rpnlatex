@@ -519,8 +519,7 @@ class InputContext {
         const arg = this._get_prefix_argument(1, -1);
         if(arg <= 0) return stack;
         let new_document = this.app_state.document;
-        // Make sure there are enough items above the current document selection
-        // to extract.
+        // Make sure there are enough items above the current document selection to extract.
         if(new_document.selection_index < arg)
             return this.error_flash_document();
         let new_items = [];
@@ -792,15 +791,25 @@ class InputContext {
             return stack.type_error();
     }
 
+    // Substitute the stack top expression into the first available defer marker in the
+    // item second from top.  That item can be either an ExprItem or TextItem.
     do_substitute_defer(stack) {
-        let [new_stack, original_expr, substitution_expr] = stack.pop_exprs(2);
-        const defer_expr = original_expr.find_defer();
-        if(defer_expr) {
-            const new_expr = original_expr.substitute_expr(defer_expr, substitution_expr);
-            return new_stack.push_expr(new_expr);
+        const [new_stack, substitution_expr] = stack.pop_exprs(1);
+        const [new_stack_2, item] = new_stack.pop(1);
+        if(item.item_type() === 'expr') {
+            const original_expr = item.expr;
+            const defer_expr = original_expr.find_defer();
+            if(defer_expr) {
+                const new_expr = original_expr.substitute_expr(defer_expr, substitution_expr);
+                return new_stack_2.push_expr(new_expr);
+            }
         }
-        else
-            return stack.type_error();
+        else if(item.item_type() === 'text') {
+            const new_text_item = item.try_substitute_defer(substitution_expr);
+            if(new_text_item)
+                return new_stack_2.push(new_text_item);
+        }
+        return stack.type_error();
     }
 
     do_start_text_entry(stack, text_entry_type) {
