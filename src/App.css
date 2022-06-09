@@ -20,6 +20,15 @@ body {
 }
 
 
+div.help .version_info {
+    float: right;
+    color: #888;
+    font-family: monospace;
+    text-align: right;
+    font-size: 80%;
+}
+
+
 #stack_panel.errorflash {
     animation-name: errorflash_stack_theme_default;
     animation-duration: 0.3s;
