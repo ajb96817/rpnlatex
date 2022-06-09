@@ -891,10 +891,8 @@ class CommandExpr extends Expr {
 }
 
 
-// Represents one expression in front of another.
-// This is mainly used to keep track of whether an expression starts with a unary '-',
-// so that we can automatically reverse the sign when combining it with another expression
-// with infix '+', etc.
+// Represents one expression in front of another.  Similar to InfixExpr.
+// TODO: remove this class, it's mostly unnecessary now.
 class PrefixExpr extends Expr {
     constructor(base_expr, prefix_expr) {
         super();
@@ -1409,17 +1407,13 @@ class SeparatorItem extends Item {
     }
 
     item_type() { return 'separator'; }
-
-    to_json() {
-        return {item_type: 'separator', separator_type: this.separator_type};
-    }
-
+    to_json() { return {item_type: 'separator', separator_type: this.separator_type}; }
     to_text() { return "\\rule"; }
-
     clone() { return new SeparatorItem(this.separator_type); }
 }
 
 
+// A TextItem contains a list of TextItemElement subclass instances.
 class TextItemElement {
     static from_json(json) {
         if(json.expr)
@@ -1517,7 +1511,7 @@ class TextItemExprElement extends TextItemElement {
 class TextItemRawElement extends TextItemElement {
     constructor(string) { super(); this.string = string; }
     is_raw() { return true; }
-    as_bold() { return new TextItemRawElement(this.string); }
+    as_bold() { return this; }
     to_json() { return { 'raw': this.string }; }
     to_text() { return this.string; }
     to_latex() { return this.string; }
@@ -1608,7 +1602,11 @@ class TextItem extends Item {
     clone() { return new TextItem(this.elements, this.is_heading); }
 
     // Return a clone of this with all elements bolded.
-    as_bold() { return new TextItem(this.elements.map(element => element.as_bold())); }
+    as_bold() {
+        return new TextItem(
+            this.elements.map(element => element.as_bold()),
+            this.is_heading);
+    }
 
     // If there is any DeferExpr among the elements in this TextItem, substitute
     // the first one for substitution_expr and return the new TextItem.
@@ -1638,9 +1636,7 @@ class Stack {
         return new Stack(items);
     }
     
-    constructor(items) {
-        this.items = items;
-    }
+    constructor(items) { this.items = items; }
 
     depth() { return this.items.length; }
     check(n) { return this.depth() >= n; }
@@ -1701,9 +1697,7 @@ class Stack {
     // The cloned items will have new React IDs, which will force a re-render of the items.
     // This is used for things like changing between display and inline math mode, where
     // the item content doesn't change but the way it's rendered does.
-    clone_all_items() {
-        return new Stack(this.items.map(item => item.clone()));
-    }
+    clone_all_items() { return new Stack(this.items.map(item => item.clone())); }
 
     underflow() { throw new Error('stack_underflow'); }
     type_error() { throw new Error('stack_type_error'); }

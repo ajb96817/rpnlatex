@@ -66,20 +66,6 @@
           These keys also place the corresponding symbol onto the stack.
         </li>
         <li>
-          <span class="keybinding">\</span> Typing a backslash starts <em>math text entry</em> mode
-          where you can enter a longer text string such as a multi-digit number.  Use <span class="keybinding">Enter</span>
-          to save your input as normal italic math text, or <span class="keybinding">Shift+Enter</span> to create text in
-          a non-italic (roman) font.  <span class="keybinding">Esc</span> to cancel.
-          Typing another <span class="keybinding">\</span> after the first puts you into <em>LaTeX entry</em> mode instead,
-          where you can enter an arbitrary LaTeX command (e.g. <tt>\sqrt</tt>).
-        </li>
-        <li>
-          <span class="keybinding">&quot;</span> Typing a quote starts <em>text entry</em> mode, which is similar to
-          <em>math text entry</em> mode but creates special text objects (with a blue marker to the left).  These objects
-          behave a little differently than ordinary mathematical expressions.  See <a href="#text_objects">text objects</a>
-          for more information.
-        </li>
-        <li>
           <span class="keybinding">&nbsp;</span> <em>(space)</em> Concatenate the top two stack entries.
         <li>
           <span class="keybinding">`</span> <em>(backtick)</em> or <span class="keybinding">^</span> 
@@ -88,11 +74,11 @@
         <li><span class="keybinding">Enter</span> or <span class="keybinding">_</span>
           Make subscript: <code>y\enspace x \to y_x</code>
         </li>
+        <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
         <li>
           <span class="keybinding">!</span>
           Append a <tt>!</tt> to the stack top (factorial notation).
         </li>
-        <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
         <li>
           <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span>
           Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
@@ -126,9 +112,10 @@
         sections.
       </p>
       <ul class="keybindings">
+        <li><span class="keybinding">\</span> Input a longer character string with <a href="#text_entry">math entry</a> mode.</li>
+        <li><span class="keybinding">&quot;</span> Create a text object with <a href="#text_entry">text entry</a> mode.</li>
         <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
-        <li><span class="keybinding">Tab</span><span class="keybinding">f</span> Open the <a href="#files">File Manager</a>.</li>
-        <li><span class="keybinding">'</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
+        <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
         <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#decorations">decoration</a> to the stack top.</li>
         <li><span class="keybinding">,</span> <em>(comma)</em> Combine two items into an <a href="#infix">infix expression</a>.</li>
         <li><span class="keybinding">=</span> Combine two items with a <a href="#relational">relational operator</a>.</li>
@@ -154,6 +141,52 @@
           Some <a href="#control_keys">Control key</a> shortcuts are also available.
         </li>
       </ul>
+
+      <h2>
+        <a name="text_entry">Math and Text Entry</a>
+        <span class="keybinding">\</span> or <span class="keybinding">&quot;</span>
+      </h2>
+      <p>
+        The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
+        will be shown where you can type letters and numbers.  <span class="keybinding">Enter</span> will place
+        what you have typed onto the stack as math text.  This gives the same result as entering individual
+        characters and concatenating them with <span class="keybinding">&nbsp;</span> (space).  For example,
+        these are two equivalent ways of entering the number 123:
+        <ul>
+          <li><span class="keybinding">1</span><span class="keybinding">2</span><span class="keybinding">3</span><span class="keybinding">&nbsp;</span><span class="keybinding">&nbsp;</span></li>
+          <li><span class="keybinding">\</span><span class="keybinding">1</span><span class="keybinding">2</span><span class="keybinding">3</span><span class="keybinding">Enter</span></li>
+        </ul>
+        <span class="keybinding">Esc</span> will cancel math entry mode.
+        If you use <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
+        to finish your entry, it will be typeset in a roman (non-italic) font instead of the normal italic math font.
+      </p>
+      <p>If you type another <span class="keybinding">\</span>
+        after the first one, you will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
+        LaTeX command.  This can be used to create any standard LaTeX symbol.
+        For example: <tt>\\boxdot</tt> <code>\to\boxdot</code>
+      </p>
+      <p>
+        The <span class="keybinding">&quot;</span> prefix starts <em>text entry</em> mode which
+        is similar to math entry mode but creates <em>text objects</em>.  Text objects are shown with
+        a blue bar to the left (instead of grey) and differ from normal math objects in a few important ways:
+        <ul>
+          <li>They are meant for explanatory text, comments, etc., rather than being standalone math formulas.</li>
+          <li>They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.</li>
+          <li>
+            They can be concatenated with other text objects or with math formulas using <span class="keybinding">&nbsp;</span>
+            or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.  Math formulas
+            combined with text objects this way become part of the text and are displayed in a more compact inline format.
+          </li>
+          <li>
+            They may be turned into section headers via the
+            <span class="keybinding">/</span><span class="keybinding">&quot;</span> command.
+          </li>
+          <li>
+            Typing <tt>[]</tt> in a text object will create a <a href="#placeholders">placeholder</a>
+            at that location for substituting a math formula later.
+          </li>
+        </ul>
+      </p>
 
       <h2>
         <a name="stack">Stack Manipulation and Utilities</a>
@@ -292,7 +325,7 @@
 
       <h2>
         <a name="symbols">Math Symbols</a>
-        <span class="keybinding">'</span>
+        <span class="keybinding">&#39;</span>
       </h2>
       <p>
         Assorted standalone math symbols.  These all put exactly one object onto the stack.
@@ -360,9 +393,9 @@
               <span class="keybinding">&nbsp;</span> (Blank)
             </td>
             <td colspan="2">
-              <span class="keybinding">'</span>
+              <span class="keybinding">&#39;</span>
               <code>\htmlClass{defer_expr}{\blacksquare}</code>
-              (<a href="#defer">Defer</a>)
+              (<a href="#placeholders">Placeholder</a>)
             </td>
           </tr>
       </tbody></table>
@@ -450,7 +483,7 @@
             <td><span class="keybinding">&nbsp;</span> <code>x\,</code> (append space)</td>
           </tr>
           <tr>
-            <td><span class="keybinding">'</span> <code>x'</code></td>
+            <td><span class="keybinding">&#39;</span> <code>x'</code></td>
             <td><span class="keybinding">*</span> <code>x^{*}</code></td>
             <td><span class="keybinding">=</span> <code>\Rightarrow x</code></td>
           </tr>
@@ -712,9 +745,9 @@
           &nbsp;&nbsp;
           <span class="keybinding">+</span> <code>y\enspace x \to \displaystyle\sum_{y\ge x}</code>
         </li>
-        <li><span class="keybinding">,</span> <em>(comma) Split equation</em> (see below)</li>
-        <li><span class="keybinding">;</span> <em>Apply tag</em> (see below)</li>
-        <li><span class="keybinding">'</span> <em>(apostrophe) Resolve deferred</em> (see <a href="#defer">Deferred Operations</a>)</li>
+        <li><span class="keybinding">,</span> <em>(comma)</em> Split equation< (see below)</li>
+        <li><span class="keybinding">;</span> Apply tag (see below)</li>
+        <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Resolve placeholder (see <a href="#placeholders">Placeholders</a>)</li>
         <li><span class="keybinding">&quot;</span> Toggle whether the stack top is displayed as a section header</li>
         <li>
           <span class="keybinding">Enter</span> <code>z\enspace y\enspace x \to z_y^x</code>
@@ -861,26 +894,25 @@
       </p>
 
       <h2>
-        <a name="defer">Deferred Operations</a>
+        <a name="placeholders">Placeholders</a>
       </h2>
       <p>
         Sometimes you may want to fill in part of an expression you are working on later, rather than including
-        it immediately.  You can insert a <em>defer marker</em> as a placeholder in your expression, and then later on
-        substitute another expression where the defer marker is.
+        it immediately.  You can insert a <em>placeholder</em> marker in your expression, and then later on
+        substitute another expression where the placeholder is.
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">'</span><span class="keybinding">'</span>
-          <em>Defer:</em>
-          Place a defer marker (<code>\htmlClass{defer_expr}{\blacksquare}</code>)
-          onto the stack.  You can treat it like any other subexpression, applying operations to it and using it
-          in other expressions.  All defer markers are identical.
+          <span class="keybinding">&#39;</span><span class="keybinding">&#39;</span>
+          Put a placeholder (<code>\htmlClass{defer_expr}{\blacksquare}</code>) onto the stack.
+          You can treat it like any other subexpression, applying operations to it and using it
+          in other expressions.  All placeholders are identical.
         </li>
         <li>
-          <span class="keybinding">/</span><span class="keybinding">'</span>
+          <span class="keybinding">/</span><span class="keybinding">&#39;</span>
           <em>Substitute:</em>
-          Substitute the stack top item for the defer marker in the item below it.  If there is more than one defer
-          marker, only the first one is substituted.
+          Substitute the stack top item for the placeholder in the item below it.
+          If there is more than placeholder, only the first one is substituted.
           Example: <code>\sqrt{1 + \htmlClass{defer_expr}{\blacksquare}} \enspace x^2 \to \sqrt{1+x^2}</code>
         </li>
       </ul>
