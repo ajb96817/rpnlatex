@@ -599,7 +599,9 @@ class ItemComponent extends React.Component {
                 this._render_with_katex(item.tag_expr.to_latex(), this.tag_ref.current, false);
         }
 	else if(item.item_type() === 'text') {
-	    // TextItems are always rendered in inline mode
+	    // TextItems are always rendered in inline mode.
+            // Note that this means that text items will always be left-aligned regardless
+            // of the rightalign_math layout settings.
 	    this._render_with_katex(item.to_latex(), node, false);
 	}
     }

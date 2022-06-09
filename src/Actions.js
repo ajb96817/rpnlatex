@@ -644,6 +644,18 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
+    // For ExprItems, this just wraps the expression in \boldsymbol (if it's not already wrapped).
+    // For TextItems, the individual components of the text are bolded.
+    do_make_bold(stack) {
+        let [new_stack, item] = stack.pop(1);
+        if(item.item_type() === 'expr')
+            return new_stack.push_expr(item.expr.as_bold());
+        else if(item.item_type() === 'text')
+            return new_stack.push(item.as_bold());
+        else
+            new_stack.type_error();
+    }
+
     do_custom_delimiter(stack, delimiter_type) {
         this.switch_to_mode('custom_delimiters');
         if(!delimiter_type) {

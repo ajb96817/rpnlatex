@@ -48,7 +48,7 @@ const EditorKeymap = {
         '>': "infix >",
         '+': "infix +",
         '-': "infix -",
-        ']': "operator boldsymbol",
+        ']': "make_bold", // "operator boldsymbol",
         '[': "delimiters [ ]",
         '(': "delimiters ( )",
         '{': "delimiters \\{ \\}",

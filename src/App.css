@@ -69,7 +69,8 @@ div.separator_item hr {
 
 
 div.heading_style {
-    padding-bottom: 0.2em;  /* should match border-bottom height below */
+    padding-bottom: 0.2em;
+    padding-top: 0.4em;
     font-size: 130%;
     font-weight: bold;
 }

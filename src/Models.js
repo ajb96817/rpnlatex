@@ -832,6 +832,14 @@ class Expr {
         else
             return this;
     }
+
+    // Wrap this expression in a \boldsymbol{...} command if it's not already.
+    as_bold() {
+        if(this.expr_type() === 'command' && this.command_name === 'boldsymbol')
+            return this;
+        else
+            return new CommandExpr('boldsymbol', [this]);
+    }
 }
 
 
@@ -1417,7 +1425,7 @@ class TextItemElement {
         if(json.expr)
             return new TextItemExprElement(Expr.from_json(json.expr));
         else if(json.text)
-            return new TextItemTextElement(json.text);
+            return new TextItemTextElement(json.text, !!json.is_bold);
         else
             return new TextItemRawElement(json.raw);
     }
@@ -1429,10 +1437,25 @@ class TextItemElement {
 
 
 class TextItemTextElement extends TextItemElement {
-    constructor(text) { super(); this.text = text; }
+    // Bold font is handled specially for text items.
+    // Within a \text{...}, bold is switched on and off via \bf{} and \rm{} commands.
+    constructor(text, is_bold) {
+        super();
+        this.text = text;
+        this.is_bold = !!is_bold;
+    }
 
     is_text() { return true; }
-    to_json() { return { 'text': this.text }; }
+
+    as_bold() { return new TextItemTextElement(this.text, true); }
+
+    to_json() {
+        let json = { 'text': this.text };
+        if(this.is_bold) json.is_bold = true;
+        return json;
+    }
+
+    // TODO: respect is_bold here
     to_text() { return this.text; }
 
     to_latex() {
@@ -1447,6 +1470,8 @@ class TextItemTextElement extends TextItemElement {
         let pieces = [];
         for(let i = 0; i < tokens.length; i++) {
             pieces.push("\\text{");
+            if(this.is_bold)
+                pieces.push("\\bf{}");
             pieces.push(this._latex_escape(tokens[i]));
             if(i < tokens.length-1)
                 pieces.push(' ');  // preserve spacing between words
@@ -1478,6 +1503,7 @@ class TextItemTextElement extends TextItemElement {
 class TextItemExprElement extends TextItemElement {
     constructor(expr) { super(); this.expr = expr; }
     is_expr() { return true; }
+    as_bold() { return new TextItemExprElement(this.expr.as_bold()); }
     to_json() { return { 'expr': this.expr.to_json() }; }
     to_text() { return '$' + this.expr.to_latex() + '$'; }
     to_latex() { return this.expr.to_latex(); }
@@ -1491,6 +1517,7 @@ class TextItemExprElement extends TextItemElement {
 class TextItemRawElement extends TextItemElement {
     constructor(string) { super(); this.string = string; }
     is_raw() { return true; }
+    as_bold() { return new TextItemRawElement(this.string); }
     to_json() { return { 'raw': this.string }; }
     to_text() { return this.string; }
     to_latex() { return this.string; }
@@ -1524,7 +1551,7 @@ class TextItem extends Item {
             separator_text ? [new TextItemRawElement(separator_text)] : [],
             item2.elements);
         // Coalesce adjacent elements.  Rules are:
-        //   - Adjacent TextElements are concatenated directly.
+        //   - Adjacent TextElements are concatenated directly as long as their is_bold flags match.
         //   - A RawElement representing an explicit space character (\,) is absorbed into an
         //     adjacent TextElement as a normal space character (this is to make the spacing
         //     less weird when attaching a text and expression via an infix space).
@@ -1532,20 +1559,23 @@ class TextItem extends Item {
         for(let i = 1; i < elements.length; i++) {
             const last_index = merged_elements.length-1;
             const last_merged_element = merged_elements[last_index];
-            if(last_merged_element.is_text() && elements[i].is_text()) {
-                // Two adjacent TextElements.
+            if(last_merged_element.is_text() && elements[i].is_text() &&
+               last_merged_element.is_bold === elements[i].is_bold) {
+                // Two adjacent TextElements with the same is_bold flag.
                 merged_elements[last_index] = new TextItemTextElement(
-                    last_merged_element.text + elements[i].text);
+                    last_merged_element.text + elements[i].text, elements[i].is_bold);
             }
             else if(last_merged_element.is_raw() && last_merged_element.is_explicit_space() &&
                     elements[i].is_text()) {
                 // raw space + TextElement
-                merged_elements[last_index] = new TextItemTextElement(' ' + elements[i].text);
+                merged_elements[last_index] =
+                    new TextItemTextElement(' ' + elements[i].text, elements[i].is_bold);
             }
             else if(last_merged_element.is_text() &&
                     elements[i].is_raw() && elements[i].is_explicit_space()) {
                 // TextElement + raw space
-                merged_elements[last_index] = new TextItemTextElement(last_merged_element.text + ' ');
+                merged_elements[last_index] =
+                    new TextItemTextElement(last_merged_element.text + ' ', last_merged_element.is_bold);
             }
             else {
                 // Any other combinations are left alone.
@@ -1576,6 +1606,9 @@ class TextItem extends Item {
     to_text() { return this.elements.map(element => element.to_text()).join(''); }
     to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
     clone() { return new TextItem(this.elements, this.is_heading); }
+
+    // Return a clone of this with all elements bolded.
+    as_bold() { return new TextItem(this.elements.map(element => element.as_bold())); }
 
     // If there is any DeferExpr among the elements in this TextItem, substitute
     // the first one for substitution_expr and return the new TextItem.
