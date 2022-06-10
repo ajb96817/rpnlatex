@@ -316,7 +316,7 @@ class StackItemsComponent extends React.Component {
             const component = $e(
                 TextEntryComponent, {
                     text: input_context.text_entry,
-                    entry_type: input_context.text_entry_type,
+                    entry_type: input_context.text_entry_mode,
                     key: 'textentry'
                 });
             item_components.push(component);

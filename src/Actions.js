@@ -60,7 +60,7 @@ class InputContext {
         //   'math_text_entry': [\] - text entry will become a ExprItem with either normal italic math text
         //               (if Enter is used) or \mathrm roman math text (if Shift+Enter)
         //   'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
-        this.text_entry_type = null;
+        this.text_entry_mode = null;
 
         // Tracks multi-part custom_delimiters commands.
         this.custom_delimiters = {};
@@ -826,17 +826,17 @@ class InputContext {
         return stack.type_error();
     }
 
-    do_start_text_entry(stack, text_entry_type) {
+    do_start_text_entry(stack, text_entry_mode) {
         this.text_entry = '';
-        this.text_entry_type = text_entry_type;
-        this.switch_to_mode(text_entry_type);
+        this.text_entry_mode = text_entry_mode;
+        this.switch_to_mode(text_entry_mode);
         this.perform_undo_or_redo = 'suppress';
         return stack;
     }
 
     do_cancel_text_entry(stack) {
         this.text_entry = null;
-        this.text_entry_type = null;
+        this.text_entry_mode = null;
         this.perform_undo_or_redo = 'suppress';
         return stack;
     }
@@ -846,7 +846,7 @@ class InputContext {
         this.perform_undo_or_redo = 'suppress';
         this.switch_to_mode(this.mode);
         if(key.length === 1) {
-            if(this.text_entry_type === 'latex_entry') {
+            if(this.text_entry_mode === 'latex_entry') {
                 // Disallow characters that are invalid as part of a LaTeX command.
                 // Technically, commands like \$ should be allowed here, but those are all
                 // accessible by their own keybindings already.  So only alphabetic characters
@@ -871,12 +871,12 @@ class InputContext {
         else {
             // Everything has been deleted; cancel text entry.
             if(new_mode_when_empty) {
-                this.text_entry_type = new_mode_when_empty;
+                this.text_entry_mode = new_mode_when_empty;
                 this.switch_to_mode(new_mode_when_empty);
             }
             else {
                 this.text_entry = null;
-                this.text_entry_type = null;
+                this.text_entry_mode = null;
             }
         }
         this.perform_undo_or_redo = 'suppress';
@@ -893,14 +893,14 @@ class InputContext {
             return stack;  // shouldn't happen
         if(this.text_entry.length === 0) {
             this.text_entry = null;
-            this.text_entry_type = null;
+            this.text_entry_mode = null;
             return stack;
         }
 
         if(textstyle === 'text') {
             let item = TextItem.from_string_with_placeholders(this.text_entry);
             this.text_entry = null;
-            this.text_entry_type = null;
+            this.text_entry_mode = null;
             return stack.push(item);
         }
 
@@ -917,7 +917,7 @@ class InputContext {
             // const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
             // if(sanitized.length === 0) {
             //     this.text_entry = null;
-            //     this.text_entry_type = null;
+            //     this.text_entry_mode = null;
             //     return stack;
             // }
             // new_expr = new CommandExpr(sanitized);
@@ -927,7 +927,7 @@ class InputContext {
         else
             new_expr = new TextExpr(this._latex_escape(this.text_entry));
         this.text_entry = null;
-        this.text_entry_type = null;
+        this.text_entry_mode = null;
         return stack.push_expr(new_expr);
     }
 
