@@ -138,6 +138,15 @@ class App extends React.Component {
         }
     }
 
+    componentDidUpdate() {
+        // Show the currently opened file in the browser's document title.
+        const filename = this.state.file_manager_state.current_filename;
+        const program_name = 'rpnlatex';
+        const new_title = filename ? (program_name + ' - ' + filename) : program_name;
+        if(new_title !== document.title)
+            document.title = new_title;
+    }
+
     componentWillUnmount() {
         window.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
@@ -303,6 +312,14 @@ class StackItemsComponent extends React.Component {
                 input_context.mode === 'stack' &&
                     (input_context.prefix_argument < 0 ||
                      this.props.stack.items.length-index <= input_context.prefix_argument));
+            if(input_context.show_latex_source && index === this.props.stack.items.length-1) {
+                // Show LaTeX source code for the stack top.
+                return $e(
+                    LaTeXSourceComponent, {
+                        item: item,
+                        key: item.react_key(index)
+                    });
+            }
             return $e(
                 ItemComponent, {
                     item: item,
@@ -625,6 +642,16 @@ class ItemComponent extends React.Component {
             const msg = e.toString();
             node.innerHTML = '<div style="color:red;">' + msg + '</div>';
         }
+    }
+}
+
+
+class LaTeXSourceComponent extends React.Component {
+    render() {
+        let item = this.props.item;
+        return $e(
+            'div', {className: 'latex_source_item'},
+            $e('div', {className: 'latex_source'}, item.to_text()));
     }
 }
 

@@ -51,6 +51,9 @@ class InputContext {
         // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
         this.preserve_prefix_argument = false;
 
+        // If true, display the stack top's LaTeX code rather than rendering it with KaTeX.
+        this.show_latex_source = false;
+
         // If non-null, text-entry mode is active and the entry line will appear at the
         // bottom of the stack panel.
         this.text_entry = null;
@@ -963,6 +966,11 @@ class InputContext {
             item.is_heading = !item.is_heading;
             return new_stack.push(item);
         }
+    }
+
+    do_toggle_show_latex_source(stack) {
+        this.show_latex_source = !this.show_latex_source;
+        this.perform_undo_or_redo = 'suppress';
     }
 
     // expr_count is the number of items to pop from the stack to put inside the delimiters.

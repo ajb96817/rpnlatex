@@ -78,11 +78,23 @@ div.separator_item hr {
        Should match what is in div.heading_style .katex-html. */
     height: 3px;
     margin-left: 12px;
-    margin-right: 1em;
+    margin-right: 12px;
     border: none;
-    background-color: #9a9;
+    background-color: #8b8;
 }
 
+div.latex_source_item {
+    border-left: 5px solid #ddd;
+    overflow-wrap: break-word;
+    font-family: monospace;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+div.latex_source_item div.latex_source {
+    padding-left: 12px;
+    background-color: #ddd;
+    padding: 0.2em 0.5em;
+}
 
 div.tag_expr {
     /* TODO: customize colors per theme */

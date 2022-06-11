@@ -133,6 +133,7 @@ const EditorKeymap = {
         '.': "redo",
         '!': "export_document_as_text",
         '@': "export_stack_items_as_text",
+        '$': "toggle_show_latex_source",
         'ArrowRight': "scroll document_container horizontal 75",
         'ArrowLeft': "scroll document_container horizontal -75",
         '?': "toggle_popup help stack"
