@@ -576,9 +576,11 @@ class ItemComponent extends React.Component {
                     'div', {className: 'expr_item'},
                     $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
 	case 'text':
+            // TODO: The CSS/markup for heading texts is a little hacky
 	    return $e(
 		'div', {className: 'text_item'},
-                $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
+                $e('div', {className: className + 'latex_fragment'},
+                   $e('div', {className: 'latex_fragment_inner', ref: ref}, '')));
         case 'separator':
             return $e(
                 'div', {className: className + 'separator_item'},

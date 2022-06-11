@@ -59,6 +59,13 @@ div.latex_fragment {
 }
 div.expr_item div.latex_fragment { border-left: 5px solid #aaa; }
 div.text_item div.latex_fragment { border-left: 5px solid #88f; }
+div.heading_style div.latex_fragment_inner {
+    border-bottom: 3px solid #bbf;
+    padding-top: 0.3em;
+    margin-right: 12px;
+    font-size: 125%;
+    font-weight: bold;
+} 
 div.separator_item {
     /* These paddings seem to be necessary to get the correct left border height.
        Not sure why this is. */
@@ -76,16 +83,6 @@ div.separator_item hr {
     background-color: #9a9;
 }
 
-
-div.heading_style {
-    padding-bottom: 0.2em;
-    padding-top: 0.4em;
-    font-size: 130%;
-    font-weight: bold;
-}
-div.heading_style .katex-html {
-    border-bottom: 3px solid #9a9;
-}
 
 div.tag_expr {
     /* TODO: customize colors per theme */
