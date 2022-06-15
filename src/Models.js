@@ -885,8 +885,7 @@ class CommandExpr extends Expr {
         return new CommandExpr(
             this.command_name,
             this.operand_exprs.map(operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
-            this.options
-        );
+            this.options);
     }
 }
 
@@ -1478,7 +1477,7 @@ class TextItemTextElement extends TextItemElement {
         // TODO: make this table a global (or switch statement) so it doesn't constantly get remade
         const replacements = {
             '_': "\\_",
-            '^': "\\wedge ",
+            '^': "\\^{}",
             '%': "\\%",
 //            "'": "\\prime ",
             "`": "\\backprime ",
@@ -1632,8 +1631,8 @@ class TextItem extends Item {
 // items, leaving the original untouched.
 class Stack {
     static from_json(json) {
-        const items = json.items.map(item_json => Item.from_json(item_json));
-        return new Stack(items);
+        return new Stack(
+            json.items.map(item_json => Item.from_json(item_json)));
     }
     
     constructor(items) { this.items = items; }

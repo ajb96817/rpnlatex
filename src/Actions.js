@@ -733,7 +733,7 @@ class InputContext {
             // Expr+Expr
             const operator_expr = new SequenceExpr([
                 new CommandExpr('quad'),
-                new CommandExpr('mathrm', [new TextExpr(phrase.replaceAll('_', "\\,"))]),
+                new CommandExpr('text', [new TextExpr(phrase.replaceAll('_', "\\,"))]),
                 new CommandExpr('quad')]);
             return new_stack.push_expr(new InfixExpr(operator_expr, left_item.expr, right_item.expr));
         }
