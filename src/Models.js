@@ -44,7 +44,7 @@ class Settings {
         this.current_keymap = new Keymap();
         this.selected_theme = 'default';
         this.last_opened_filename = null;
-        this.popup_mode = null;  // null, 'help', 'files', 'keymap'
+        this.popup_mode = null;  // null, 'help', 'files'
         this.layout = this.default_layout();
     }
 
@@ -1413,6 +1413,10 @@ class SeparatorItem extends Item {
 
 
 // A TextItem contains a list of TextItemElement subclass instances.
+//   - TextItemExprElement - wraps a Expr object to be rendered inline with the text
+//   - TextItemTextElement - a string of text to be rendered as \text{...} command(s)
+//   - TextItemRawElement - a string of text to be rendered directly (mostly a special
+//     case to support combining math and text with infix operators)
 class TextItemElement {
     static from_json(json) {
         if(json.expr)

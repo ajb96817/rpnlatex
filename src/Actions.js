@@ -733,7 +733,7 @@ class InputContext {
             // Expr+Expr
             const operator_expr = new SequenceExpr([
                 new CommandExpr('quad'),
-                new CommandExpr('text', [new TextExpr(phrase.replaceAll('_', "\\,"))]),
+                new CommandExpr('text', [new TextExpr(phrase.replaceAll('_', ' '))]),
                 new CommandExpr('quad')]);
             return new_stack.push_expr(new InfixExpr(operator_expr, left_item.expr, right_item.expr));
         }
@@ -838,10 +838,14 @@ class InputContext {
     }
 
     do_cancel_text_entry(stack) {
-        this.text_entry = null;
-        this.text_entry_mode = null;
+        this.cancel_text_entry();
         this.perform_undo_or_redo = 'suppress';
         return stack;
+    }
+
+    cancel_text_entry() {
+        this.text_entry = null;
+        this.text_entry_mode = null;
     }
 
     do_append_text_entry(stack) {
@@ -877,10 +881,8 @@ class InputContext {
                 this.text_entry_mode = new_mode_when_empty;
                 this.switch_to_mode(new_mode_when_empty);
             }
-            else {
-                this.text_entry = null;
-                this.text_entry_mode = null;
-            }
+            else
+                this.cancel_text_entry();
         }
         this.perform_undo_or_redo = 'suppress';
         return stack;
@@ -895,15 +897,13 @@ class InputContext {
         if(this.text_entry === null)
             return stack;  // shouldn't happen
         if(this.text_entry.length === 0) {
-            this.text_entry = null;
-            this.text_entry_mode = null;
+            this.cancel_text_entry();
             return stack;
         }
 
         if(textstyle === 'text') {
             let item = TextItem.from_string_with_placeholders(this.text_entry);
-            this.text_entry = null;
-            this.text_entry_mode = null;
+            this.cancel_text_entry();
             return stack.push(item);
         }
 
@@ -929,8 +929,7 @@ class InputContext {
         }
         else
             new_expr = new TextExpr(this._latex_escape(this.text_entry));
-        this.text_entry = null;
-        this.text_entry_mode = null;
+        this.cancel_text_entry();
         return stack.push_expr(new_expr);
     }
 
