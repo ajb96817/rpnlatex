@@ -575,6 +575,7 @@ const EditorKeymap = {
         'f': "prefix \\therefore",
         'F': "prefix \\because",
         'g': "operator mathring",
+        'G': "operator grave",
         'h': "apply_hat hat",
         'H': "apply_hat widehat",
         'i': "insert -;superscript",
@@ -608,7 +609,7 @@ const EditorKeymap = {
         '=': "prefix \\Rightarrow",
         '-': "prefix -",
         '+': "prefix +",
-        '`': "operator grave",
+        '`': "insert T;superscript",  // transpose
         '/': "operator cancel",
         "\\": "operator bcancel",
         '_': "operator underline",

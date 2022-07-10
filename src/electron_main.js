@@ -9,7 +9,8 @@ const createWindow = () => {
         //frame: false
     });
     win.removeMenu();
-    win.loadURL('http://localhost:3000');
+    //win.loadURL('http://localhost:3000');
+    win.loadFile('build/index.html');
 }
 
 app.whenReady().then(() => {
