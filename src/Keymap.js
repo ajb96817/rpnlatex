@@ -472,6 +472,7 @@ const EditorKeymap = {
         ' ': "infix ,\\,",  // comma plus thinspace
         ':': "infix :",
         ';': "infix semicolon\\:",
+        '`': "swap;insert T;superscript;swap;concat",  // xTy
         '%': "infix \\pmod",  // y (mod x)
         '*': "infix *",
         "\\": "delimiters . . / 2",
