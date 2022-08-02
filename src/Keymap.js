@@ -17,6 +17,7 @@ const EditorKeymap = {
         'Ctrl+3': "insert 3;superscript",
         'Ctrl+4': "insert 4;superscript",
         'Ctrl+a': "swap",
+        'Ctrl+b': "make_bold",
         'Ctrl+c': "copy_to_clipboard",
         'Ctrl+e': "insert e;operator mathrm;swap;superscript",  // exp(x) - same as [/] [e]
         'Ctrl+i': "pop_to_document",
