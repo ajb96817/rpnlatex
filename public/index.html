@@ -1067,18 +1067,32 @@
             <td><span class="keybinding">m</span><code>\;\begin{matrix}a & b & c\end{matrix}</code></td>
           </tr>
       </tbody></table>
-      <p>
-        <strong>NOTE:</strong> As a shortcut for building <code>2\times 2</code> matrices,
-        the <span class="keybinding">@</span> command assembles 4 items from the stack in row-major order:
-      </p>
-      <ul class="keybindings">
-        <li>
-          <span class="keybinding">@</span>
-          <code>a\enspace b\enspace c\enspace d\enspace \to
-            \begin{bmatrix} a & b \\ c & d \end{bmatrix}
-          </code>
-        </li>
-      </ul>
+      <p>There are some shortcuts available for building common matrix and vector types:</p>
+      <table class="keybindings"><tbody>
+          <tr>
+            <td>
+              <span class="keybinding">@</span>
+              <code>a\enspace b\enspace c\enspace d\enspace \to
+                \begin{bmatrix} a & b \\ c & d \end{bmatrix}
+              </code>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="keybinding">!</span>
+              <code>a\enspace b\enspace \to
+                \begin{bmatrix} a \\ b \end{bmatrix}
+              </code>
+            </td>
+            <td>
+              <span class="keybinding">#</span>
+              <code>a\enspace b\enspace c\enspace \to
+                \begin{bmatrix} a \\ b \\ c\end{bmatrix}
+              </code>
+            </td>
+          </tr>
+      </tbody></table>
 
       <p>
         <b>Matrix Manipulation:</b> These commands operate on existing matrices.
