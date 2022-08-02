@@ -893,6 +893,7 @@ class InputContext {
     //   'roman_math' - ExprItem with \mathrm{...} text
     //   'latex' - ExprItem with arbitrary latex command
     //   'text' - TextItem
+    //   'heading' - TextItem with is_heading flag set
     do_finish_text_entry(stack, textstyle) {
         if(this.text_entry === null)
             return stack;  // shouldn't happen
@@ -901,8 +902,9 @@ class InputContext {
             return stack;
         }
 
-        if(textstyle === 'text') {
+        if(textstyle === 'text' || textstyle === 'heading') {
             let item = TextItem.from_string_with_placeholders(this.text_entry);
+            if(textstyle === 'heading') item.is_heading = true;
             this.cancel_text_entry();
             return stack.push(item);
         }

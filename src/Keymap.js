@@ -195,7 +195,7 @@ const EditorKeymap = {
     // " prefix (TextItem text)
     text_entry: {
         'Enter': "finish_text_entry text",
-        'Shift+Enter': "finish_text_entry text",
+        'Shift+Enter': "finish_text_entry heading",
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry",
