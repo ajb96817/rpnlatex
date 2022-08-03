@@ -185,8 +185,21 @@ class InputContext {
         dom_element.offsetWidth;  // force reflow
         dom_element.classList.add('errorflash');
     }
-    error_flash_stack() { return this.error_flash_element(document.getElementById('stack_panel')); }
-    error_flash_document() { return this.error_flash_element(document.getElementById('document_panel')); }
+
+    error_flash_stack() {
+	if(this.settings.layout.stack_split === 0)
+	    return this.error_flash_document();
+	else
+	    return this.error_flash_element(document.getElementById('stack_panel'));
+    }
+
+    error_flash_document() {
+	if(this.settings.layout.stack_split === 100)
+	    return this.error_flash_stack();
+	else
+	    return this.error_flash_element(document.getElementById('document_panel'));
+    }
+
     clear_all_flashes() {
         const elt_ids = ['stack_panel', 'document_panel'];
         for(let elt_id = 0; elt_id < elt_ids.length; elt_id++) {
