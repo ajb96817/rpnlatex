@@ -328,6 +328,8 @@ class UndoStack {
 }
 
 
+// Interface to the browser's IndexedDB storage.
+// https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
 class DocumentStorage {
     constructor() {
         this.open_request = null;
@@ -351,6 +353,12 @@ class DocumentStorage {
         }
     }
 
+    // 'documents' is a map of filename->json document content
+    // 'documents_metadata' is a map of filename->filesize, etc.
+    // The metadata is needed because otherwise the entire file contents have to be loaded and parsed
+    // just to show the filesize and object count in the file selector.
+    // IndexedDB indexes could probably be used for this instead (by having the index key be
+    // "filename:filesize:object_counts:timestamp:etc").
     build_initial_schema() {
         this.database.createObjectStore('documents', {keyPath: 'filename'});
         this.database.createObjectStore('documents_metadata', {keyPath: 'filename'});
@@ -1666,7 +1674,8 @@ class Stack {
         return this._unchecked_pop(n);
     }
 
-    // Like pop(n) but all the items have to be ExprItems.
+    // Like pop(n) but all the items have to be ExprItems, and the wrapped Expr
+    // instances are returned, not the ExprItems.
     pop_exprs(n) {
         if(!this.check(n)) this.underflow();
         if(!this.check_exprs(n)) this.type_error();
@@ -1714,6 +1723,8 @@ class Stack {
 }
 
 
+// NOTE: Like Stack, all Document operations are non-destructive and return a new
+// Document reflecting the changes.
 class Document {
     static from_json(json) {
         return new Document(
