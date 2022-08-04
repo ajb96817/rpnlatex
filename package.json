@@ -1,6 +1,6 @@
 {
     "name": "rpnlatex",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "RPN-style math scratchpad",
     "main": "src/electron_main.js",
     "private": true,

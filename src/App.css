@@ -55,7 +55,7 @@ div.latex_fragment {
     /* NOTE: vertical margins should match .katex-display margins below.
        This is to keep the inter-item spacing consistent between full
        math display mode and inline math mode (toggleable with [$][i]). */
-    margin: 2px 0;
+    margin: 3px 0;
     margin-left: 0;
     padding-left: 12px;
 }
@@ -351,8 +351,8 @@ table.keybindings td { padding: 0.1em 0.5em; }
 
 
 .katex-display {
-    margin: 2px 0;
-    padding: 1px 0;
+    margin: 3px 0;
+    padding: 2px 0;
     text-align: left;
 }
 .katex-display.fleqn > .katex {

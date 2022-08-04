@@ -1245,15 +1245,23 @@ class InputContext {
         return new_stack.push(new ExprItem(tagged_item.expr, tag_expr));
     }
 
+    // Copy stack top to an internal clipboard slot.
+    // A prefix argument may be given to access other slots but this is currently undocumented
+    // because prefix arguments with stack commands highlight items on the stack which is bad UI.
     do_copy_to_clipboard(stack) {
         const [new_stack, item] = stack.pop(1);
-        this.app_component.state.clipboard_item = item;
-        this.notify("Copied to clipboard");
+	const slot = this._get_prefix_argument(1, '*');
+        this.app_component.state.clipboard_items[slot] = item;
+	if(slot === 1)
+	    this.notify("Copied to clipboard");
+	else
+            this.notify("Copied to clipboard slot " + slot);
         return new_stack.push(item);
     }
 
     do_paste_from_clipboard(stack) {
-        const item = this.app_component.state.clipboard_item;
+	const slot = this._get_prefix_argument(1, '*');
+        const item = this.app_component.state.clipboard_items[slot];
         if(item)
             return stack.push(item.clone());
         else
