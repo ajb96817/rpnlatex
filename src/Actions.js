@@ -842,6 +842,19 @@ class InputContext {
         return stack.type_error();
     }
 
+    // Extract either the left or right side of an InfixExpr.
+    do_extract_infix_side(stack, which_side) {
+        // eslint-disable-next-line no-unused-vars
+        const [new_stack, infix_expr] = stack.pop_exprs(1);
+        if(infix_expr.expr_type() !== 'infix')
+            return stack.type_error();
+        const extracted_expr = (which_side === 'right') ?
+              infix_expr.right_expr : infix_expr.left_expr;
+        // NOTE: 'stack' and not 'new_stack' is used here in order to preserve
+        // the original expression on the stack.
+        return stack.push_expr(extracted_expr);
+    }
+
     do_start_text_entry(stack, text_entry_mode) {
         this.text_entry = '';
         this.text_entry_mode = text_entry_mode;

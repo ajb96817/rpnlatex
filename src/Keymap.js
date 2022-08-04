@@ -319,6 +319,8 @@ const EditorKeymap = {
         ']': "delimiters \\{ \\};swap;operator mathopen;swap;concat",  // f x -> f{x}
         '}': "swap;operator underbrace;swap;subscript",
         '{': "swap;operator overbrace;swap;superscript",
+        '<': "extract_infix_side left",
+        '>': "extract_infix_side right",
         '-': "mode inverse",
         '=': "unrot;infix =;insert \\sum;swap;subscript;swap;superscript",
         '+': "infix \\ge;insert \\sum;swap;subscript",
