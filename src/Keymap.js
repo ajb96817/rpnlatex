@@ -658,9 +658,9 @@ const EditorKeymap = {
         '(': "build_matrix_row pmatrix",
         '[': "build_matrix_row bmatrix",
         '{': "build_matrix_row Bmatrix",
-        '!': "build_matrix_row bmatrix 2;matrix_transpose",
+        '@': "build_matrix_row bmatrix 2;matrix_transpose",
         '#': "build_matrix_row bmatrix 3;matrix_transpose",
-        '@': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
+        '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
         'Enter': "stack_matrices",
         '?': "toggle_popup help arrays"
     },
