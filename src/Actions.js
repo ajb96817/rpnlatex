@@ -1116,6 +1116,7 @@ class InputContext {
             break;
         case 'reset_layout':
             settings.layout = settings.default_layout();
+            full_refresh_needed = true;
             break;
         default:
             break;
