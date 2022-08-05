@@ -250,7 +250,10 @@ class AppState {
     }
 
     _default_stack() {
-        const item = TextItem.from_string('Welcome to the editor.  Press [?] to toggle help.');
+        const item = new TextItem([
+            new TextItemTextElement("Welcome to the editor. Press "),
+            new TextItemTextElement("[?]", true),
+            new TextItemTextElement(" to view the User Guide.")]);
         return new Stack([item]);
     }
 
