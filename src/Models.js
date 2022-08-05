@@ -1485,23 +1485,25 @@ class TextItemTextElement extends TextItemElement {
         return pieces.join('');
     }
 
+    // Special escape sequences are needed within \text{...} commands.
+    // This is a quirk of TeX/LaTeX.
     _latex_escape(text) {
         // TODO: make this table a global (or switch statement) so it doesn't constantly get remade
+        // NOTE: not sure how to properly get ^ and ~ inside \text{...} with KaTeX.
+        // Fortunately, \char" always works.
         const replacements = {
             '_': "\\_",
-            '^': "\\^{}",
+            '^': "\\char\"005e",
             '%': "\\%",
-//            "'": "\\prime ",
-            "`": "\\backprime ",
             '$': "\\$",
             '&': "\\&",
             '#': "\\#",
             '}': "\\}",
             '{': "\\{",
-            '~': "\\sim ",
-            "\\": "\\backslash "
+            '~': "\\char\"223c",
+            "\\": "\\textbackslash "
         };
-        return text.replaceAll(/[_^%`$&#}{~\\]/g, match => replacements[match]);
+        return text.replaceAll(/[_^%$&#}{~\\]/g, match => replacements[match]);
     }
 }
 

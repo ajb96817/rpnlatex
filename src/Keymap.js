@@ -10,34 +10,6 @@ const EditorKeymap = {
         '*': "insert *",
         '~': "insert \\sim",
 
-        // Other Ctrl-based shortcuts
-        'Ctrl+0': "insert 0;subscript",
-        'Ctrl+1': "insert -1;superscript",
-        'Ctrl+2': "insert 2;superscript",
-        'Ctrl+3': "insert 3;superscript",
-        'Ctrl+4': "insert 4;superscript",
-        'Ctrl+a': "swap",
-        'Ctrl+b': "make_bold",
-        'Ctrl+c': "copy_to_clipboard",
-        'Ctrl+e': "insert e;operator mathrm;swap;superscript",  // exp(x) - same as [/] [e]
-        'Ctrl+i': "pop_to_document",
-        'Ctrl+j': "extract_from_document",
-        'Ctrl+k': "infix \\,",
-        'Ctrl+l': "recenter_document 50",
-        'Ctrl+m': "prefix -",
-        'Ctrl+o': "parenthesize;swap;operator mathopen;swap;concat",  // same as [/] [o]
-        'Ctrl+p': "delimiters ( )",
-        'Ctrl+s': "save_file",
-        'Ctrl+u': "superscript",
-        'Ctrl+v': "paste_from_clipboard",
-        'Ctrl+y': "redo",
-        'Ctrl+z': "undo",
-        'Ctrl+ ': "infix \\,",
-        'Ctrl+,': "infix ,",
-        'Ctrl+ArrowRight': "scroll document_container horizontal 75",
-        'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
-        'Ctrl+/': "operator frac 2",
-
         // Immediate action special keys
         'Enter': "subscript",
         '_': "subscript",
@@ -84,7 +56,35 @@ const EditorKeymap = {
         "\"": "start_text_entry text_entry",
         '|': "mode array",
         '$': "mode config",
-        '?': "toggle_popup help"
+        '?': "toggle_popup help",
+
+        // Other Ctrl-based shortcuts
+        'Ctrl+0': "insert 0;subscript",
+        'Ctrl+1': "insert -1;superscript",
+        'Ctrl+2': "insert 2;superscript",
+        'Ctrl+3': "insert 3;superscript",
+        'Ctrl+4': "insert 4;superscript",
+        'Ctrl+a': "swap",
+        'Ctrl+b': "make_bold",
+        'Ctrl+c': "copy_to_clipboard",
+        'Ctrl+e': "insert e;operator mathrm;swap;superscript",  // exp(x) - same as [/][e]
+        'Ctrl+i': "pop_to_document",
+        'Ctrl+j': "extract_from_document",
+        'Ctrl+k': "infix \\,",
+        'Ctrl+l': "recenter_document 50",
+        'Ctrl+m': "prefix -",
+        'Ctrl+o': "parenthesize;swap;operator mathopen;swap;concat",  // same as [/][o]
+        'Ctrl+p': "delimiters ( )",
+        'Ctrl+s': "save_file",
+        'Ctrl+u': "superscript",
+        'Ctrl+v': "paste_from_clipboard",
+        'Ctrl+y': "redo",
+        'Ctrl+z': "undo",
+        'Ctrl+ ': "infix \\,",
+        'Ctrl+,': "infix ,",
+        'Ctrl+ArrowRight': "scroll document_container horizontal 75",
+        'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
+        'Ctrl+/': "operator frac 2"
     },
 
     files: {

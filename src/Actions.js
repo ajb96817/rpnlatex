@@ -964,11 +964,12 @@ class InputContext {
     // TODO: may want to make this a general utility method, but it's only used here so far.
     _latex_escape(text) {
         const replacements = {
+            ' ': "\\,",
             '_': "\\_",
             '^': "\\wedge ",
             '%': "\\%",
-//            "'": "\\prime ",
-            "`": "\\backprime ",
+            "'": "\\rq ",
+            "`": "\\lq ",
             '$': "\\$",
             '&': "\\&",
             '#': "\\#",
@@ -977,7 +978,7 @@ class InputContext {
             '~': "\\sim ",
             "\\": "\\backslash "
         };
-        return text.replaceAll(/[_^%`$&#}{~\\]/g, match => replacements[match]);
+        return text.replaceAll(/[ _^%'`$&#}{~\\]/g, match => replacements[match]);
     }
 
     do_toggle_is_heading(stack) {
