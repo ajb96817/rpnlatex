@@ -592,10 +592,10 @@ class ItemComponent extends React.Component {
                 return $e(
                     'div', {className: 'expr_item'},
                     $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
-	case 'text':
+        case 'text':
             // TODO: The CSS/markup for heading texts is a little hacky
-	    return $e(
-		'div', {className: 'text_item'},
+            return $e(
+                'div', {className: 'text_item'},
                 $e('div', {className: className + 'latex_fragment'},
                    $e('div', {className: 'latex_fragment_inner', ref: ref}, '')));
         case 'separator':
@@ -617,12 +617,12 @@ class ItemComponent extends React.Component {
             if(item.tag_expr && this.tag_ref.current)
                 this._render_with_katex(item.tag_expr.to_latex(), this.tag_ref.current, false);
         }
-	else if(item.item_type() === 'text') {
-	    // TextItems are always rendered in inline mode.
+        else if(item.item_type() === 'text') {
+            // TextItems are always rendered in inline mode.
             // Note that this means that text items will always be left-aligned regardless
             // of the rightalign_math layout settings.
-	    this._render_with_katex(item.to_latex(), node, false);
-	}
+            this._render_with_katex(item.to_latex(), node, false);
+        }
     }
 
     _render_with_katex(latex_code, node, display_mode) {

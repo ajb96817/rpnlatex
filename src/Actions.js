@@ -187,17 +187,17 @@ class InputContext {
     }
 
     error_flash_stack() {
-	if(this.settings.layout.stack_split === 0)
-	    return this.error_flash_document();
-	else
-	    return this.error_flash_element(document.getElementById('stack_panel'));
+        if(this.settings.layout.stack_split === 0)
+            return this.error_flash_document();
+        else
+            return this.error_flash_element(document.getElementById('stack_panel'));
     }
 
     error_flash_document() {
-	if(this.settings.layout.stack_split === 100)
-	    return this.error_flash_stack();
-	else
-	    return this.error_flash_element(document.getElementById('document_panel'));
+        if(this.settings.layout.stack_split === 100)
+            return this.error_flash_stack();
+        else
+            return this.error_flash_element(document.getElementById('document_panel'));
     }
 
     clear_all_flashes() {
@@ -1265,17 +1265,17 @@ class InputContext {
     // because prefix arguments with stack commands highlight items on the stack which is bad UI.
     do_copy_to_clipboard(stack) {
         const [new_stack, item] = stack.pop(1);
-	const slot = this._get_prefix_argument(1, '*');
+        const slot = this._get_prefix_argument(1, '*');
         this.app_component.state.clipboard_items[slot] = item;
-	if(slot === 1)
-	    this.notify("Copied to clipboard");
-	else
+        if(slot === 1)
+            this.notify("Copied to clipboard");
+        else
             this.notify("Copied to clipboard slot " + slot);
         return new_stack.push(item);
     }
 
     do_paste_from_clipboard(stack) {
-	const slot = this._get_prefix_argument(1, '*');
+        const slot = this._get_prefix_argument(1, '*');
         const item = this.app_component.state.clipboard_items[slot];
         if(item)
             return stack.push(item.clone());

@@ -38,4 +38,4 @@ To build/run from source (not needed unless you want to change something):
   * Open the displayed server URL in a web browser
   * To build a packaged release, run 'npm run build' and the release will be created in the build/ subdirectory
 
-A pre-built version is available here: http://andrewbrault.com/rpnlatex
+A pre-built version is available here: https://ajb96817.github.io/rpnlatex
