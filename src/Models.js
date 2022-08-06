@@ -1375,7 +1375,7 @@ class ArrayExpr extends Expr {
         let left_delim = null, right_delim = null;
         switch(this.array_type) {
         case 'bmatrix': left_delim = '['; right_delim = ']'; break;
-        case 'Bmatrix': left_delim = '{'; right_delim = '}'; break;
+        case 'Bmatrix': left_delim = "\\{"; right_delim = "\\}"; break;
         case 'matrix': left_delim = null; right_delim = null; break;
         case 'pmatrix': left_delim = '('; right_delim = ')'; break;
         case 'vmatrix': left_delim = right_delim = '|'; break;
@@ -1410,10 +1410,8 @@ class ArrayExpr extends Expr {
                 emitter.row_separator();
                 const separator = this.row_separators[row_index-1];
                 if(separator) {
-                    if(separator === 'solid')
-                        emitter.command('hline')
-                    else if(separator === 'dashed')
-                        emitter.command('hdashline');
+                    if(separator === 'solid') emitter.command('hline')
+                    else if(separator === 'dashed') emitter.command('hdashline');
                     emitter.text("\n");
                 }
             }

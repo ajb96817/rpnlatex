@@ -645,6 +645,7 @@ const EditorKeymap = {
         'f': "build_align cases_if",
         'F': "build_align rcases_if",
         'g': "build_align gathered",
+        'h': "matrix_transpose;swap;matrix_transpose;swap;stack_matrices;matrix_transpose",  // i.e., stack horizontally
         'k': "build_substack",
         'm': "build_matrix_row matrix",
         'p': "build_list +;insert +\\cdots;concat",
