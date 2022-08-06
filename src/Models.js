@@ -1344,7 +1344,8 @@ class ArrayExpr extends Expr {
     }
 
     // Return a copy with a changed row or column separator at the specified location.
-    // (index=0 means right after the first row or column, etc.)
+    // 'index'=0 means right after the first row or column, etc.
+    // 'index'=null means apply separators to ALL rows or columns.
     // 'type' is one of: [null, 'solid', 'dashed'].
     // If 'toggle' is true, that indicates that if the current separator is already
     // of the requested type, the separator will be turned off instead.
@@ -1353,11 +1354,19 @@ class ArrayExpr extends Expr {
         const column_separators = [...this.column_separators];
         const separators = is_column ? column_separators : row_separators;
         const size = is_column ? this.column_count : this.row_count;
-        if(index < 0 || index >= size-1)
-            return this;  // out of bounds
-        if(toggle && separators[index] === type)
-            type = null;
-        separators[index] = type;
+        if(index === null) {
+            if(toggle && separators.every(s => s === type))
+                type = null;
+            for(let i = 0; i < size-1; i++)
+                separators[i] = type;
+        }
+        else {
+            if(index < 0 || index >= size-1)
+                return this;  // out of bounds
+            if(toggle && separators[index] === type)
+                type = null;
+            separators[index] = type;
+        }
         return new ArrayExpr(
             this.array_type, this.row_count, this.column_count, this.element_exprs,
             row_separators, column_separators);

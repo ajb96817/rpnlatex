@@ -1190,11 +1190,12 @@ class InputContext {
         const is_column = is_row_or_column === 'column';
         // NOTE: prefix argument of * indicates the final row or column of the matrix
         const size = is_column ? matrix_expr.column_count : matrix_expr.row_count;
-        const index = this._get_prefix_argument(1, size-1);
-        if(index < 1 || index > size-1)
+        const index = this._get_prefix_argument(1, null);
+        if(index !== null && (index < 1 || index > size-1))
             return this.error_flash_stack();
         else {
-            const new_expr = matrix_expr.with_separator(is_column, index-1, separator_type, true);
+            const new_expr = matrix_expr.with_separator(
+                is_column, index === null ? null : index-1, separator_type, true);
             return new_stack.push_expr(new_expr);
         }
     }
