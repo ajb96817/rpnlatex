@@ -216,7 +216,14 @@ class LatexEmitter {
             this.text(text);
     }
 
-    begin_environment(envname) { this.text("\\begin{" + envname + "}\n"); }
+    // environment_argument is an optional string to be placed directly after the \begin{...}.
+    // This is used for array environments with a specified column layout, for example
+    // \begin{matrix}{c:c:c}
+    begin_environment(envname, environment_argument) {
+        this.text("\\begin{" + envname + "}");
+        if(environment_argument) this.text(environment_argument);
+        this.text("\n");
+    }
 
     end_environment(envname) { this.text("\n\\end{" + envname + "}\n"); }
 
@@ -226,8 +233,8 @@ class LatexEmitter {
     row_separator() {
         // Give a little more space between rows, for fractions.
         // See KaTeX "common issues" page.
-        this.text("\\\\[0.1em]\n");
-        //this.text("\\\\\n");
+        // this.text("\\\\[0.1em]\n");
+        this.text("\\\\\n");
     }
 
     finished_string() { return this.tokens.join(''); }
@@ -714,8 +721,9 @@ class Expr {
         case 'prefix':
             return new PrefixExpr(this._expr(json.base_expr), this._expr(json.prefix_expr));
         case 'infix':
-            return new InfixExpr(this._expr(json.operator_expr), this._expr(json.left_expr),
-                                 this._expr(json.right_expr), json.split || null);
+            return new InfixExpr(
+                this._expr(json.operator_expr), this._expr(json.left_expr),
+                this._expr(json.right_expr), json.split || null);
         case 'defer':
             return new DeferExpr();
         case 'text':
@@ -723,11 +731,18 @@ class Expr {
         case 'sequence':
             return new SequenceExpr(this._list(json.exprs));
         case 'delimiter':
-            return new DelimiterExpr(json.left_type, json.right_type, json.middle_type, this._list(json.inner_exprs));
+            return new DelimiterExpr(
+                json.left_type, json.right_type, json.middle_type,
+                this._list(json.inner_exprs));
         case 'subscriptsuperscript':
-            return new SubscriptSuperscriptExpr(this._expr(json.base_expr), this._expr(json.subscript_expr), this._expr(json.superscript_expr));
+            return new SubscriptSuperscriptExpr(
+                this._expr(json.base_expr),
+                this._expr(json.subscript_expr),
+                this._expr(json.superscript_expr));
         case 'array':
-            return new ArrayExpr(json.array_type, json.row_count, json.column_count, this._list2d(json.element_exprs));
+            return new ArrayExpr(
+                json.array_type, json.row_count, json.column_count, this._list2d(json.element_exprs),
+                json.row_separators, json.column_separators);
         default:
             return new TextExpr('invalid expr type ' + json.expr_type);
         }
@@ -1176,6 +1191,20 @@ class SubscriptSuperscriptExpr extends Expr {
 
 // \begin{bmatrix} ... etc
 class ArrayExpr extends Expr {
+    // Stack two ArrayExprs on top of each other.
+    // If there is an incompatibility such as mismatched column counts, null is returned.
+    static stack_arrays(expr1, expr2) {
+        if(expr1.column_count !== expr2.column_count)
+            return null;
+        return new ArrayExpr(
+            expr2.array_type,
+            expr1.row_count + expr2.row_count,
+            expr1.column_count,
+            expr1.element_exprs.concat(expr2.element_exprs),
+            expr1.row_separators.concat(expr2.row_separators),
+            expr2.column_separators);
+    }
+    
     // split_mode:  (for placing alignment markers automatically for "\cases" and such)
     //    'none': do nothing, just put each entry_expr in its own row
     //    'infix': place alignment markers before infix, if any
@@ -1218,13 +1247,20 @@ class ArrayExpr extends Expr {
             return [expr];
         }
     }
-    
-    constructor(array_type, row_count, column_count, element_exprs) {
+
+    // row_separators and column_separators can either be null or an array of N-1
+    // items (where N is the row or column count respectively).  Each item can be
+    // one of: [null, 'solid', 'dashed'] indicating the type of separator to put
+    // between the corresponding row or column.
+    constructor(array_type, row_count, column_count, element_exprs,
+                row_separators, column_separators) {
         super();
         this.array_type = array_type;
         this.row_count = row_count;
         this.column_count = column_count;
         this.element_exprs = element_exprs;
+        this.row_separators = row_separators || new Array(row_count-1).fill(null);
+        this.column_separators = column_separators || new Array(column_count-1).fill(null);
     }
 
     expr_type() { return 'array'; }
@@ -1241,12 +1277,19 @@ class ArrayExpr extends Expr {
         let json = super.to_json();
         json.element_exprs = this.element_exprs.map(
             row_exprs => row_exprs.map(expr => expr.to_json()));
+        // Don't emit row/column separators if they are all turned off (to keep the JSON smaller).
+        if(!this.row_separators.every(s => s === null))
+            json.row_separators = this.row_separators;
+        if(!this.column_separators.every(s => s === null))
+            json.column_separators = this.column_separators;
         return json;
     }
 
     // Return a new ArrayExpr like this one, but with ellipses inserted before the
     // last row and column, and along the diagonal.
     // NOTE: is_matrix() should be true before calling this.
+    // NOTE: this does not preserve column/row separators.  There's not really a
+    // consistent way of doing this automatically.
     with_ellipses() {
         if(this.row_count <= 1 || this.column_count <= 1)
             return this;
@@ -1262,6 +1305,7 @@ class ArrayExpr extends Expr {
         inserted_row_exprs.push(make_cell("\\ddots"));
         inserted_row_exprs.push(make_cell("\\vdots"));
         new_element_exprs.splice(this.row_count-1, 0, inserted_row_exprs);
+        // TODO: preserve row/column separators
         return new ArrayExpr(this.array_type, this.row_count+1, this.column_count+1, new_element_exprs);
     }
 
@@ -1272,7 +1316,9 @@ class ArrayExpr extends Expr {
         for(let i = 0; i < this.column_count; i++)
             new_element_exprs.push(this.element_exprs.map(
                 row_exprs => this._transpose_cell(row_exprs[i])));
-        return new ArrayExpr(this.array_type, this.column_count, this.row_count, new_element_exprs);
+        return new ArrayExpr(
+            this.array_type, this.column_count, this.row_count, new_element_exprs,
+            this.column_separators, this.row_separators);
     }
 
     // When transposing a matrix, we generally want to flip vertical and horizontal ellipses
@@ -1292,13 +1338,110 @@ class ArrayExpr extends Expr {
     // NOTE: is_matrix() should be true before calling this.
     split_rows() {
         return this.element_exprs.map(
-            row_exprs => new ArrayExpr(this.array_type, 1, this.column_count, [row_exprs]));
+            row_exprs => new ArrayExpr(
+                this.array_type, 1, this.column_count, [row_exprs],
+                this.column_separators, null));
+    }
+
+    // Return a copy with a changed row or column separator at the specified location.
+    // (index=0 means right after the first row or column, etc.)
+    // 'type' is one of: [null, 'solid', 'dashed'].
+    // If 'toggle' is true, that indicates that if the current separator is already
+    // of the requested type, the separator will be turned off instead.
+    with_separator(is_column, index, type, toggle) {
+        const row_separators = [...this.row_separators];
+        const column_separators = [...this.column_separators];
+        const separators = is_column ? column_separators : row_separators;
+        const size = is_column ? this.column_count : this.row_count;
+        if(index < 0 || index >= size-1)
+            return this;  // out of bounds
+        if(toggle && separators[index] === type)
+            type = null;
+        separators[index] = type;
+        return new ArrayExpr(
+            this.array_type, this.row_count, this.column_count, this.element_exprs,
+            row_separators, column_separators);
+    }
+
+    // This is a matrix with at least one column separator specified.
+    // Unfortunately, with LaTeX/KaTeX, the {array} environment has to be used
+    // which doesn't support the surrounding matrix delimiters, so we have to
+    // explicitly put out the delimiters here.  But this also throws off the matrix
+    // spacing - \kern is used to compensate for that.  But the spacing after \kern
+    // is too small to accomodate horizontal rules (row separators) so if those are
+    // present, the (default) larger spacing is used.
+    _emit_array_with_column_separators(emitter) {
+        // Determine which delimiters to explicitly emit based on the matrix type.
+        let left_delim = null, right_delim = null;
+        switch(this.array_type) {
+        case 'bmatrix': left_delim = '['; right_delim = ']'; break;
+        case 'Bmatrix': left_delim = '{'; right_delim = '}'; break;
+        case 'matrix': left_delim = null; right_delim = null; break;
+        case 'pmatrix': left_delim = '('; right_delim = ')'; break;
+        case 'vmatrix': left_delim = right_delim = '|'; break;
+        case 'Vmatrix': left_delim = right_delim = "\\Vert"; break;
+        default: break;
+        }
+
+        // Assemble the LaTeX column separator "specification" string
+        // (the {c:c:c} part in: \begin{array}{c:c:c}).
+        let pieces = ['{'];
+        for(let i = 0; i < this.column_count; i++) {
+            pieces.push('c');  // centered (only mode that's supported currently)
+            if(i < this.column_count-1) {
+                const s = this.column_separators[i];
+                if(s === 'solid') pieces.push('|');
+                else if(s === 'dashed') pieces.push(':');
+            }
+        }
+        pieces.push('}');
+        const column_layout_string = pieces.join('');
+
+        if(left_delim) {
+            emitter.command('left');
+            emitter.text_or_command(left_delim);
+        }
+        const has_row_separators = !this.row_separators.every(s => s === null);
+        if(!has_row_separators)
+            emitter.text_or_command("\\kern-5pt");
+        emitter.begin_environment('array', column_layout_string);
+        this.element_exprs.forEach((row_exprs, row_index) => {
+            if(row_index > 0) {
+                emitter.row_separator();
+                const separator = this.row_separators[row_index-1];
+                if(separator) {
+                    if(separator === 'solid')
+                        emitter.command('hline')
+                    else if(separator === 'dashed')
+                        emitter.command('hdashline');
+                    emitter.text("\n");
+                }
+            }
+            row_exprs.forEach((expr, col_index) => {
+                if(col_index > 0) emitter.align_separator();
+                if(expr) emitter.expr(expr);
+            });
+        });
+        emitter.end_environment('array');
+        if(!has_row_separators)
+            emitter.text_or_command("\\kern-5pt");
+        if(right_delim) {
+            emitter.command('right');
+            emitter.text_or_command(right_delim);
+        }
     }
 
     emit_latex(emitter) {
+        // Matrices with row or column separators require special handling in LaTeX.
+        if(this.is_matrix() &&
+           !(this.column_separators.every(s => s === null) &&
+             this.row_separators.every(s => s === null)))
+            return this._emit_array_with_column_separators(emitter);
+
         emitter.begin_environment(this.array_type);
         this.element_exprs.forEach((row_exprs, row_index) => {
-            if(row_index > 0) emitter.row_separator();
+            if(row_index > 0)
+                emitter.row_separator();
             row_exprs.forEach((expr, col_index) => {
                 if(col_index > 0) emitter.align_separator();
                 if(expr) emitter.expr(expr);
@@ -1318,7 +1461,8 @@ class ArrayExpr extends Expr {
         const new_element_exprs = this.element_exprs.map(
             row_exprs => row_exprs.map(
                 expr => expr.substitute_expr(old_expr, new_expr)));
-        return new ArrayExpr(this.array_type, this.row_count, this.column_count, new_element_exprs);
+        return new ArrayExpr(this.array_type, this.row_count, this.column_count, new_element_exprs,
+                             this.row_separators, this.column_separators);
     }
 }
 

@@ -635,6 +635,7 @@ const EditorKeymap = {
     // | prefix: array/matrix operations
     array: {
         '[digit]': "prefix_argument",
+        '*': "prefix_argument",
         'a': "build_align aligned",
         'c': "build_align cases",
         'C': "build_align rcases",
@@ -663,6 +664,10 @@ const EditorKeymap = {
         '@': "build_matrix_row bmatrix 2;matrix_transpose",
         '#': "build_matrix_row bmatrix 3;matrix_transpose",
         '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
+        ':': "array_separator column dashed",
+        '!': "array_separator column solid",
+        '-': "array_separator row dashed",
+        '_': "array_separator row solid",
         'Enter': "stack_matrices",
         '?': "toggle_popup help arrays"
     },

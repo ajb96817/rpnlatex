@@ -494,11 +494,11 @@
             <td><span class="keybinding">/</span> <code>\cancel x</code> (cancel)</td>
             <td><span class="keybinding">\</span> <code>\bcancel x</code></td>
           </tr>
-	  <tr>
+          <tr>
             <td><span class="keybinding">_</span> <code>\underline x</code></td>
             <td><span class="keybinding">~</span> <code>\tilde x</code></td>
-	    <td></td>
-	  </tr>
+            <td></td>
+          </tr>
       </tbody></table>
       <p>
         A few colors can be applied via the prefix
@@ -737,11 +737,11 @@
           &nbsp;&nbsp;
           <span class="keybinding">+</span> <code>y\enspace x \to \displaystyle\sum_{y\ge x}</code>
         </li>
-	<li>
-	  <span class="keybinding">[</span> <code>f\enspace x \to f[x]</code>
+        <li>
+          <span class="keybinding">[</span> <code>f\enspace x \to f[x]</code>
           &nbsp;&nbsp;
-	  <span class="keybinding">]</span> <code>f\enspace x \to f\{x\}</code>
-	</li>
+          <span class="keybinding">]</span> <code>f\enspace x \to f\{x\}</code>
+        </li>
         <li>
           <span class="keybinding">{</span> <code>y\enspace x \to \overbrace{y}^x</code>
           &nbsp;&nbsp;
@@ -1177,6 +1177,19 @@
       </ul>
 
       <p>
+        <b>Row and Column Separators:</b> These commands place separator lines between rows or columns of
+        a matrix.  A prefix argument may be used to specify which row or column the separator is to be placed
+        after, otherwise the first row or column will be used.  A <span class="keybinding">*</span> prefix
+        specifies the last row or column.
+      </p>
+      <ul class="keybindings">
+        <li><span class="keybinding">!</span> Place a solid line between columns.</li>
+        <li><span class="keybinding">:</span> Place a dashed line between columns.</li>
+        <li><span class="keybinding">-</span> Place a solid line between rows.</li>
+        <li><span class="keybinding">_</span> Place a dashed line between rows.</li>
+      </ul>
+
+      <p>
         <b>List Building:</b>
         These commands build concatenated lists from individual items.
         As before, the number of items to concatenate must be given as a prefix argument.
@@ -1494,8 +1507,8 @@
         </li>
         <li>
           <span class="keybinding">Ctrl+Space</span> Join two items with a space
-	  (same as <span class="keybinding">,</span><span class="keybinding">s</span>)
-	</li>
+          (same as <span class="keybinding">,</span><span class="keybinding">s</span>)
+        </li>
         <li>
           <span class="keybinding">Ctrl+&larr;&rarr;</span>
           <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide

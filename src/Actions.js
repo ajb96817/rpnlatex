@@ -1151,15 +1151,11 @@ class InputContext {
     do_stack_matrices(stack) {
         // TODO: allow stacking 'align' exprs, etc (where is_matrix isn't necessarily true)
         const [new_stack, m1, m2] = stack.pop_matrices(2);
-        if(m1.column_count !== m2.column_count)
-            new_stack.type_error();
-        const new_array = new ArrayExpr(
-            m2.array_type,
-            m1.row_count + m2.row_count,
-            m1.column_count,
-            m1.element_exprs.concat(m2.element_exprs)
-        );
-        return new_stack.push_expr(new_array);
+        const new_matrix = ArrayExpr.stack_arrays(m1, m2);
+        if(new_matrix)
+            return new_stack.push_expr(new_matrix);
+        else
+            return new_stack.type_error();
     }
 
     // Split an ArrayExpr into its component rows and put them on the stack.
@@ -1185,6 +1181,22 @@ class InputContext {
     do_matrix_transpose(stack) {
         const [new_stack, matrix_expr] = stack.pop_matrices(1);
         return new_stack.push_expr(matrix_expr.transposed());
+    }
+
+    // is_row_or_column: 'row', 'column'
+    // separator_type: 'solid' or 'dashed'
+    do_array_separator(stack, is_row_or_column, separator_type) {
+        const [new_stack, matrix_expr] = stack.pop_matrices(1);
+        const is_column = is_row_or_column === 'column';
+        // NOTE: prefix argument of * indicates the final row or column of the matrix
+        const size = is_column ? matrix_expr.column_count : matrix_expr.row_count;
+        const index = this._get_prefix_argument(1, size-1);
+        if(index < 1 || index > size-1)
+            return this.error_flash_stack();
+        else {
+            const new_expr = matrix_expr.with_separator(is_column, index-1, separator_type, true);
+            return new_stack.push_expr(new_expr);
+        }
     }
 
     do_build_align(stack, align_type) {
