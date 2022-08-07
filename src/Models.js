@@ -1556,6 +1556,8 @@ class ExprItem extends Item {
     to_text() { return this.expr.to_text(); }
 
     clone() { return new ExprItem(this.expr, this.tag_expr); }
+
+    as_bold() { return new ExprItem(this.expr.as_bold(), this.tag_expr); }
 }
 
 
@@ -1571,6 +1573,7 @@ class SeparatorItem extends Item {
     to_json() { return {item_type: 'separator', separator_type: this.separator_type}; }
     to_text() { return "\\rule"; }
     clone() { return new SeparatorItem(this.separator_type); }
+    as_bold() { return this.clone(); }
 }
 
 
