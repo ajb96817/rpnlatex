@@ -592,7 +592,7 @@ const EditorKeymap = {
         'O': "operator overline",
         'p': "insert \\perp;subscript",
         'P': "prefix \\pm",
-        'r': "operator mathrm",
+        'r': "make_roman",
         's': "operator mathsf",  // sans-serif
         't': "prefix \\to",
         'T': "operator widetilde",

@@ -859,13 +859,8 @@ class Expr {
             return this;
     }
 
-    // Wrap this expression in a \boldsymbol{...} command if it's not already.
-    as_bold() {
-        if(this.expr_type() === 'command' && this.command_name === 'boldsymbol')
-            return this;
-        else
-            return new CommandExpr('boldsymbol', [this]);
-    }
+    // NOTE: CommandExpr overrides this
+    as_bold() { return new CommandExpr('boldsymbol', [this]); }
 }
 
 
@@ -912,6 +907,23 @@ class CommandExpr extends Expr {
             this.command_name,
             this.operand_exprs.map(operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
             this.options);
+    }
+
+    // Wrap this expression in a \boldsymbol{...} command if it's not already.
+    // LaTeX has different ways of expressing 'bold' so this is not quite trivial.
+    // TextItem implements as_bold() in yet another way.
+    as_bold() {
+        if(this.command_name === 'boldsymbol')
+            return this;
+        else if(this.command_name === 'mathrm') {
+            // Replace \mathrm with \bold (as if it were originally created with [.][e] (operator bold))
+            if(this.operand_count() === 1)
+                return new CommandExpr('bold', this.operand_exprs);
+            else
+                return this;
+        }
+        else
+            return super.as_bold();
     }
 }
 

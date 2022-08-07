@@ -667,6 +667,20 @@ class InputContext {
         return new_stack.push(item.as_bold());
     }
 
+    // This is equivalent to 'operator mathrm' except that if the target is already wrapped in a \boldsymbol{}
+    // (presumably created by do_make_bold()), this converts it into a \bold{} which yields a bold Roman glyph.
+    do_make_roman(stack) {
+        let [new_stack, expr] = stack.pop_exprs(1);
+        let new_expr = expr;
+        if(expr.expr_type() === 'command' && expr.command_name === 'boldsymbol' && expr.operand_count() === 1)
+            new_expr = new CommandExpr('bold', expr.operand_exprs);
+        else if(expr.expr_type() === 'command' && expr.command_name === 'mathrm')
+            new_expr = expr;
+        else
+            new_expr = new CommandExpr('mathrm', [expr]);
+        return new_stack.push_expr(new_expr);
+    }
+
     do_custom_delimiter(stack, delimiter_type) {
         this.switch_to_mode('custom_delimiters');
         if(!delimiter_type) {
