@@ -671,7 +671,7 @@ class InputContext {
     // (presumably created by do_make_bold()), this converts it into a \bold{} which yields a bold Roman glyph.
     do_make_roman(stack) {
         let [new_stack, expr] = stack.pop_exprs(1);
-        let new_expr = expr;
+        let new_expr = null;
         if(expr.expr_type() === 'command' && expr.command_name === 'boldsymbol' && expr.operand_count() === 1)
             new_expr = new CommandExpr('bold', expr.operand_exprs);
         else if(expr.expr_type() === 'command' && expr.command_name === 'mathrm')

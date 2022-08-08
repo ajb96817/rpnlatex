@@ -1662,14 +1662,14 @@ class TextItemTextElement extends TextItemElement {
         // Fortunately, \char" always works.
         const replacements = {
             '_': "\\_",
-            '^': "\\char\"005e",
+            '^': "\\char\"005e{}",
             '%': "\\%",
             '$': "\\$",
             '&': "\\&",
             '#': "\\#",
             '}': "\\}",
             '{': "\\{",
-            '~': "\\char\"223c",
+            '~': "\\char\"223c{}",
             "\\": "\\textbackslash "
         };
         return text.replaceAll(/[_^%$&#}{~\\]/g, match => replacements[match]);
