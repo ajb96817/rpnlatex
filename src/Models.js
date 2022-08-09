@@ -1213,7 +1213,7 @@ class ArrayExpr extends Expr {
             expr1.row_count + expr2.row_count,
             expr1.column_count,
             expr1.element_exprs.concat(expr2.element_exprs),
-            expr1.row_separators.concat(expr2.row_separators),
+            expr1.row_separators.concat([null].concat(expr2.row_separators)),
             expr2.column_separators);
     }
     
