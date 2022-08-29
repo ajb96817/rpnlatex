@@ -135,15 +135,14 @@ class LatexEmitter {
     }
 
     emit_token(text, token_type) {
-        if(text.length > 0) {
+        if(text.length > 0)
             this.tokens.push(text);
-            this.last_token_type = token_type;
-        }
+        this.last_token_type = token_type;
     }
 
     expr(expr) { expr.emit_latex(this); }
 
-    grouped_expr(expr, force_braces) { this.grouped((() => this.expr(expr)), force_braces); }
+    grouped_expr(expr, force_braces) { this.grouped(() => this.expr(expr), force_braces); }
 
     grouped(fn, force_braces) {
         let [old_tokens, old_last_token_type] = [this.tokens, this.last_token_type];
@@ -233,8 +232,8 @@ class LatexEmitter {
     row_separator() {
         // Give a little more space between rows, for fractions.
         // See KaTeX "common issues" page.
-        // this.text("\\\\[0.1em]\n");
-        this.text("\\\\\n");
+        this.text("\\\\[0.1em]\n");
+        // this.text("\\\\\n");
     }
 
     finished_string() { return this.tokens.join(''); }
@@ -778,6 +777,10 @@ class Expr {
         }
         else if(left_type === 'command' && right_type === 'command')
             return Expr.combine_command_pair(left, right);
+        else if(right_type === 'prefix') {
+            // X + prefix(Y) -> infix(X, Y) (this should always be OK to do)
+            return new InfixExpr(right.prefix_expr, left, right.base_expr);
+        }
         else
             return new SequenceExpr([left, right]);
     }
@@ -941,7 +944,6 @@ class CommandExpr extends Expr {
 
 
 // Represents one expression in front of another.  Similar to InfixExpr.
-// TODO: remove this class, it's mostly unnecessary now.
 class PrefixExpr extends Expr {
     constructor(base_expr, prefix_expr) {
         super();
@@ -1225,7 +1227,7 @@ class ArrayExpr extends Expr {
             expr1.row_count + expr2.row_count,
             expr1.column_count,
             expr1.element_exprs.concat(expr2.element_exprs),
-            expr1.row_separators.concat([null].concat(expr2.row_separators)),
+            expr1.row_separators.concat([null], expr2.row_separators),
             expr2.column_separators);
     }
     
@@ -1403,7 +1405,7 @@ class ArrayExpr extends Expr {
     // spacing - \kern is used to compensate for that.  But the spacing after \kern
     // is too small to accomodate horizontal rules (row separators) so if those are
     // present, the (default) larger spacing is used.
-    _emit_array_with_column_separators(emitter) {
+    _emit_array_with_separators(emitter) {
         // Determine which delimiters to explicitly emit based on the matrix type.
         let left_delim = null, right_delim = null;
         switch(this.array_type) {
@@ -1467,7 +1469,7 @@ class ArrayExpr extends Expr {
         if(this.is_matrix() &&
            !(this.column_separators.every(s => s === null) &&
              this.row_separators.every(s => s === null)))
-            return this._emit_array_with_column_separators(emitter);
+            return this._emit_array_with_separators(emitter);
 
         emitter.begin_environment(this.array_type);
         this.element_exprs.forEach((row_exprs, row_index) => {
@@ -1492,8 +1494,9 @@ class ArrayExpr extends Expr {
         const new_element_exprs = this.element_exprs.map(
             row_exprs => row_exprs.map(
                 expr => expr.substitute_expr(old_expr, new_expr)));
-        return new ArrayExpr(this.array_type, this.row_count, this.column_count, new_element_exprs,
-                             this.row_separators, this.column_separators);
+        return new ArrayExpr(
+            this.array_type, this.row_count, this.column_count, new_element_exprs,
+            this.row_separators, this.column_separators);
     }
 }
 

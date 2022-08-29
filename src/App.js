@@ -608,8 +608,8 @@ class ItemComponent extends React.Component {
     }
 
     componentDidMount() {
-        let item = this.props.item;
-        let node = this.props.item_ref.current;
+        const item = this.props.item;
+        const node = this.props.item_ref.current;
         if(!node) return;  // shouldn't happen
         if(item.item_type() === 'expr') {
             // Render math with KaTeX
@@ -681,8 +681,8 @@ class PopupPanelComponent extends React.Component {
     }
 
     componentDidMount() {
-        let help_source_elt = document.getElementById('helptext');
-        let help_dest_elt = this.refs.help_content.current;
+        const help_source_elt = document.getElementById('helptext');
+        const help_dest_elt = this.refs.help_content.current;
         if(help_source_elt) {
             help_source_elt.style.display = 'block';
             this._render_help_latex(help_source_elt);
@@ -712,7 +712,7 @@ class PopupPanelComponent extends React.Component {
 
     // Render any <code>...</code> spans in the help text with KaTeX.
     _render_help_latex(help_elt) {
-        let children = help_elt.getElementsByTagName('code');
+        const children = help_elt.getElementsByTagName('code');
         for(let i = 0; i < children.length; i++) {
             let code_elt = children[i];
             const latex_code = code_elt.textContent;
