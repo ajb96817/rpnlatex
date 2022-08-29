@@ -782,10 +782,21 @@ class Expr {
             return new SequenceExpr([left, right]);
     }
 
-    // Combine two CommandExprs with some special-casing for particular
-    // command pairs (combining integral symbols currently).
+    // Combine two CommandExprs with some special-casing for some particular command pairs.
     static combine_command_pair(left, right) {
         const left_name = left.command_name, right_name = right.command_name;
+
+	// Try combining \boldsymbol{X...} + \boldsymbol{Y...} -> \boldsymbol{X...Y...}
+	// Combining in this way fixes (or at least improves) some edge-case spacing problems with KaTeX.
+	// Compare: \boldsymbol{W}\boldsymbol{A} vs. \boldsymbol{WA}
+	if(left_name === 'boldsymbol' && right_name === 'boldsymbol' &&
+	   left.operand_count() === 1 && right.operand_count() === 1) {
+	    return new SequenceExpr(
+		[left.operand_exprs[0], right.operand_exprs[0]]
+	    ).as_bold();
+	}
+
+	// Try combining adjacent integral symbols into multiple-integral commands.
         let new_command_name = null;
         if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
         if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
@@ -795,8 +806,9 @@ class Expr {
         if(left_name === 'oint' && right_name === 'oiint') new_command_name = 'oiiint';
         if(new_command_name)
             return new CommandExpr(new_command_name);
-        else
-            return new SequenceExpr([left, right]);
+
+	// Everything else just becomes a SequenceExpr.
+        return new SequenceExpr([left, right]);
     }
     
     expr_type() { return '???'; }
