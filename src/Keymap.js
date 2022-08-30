@@ -73,8 +73,9 @@ const EditorKeymap = {
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-        'Ctrl+o': "parenthesize;swap;operator mathopen;swap;concat",  // same as [/][o]
+        'Ctrl+o': "parenthesize;swap;operator mathopen;swap;concat",  // -> f(x): same as [/][o]
         'Ctrl+p': "delimiters ( )",
+        'Ctrl+r': "infix ,;parenthesize;swap;operator mathopen;swap;concat",  // -> f(x,y): same as [/][r]
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
         'Ctrl+v': "paste_from_clipboard",
@@ -297,11 +298,11 @@ const EditorKeymap = {
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
-        'O': "infix ,;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x,y)
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
+        'r': "infix ,;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x,y)
         's': "named_function sin",
         'S': "named_function sec",
         't': "named_function tan",
