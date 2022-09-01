@@ -664,8 +664,8 @@
       </h2>
       <ul class="keybindings">
         <li><span class="keybinding">1</span> Reciprocal: <code>x \to \frac{1}{x}</code></li>
-        <li><span class="keybinding">a</span> Apply a LaTeX operator to a single argument: <code>y\enspace\backslash\textrm{sqrt} \to \sqrt{y}</code></li>
-        <li><span class="keybinding">A</span> Apply a LaTeX operator to two arguments: <code>z\enspace y\enspace\backslash\textrm{overset} \to \overset{z}{y}</code></li>
+        <li><span class="keybinding">a</span> Apply a LaTeX operator to a single argument: <code>\backslash\textrm{sqrt}\enspace x \to \sqrt{x}</code></li>
+        <li><span class="keybinding">A</span> Apply a LaTeX operator to two arguments: <code>\backslash\textrm{overset}\enspace y\enspace x \to \overset{y}{x}</code></li>
         <li><span class="keybinding">b</span> Binomial coefficient notation: <code>y\enspace x \to \binom{y}{x}</code></li>
         <li><span class="keybinding">d</span> Prefix for building <a href="#derivatives">derivative</a> expressions.</li>
         <li><span class="keybinding">D</span> <code>\det{x}</code></li>
@@ -855,30 +855,33 @@
             <td><span class="keybinding">4</span> <code>x \to \mathrm{d}^4 x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">i</span> <code>y\enspace x \to y\,\mathrm{d}x</code></td>
-            <td><span class="keybinding">I</span> <code>y\enspace x \to y\mathrm{d}x\,</code></td>
+            <td colspan="2">
+              <span class="keybinding">i</span> or <span class="keybinding">I</span> or <span class="keybinding">&nbsp;</span>
+              <code>y\enspace x \to y\,\mathrm{d}x</code> (see below)
+            </td>
           </tr>
       </tbody></table>
       <p>
-        <strong>NOTE:</strong>
-        <span class="keybinding">i</span> and <span class="keybinding">I</span> are meant
-        for attaching a differential to an existing integral expression with appropriate spacing.
-        <span class="keybinding">i</span> places a thin space between the integrand and
-        the differential, while <span class="keybinding">I</span> is for placing the
-        differential directly against the integral sign while leaving a thin space
-        after it for the integrand.
+        <span class="keybinding">i</span> and <span class="keybinding">I</span> and <span class="keybinding">&nbsp;</span>
+        are meant for attaching a differential to an existing integral expression with appropriate spacing.
+        The difference between the three is where the spacing goes:
       </p>
-      <p>
-        <code>\int x^2 \quad x\enspace</code>
-        <span class="keybinding">/</span><span class="keybinding">d</span><span class="keybinding">i</span>
-        <code>\to \int x^2\,\mathrm{d}x</code>
-      </p>
-      <p>
-        <code>\int \quad x\enspace</code><span class="keybinding">/</span><span class="keybinding">d</span><span class="keybinding">I</span>
-        <code>\to \int\mathrm{d}x\enspace</code>
-        <span class="keybinding">x</span><span class="keybinding">.</span><span class="keybinding">2</span><span class="keybinding">&nbsp;</span>
-        <code>\to \int\mathrm{d}x\,x^2</code>
-      </p>
+      <ul>
+        <li>
+          <span class="keybinding">i</span> Space goes before the differential.  This is the usual
+          "textbook" case, e.g.
+          <code>\int x^2\,\mathrm{d}x</code>
+        </li>
+        <li>
+          <span class="keybinding">I</span> Space goes after the differential, for when you want to
+          concatenate the integrand afterwards:
+          <code>\int\mathrm{d}x\,x^2</code>
+        </li>
+        <li>
+          <span class="keybinding">&nbsp;</span> No spacing around the differential, for simple cases like
+          <code>\int\mathrm{d}x</code>
+        </li>
+      </ul>
 
       <h2>
         <a name="integrals">Integral Limits <span class="keybinding">/</span><span class="keybinding">i</span></a>

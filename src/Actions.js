@@ -1049,11 +1049,12 @@ class InputContext {
             return stack;
     }
 
-    // Combine arguments and command name from the stack into a CommandExpr
+    // Combine command name and arguments from the stack into a CommandExpr.
+    // \frac x y -> \frac{x}{y}
     do_apply_operator(stack, arg_count_string) {
         const arg_count = parseInt(arg_count_string);
         const [new_stack, ...exprs] = stack.pop_exprs(arg_count+1);
-        const command_expr = exprs[exprs.length-1], operand_exprs = exprs.slice(0, arg_count);
+        const command_expr = exprs[0], operand_exprs = exprs.slice(1);
         if(command_expr.expr_type() === 'command' && command_expr.operand_count() === 0)
             return new_stack.push_expr(
                 new CommandExpr(command_expr.command_name, operand_exprs));

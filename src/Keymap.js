@@ -431,6 +431,9 @@ const EditorKeymap = {
         'i': "swap;insert \\,;concat;swap;insert d;operator mathrm;swap;concat;concat",
         // y x -> ydx (with thinspace after the dx)
         'I': "insert d;operator mathrm;swap;concat;concat;insert \\,;concat",
+        // y x -> ydx (no spacing around the dx)
+        ' ': "insert d;operator mathrm;swap;concat;concat",
+
         '?': "toggle_popup help derivatives"
     },
 
