@@ -990,8 +990,6 @@ class PrefixExpr extends Expr {
 // Represents two expressions joined by textual infix (something like + or \wedge).
 // This is similar to concatenated TextNodes, but using InfixExpr lets things like ArrayExpr
 // automatically detect where to put alignments when the contents are InfixExprs.
-// NOTE: it's possible for left_expr or right_expr to be null; in that case, the corresponding
-// "side" isn't rendered.
 class InfixExpr extends Expr {
     // split can be null, 'before', or 'after'.
     // If it's non-null, the equation is split via \\ and \qquad, either before or after the infix.
@@ -1027,8 +1025,7 @@ class InfixExpr extends Expr {
     }
 
     emit_latex(emitter) {
-        if(this.left_expr)
-            emitter.expr(this.left_expr);
+        emitter.expr(this.left_expr);
         if(this.split === 'before') {
             emitter.command("\\");
             emitter.command("qquad");
@@ -1038,15 +1035,14 @@ class InfixExpr extends Expr {
             emitter.command("\\");
             emitter.command("qquad");
         }
-        if(this.right_expr)
-            emitter.expr(this.right_expr);
+        emitter.expr(this.right_expr);
     }
 
     visit(fn) {
-        if(this.left_expr) this.left_expr.visit(fn);
+        this.left_expr.visit(fn);
         this.operator_expr.visit(fn);
         fn(this);
-        if(this.right_expr) this.right_expr.visit(fn);
+        this.right_expr.visit(fn);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1260,7 +1256,7 @@ class ArrayExpr extends Expr {
             return [expr];
         case 'infix':
             if(expr.expr_type() === 'infix')
-                return [expr.left_expr, new InfixExpr(expr.operator_expr, null, expr.right_expr)];
+                return [expr.left_expr, new PrefixExpr(expr.right_expr, expr.operator_expr)];
             else
                 return [expr, null];
         case 'colon':
