@@ -775,6 +775,14 @@ class Expr {
                 [new TextExpr(left.text + right.exprs[0].text)
                 ].concat(right.exprs.slice(1)));
         }
+        else if(left_type === 'sequence') {
+            // Sequence + anything => longer Sequence
+            return new SequenceExpr(left.exprs.concat([right]));
+        }
+        else if(right_type === 'sequence') {
+            // Anything + Sequence => longer Sequence
+            return new SequenceExpr([left].concat(right.exprs));
+        }
         else if(left_type === 'command' && right_type === 'command')
             return Expr.combine_command_pair(left, right);
         else if(right_type === 'prefix') {
@@ -876,6 +884,8 @@ class Expr {
 
     // NOTE: CommandExpr overrides this
     as_bold() { return new CommandExpr('boldsymbol', [this]); }
+
+    is_command_with_name(command_name) { return false; }
 }
 
 
@@ -951,6 +961,10 @@ class CommandExpr extends Expr {
         }
         else
             return super.as_bold();
+    }
+
+    is_command_with_name(command_name) {
+        return this.command_name === command_name;
     }
 }
 
@@ -1101,7 +1115,22 @@ class SequenceExpr extends Expr {
     json_keys() { return ['exprs']; }
 
     emit_latex(emitter) {
-        this.exprs.forEach(expr => emitter.expr(expr));
+        // Emit each subexpression in order, with a special case for a large operator
+        // like \sum followed by a \mathopen{} (e.g. f(x) created with [/][o]).
+        // KaTeX renders this case with too little spacing between the two, so
+        // explicitly insert a thinspace here.
+        //
+        // NOTE: \int (and related symbols like \oint) have the same problem, but
+        // because of the shape of these operators it looks fine and there's no need
+        // for this workaround.
+        const problematic_large_operators = ['sum', 'prod', 'bigcup', 'bigcap'];
+        let last_was_large_op = false;
+        this.exprs.forEach(expr => {
+            if(last_was_large_op && expr.is_command_with_name('mathopen'))
+                emitter.command(",");
+            emitter.expr(expr);
+            last_was_large_op = problematic_large_operators.some(op => expr.is_command_with_name(op));
+        });
     }
 
     visit(fn) {
@@ -1219,6 +1248,10 @@ class SubscriptSuperscriptExpr extends Expr {
             this.base_expr.substitute_expr(old_expr, new_expr),
             this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
             this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
+    }
+
+    is_command_with_name(command_name) {
+        return this.base_expr.is_command_with_name(command_name);
     }
 }
 
