@@ -364,6 +364,8 @@ const EditorKeymap = {
         'C': "named_function csc 2",
         't': "named_function tan 2",
         'T': "named_function cot 2",
+        'n': "named_function lg",  // [n][N] are special cases for base-2 log
+        'N': "named_function log _2",
         'h': "mode squared_hyperbolic"
     },
     squared_hyperbolic: {

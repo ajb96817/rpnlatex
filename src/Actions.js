@@ -604,6 +604,7 @@ class InputContext {
     // \sin{x} etc.  Works similarly to do_operator except the argument is autoparenthesized.
     // If superscript_text is given, the text is applied as a superscript to the function
     // itself (not to the argument).
+    // NOTE: if superscript_text starts with '_', it's treated as a subscript instead.
     do_named_function(stack, funcname, superscript_text) {
         let [new_stack, arg_expr] = stack.pop_exprs(1);
         const orig_funcname = funcname;
@@ -612,9 +613,14 @@ class InputContext {
             // no longer a simple LaTeX command like other CommandExprs.  Fortunately, things work out fine
             // treating it as such by just textually concatenating the superscript (putting in explicit braces
             // if necessary).  For example: "sin^2" or "sin^{-1}".
+            let sup_or_sub = '^';
+            if(superscript_text.startsWith('_')) {
+                sup_or_sub = '_';
+                superscript_text = superscript_text.slice(1);
+            }
             if(superscript_text.length > 1)
                 superscript_text = '{' + superscript_text + '}';
-            funcname = funcname + '^' + superscript_text;
+            funcname = [funcname, sup_or_sub, superscript_text].join('');
         }
         arg_expr = DelimiterExpr.autoparenthesize(arg_expr);
 
