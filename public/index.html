@@ -19,7 +19,7 @@
         web application (no server needed) and generates LaTeX-compatible typesetting code.
       </p>
       <p>
-        Use the up and down arrow keys to scroll this help text.  Other keys will return you to the editor.
+        Use the up and down arrow keys (or j and k) to scroll this help text.  Other keys will return you to the editor.
       </p>
       <p>
         The screen is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
@@ -170,7 +170,7 @@
           <li>They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.</li>
           <li>
             They can be concatenated with other text objects or with math formulas using <span class="keybinding">&nbsp;</span>
-            or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.  Math formulas
+            (space) or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.  Math formulas
             combined with text objects this way become part of the text and are displayed in a more compact inline format.
           </li>
           <li>
@@ -492,7 +492,7 @@
           <tr>
             <td><span class="keybinding">`</span> <code>x^T</code> (transpose)</td>
             <td><span class="keybinding">/</span> <code>\cancel x</code> (cancel)</td>
-            <td><span class="keybinding">\</span> <code>\bcancel x</code></td>
+            <td><span class="keybinding">\</span> <code>1/x</code> (variable size)</td>
           </tr>
           <tr>
             <td><span class="keybinding">_</span> <code>\underline x</code></td>
@@ -590,11 +590,11 @@
           </tr>
           <tr>
             <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
-            <td><span class="keybinding">*</span> <code>x * y</code></td>
-            <td><span class="keybinding">/</span> <code>x / y</code> (fixed size)</td>
+            <td><span class="keybinding">*</span> <code>x*y</code></td>
+            <td><span class="keybinding">/</span> <code>x/y</code> (fixed size)</td>
           </tr>
           <tr>
-            <td><span class="keybinding">\</span> <code>x / y</code> (variable size)</td>
+            <td><span class="keybinding">\</span> <code>x/y</code> (variable size)</td>
             <td></td>
             <td></td>
           </tr>

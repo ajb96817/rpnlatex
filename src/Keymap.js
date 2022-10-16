@@ -3,16 +3,16 @@ const EditorKeymap = {
     base: {
         // Self-insert keys
         '[alnum]': "self_insert",
-        '!': "autoparenthesize;insert !;concat",
         '#': "insert \\#",
         '@': "insert @",
-        '^': "superscript",
         '*': "insert *",
         '~': "insert \\sim",
 
         // Immediate action special keys
+        '!': "autoparenthesize;insert !;concat",
         'Enter': "subscript",
         '_': "subscript",
+        '^': "superscript",
         'Backspace': "pop",
         "`": "superscript",
         ' ': "autoparenthesize 2;concat",
@@ -21,7 +21,7 @@ const EditorKeymap = {
         '>': "infix >",
         '+': "infix +",
         '-': "infix -",
-        ']': "make_bold", // "operator boldsymbol",
+        ']': "make_bold",
         '[': "delimiters [ ]",
         '(': "delimiters ( )",
         '{': "delimiters \\{ \\}",
@@ -88,6 +88,7 @@ const EditorKeymap = {
         'Ctrl+/': "operator frac 2"
     },
 
+    // File Manager mode
     files: {
         'default': "toggle_popup files",
         'd': "delete_selected_file",
@@ -99,9 +100,12 @@ const EditorKeymap = {
         'ArrowDown': "select_adjacent_file 1"
     },
 
+    // User Manual mode
     help: {
-        'ArrowUp': 'scroll popup_panel vertical -25',
         'ArrowDown': 'scroll popup_panel vertical 25',
+        'ArrowUp': 'scroll popup_panel vertical -25',
+        'j': 'scroll popup_panel vertical 25',
+        'k': 'scroll popup_panel vertical -25',
         'ArrowLeft': 'do_cancel',
         'ArrowRight': 'do_cancel',
         'PageUp': 'scroll popup_panel vertical -95',
@@ -541,8 +545,6 @@ const EditorKeymap = {
         'P': "insert \\pm",
         'q': "insert ?",
         's': "insert \\sum",
-        // 't': "insert \\intercal",
-        // 'T': "insert \\triangle",
         'U': "insert \\bigcup",
         'v': "insert \\vee",
         'w': "insert \\wedge",
@@ -621,12 +623,12 @@ const EditorKeymap = {
         '+': "prefix +",
         '`': "insert T;superscript",  // transpose
         '/': "operator cancel",
-        "\\": "operator bcancel",
+        "\\": "insert 1;swap;delimiters . . / 2",  // variable-size 1/x
         '_': "operator underline",
         '?': "toggle_popup help decorations"
     },
 
-    // .c prefix: set colors
+    // .C prefix: set colors
     color: {
         'b': "color blue",
         'g': "color green",
@@ -679,11 +681,13 @@ const EditorKeymap = {
         '?': "toggle_popup help arrays"
     },
 
+    // & prefix
     script: {
         '[alpha]': "self_insert;to_case uppercase;operator mathscr",
         '&': "insert \\&"
     },
 
+    // % prefix
     calligraphic: {
         '[alpha]': "self_insert;to_case uppercase;operator mathcal",
         '%': "insert \\%"
@@ -709,6 +713,7 @@ const EditorKeymap = {
         ';': "infix semicolon",
         '?': "toggle_popup help greek"
     },
+
     // : prefix: uppercase Greek letters
     uppercase_greek: {
         'd': "insert \\Delta",     'e': "insert \\varepsilon",
@@ -738,6 +743,7 @@ const EditorKeymap = {
         ':': "infix :",
         '?': "toggle_popup help greek"
     },
+
     // "variant" uppercase Greek letters - these are italic versions of the normal ones
     variant_greek: {
         'd': "insert \\varDelta",    'D': "insert \\varDelta",

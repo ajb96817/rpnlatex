@@ -1127,7 +1127,7 @@ class SequenceExpr extends Expr {
         let last_was_large_op = false;
         this.exprs.forEach(expr => {
             if(last_was_large_op && expr.is_command_with_name('mathopen'))
-                emitter.command(",");
+                emitter.command(',');
             emitter.expr(expr);
             last_was_large_op = problematic_large_operators.some(op => expr.is_command_with_name(op));
         });
