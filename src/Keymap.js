@@ -271,6 +271,7 @@ const EditorKeymap = {
         '{': "custom_delimiter \\{",
         '}': "custom_delimiter \\}",
         '.': "custom_delimiter .",
+        ' ': "custom_delimiter .",
         '/': "custom_delimiter /",
         "\\": "custom_delimiter \\backslash",
         '|': "custom_delimiter |",
@@ -623,7 +624,7 @@ const EditorKeymap = {
         '+': "prefix +",
         '`': "insert T;superscript",  // transpose
         '/': "operator cancel",
-        "\\": "insert 1;swap;delimiters . . / 2",  // variable-size 1/x
+        "\\": "insert 1;swap;autoparenthesize;delimiters . . / 2",  // variable-size 1/x
         '_': "operator underline",
         '?': "toggle_popup help decorations"
     },

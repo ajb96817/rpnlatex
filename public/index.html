@@ -19,7 +19,8 @@
         web application (no server needed) and generates LaTeX-compatible typesetting code.
       </p>
       <p>
-        Use the up and down arrow keys (or j and k) to scroll this help text.  Other keys will return you to the editor.
+        Use the up and down arrow keys (or <strong>j</strong> and <strong>k</strong>) to scroll this help text.
+        Other keys will return you to the editor.
       </p>
       <p>
         The screen is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
@@ -30,7 +31,7 @@
       <p>
         Expressions are entered using <em>reverse Polish notation</em> (RPN) which means
         that operands come before their operators.  For example, to enter the expression <code>x+y</code> you would
-        first type <strong><tt>x</tt></strong>, then <strong><tt>y</tt></strong> followed by <strong><tt>+</tt></strong> to apply the addition
+        first type <strong>x</strong>, then <strong>y</strong> followed by <strong>+</strong> to apply the addition
         operation.
       </p>
       <p>
@@ -925,7 +926,6 @@
         </li>
         <li>
           <span class="keybinding">/</span><span class="keybinding">&#39;</span>
-          <em>Substitute:</em>
           Substitute the stack top item for the placeholder in the item below it.
           If there is more than placeholder, only the first one is substituted.
           Example: <code>\sqrt{1 + \htmlClass{defer_expr}{\blacksquare}} \enspace x^2 \to \sqrt{1+x^2}</code>
@@ -989,9 +989,7 @@
       <p>
         If the particular delimiter pair you want is not available via the <span class="keybinding">)</span>
         prefix commands above, you can use <span class="keybinding">}</span> to create custom delimiter
-        structures.  This also allows you to create grouped objects
-        such as <code>\left\langle x \middle\vert y \middle\vert z \right\rangle</code>
-        with &quot;middle&quot; separators that expand to fit their contents.
+        structures.
       </p>
       <p>
         Pressing <span class="keybinding">}</span> enters <em>custom delimiter</em> mode.  You can then
@@ -1029,18 +1027,28 @@
             <td><span class="keybinding">\</span> <code>\left.\right\backslash</code></td>
           </tr>
           <tr>
-            <td colspan="2"><span class="keybinding">.</span> <code>\left.\right.</code> (empty)</td>
+            <td colspan="2">
+              <span class="keybinding">.</span> or <span class="keybinding">&nbsp;</span>
+              <code>\left.\right.</code> (empty)
+            </td>
             <td></td>
             <td></td>
             <td></td>
           </tr>
       </tbody></table>
       <p>
-        If, instead, you want to create a &quot;grouped&quot; object, first press a number
-        key indicating how many items from the stack are to be grouped (e.g. 3 in the case
-        of <code>\left\langle x \middle\vert y \middle\vert z \right\rangle</code>).
+        The "empty" delimiter can be used to create unbalanced expressions such as
+        <code>A_{\left[x\right.}B_{\left.y\right]}</code>
+      </p>
+      <p>
+        You can also create create grouped objects such as <code>\left\langle x \middle\vert y \middle\vert z \right\rangle</code>
+        with &quot;middle&quot; separators that expand to fit their contents.  To do this, after pressing
+        <span class="keybinding">}</span>, press a number key indicating how many items from the stack are to be grouped
+        (e.g. 3 in the case of <code>\left\langle x \middle\vert y \middle\vert z \right\rangle</code>).
         Then press three of the delimiter keys above, which will become the left, right, and middle delimiters
-        for the group.
+        for the group.  Example:
+        <span class="keybinding">x</span><span class="keybinding">y</span><span class="keybinding">z</span><span class="keybinding">w</span><span class="keybinding">}</span><span class="keybinding">4</span><span class="keybinding">c</span><span class="keybinding">F</span><span class="keybinding">v</span>
+        <code>\to \left\lceil x\middle\Vert y\middle\Vert z\middle\Vert w\right\rfloor</code>
       </p>
 
       <h2>
