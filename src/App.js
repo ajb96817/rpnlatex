@@ -424,6 +424,7 @@ class FileManagerComponent extends React.Component {
         return $e(
             'div', {className: 'file_header', id: 'files_panel'},
             $e('h2', {}, 'File Manager'),
+            this.render_current_filename(),
             this.render_file_table(),
             this.render_shortcuts(),
             show_import_export && $e('h2', {}, 'Export/Import'),
@@ -483,6 +484,15 @@ class FileManagerComponent extends React.Component {
         return $e('div', {}, ...subcomponents);
     }
 
+    render_current_filename() {
+        const current_filename = this.props.file_manager_state.current_filename;
+        if(!current_filename) return null;
+        return $e(
+            'div', {className: 'current_file'},
+            $e('label', {}, 'Current file:'),
+            $e('span', {className: 'filename'}, current_filename));
+    }
+
     render_file_table() {
         const file_manager_state = this.props.file_manager_state;
         if(file_manager_state.unavailable)
@@ -524,14 +534,13 @@ class FileManagerComponent extends React.Component {
     }
 
     render_shortcuts() {
-        const current_filename = this.props.file_manager_state.current_filename;
         const help_specs = [
             ['Escape', 'Close file manager'],
             ['Arrows', 'Select next/previous file'],
             ['Enter', 'Open selected file'],
             ['d', 'Delete selected file'],
             ['n', 'Start a new empty file'],
-            ['s', 'Save current file' + (current_filename ? (' (' + current_filename + ')') : '')],
+            ['s', 'Save current file'], // + (current_filename ? (' (' + current_filename + ')') : '')],
             ['S', 'Save as...']
         ];
         const keyhelp_elements = help_specs.map(spec => {
