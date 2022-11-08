@@ -1340,6 +1340,17 @@ class ArrayExpr extends Expr {
                 t === 'pmatrix' || t === 'vmatrix' || t === 'Vmatrix');
     }
 
+    as_bold() {
+        return new ArrayExpr(
+            this.array_type,
+            this.row_count,
+            this.column_count,
+            this.element_exprs.map(row_exprs =>
+                row_exprs.map(expr => expr.as_bold())),
+            this.row_separators,
+            this.column_separators);
+    }
+
     to_json() {
         let json = super.to_json();
         json.element_exprs = this.element_exprs.map(
