@@ -21,8 +21,9 @@ webserver; it's only static files.
 If your browser supports Progressive Web Apps, you can use this as a PWA to get a little
 more screen space.  For example:
 
-  * iOS: Open the application in Safari.  Use the "send to" button and from there select "Add to Home Screen" to create a shortcut.  Use the shortcut to run in PWA mode.
-  * Chrome: From the menu, select "More tools" then "Create shortcut".  After that, there should be a new menu item "Open in rpnlatex" which will start it in PWA mode.
+  * iOS: Open the application in Safari.  Use the "send to" button and from there select "Add to Home Screen" to create a shortcut to use for PWA mode.
+  * Android Chrome: From the three-dots menu, use "Add to Home Screen" to create a PWA mode shortcut.
+  * Desktop Chrome: From the menu, select "More tools" then "Create shortcut".  After that, there should be a new menu item "Open in rpnlatex" to start it in PWA mode.
 
 Note that you may need to host from a web server (as opposed to opening the local files
 directly in your browser) in order to take advantage of PWA.

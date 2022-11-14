@@ -291,7 +291,7 @@ const EditorKeymap = {
         'D': "named_function det",
         'e': "insert e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
-        'f': "delimiters . . / 2",  // NOTE: duplicates [,/]
+        'f': "autoparenthesize;swap;autoparenthesize;swap;delimiters . . / 2",  // NOTE: duplicates [,/]
         'g': "insert \\argmin;swap;subscript",
         'G': "insert \\argmax;swap;subscript",
         'h': "mode hyperbolic",
@@ -489,8 +489,8 @@ const EditorKeymap = {
         '`': "swap;insert T;superscript;swap;concat",  // xTy
         '%': "infix \\pmod",  // y (mod x)
         '*': "infix *",
-        "\\": "delimiters . . / 2",
-        '/': "infix /",
+        "\\": "autoparenthesize;swap;autoparenthesize;swap;delimiters . . / 2",
+        '/': "autoparenthesize;swap;autoparenthesize;swap;infix /",
         '>': "infix \\cdots",
         '?': "toggle_popup help infix"
     },
