@@ -546,6 +546,7 @@ const EditorKeymap = {
         'P': "insert \\pm",
         'q': "insert ?",
         's': "insert \\sum",
+        't': "insert \\therefore",
         'U': "insert \\bigcup",
         'v': "insert \\vee",
         'w': "insert \\wedge",
@@ -585,8 +586,8 @@ const EditorKeymap = {
         'd': "insert \\dagger;superscript",
         'D': "insert \\ddagger;superscript",
         'e': "operator bold",  // bold roman (sort of)
-        'f': "prefix \\therefore",
-        'F': "prefix \\because",
+        'f': "autoparenthesize;insert 2;infix /",  // x/2
+        'F': "autoparenthesize;insert 2;delimiters . . / 2",  // x/2 (variable-size)
         'g': "operator mathring",
         'G': "operator grave",
         'h': "apply_hat hat",
