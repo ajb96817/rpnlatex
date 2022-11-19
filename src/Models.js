@@ -1369,22 +1369,32 @@ class ArrayExpr extends Expr {
     // NOTE: this does not preserve column/row separators.  There's not really a
     // consistent way of doing this automatically.
     with_ellipses() {
-        if(this.row_count <= 1 || this.column_count <= 1)
-            return this;
         const make_cell = (content) => new TextExpr(content);
-        let new_element_exprs = this.element_exprs.map((row_exprs, index) => [
-            ...row_exprs.slice(0, -1),
-            make_cell((index === 0 || index === this.row_count-1) ? "\\cdots" : ''),
-            row_exprs[this.column_count-1]
-        ]);
-        let inserted_row_exprs = [make_cell("\\vdots")];
-        for(let i = 0; i < this.column_count-2; i++)
-            inserted_row_exprs.push(make_cell(''));
-        inserted_row_exprs.push(make_cell("\\ddots"));
-        inserted_row_exprs.push(make_cell("\\vdots"));
-        new_element_exprs.splice(this.row_count-1, 0, inserted_row_exprs);
+        let new_row_count = this.row_count, new_column_count = this.column_count;
+        let new_element_exprs;
+        if(this.column_count > 1) {
+            new_element_exprs = this.element_exprs.map((row_exprs, index) => [
+                ...row_exprs.slice(0, -1),
+                make_cell((index === 0 || index === this.row_count-1) ? "\\cdots" : ''),
+                row_exprs[this.column_count-1]
+            ]);
+            new_column_count++;
+        }
+        else
+            new_element_exprs = [...this.element_exprs];
+        if(this.row_count > 1) {
+            let inserted_row_exprs = [make_cell("\\vdots")];
+            for(let i = 0; i < this.column_count-2; i++)
+                inserted_row_exprs.push(make_cell(''));
+            if(this.column_count > 1) {
+                inserted_row_exprs.push(make_cell("\\ddots"));
+                inserted_row_exprs.push(make_cell("\\vdots"));
+            }
+            new_element_exprs.splice(this.row_count-1, 0, inserted_row_exprs);
+            new_row_count++;
+        }
         // TODO: preserve row/column separators
-        return new ArrayExpr(this.array_type, this.row_count+1, this.column_count+1, new_element_exprs);
+        return new ArrayExpr(this.array_type, new_row_count, new_column_count, new_element_exprs);
     }
 
     // Return a new ArrayExpr with rows and columns interchanged.
