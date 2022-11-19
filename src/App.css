@@ -49,8 +49,9 @@ div.help .version_info {
 @keyframes errorflash_document_theme_dark { from { background-color: #600; } to { background-color: black; } }
 
 
-div.expr_item {}
-div.text_item {}
+/* div.expr_item {}
+   div.text_item {} */
+
 div.latex_fragment {
     /* NOTE: vertical margins should match .katex-display margins below.
        This is to keep the inter-item spacing consistent between full
