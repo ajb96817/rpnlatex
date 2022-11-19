@@ -1366,6 +1366,14 @@ class ArrayExpr extends Expr {
                 t === 'pmatrix' || t === 'vmatrix' || t === 'Vmatrix');
     }
 
+    // Return a copy of this expression but with a different array_type (e.g. 'pmatrix').
+    // is_matrix() should be true before calling this.
+    with_array_type(new_array_type) {
+        return new ArrayExpr(
+            new_array_type, this.row_count, this.column_count,
+            this.element_exprs, this.row_separators, this.column_separators);
+    }
+
     as_bold() {
         return new ArrayExpr(
             this.array_type,

@@ -655,12 +655,13 @@ const EditorKeymap = {
         'f': "build_align cases_if",
         'F': "build_align rcases_if",
         'g': "build_align gathered",
-        'h': "matrix_transpose;swap;matrix_transpose;swap;stack_matrices;matrix_transpose",  // i.e., stack horizontally
+        'h': "transpose_matrix;swap;transpose_matrix;swap;stack_matrices;transpose_matrix",  // i.e., stack horizontally
         'k': "build_substack",
         'm': "build_matrix_row matrix",
         'p': "build_list +;insert +\\cdots;concat",
         's': "split_matrix",
-        'T': "matrix_transpose",
+        't': "mode change_matrix_type",
+        'T': "transpose_matrix",
         'v': "build_matrix_row vmatrix",
         'V': "build_matrix_row Vmatrix",
         '|': "stack_matrices",
@@ -672,8 +673,8 @@ const EditorKeymap = {
         '(': "build_matrix_row pmatrix",
         '[': "build_matrix_row bmatrix",
         '{': "build_matrix_row Bmatrix",
-        '@': "build_matrix_row bmatrix 2;matrix_transpose",
-        '#': "build_matrix_row bmatrix 3;matrix_transpose",
+        '@': "build_matrix_row bmatrix 2;transpose_matrix",
+        '#': "build_matrix_row bmatrix 3;transpose_matrix",
         '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
         ':': "array_separator column dashed",
         '!': "array_separator column solid",
@@ -681,6 +682,15 @@ const EditorKeymap = {
         '_': "array_separator row solid",
         'Enter': "stack_matrices",
         '?': "toggle_popup help arrays"
+    },
+
+    change_matrix_type: {
+        'm': "change_matrix_type matrix",
+        'v': "change_matrix_type vmatrix",
+        'V': "change_matrix_type Vmatrix",
+        '(': "change_matrix_type pmatrix",
+        '[': "change_matrix_type bmatrix",
+        '{': "change_matrix_type Bmatrix"
     },
 
     // & prefix

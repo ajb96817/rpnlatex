@@ -1198,9 +1198,15 @@ class InputContext {
         return new_stack.push_expr(matrix_expr.with_ellipses());
     }
 
-    do_matrix_transpose(stack) {
+    do_transpose_matrix(stack) {
         const [new_stack, matrix_expr] = stack.pop_matrices(1);
         return new_stack.push_expr(matrix_expr.transposed());
+    }
+
+    // Change a matrix bracket type, e.g. to 'pmatrix'.
+    do_change_matrix_type(stack, new_type) {
+        const [new_stack, matrix_expr] = stack.pop_matrices(1);
+        return new_stack.push_expr(matrix_expr.with_array_type(new_type));
     }
 
     // is_row_or_column: 'row', 'column'
