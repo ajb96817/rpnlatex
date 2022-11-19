@@ -648,22 +648,22 @@ const EditorKeymap = {
         'a': "build_align aligned",
         'c': "build_align cases",
         'C': "build_align rcases",
-        'd': "dissolve_matrix",
+        'd': "dissolve_array",
         'e': "build_list ,\\,;insert ,\\,\\dots;concat",
         'E': "insert_matrix_ellipses",
         'f': "build_align cases_if",
         'F': "build_align rcases_if",
         'g': "build_align gathered",
-        'h': "transpose_matrix;swap;transpose_matrix;swap;stack_matrices;transpose_matrix",  // i.e., stack horizontally
+        'h': "transpose_matrix;swap;transpose_matrix;swap;stack_arrays;transpose_matrix",  // i.e., stack horizontally
         'k': "build_substack",
         'm': "build_matrix_row matrix",
         'p': "build_list +;insert +\\cdots;concat",
-        's': "split_matrix",
+        's': "split_array",
         't': "mode change_matrix_type",
         'T': "transpose_matrix",
         'v': "build_matrix_row vmatrix",
         'V': "build_matrix_row Vmatrix",
-        '|': "stack_matrices",
+        '|': "stack_arrays",
         ',': "build_list ,",
         ' ': "build_list ,\\,",
         '.': "build_list ,\\, ,\\,\\dots,\\,",
@@ -674,13 +674,13 @@ const EditorKeymap = {
         '{': "build_matrix_row Bmatrix",
         '@': "build_matrix_row bmatrix 2;transpose_matrix",
         '#': "build_matrix_row bmatrix 3;transpose_matrix",
-        '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_matrices",
+        '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_arrays",
         ':': "array_separator column dashed",
         '!': "array_separator column solid",
         '-': "array_separator row dashed",
         '_': "array_separator row solid",
-        'Enter': "stack_matrices",
-        '?': "toggle_popup help arrays"
+        '?': "toggle_popup help arrays",
+        'Enter': "stack_arrays"
     },
 
     change_matrix_type: {

@@ -624,7 +624,7 @@ class InputContext {
                 superscript_text = superscript_text.slice(1);
             }
             if(superscript_text.length > 1)
-                superscript_text = '{' + superscript_text + '}';
+                superscript_text = ['{', superscript_text, '}'].join('');
             funcname = [funcname, sup_or_sub, superscript_text].join('');
         }
         arg_expr = DelimiterExpr.autoparenthesize(arg_expr);
@@ -1007,13 +1007,13 @@ class InputContext {
             // Implicitly turn ExprItems into TextItems.
             item = TextItem.from_expr(item.expr);
         }
-        if(item.item_type() !== 'text')
-            this.error_flash_stack();
-        else {
+        if(item.item_type() === 'text') {
             item = item.clone();
             item.is_heading = !item.is_heading;
             return new_stack.push(item);
         }
+        else
+            this.error_flash_stack();
     }
 
     do_toggle_show_latex_source(stack) {
@@ -1081,8 +1081,10 @@ class InputContext {
 
     // NOTE: if 'help_location' is given, jump to the given anchor in the help text.
     do_toggle_popup(stack, mode_string, help_location) {
-        // Hack: save help panel scroll position so we can restore it next
-        // time the help is displayed.
+        // Hack: Save help panel scroll position so we can restore it next
+        // time the help is displayed.  This isn't very good because browser
+        // window/font resizings will throw it off.  Needs revisiting.
+        // Maybe the help should be its own iframe.
         if(this.settings.popup_mode === 'help') {
             const elt = document.getElementById('popup_panel');
             if(elt && elt.scrollTop)
@@ -1096,7 +1098,7 @@ class InputContext {
         this.app_component.apply_layout_to_dom();
     }
 
-    // set various configuration options.
+    // Set various configuration options.
     do_config(stack, config_option, value) {
         let settings = this.settings;
         let layout = settings.layout;
@@ -1112,14 +1114,9 @@ class InputContext {
             break;
         case 'math_align':
             switch(value) {
-            case 'toggle_document':
-                layout.document_rightalign_math = !layout.document_rightalign_math;
-                break;
-            case 'toggle_stack':
-                layout.stack_rightalign_math = !layout.stack_rightalign_math;
-                break;
-            default:
-                break;
+            case 'toggle_document': layout.document_rightalign_math = !layout.document_rightalign_math; break;
+            case 'toggle_stack': layout.stack_rightalign_math = !layout.stack_rightalign_math; break;
+            default: break;
             }
             break;
         case 'toggle_inline_math':
@@ -1152,7 +1149,7 @@ class InputContext {
         }
     }
 
-    // item1, item2, ... => {item1, item2, ...}
+    // item1, item2, ... => [item1, item2, ...]
     // column_count is optional; if omitted, the prefix argument is used.
     do_build_matrix_row(stack, matrix_type, column_count) {
         const expr_count = column_count ? parseInt(column_count) : this._require_prefix_argument();
@@ -1166,29 +1163,26 @@ class InputContext {
     }
 
     // Stack two ArrayExprs on top of each other.
-    // The type of the matrix on the stack-top takes precedence if there's a conflict.
-    // The two matrices have to have the same number of columns.
-    do_stack_matrices(stack) {
-        // TODO: allow stacking 'align' exprs, etc (where is_matrix isn't necessarily true)
-        const [new_stack, m1, m2] = stack.pop_matrices(2);
-        const new_matrix = ArrayExpr.stack_arrays(m1, m2);
-        if(new_matrix)
-            return new_stack.push_expr(new_matrix);
+    // The type of the array on the stack-top takes precedence if there's a conflict.
+    // The two arrays/matrices have to have the same number of columns.
+    do_stack_arrays(stack) {
+        const [new_stack, m1, m2] = stack.pop_arrays(2);
+        const new_array = ArrayExpr.stack_arrays(m1, m2);
+        if(new_array)
+            return new_stack.push_expr(new_array);
         else
             return new_stack.type_error();
     }
 
     // Split an ArrayExpr into its component rows and put them on the stack.
-    do_split_matrix(stack) {
-        // TODO: allow non-matrix arrays here
-        const [new_stack, array_expr] = stack.pop_matrices(1);
+    do_split_array(stack) {
+        const [new_stack, array_expr] = stack.pop_arrays(1);
         return new_stack.push_all_exprs(array_expr.split_rows());
     }
 
     // Take apart an ArrayExpr and put all its elements on the stack (in row-major order).
-    do_dissolve_matrix(stack) {
-        // TODO: allow non-matrix arrays here
-        const [new_stack, matrix_expr] = stack.pop_matrices(1);
+    do_dissolve_array(stack) {
+        const [new_stack, matrix_expr] = stack.pop_arrays(1);
         let dissolved_exprs = [].concat(...matrix_expr.element_exprs);
         return new_stack.push_all_exprs(dissolved_exprs);
     }

@@ -1965,6 +1965,14 @@ class Stack {
         return [new_stack, ...items.map(item => item.expr)];
     }
 
+    pop_arrays(n) {
+        const [new_stack, ...exprs] = this.pop_exprs(n);
+        if(exprs.every(expr => expr.expr_type() === 'array'))
+            return [new_stack, ...exprs];
+        else
+            this.type_error();
+    }
+
     pop_matrices(n) {
         const [new_stack, ...exprs] = this.pop_exprs(n);
         if(exprs.every(expr => expr.expr_type() === 'array' && expr.is_matrix()))
