@@ -1162,6 +1162,32 @@ class DelimiterExpr extends Expr {
         else
             return expr;
     }
+
+    // Parenthesize 'expr' only if it's a "fraction", which could mean one of:
+    //   \frac{x}{y}
+    //   x/y
+    //   \left.x\middle/\right.  (as created by e.g. [,][\])
+    static autoparenthesize_frac(expr) {
+        const needs_parenthesization = (
+            // \frac{x}{y}
+            (expr.expr_type() === 'command' &&
+             expr.command_name === 'frac' &&
+             expr.operand_count() === 2) ||
+
+            // x/y
+            (expr.expr_type() === 'infix' && expr.operator_text() === '/') ||
+
+            // \left.x\middle/\right.
+            (expr.expr_type() === 'delimiter' &&
+             expr.left_type === '.' &&
+             expr.middle_type === '/' &&
+             expr.right_type === '.')
+        );
+        if(needs_parenthesization)
+            return DelimiterExpr.parenthesize(expr);
+        else
+            return expr;
+    }
     
     constructor(left_type, right_type, middle_type, inner_exprs) {
         super();

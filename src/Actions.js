@@ -228,6 +228,11 @@ class InputContext {
             // Create a new expr instead.  The base will be parenthesized if
             // it's a low-precedence infix expression.
             base_expr = DelimiterExpr.autoparenthesize(base_expr);
+
+            // This will automatically parenthesize fractions like x/y -> (x/y)^2.
+            // This line can be removed if this becomes undesired behavior.
+            base_expr = DelimiterExpr.autoparenthesize_frac(base_expr);
+
             return new SubscriptSuperscriptExpr(
                 base_expr,
                 (is_superscript ? null : child_expr),
