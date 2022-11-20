@@ -344,7 +344,9 @@ const EditorKeymap = {
         'c': "named_function cosh",
         'C': "named_function csch",
         't': "named_function tanh",
-        'T': "named_function coth"
+        'T': "named_function coth",
+        '2': "mode squared_hyperbolic",
+        '-': "mode inverse_hyperbolic"
     },
     inverse: {
         's': "named_function sin -1",
@@ -353,7 +355,8 @@ const EditorKeymap = {
         'C': "named_function csc -1",
         't': "named_function tan -1",
         'T': "named_function cot -1",
-        'h': "mode inverse_hyperbolic"
+        'h': "mode inverse_hyperbolic",
+        '2': "mode squared"
     },
     inverse_hyperbolic: {
         's': "named_function sinh -1",
@@ -361,7 +364,8 @@ const EditorKeymap = {
         'c': "named_function cosh -1",
         'C': "named_function csch -1",
         't': "named_function tanh -1",
-        'T': "named_function coth -1"
+        'T': "named_function coth -1",
+        '2': "mode squared_hyperbolic"
     },
     squared: {
         's': "named_function sin 2",
@@ -372,7 +376,8 @@ const EditorKeymap = {
         'T': "named_function cot 2",
         'n': "named_function lg",  // [n][N] are special cases for base-2 log
         'N': "named_function log _2",
-        'h': "mode squared_hyperbolic"
+        'h': "mode squared_hyperbolic",
+        '-': "mode inverse"
     },
     squared_hyperbolic: {
         's': "named_function sinh 2",
@@ -380,7 +385,8 @@ const EditorKeymap = {
         'c': "named_function cosh 2",
         'C': "named_function csch 2",
         't': "named_function tanh 2",
-        'T': "named_function coth 2"
+        'T': "named_function coth 2",
+        '-': "mode inverse_hyperbolic"
     },
 
     // /i prefix
