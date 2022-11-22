@@ -293,18 +293,17 @@ const EditorKeymap = {
         'D': "named_function det",
         'e': "insert e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
-        'g': "insert \\argmin;swap;subscript",
-        'G': "insert \\argmax;swap;subscript",
+        'f': "mode named_operator",
+        'g': "mode named_underset_operator",
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
         'k': "delimiters . . \\vert 2;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x|y)
         'l': "insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{x}
-        'm': "named_function min",
-        'M': "named_function max",
+        'L': "infix \\to;insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{y \to x}
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
-        'O': "stackrel overset",
+        'O': "overunderset overset",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
@@ -314,9 +313,7 @@ const EditorKeymap = {
         'S': "named_function sec",
         't': "named_function tan",
         'T': "named_function cot",
-        // 'u': "insert \\limits;swap;subscript;insert \\inf;swap;concat",
-        'U': "stackrel underset",
-        // 'U': "insert \\limits;swap;subscript;insert \\sup;swap;concat",
+        'u': "overunderset underset",
         'v': "parenthesize;insert Var;operator operatorname;swap;concat",
         'V': "swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
         'x': "insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
@@ -337,6 +334,54 @@ const EditorKeymap = {
         "\"": "toggle_is_heading",
         'Enter': "unrot;subscript;swap;superscript",  // apply superscript and subscript at once
         '?': "toggle_popup help operators"
+    },
+
+    named_operator: {
+        'a': "insert \\arg",
+        'c': "insert \\gcd",
+        'd': "insert \\dim",
+        'e': "insert \\deg",
+        'f': "insert \\liminf",
+        'g': "insert \\argmax",
+        'h': "insert \\hom",
+        'i': "insert \\inf",
+        'j': "insert \\injlim",
+        'k': "insert \\ker",
+        'l': "insert \\lim",
+        'm': "insert \\min",
+        'n': "insert \\argmin",
+        'o': "insert Cov;operator operatorname",
+        'p': "insert \\Pr",
+        'r': "insert \\projlim",
+        's': "insert \\sup",
+        't': "insert \\det",
+        'u': "insert \\limsup",
+        'v': "insert Var;operator operatorname",
+        'x': "insert \\max"
+    },
+
+    named_underset_operator: {
+        'a': "underset_operator arg",
+        'c': "underset_operator gcd",
+        'd': "underset_operator dim",
+        'e': "underset_operator deg",
+        'f': "underset_operator liminf",
+        'g': "underset_operator argmax",
+        'h': "underset_operator hom",
+        'i': "underset_operator inf",
+        'j': "underset_operator injlim",
+        'k': "underset_operator ker",
+        'l': "underset_operator lim",
+        'm': "underset_operator min",
+        'n': "underset_operator argmin",
+        'o': "underset_operator Cov true",
+        'p': "underset_operator Pr",
+        'r': "underset_operator projlim",
+        's': "underset_operator sup",
+        't': "underset_operator det",
+        'u': "underset_operator limsup",
+        'v': "underset_operator Var true",
+        'x': "underset_operator max"
     },
 
     // TODO: maybe make a more general way of doing these

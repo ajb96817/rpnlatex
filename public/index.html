@@ -119,6 +119,7 @@
         <li><span class="keybinding">/</span> Apply various <a href="#operators">functions and operators</a> to arguments from the stack.</li>
         <li><span class="keybinding">/</span><span class="keybinding">d</span> Build different kinds of <a href="#derivatives">derivatives</a>.</li>
         <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#integrals">integral limits</a>.</li>
+        <li><span class="keybinding">/</span><span class="keybinding">f</span> Create <a href="#named_operators">named operators</a>.</li>
         <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
         <li><span class="keybinding">}</span> Build <a href="#custom_delimiters">custom delimiter</a> structures.</li>
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
@@ -670,23 +671,15 @@
           &nbsp;&nbsp;
           <span class="keybinding">E</span> <code>\exp x</code>
         </li>
-        <li>
-          <span class="keybinding">g</span> <code>\argmin\limits_x</code>
-          &nbsp;&nbsp;
-          <span class="keybinding">G</span> <code>\argmax\limits_x</code>
-        </li>
+        <li><span class="keybinding">f</span> Prefix for creating standalone <a href="#named_operators">named operators</a>.</li>
+        <li><span class="keybinding">g</span> Prefix for creating <a href="#named_operators">named operators</a> with underset arguments.</li>
         <li><span class="keybinding">i</span> Prefix for applying <a href="#integrals">integral</a> limits.</li>
         <li><span class="keybinding">k</span> <code>f\enspace y\enspace x \to f(y|x)</code></li>
         <li>
-          <span class="keybinding">l</span> <code>\lim\limits_x</code>
-<!--          <span class="keybinding">u</span> <code>\inf\limits_x</code>
-          <span class="keybinding">U</span> <code>\sup\limits_x</code>  -->
+          <span class="keybinding">l</span> <code>x \to \lim\limits_x</code>
+          (shortcut for <span class="keybinding">/</span><span class="keybinding">g</span><span class="keybinding">l</span>)
         </li>
-        <li>
-          <span class="keybinding">m</span> <code>\min{x}</code>
-          &nbsp;&nbsp;
-          <span class="keybinding">M</span> <code>\max{x}</code>
-        </li>
+        <li><span class="keybinding">L</span> <code>y\enspace x \to \lim\limits_{y\to x}</code></li>
         <li>
           <span class="keybinding">n</span> <code>\ln{x}</code>
           &nbsp;&nbsp;
@@ -700,7 +693,7 @@
         <li><span class="keybinding">o</span> <code>f\enspace x \to f(x)</code></li>
         <li><span class="keybinding">r</span> <code>f\enspace y\enspace x \to f(y,x)</code></li>
         <li>
-          <span class="keybinding">O</span> or <span class="keybinding">U</span>
+          <span class="keybinding">O</span> or <span class="keybinding">u</span>
           (overset/underset) Place an item above (or below) the operator of an
           infix or relational expression.
           For example: <code>x=y\enspace ? \to x \overset{?}{=} y</code>
@@ -907,6 +900,56 @@
         These can apply to objects other than integral signs as well, for example:
         <code>\left.\frac{x^2}{2}\right| \to \left.\frac{x^2}{2}\right|_0^1</code>
       </p>
+
+      <h2>
+        <a name="named_operators">
+          Named Operators
+          <span class="keybinding">/</span><span class="keybinding">f</span>
+          and
+          <span class="keybinding">/</span><span class="keybinding">g</span>
+        </a>
+      </h2>
+      <p>
+        These commands create either standalone named operators (e.g. <code>\lim</code>) or
+        operators with an expression from the stack placed beneath them (<code>\underset{x\to\infty}{\lim}</code>).
+      </p>
+      <table class="keybindings"><tbody>
+          <tr>
+            <td><span class="keybinding">a</span> <code>\arg</code></td>
+            <td><span class="keybinding">c</span> <code>\gcd</code></td>
+            <td><span class="keybinding">d</span> <code>\dim</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">e</span> <code>\deg</code></td>
+            <td><span class="keybinding">f</span> <code>\liminf</code></td>
+            <td><span class="keybinding">g</span> <code>\argmax</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">h</span> <code>\hom</code></td>
+            <td><span class="keybinding">i</span> <code>\inf</code></td>
+            <td><span class="keybinding">j</span> <code>\injlim</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">k</span> <code>\ker</code></td>
+            <td><span class="keybinding">l</span> <code>\lim</code></td>
+            <td><span class="keybinding">m</span> <code>\min</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">n</span> <code>\argmin</code></td>
+            <td><span class="keybinding">o</span> <code>\operatorname{Cov}</code></td>
+            <td><span class="keybinding">p</span> <code>\Pr</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">r</span> <code>\projlim</code></td>
+            <td><span class="keybinding">s</span> <code>\sup</code></td>
+            <td><span class="keybinding">t</span> <code>\det</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">u</span> <code>\limsup</code></td>
+            <td><span class="keybinding">v</span> <code>\operatorname{Var}</code></td>
+            <td><span class="keybinding">x</span> <code>\max</code></td>
+          </tr>
+      </tbody></table>
 
       <h2>
         <a name="placeholders">Placeholders</a>

@@ -639,6 +639,20 @@ class InputContext {
         return new_stack.push_expr(expr);
     }
 
+    // opname == 'argmax': x -> \underset{x}{\argmax}
+    // If make_operatorname is true, opname is not a built-in LaTeX operator
+    // but is instead wrapped in an \operatorname{} to simulate it.
+    do_underset_operator(stack, opname, make_operatorname) {
+        const [new_stack, underset_expr] = stack.pop_exprs(1);
+        let base_expr;
+        if(make_operatorname)
+            base_expr = new CommandExpr('operatorname', [new TextExpr(opname)]);
+        else
+            base_expr = new CommandExpr(opname);
+        const new_expr = new CommandExpr('underset', [underset_expr, base_expr]);
+        return new_stack.push_expr(new_expr);
+    }
+
     // Same as do_operator, except if the object the hat is being added to is a literal 'i' or 'j',
     // or bolded i/j, it's first converted into a \imath or \jmath to remove the dot.
     do_apply_hat(stack, hat_op) {
@@ -808,17 +822,20 @@ class InputContext {
         return new_stack.push_expr(new_infix_expr);
     }
 
-    // Take an infix expression and another expression from the stack.
-    // Turn it into an \overset or \underset infix expression that stacks the expression
-    // above or below the original infix operator.
-    do_stackrel(stack, overset_op) {
-        const [new_stack, infix_expr, stacked_expr] = stack.pop_exprs(2);
-        if(infix_expr.expr_type() !== 'infix') {
-            this.error_flash_stack();
-            return;
+    // Stack one expr above (or below) another via \overset or \underset.
+    // (overset_op can be 'overset' or 'underset').
+    // If the base expr is an InfixExpr, the other one is stacked above the infix operator;
+    // otherwise the actual items are stacked.
+    do_overunderset(stack, overset_op) {
+        const [new_stack, base_expr, stacked_expr] = stack.pop_exprs(2);
+        let new_expr;
+        if(base_expr.expr_type() === 'infix') {
+            new_expr = new InfixExpr(
+                new CommandExpr(overset_op, [stacked_expr, base_expr.operator_expr]),
+                base_expr.left_expr, base_expr.right_expr);
         }
-        const new_op_expr = new CommandExpr(overset_op, [stacked_expr, infix_expr.operator_expr]);
-        const new_expr = new InfixExpr(new_op_expr, infix_expr.left_expr, infix_expr.right_expr);
+        else
+            new_expr = new CommandExpr(overset_op, [stacked_expr, base_expr]);
         return new_stack.push_expr(new_expr);
     }
 
