@@ -304,6 +304,7 @@ const EditorKeymap = {
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
+        'O': "stackrel overset",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
@@ -313,8 +314,9 @@ const EditorKeymap = {
         'S': "named_function sec",
         't': "named_function tan",
         'T': "named_function cot",
-        'u': "insert \\limits;swap;subscript;insert \\inf;swap;concat",
-        'U': "insert \\limits;swap;subscript;insert \\sup;swap;concat",
+        // 'u': "insert \\limits;swap;subscript;insert \\inf;swap;concat",
+        'U': "stackrel underset",
+        // 'U': "insert \\limits;swap;subscript;insert \\sup;swap;concat",
         'v': "parenthesize;insert Var;operator operatorname;swap;concat",
         'V': "swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
         'x': "insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
@@ -467,7 +469,6 @@ const EditorKeymap = {
         'M': "infix \\mp",
         'n': "conjunction when",
         'o': "infix \\circ",
-        'O': "stackrel overset",
         'p': "infix \\perp",
         'P': "infix \\pm",
         'q': "conjunction and",
@@ -477,7 +478,6 @@ const EditorKeymap = {
         't': "infix \\to",
         'T': "infix \\longrightarrow",
         'u': "infix \\cup",
-        'U': "stackrel underset",
         'v': "infix \\vee",
         'w': "infix \\wedge",
         'x': "infix \\times",
