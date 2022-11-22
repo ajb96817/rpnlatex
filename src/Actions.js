@@ -1090,8 +1090,15 @@ class InputContext {
     }
 
     // Take (left, right, operator) from the stack and create an InfixExpr.
+    // Special case: if 'operator' is \mathrm{...}, it's surrounded with \quad
+    // spacers as in do_conjunction().
     do_apply_infix(stack) {
-        const [new_stack, left_expr, right_expr, operator_expr] = stack.pop_exprs(3);
+        let [new_stack, left_expr, right_expr, operator_expr] = stack.pop_exprs(3);
+        if(operator_expr.expr_type() === 'command' &&
+           operator_expr.command_name === 'mathrm' &&
+           operator_expr.operand_count() === 1)
+            operator_expr = new SequenceExpr([
+                new CommandExpr('quad'), operator_expr, new CommandExpr('quad')]);
         const new_expr = new InfixExpr(operator_expr, left_expr, right_expr);
         return new_stack.push_expr(new_expr);
     }
