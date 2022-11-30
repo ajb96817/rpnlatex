@@ -277,7 +277,8 @@ class ModeIndicatorComponent extends React.Component {
             // Show current prefix argument in mode indicator
             input_mode = [
                 input_mode, '(',
-                (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()), ')'
+                (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()),
+                ')'
             ].join('');
         }
         // if(input_context.text_entry !== null)

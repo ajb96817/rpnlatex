@@ -801,11 +801,10 @@ class Expr {
 	// Combining in this way fixes (or at least improves) some edge-case spacing problems with KaTeX.
 	// Compare: \boldsymbol{W}\boldsymbol{A} vs. \boldsymbol{WA}
 	if(left_name === 'boldsymbol' && right_name === 'boldsymbol' &&
-	   left.operand_count() === 1 && right.operand_count() === 1) {
+	   left.operand_count() === 1 && right.operand_count() === 1)
 	    return new SequenceExpr(
 		[left.operand_exprs[0], right.operand_exprs[0]]
 	    ).as_bold();
-	}
 
 	// Try combining adjacent integral symbols into multiple-integral commands.
         let new_command_name = null;
@@ -1420,10 +1419,8 @@ class ArrayExpr extends Expr {
             let inserted_row_exprs = [make_cell("\\vdots")];
             for(let i = 0; i < this.column_count-2; i++)
                 inserted_row_exprs.push(make_cell(''));
-            if(this.column_count > 1) {
-                inserted_row_exprs.push(make_cell("\\ddots"));
-                inserted_row_exprs.push(make_cell("\\vdots"));
-            }
+            if(this.column_count > 1)
+                inserted_row_exprs.push(make_cell("\\ddots"), make_cell("\\vdots"));
             new_element_exprs.splice(this.row_count-1, 0, inserted_row_exprs);
             new_row_count++;
         }
@@ -1457,7 +1454,6 @@ class ArrayExpr extends Expr {
     }
 
     // Return an array of 1xN ArrayExprs, one for each row in this matrix.
-    // NOTE: is_matrix() should be true before calling this.
     split_rows() {
         return this.element_exprs.map(
             row_exprs => new ArrayExpr(
@@ -1677,9 +1673,7 @@ class ExprItem extends Item {
     }
 
     to_text() { return this.expr.to_text(); }
-
     clone() { return new ExprItem(this.expr, this.tag_expr); }
-
     as_bold() { return new ExprItem(this.expr.as_bold(), this.tag_expr); }
 }
 
@@ -1731,7 +1725,6 @@ class TextItemTextElement extends TextItemElement {
     }
 
     is_text() { return true; }
-
     as_bold() { return new TextItemTextElement(this.text, true); }
 
     to_json() {
@@ -1813,9 +1806,9 @@ class TextItemRawElement extends TextItemElement {
 
 
 class TextItem extends Item {
-    static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
-
     static from_expr(expr) { return new TextItem([new TextItemExprElement(expr)]); }
+
+    static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
 
     // Like from_string, but if the string contains "[]" sequences, these are parsed out
     // and converted into DeferExpr placeholders.
@@ -1905,7 +1898,7 @@ class TextItem extends Item {
     // the first one for substitution_expr and return the new TextItem.
     // If there are no DeferExprs available, return null.
     try_substitute_defer(substitution_expr) {
-        let new_elements = [...this.elements];  // make a shallow copy
+        let new_elements = [...this.elements];
         for(let i = 0; i < new_elements.length; i++) {
             if(new_elements[i].is_expr()) {
                 const defer_expr = new_elements[i].expr.find_defer();
@@ -1969,16 +1962,14 @@ class Stack {
         const [new_stack, ...exprs] = this.pop_exprs(n);
         if(exprs.every(expr => expr.expr_type() === 'array'))
             return [new_stack, ...exprs];
-        else
-            this.type_error();
+        else this.type_error();
     }
 
     pop_matrices(n) {
-        const [new_stack, ...exprs] = this.pop_exprs(n);
-        if(exprs.every(expr => expr.expr_type() === 'array' && expr.is_matrix()))
-            return [new_stack, ...exprs];
-        else
-            this.type_error();
+        const [new_stack, ...array_exprs] = this.pop_arrays(n);
+        if(array_exprs.every(expr => expr.is_matrix()))
+            return [new_stack, ...array_exprs];
+        else this.type_error();
     }
 
     _unchecked_pop(n) {

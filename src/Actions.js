@@ -59,7 +59,7 @@ class InputContext {
         this.text_entry = null;
 
         // Type of text entry currently being performed.
-        //   'text_entry': ["] - text entry will become a TextItem
+        //   'text_entry': ["] - text entry will become a TextItem (a section heading if Shift+Enter is used)
         //   'math_text_entry': [\] - text entry will become a ExprItem with either normal italic math text
         //               (if Enter is used) or \mathrm roman math text (if Shift+Enter)
         //   'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
@@ -325,21 +325,21 @@ class InputContext {
             return this.prefix_argument;
     }
 
-    // Duplicate stack top; with prefix argument, duplicate the N top items.
+    // Duplicate the top N stack items (default=1).
     do_dup(stack) {
         const arg = this._get_prefix_argument(1, stack.depth());
         const [new_stack, ...items] = stack.pop(arg);
         const new_items = items.map(item => item.clone());  // keep item serial_numbers unique
         return new_stack.push_all(items.concat(new_items));
     }
-    // Drop stack top; with prefix argument, drop the top N items.
+    // Drop the top N stack items (default=1).
     do_pop(stack) {
         const arg = this._get_prefix_argument(1, stack.depth());
         // eslint-disable-next-line no-unused-vars
         const [new_stack, ...items] = stack.pop(arg);
         return new_stack;
     }
-    // Drop Nth stack item (default=2, i.e.: a b -> b)
+    // Drop the Nth stack item (default=2, i.e.: a b -> b)
     do_nip(stack) {
         const arg = this._get_prefix_argument(2, stack.depth());
         const [new_stack, ...items] = stack.pop(arg);
@@ -1180,9 +1180,7 @@ class InputContext {
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         const matrix_expr = new ArrayExpr(
             (matrix_type || 'bmatrix'),
-            1, expr_count,
-            [exprs]
-        );
+            1, expr_count, [exprs]);
         return new_stack.push_expr(matrix_expr);
     }
 
@@ -1206,8 +1204,8 @@ class InputContext {
 
     // Take apart an ArrayExpr and put all its elements on the stack (in row-major order).
     do_dissolve_array(stack) {
-        const [new_stack, matrix_expr] = stack.pop_arrays(1);
-        let dissolved_exprs = [].concat(...matrix_expr.element_exprs);
+        const [new_stack, array_expr] = stack.pop_arrays(1);
+        let dissolved_exprs = [].concat(...array_expr.element_exprs);
         return new_stack.push_all_exprs(dissolved_exprs);
     }
 
@@ -1237,11 +1235,12 @@ class InputContext {
         const index = this._get_prefix_argument(1, null);
         if(index !== null && (index < 1 || index > size-1))
             return this.error_flash_stack();
-        else {
-            const new_expr = matrix_expr.with_separator(
-                is_column, index === null ? null : index-1, separator_type, true);
-            return new_stack.push_expr(new_expr);
-        }
+        else
+            return new_stack.push_expr(
+                matrix_expr.with_separator(
+                    is_column,
+                    index === null ? null : index-1,
+                    separator_type, true));
     }
 
     do_build_align(stack, align_type) {
