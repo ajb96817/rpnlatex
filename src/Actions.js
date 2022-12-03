@@ -1173,6 +1173,14 @@ class InputContext {
         }
     }
 
+    do_fullscreen(stack, on_or_off) {
+        if(on_or_off === 'off')
+            document.exitFullscreen();
+        else
+            document.getElementsByTagName('html')[0].requestFullscreen();
+        return stack;
+    }
+
     // item1, item2, ... => [item1, item2, ...]
     // column_count is optional; if omitted, the prefix argument is used.
     do_build_matrix_row(stack, matrix_type, column_count) {

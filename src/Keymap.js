@@ -108,8 +108,8 @@ const EditorKeymap = {
         'ArrowUp': 'scroll popup_panel vertical -25',
         'j': 'scroll popup_panel vertical 25',
         'k': 'scroll popup_panel vertical -25',
-        'ArrowLeft': 'do_cancel',
-        'ArrowRight': 'do_cancel',
+        'ArrowLeft': 'cancel',
+        'ArrowRight': 'cancel',
         'PageUp': 'scroll popup_panel vertical -95',
         'PageDown': 'scroll popup_panel vertical 95',
         'default': "toggle_popup help"
@@ -149,6 +149,8 @@ const EditorKeymap = {
 
     // $ prefix: configuration
     config: {
+        'f': "fullscreen on",
+        'F': "fullscreen off",
         'i': "config toggle_inline_math",
         'm': "mode config_math_alignment",
         'r': "config reset_layout",

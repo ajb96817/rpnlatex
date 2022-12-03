@@ -381,7 +381,7 @@ class DocumentStorage {
     handle_open_success(event) {
         this.database = this.open_request.result;
         this.open_request = null;
-        this.database.onversionchange = function () {
+        this.database.onversionchange = () => {
             this.database.close();
             this.database = null;
             alert('Warning: database is outdated, please reload the page.');
