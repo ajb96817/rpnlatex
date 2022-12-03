@@ -149,55 +149,23 @@ const EditorKeymap = {
 
     // $ prefix: configuration
     config: {
-        'f': "fullscreen on",
-        'F': "fullscreen off",
-        'i': "config toggle_inline_math",
-        'm': "mode config_math_alignment",
-        'r': "config reset_layout",
-        's': "mode config_stack",
-        't': "mode config_theme",
-        'z': "mode config_zoom",
-        '$': "insert \\$",
-        '?': "toggle_popup help configuration"
-    },
-    // $m
-    config_math_alignment: {
-        'd': "config math_align toggle_document",
-        's': "config math_align toggle_stack",
-        '?': "toggle_popup help configuration"
-    },
-    // $s
-    config_stack: {
-        '0': "config stack_split 0",
-        '1': "config stack_split 10",
-        '2': "config stack_split 20",
-        '3': "config stack_split 30",
-        '4': "config stack_split 40",
-        '5': "config stack_split 50",
-        '6': "config stack_split 60",
-        '7': "config stack_split 70",
-        '8': "config stack_split 80",
-        '9': "config stack_split 90",
-        '*': "config stack_split 100",
+        '[digit]': "prefix_argument",
+        '*': "prefix_argument",
         'ArrowLeft': "config stack_side left",
         'ArrowRight': "config stack_side right",
         'ArrowUp': "config stack_side top",
         'ArrowDown': "config stack_side bottom",
-        '?': "toggle_popup help configuration"
-    },
-    // $t
-    config_theme: {
-        '0': "config theme default",
-        '1': "config theme dawn",
-        '2': "config theme dusk",
-        '3': "config theme dark",
-        '?': "toggle_popup help configuration"
-    },
-    // $z
-    config_zoom: {
-        '0': "config zoom_factor 0",
-        '+': "config zoom_factor +",
-        '-': "config zoom_factor -",
+        'f': "fullscreen on",
+        'F': "fullscreen off",
+        'i': "config toggle_inline_math",
+        'm': "config math_align toggle_document",
+        'M': "config math_align toggle_stack",
+        'r': "config reset_layout",
+        's': "config stack_split",
+        't': "config theme",
+        'z': "config zoom_factor increase",
+        'Z': "config zoom_factor decrease",
+        '$': "insert \\$",
         '?': "toggle_popup help configuration"
     },
 

@@ -1441,39 +1441,30 @@
       </p>
       <ul class="keybindings">
         <li>
-          <em>Panel Layout subcommands:</em>
-          <ul class="keybindings">
-            <li>
-              <span class="keybinding">s</span><span class="keybinding">&larr;&rarr;&uarr;&darr;</span>
-              Switch the position of the stack panel relative to the document panel.
-            </li>
-            <li>
-              <span class="keybinding">s</span><span class="keybinding">0-9</span>,
-              <span class="keybinding">s</span><span class="keybinding">*</span>
-              Select the percentage of the window width (or height) that the stack panel will occupy.  0-9 select 0% through 90%, and * selects 100%.
-            </li>
-          </ul>
+          <span class="keybinding">&larr;&rarr;&uarr;&darr;</span>
+          Switch the position of the stack panel relative to the document panel.
         </li>
         <li>
-          <em>Math Alignment subcommands:</em>
-          <ul class="keybindings">
-            <li>
-              <span class="keybinding">m</span><span class="keybinding">s</span>
-              Toggle whether to show math expressions in the stack area aligned to the left or to the right.
-            </li>
-            <li>
-              <span class="keybinding">m</span><span class="keybinding">d</span>
-              Same but for the document area instead.
-            </li>
-          </ul>
+          <span class="keybinding">s</span>
+          Set the percentage of the window width (or height) that the stack panel will occupy.
+          The percentage is given by the prefix argument:
+          <span class="keybinding">$</span><span class="keybinding">0</span><span class="keybinding">s</span> to <span class="keybinding">$</span><span class="keybinding">9</span><span class="keybinding">s</span> for 0% to 90%, or <span class="keybinding">$</span><span class="keybinding">*</span><span class="keybinding">s</span> for 100%.
         </li>
         <li>
-          <em>Zoom Factor subcommands:</em>
-          <ul class="keybindings">
-            <li><span class="keybinding">z</span><span class="keybinding">+</span> Increase text zoom by 5%.</li>
-            <li><span class="keybinding">z</span><span class="keybinding">-</span> Decrease text zoom by 5%.</li>
-            <li><span class="keybinding">z</span><span class="keybinding">0</span> Reset zoom factor back to the default.</li>
-          </ul>
+          <span class="keybinding">m</span>
+          Toggle whether to show math expressions in the stack area aligned to the left or to the right.
+        </li>
+        <li>
+          <span class="keybinding">M</span>
+          Like <span class="keybinding">m</span> but for the document area instead.
+        </li>
+        <li>
+          <span class="keybinding">z</span>
+          Increase the text zoom factor in steps of 5%.  A prefix argument can be used to jump up multiple steps at once.  A prefix argument of <span class="keybinding">*</span> resets the zoom factor back to the default.
+        </li>
+        <li>
+          <span class="keybinding">Z</span>
+          Like <span class="keybinding">z</span> but decrease the zoom factor instead.</li>
         </li>
         <li>
           <span class="keybinding">f</span>
@@ -1485,11 +1476,12 @@
           Toggle between full-size math display (the default) and compact inline math display modes.
         </li>
         <li>
-          <span class="keybinding">t</span><span class="keybinding">0-3</span>
-          Switch between 4 different color themes.
+          <span class="keybinding">t</span>
+          Switch between 4 different color themes specified by the prefix argument (1-4, defaulting to 1).
         </li>
         <li>
-          <span class="keybinding">r</span> Reset all the layout configurations to their initial defaults.
+          <span class="keybinding">r</span>
+          Reset all the configuration settings to their initial defaults.
         </li>
         <li>
           <span class="keybinding">$</span>

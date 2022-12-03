@@ -300,8 +300,7 @@ class InputContext {
                 // Multi-digit prefix argument
                 new_prefix_argument = 10*this.prefix_argument + value;
             }
-            else if(value > 0)
-                new_prefix_argument = value;
+            else new_prefix_argument = value;
         }
         else if(key === '*')
             new_prefix_argument = -1;
@@ -1127,20 +1126,27 @@ class InputContext {
         let settings = this.settings;
         let layout = settings.layout;
         let full_refresh_needed = false;  // set to true if everything needs to be re-rendered afterwards
+        let scratch;
         switch(config_option) {
         case 'zoom_factor':
-            switch(value) {
-            case '0': layout.zoom_factor = 0; break;
-            case '+': layout.zoom_factor++; break;
-            case '-': layout.zoom_factor--; break;
-            default: break;
+            scratch = this._get_prefix_argument(1, -1);
+            if(scratch < 0)
+                layout.zoom_factor = 0;
+            else {
+                if(value === 'decrease') scratch = -scratch;
+                layout.zoom_factor += scratch;
             }
             break;
         case 'math_align':
             switch(value) {
-            case 'toggle_document': layout.document_rightalign_math = !layout.document_rightalign_math; break;
-            case 'toggle_stack': layout.stack_rightalign_math = !layout.stack_rightalign_math; break;
-            default: break;
+            case 'toggle_document':
+                layout.document_rightalign_math = !layout.document_rightalign_math;
+                break;
+            case 'toggle_stack':
+                layout.stack_rightalign_math = !layout.stack_rightalign_math;
+                break;
+            default:
+                break;
             }
             break;
         case 'toggle_inline_math':
@@ -1151,10 +1157,20 @@ class InputContext {
             layout.stack_side = value;
             break;
         case 'stack_split':
-            layout.stack_split = parseInt(value);
+            // prefix argument:
+            // none:    50%
+            // 0..9:    0% to 90%
+            // *:       100%
+            // 11..99:  11% to 99% (undocumented)
+            scratch = this._get_prefix_argument(5, 10);
+            if(scratch <= 10) scratch *= 10;
+            if(scratch > 100) scratch = 100;
+            layout.stack_split = scratch;
             break;
         case 'theme':
-            settings.selected_theme = value;
+            scratch = this._get_prefix_argument(1, 1);
+            if(scratch < 1 || scratch > 4) scratch = 1;
+            settings.selected_theme = ['default', 'dawn', 'dusk', 'dark'][scratch-1];
             break;
         case 'reset_layout':
             settings.layout = settings.default_layout();
