@@ -264,7 +264,7 @@ const EditorKeymap = {
         'e': "insert e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
         'f': "mode named_operator",
-        'g': "mode named_underset_operator",
+        'F': "mode named_underset_operator",
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
         'k': "delimiters . . \\vert 2;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x|y)

@@ -1132,22 +1132,16 @@ class InputContext {
             scratch = this._get_prefix_argument(1, -1);
             if(scratch < 0)
                 layout.zoom_factor = 0;
-            else {
-                if(value === 'decrease') scratch = -scratch;
+            else if(value === 'decrease')
+                layout.zoom_factor -= scratch;
+            else
                 layout.zoom_factor += scratch;
-            }
             break;
         case 'math_align':
-            switch(value) {
-            case 'toggle_document':
+            if(value === 'toggle_document')
                 layout.document_rightalign_math = !layout.document_rightalign_math;
-                break;
-            case 'toggle_stack':
+            else if(value === 'toggle_stack')
                 layout.stack_rightalign_math = !layout.stack_rightalign_math;
-                break;
-            default:
-                break;
-            }
             break;
         case 'toggle_inline_math':
             layout.inline_math = !layout.inline_math;
@@ -1158,10 +1152,10 @@ class InputContext {
             break;
         case 'stack_split':
             // prefix argument:
-            // none:    50%
-            // 0..9:    0% to 90%
-            // *:       100%
-            // 11..99:  11% to 99% (undocumented)
+            //   none:    50% (undocumented)
+            //   0..9:    0% to 90%
+            //   *:       100%
+            //   11..99:  11% to 99% (undocumented)
             scratch = this._get_prefix_argument(5, 10);
             if(scratch <= 10) scratch *= 10;
             if(scratch > 100) scratch = 100;

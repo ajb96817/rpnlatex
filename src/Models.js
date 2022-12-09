@@ -1282,6 +1282,9 @@ class SubscriptSuperscriptExpr extends Expr {
 
 
 // \begin{bmatrix} ... etc
+// Currently support "array types" are:
+//   matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
+//   non-matrices (alignment environments): gathered, gather, cases, rcases
 class ArrayExpr extends Expr {
     // Stack two ArrayExprs on top of each other.
     // If there is an incompatibility such as mismatched column counts, null is returned.
