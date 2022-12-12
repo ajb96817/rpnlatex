@@ -511,9 +511,10 @@ const EditorKeymap = {
         '`': "swap;insert T;superscript;swap;concat",  // xTy
         '%': "infix \\pmod",  // y (mod x)
         '*': "infix *",
-        "\\": "autoparenthesize;swap;autoparenthesize;swap;delimiters . . / 2",
-        '/': "autoparenthesize;swap;autoparenthesize;swap;infix /",
+	'<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
+        '/': "autoparenthesize;swap;autoparenthesize;swap;delimiters . . / 2",  // flex x/y
+        "\\": "autoparenthesize;swap;autoparenthesize;swap;infix /",  // fixed x/y
         '?': "toggle_popup help infix"
     },
 
@@ -587,6 +588,7 @@ const EditorKeymap = {
         ';': "insert semicolon",
         ':': "insert :",
         '`': "insert `",
+        '_': "insert \\_",
         "'": "insert_defer",
         ' ': "insert ",  // "nothing", e.g. when you don't want something on one side of an infix
         'ArrowUp': "insert \\uparrow",
@@ -636,6 +638,7 @@ const EditorKeymap = {
         'W': "apply_hat widecheck",
         'x': "operator boxed",
         'X': "operator sout",  // strikeout
+        'z': "operator cancel",
         '.': "apply_hat dot",
         "\"": "apply_hat ddot",
         ' ': "insert \\,;concat",  // append thin space
@@ -646,8 +649,8 @@ const EditorKeymap = {
         '-': "prefix -",
         '+': "prefix +",
         '`': "insert T;superscript",  // transpose
-        '/': "operator cancel",
-        "\\": "insert 1;swap;autoparenthesize;delimiters . . / 2",  // variable-size 1/x
+        '/': "insert 1;swap;autoparenthesize;delimiters . . / 2",  // flex 1/x
+	"\\": "insert 1;swap;autoparenthesize;infix /",  // fixed 1/x
         '_': "operator underline",
         '?': "toggle_popup help decorations"
     },
