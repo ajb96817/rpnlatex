@@ -3,7 +3,7 @@ import {
     AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    ExprItem, TextItem, SeparatorItem
+    ExprItem, TextItem
 } from './Models';
 
 
@@ -560,8 +560,9 @@ class InputContext {
         return stack.push_all(new_items);
     }
 
-    do_insert_separator(stack, separator_type) {
-        return stack.push(new SeparatorItem(separator_type));
+    do_insert_separator(stack) {
+	// See TextItem.is_empty() comment
+	return stack.push(TextItem.empty_item());
     }
 
     do_insert(stack, text) {
@@ -1028,6 +1029,10 @@ class InputContext {
             item = TextItem.from_expr(item.expr);
         }
         if(item.item_type() === 'text') {
+	    // Special case: don't allow empty TextItems to be changed this way.
+	    // See the comment in TextItem.is_empty().
+	    if(item.is_empty())
+		return this.error_flash_stack();
             item = item.clone();
             item.is_heading = !item.is_heading;
             return new_stack.push(item);

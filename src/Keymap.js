@@ -581,7 +581,7 @@ const EditorKeymap = {
         '+': "insert +",
         '*': "insert \\star",
         '|': "insert |",
-        '=': "insert_separator hrule",
+        '=': "insert_separator",
         '?': "insert ?",  // NOTE: no mode-sensitive help shortcut for symbols because of this
         '!': "insert !",
         ',': "insert ,",

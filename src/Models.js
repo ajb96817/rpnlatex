@@ -1615,8 +1615,6 @@ class Item {
             return new TextItem(
                 json.elements.map(element_json => TextItemElement.from_json(element_json)),
                 !!json.is_heading);
-        case 'separator':
-            return new SeparatorItem(json.separator_type);
         default:
             return TextItem.from_string('invalid item type ' + json.item_type);
         }
@@ -1678,22 +1676,6 @@ class ExprItem extends Item {
     to_text() { return this.expr.to_text(); }
     clone() { return new ExprItem(this.expr, this.tag_expr); }
     as_bold() { return new ExprItem(this.expr.as_bold(), this.tag_expr); }
-}
-
-
-// Item that visually separates parts of the document.
-// Currently the only supported separator_type is 'hrule'.
-class SeparatorItem extends Item {
-    constructor(separator_type) {
-        super();
-        this.separator_type = separator_type;
-    }
-
-    item_type() { return 'separator'; }
-    to_json() { return {item_type: 'separator', separator_type: this.separator_type}; }
-    to_text() { return "\\rule"; }
-    clone() { return new SeparatorItem(this.separator_type); }
-    as_bold() { return this.clone(); }
 }
 
 
@@ -1810,8 +1792,8 @@ class TextItemRawElement extends TextItemElement {
 
 class TextItem extends Item {
     static from_expr(expr) { return new TextItem([new TextItemExprElement(expr)]); }
-
     static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
+    static empty_item() { return new TextItem([]); }
 
     // Like from_string, but if the string contains "[]" sequences, these are parsed out
     // and converted into DeferExpr placeholders.
@@ -1886,8 +1868,23 @@ class TextItem extends Item {
         return json;
     }
 
-    to_text() { return this.elements.map(element => element.to_text()).join(''); }
+    // Empty TextItems are displayed as "separator lines" (visually, the underlined part
+    // of an ordinary section header).  Currently empty TextItems can only be created by
+    // the ['][=] command, and they are always created with is_heading=true.
+    // There is a slight corner case here if is_header flag is turned off via [/]["].
+    // That case "should" display as a truly empty item, but for now we avoid this by
+    // just disallowing turning off the is_header flag in [/]["] (do_toggle_is_heading).
+    is_empty() { return this.elements.length === 0; }
+
+    to_text() {
+	if(this.is_empty())
+	    return "\\rule";
+	else
+	    return this.elements.map(element => element.to_text()).join('');
+    }
+    
     to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
+
     clone() { return new TextItem(this.elements, this.is_heading); }
 
     // Return a clone of this with all elements bolded.
@@ -2092,6 +2089,6 @@ export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, TextItem, SeparatorItem, Stack, Document
+    Item, ExprItem, TextItem, Stack, Document
 };
 

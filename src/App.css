@@ -74,7 +74,7 @@ div.separator_item {
        Not sure why this is. */
     padding-top: 1px;
     padding-bottom: 1px;
-    border-left: 5px solid #6a6;
+    border-left: 5px solid #88f; /* #6a6; */
 }
 div.separator_item hr {
     /* These hrules should visually look like the underline of section headings.
@@ -83,7 +83,7 @@ div.separator_item hr {
     margin-left: 12px;
     margin-right: 12px;
     border: none;
-    background-color: #8b8;
+    background-color: #bbf; /* #8b8 */
 }
 
 div.latex_source_item {
@@ -134,6 +134,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dawn span.keybinding { color: #822; background-color: #edb; border-color: #a66; }
 #panel_layout.theme_dawn div.help h2 { color: #400; border-color: #822; }
 #panel_layout.theme_dawn div.separator_item hr { background-color: #dce695; }
+#panel_layout.theme_dawn div.heading_style div.latex_fragment_inner { border-bottom-color: #dce695; }
 
 /* Dusk theme */*
 #panel_layout.theme_dusk div.panel { background-color: #447; }
@@ -149,6 +150,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk span.keybinding { color: #c7c5ca; background-color: #204080; border-color: #808080; }
 #panel_layout.theme_dusk div.help h2 { border-color: #56999f; }
 #panel_layout.theme_dusk div.separator_item hr { background-color: #56999f; }
+#panel_layout.theme_dusk div.heading_style div.latex_fragment_inner { border-bottom-color: #56999f; }
 #panel_layout.theme_dusk div.tag_expr { background-color: #2c67a7; border-color: #7796b8; }
 #panel_layout.theme_dusk #popup_panel { background-color: #020; box-shadow: 0 0 1em 2px #000; }
 #panel_layout.theme_dusk table.file_table th { background-color: #448; }
@@ -168,6 +170,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark span.keybinding { color: #6f6; background-color: #040; }
 #panel_layout.theme_dark div.help h2 { border-color: #868686; }
 #panel_layout.theme_dark div.separator_item hr { background-color: #868686; }
+#panel_layout.theme_dark div.heading_style div.latex_fragment_inner { border-bottom-color: #868686; }
 #panel_layout.theme_dark div.tag_expr { background-color: #422; border-color: #833;
 }
 #panel_layout.theme_dark #popup_panel { background-color: #200; box-shadow: 0 0 1em 2px #000; }
