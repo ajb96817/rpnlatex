@@ -1,7 +1,7 @@
 
 import {
     AppState,
-    Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
+    Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem
 } from './Models';
@@ -583,8 +583,8 @@ class InputContext {
         return this.do_insert(stack, this.last_keypress);
     }
 
-    do_insert_defer(stack) {
-        return stack.push_expr(new DeferExpr());
+    do_insert_placeholder(stack) {
+        return stack.push_expr(new PlaceholderExpr());
     }
 
     // Used for \mathscr / \mathcal, which only have uppercase glyphs.
@@ -867,21 +867,21 @@ class InputContext {
             return stack.type_error();
     }
 
-    // Substitute the stack top expression into the first available defer marker in the
+    // Substitute the stack top expression into the first available placeholder marker in the
     // item second from top.  That item can be either an ExprItem or TextItem.
-    do_substitute_defer(stack) {
+    do_substitute_placeholder(stack) {
         const [new_stack, substitution_expr] = stack.pop_exprs(1);
         const [new_stack_2, item] = new_stack.pop(1);
         if(item.item_type() === 'expr') {
             const original_expr = item.expr;
-            const defer_expr = original_expr.find_defer();
-            if(defer_expr) {
-                const new_expr = original_expr.substitute_expr(defer_expr, substitution_expr);
+            const placeholder_expr = original_expr.find_placeholder();
+            if(placeholder_expr) {
+                const new_expr = original_expr.substitute_expr(placeholder_expr, substitution_expr);
                 return new_stack_2.push_expr(new_expr);
             }
         }
         else if(item.item_type() === 'text') {
-            const new_text_item = item.try_substitute_defer(substitution_expr);
+            const new_text_item = item.try_substitute_placeholder(substitution_expr);
             if(new_text_item)
                 return new_stack_2.push(new_text_item);
         }

@@ -723,8 +723,8 @@ class Expr {
             return new InfixExpr(
                 this._expr(json.operator_expr), this._expr(json.left_expr),
                 this._expr(json.right_expr), json.split || null);
-        case 'defer':
-            return new DeferExpr();
+        case 'placeholder':
+            return new PlaceholderExpr();
         case 'text':
             return new TextExpr(json.text);
         case 'sequence':
@@ -863,11 +863,11 @@ class Expr {
     // to the left-to-right rendering of the expression.
     visit(fn) { fn(this); }
 
-    // Find the first DeferExpr that exists in this expression.  Returns null if none.
-    find_defer() {
+    // Find the first PlaceholderExpr that exists in this expression.  Returns null if none.
+    find_placeholder() {
         let found = null;
         this.visit(expr => {
-            if(expr.expr_type() === 'defer' && !found)
+            if(expr.expr_type() === 'placeholder' && !found)
                 found = expr;
         });
         return found;
@@ -1075,14 +1075,14 @@ class InfixExpr extends Expr {
 }
 
 
-// Represents a "defer marker" that can be used with the 'substitute_defer' command.
-class DeferExpr extends Expr {
-    expr_type() { return 'defer'; }
+// Represents a "placeholder marker" that can be used with the 'substitute_placeholder' command.
+class PlaceholderExpr extends Expr {
+    expr_type() { return 'placeholder'; }
     json_keys() { return []; }
 
     emit_latex(emitter) {
         const expr = new CommandExpr('htmlClass', [
-            new TextExpr('defer_expr'), new TextExpr("\\blacksquare")]);
+            new TextExpr('placeholder_expr'), new TextExpr("\\blacksquare")]);
         emitter.expr(expr);
     }
 }
@@ -1796,14 +1796,14 @@ class TextItem extends Item {
     static empty_item() { return new TextItem([], true); }
 
     // Like from_string, but if the string contains "[]" sequences, these are parsed out
-    // and converted into DeferExpr placeholders.
+    // and converted into PlaceholderExpr placeholders.
     static from_string_with_placeholders(string) {
         const pieces = string.split('[]');
         let elements = [];
         for(let i = 0; i < pieces.length; i++) {
             elements.push(new TextItemTextElement(pieces[i]));
             if(i < pieces.length-1)
-                elements.push(new TextItemExprElement(new DeferExpr()));
+                elements.push(new TextItemExprElement(new PlaceholderExpr()));
         }
         return new TextItem(elements);
     }
@@ -1889,7 +1889,7 @@ class TextItem extends Item {
 
     // If this TextItem is simple enough, return a string representation suitable
     // for editing using the minieditor.  "Simple enough" currently means that there
-    // are no Exprs mixed into the text, with the exception of DeferExprs which are
+    // are no Exprs mixed into the text, with the exception of PlaceholderExprs which are
     // rendered as [].  Bold flags are stripped from the text as well.
     // If this TextItem is not simple, null is returned indicating that it's
     // "uneditable" with the minieditor.
@@ -1907,8 +1907,8 @@ class TextItem extends Item {
 		else return null;
 	    }
 	    else if(elt.is_expr()) {
-		// Only top-level DeferExprs are allowed.
-		if(elt.expr.expr_type() === 'defer')
+		// Only top-level PlaceholderExprs are allowed.
+		if(elt.expr.expr_type() === 'placeholder')
 		    pieces.push('[]');
 		else return null;
 	    }
@@ -1923,16 +1923,16 @@ class TextItem extends Item {
             this.is_heading);
     }
 
-    // If there is any DeferExpr among the elements in this TextItem, substitute
+    // If there is any PlaceholderExpr among the elements in this TextItem, substitute
     // the first one for substitution_expr and return the new TextItem.
-    // If there are no DeferExprs available, return null.
-    try_substitute_defer(substitution_expr) {
+    // If there are no PlaceholderExprs available, return null.
+    try_substitute_placeholder(substitution_expr) {
         let new_elements = [...this.elements];
         for(let i = 0; i < new_elements.length; i++) {
             if(new_elements[i].is_expr()) {
-                const defer_expr = new_elements[i].expr.find_defer();
-                if(defer_expr) {
-                    const new_expr = new_elements[i].expr.substitute_expr(defer_expr, substitution_expr);
+                const placeholder_expr = new_elements[i].expr.find_placeholder();
+                if(placeholder_expr) {
+                    const new_expr = new_elements[i].expr.substitute_expr(placeholder_expr, substitution_expr);
                     new_elements[i] = new TextItemExprElement(new_expr);
                     return new TextItem(new_elements, this.is_heading);
                 }
@@ -2116,7 +2116,7 @@ class Document {
 
 export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
-    Expr, CommandExpr, PrefixExpr, InfixExpr, DeferExpr, TextExpr, SequenceExpr,
+    Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     Item, ExprItem, TextItem, Stack, Document
 };

@@ -301,7 +301,7 @@ const EditorKeymap = {
         '-': "mode inverse",
         '=': "unrot;infix =;insert \\sum;swap;subscript;swap;superscript",
         '+': "infix \\ge;insert \\sum;swap;subscript",
-        "'": "substitute_defer",
+        "'": "substitute_placeholder",
         "\"": "toggle_is_heading",
         'Enter': "unrot;subscript;swap;superscript",  // apply superscript and subscript at once
         '?': "toggle_popup help operators"
@@ -590,7 +590,7 @@ const EditorKeymap = {
         ':': "insert :",
         '`': "insert `",
         '_': "insert \\_",
-        "'": "insert_defer",
+        "'": "insert_placeholder",
         ' ': "insert ",  // "nothing", e.g. when you don't want something on one side of an infix
         'ArrowUp': "insert \\uparrow",
         'ArrowDown': "insert \\downarrow"
