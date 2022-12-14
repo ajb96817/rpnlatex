@@ -317,8 +317,12 @@ class InputContext {
             return this.prefix_argument;
     }
 
-    _require_prefix_argument() {
-        if(this.prefix_argument === null || this.prefix_argument <= 0)
+    // A nonzero prefix argument is required.
+    // star_ok means that a prefix argument of * is acceptable (defaults to false).
+    _require_prefix_argument(star_ok) {
+        if(this.prefix_argument === null ||
+	   (star_ok && this.prefix_argument === 0) ||
+	   (!star_ok && this.prefix_argument <= 0))
             throw new Error('prefix_argument_required');
         else
             return this.prefix_argument;
@@ -1280,31 +1284,45 @@ class InputContext {
     }
 
     // item1, item2, ..., N => "item1, item2, ..."
-    // (concatenate N items from the stack with separator_text between each one)
+    // Concatenate N items from the stack with separator_text between each one.
+    // If separator_text is the string 'nothing', items are simply concatenated together.
+    // 'final_separator_text' is used as the next to last item if provided.
     do_build_list(stack, separator_text, final_separator_text) {
-        const expr_count = this._require_prefix_argument();
+	this._require_prefix_argument(true);
+        const expr_count = this._get_prefix_argument(1, stack.depth());
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         let expr = exprs[0];
         for(let i = 1; i < expr_count; i++) {
             const s = (final_separator_text && i === expr_count-1) ? final_separator_text : separator_text;
-            expr = Expr.combine_pair(expr, new TextExpr(s));
+	    if(s !== 'nothing') {
+		if(s.startsWith("\\"))  // TODO: clean up this check
+		    expr = Expr.combine_pair(expr, new CommandExpr(s.slice(1)));
+		else
+		    expr = Expr.combine_pair(expr, new TextExpr(s));
+	    }
             expr = Expr.combine_pair(expr, exprs[i]);
         }
         return new_stack.push_expr(expr);
     }
 
     // Take [x_1,...,x_n] from the stack and build a nested InfixExpr with
-    // the given text between each term as an infix opertor. 
+    // the given text between each term as an infix operator.
     // 'final_separator_text' is used as the next to last item if provided.
     do_build_infix_list(stack, infix_text, final_separator_text) {
-        const expr_count = this._require_prefix_argument();
+	this._require_prefix_argument(true);
+        const expr_count = this._get_prefix_argument(1, stack.depth());
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-        const infix_operator_expr = new TextExpr(infix_text);
         let expr = exprs[expr_count-1];
+	// TODO: handle these repetitive s.startsWith("\\") checks more cleanly
+        const infix_operator_expr = infix_text.startsWith("\\") ?
+	      new CommandExpr(infix_text.slice(1)) : new TextExpr(infix_text);
         if(final_separator_text && expr_count > 1)
-            expr = new InfixExpr(infix_operator_expr, new TextExpr(final_separator_text), expr);
+	    expr = new InfixExpr(infix_operator_expr,
+				 (final_separator_text.startsWith("\\") ?
+				  new CommandExpr(final_separator_text.slice(1)) :
+				  new TextExpr(final_separator_text)), expr);
         for(let i = expr_count-2; i >= 0; i--)
-            expr = new InfixExpr(infix_operator_expr, exprs[i], expr);
+	    expr = new InfixExpr(infix_operator_expr, exprs[i], expr);
         return new_stack.push_expr(expr);
     }
 

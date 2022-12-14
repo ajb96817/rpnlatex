@@ -511,7 +511,7 @@ const EditorKeymap = {
         '`': "swap;insert T;superscript;swap;concat",  // xTy
         '%': "infix \\pmod",  // y (mod x)
         '*': "infix *",
-	'<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
+        '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
         '/': "autoparenthesize;swap;autoparenthesize;swap;delimiters . . / 2",  // flex x/y
         "\\": "autoparenthesize;swap;autoparenthesize;swap;infix /",  // fixed x/y
@@ -648,7 +648,7 @@ const EditorKeymap = {
         '+': "prefix +",
         '`': "insert T;superscript",  // transpose
         '/': "insert 1;swap;autoparenthesize;delimiters . . / 2",  // flex 1/x
-	"\\": "insert 1;swap;autoparenthesize;infix /",  // fixed 1/x
+        "\\": "insert 1;swap;autoparenthesize;infix /",  // fixed 1/x
         '_': "operator underline",
         '?': "toggle_popup help decorations"
     },
@@ -687,9 +687,10 @@ const EditorKeymap = {
         'T': "transpose_matrix",
         'v': "build_matrix_row vmatrix",
         'V': "build_matrix_row Vmatrix",
+        'x': "build_list nothing \\cdots",
+        ' ': "build_list nothing",
         '|': "stack_arrays",
-        ',': "build_list ,",
-        ' ': "build_list ,\\,",
+        ',': "build_list ,\\,",
         '.': "build_list ,\\, ,\\,\\dots,\\,",
         ';': "build_list semicolon\\,",
         '+': "build_infix_list + \\cdots",

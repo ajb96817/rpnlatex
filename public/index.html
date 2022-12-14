@@ -979,7 +979,7 @@
         <li>
           <span class="keybinding">/</span><span class="keybinding">&#39;</span>
           Substitute the stack top item for the placeholder in the item below it.
-          If there is more than placeholder, only the first one is substituted.
+          If there is more than one placeholder, only the first one is substituted.
           Example: <code>\sqrt{1 + \htmlClass{defer_expr}{\blacksquare}} \enspace x^2 \to \sqrt{1+x^2}</code>
         </li>
       </ul>
@@ -1275,35 +1275,50 @@
         As before, the number of items to concatenate must be given as a prefix argument.
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">,</span> Concatenate N items with a comma between each one.</li>
-        <li><span class="keybinding">&nbsp;</span> Concatenate with a comma between items, but also place a thin space after each comma.</li>
-        <li><span class="keybinding">;</span> Concatenate with a semicolon and thin space between items.</li>
+        <li>
+	  <span class="keybinding">,</span>
+	  <code>x_1,\,x_2,\,x_n</code>
+	</li>
         <li>
           <span class="keybinding">.</span>
-          Concatenate with a comma and thinspace, but put an ellipsis between the last items of the list:
           <code>x_1,\,x_2,\,\dots,\,x_n</code>
         </li>
         <li>
           <span class="keybinding">e</span>
-          Like the above but with the ellipsis at the end:
           <code>x_1,\,x_2,\,x_n,\,\dots</code>
         </li>
         <li>
+	  <span class="keybinding">;</span>
+	  <code>x_1;\,x_2;\,x_n</code>
+	<li>
+        <li>
           <span class="keybinding">+</span>
-          Like <span class="keybinding">.</span> but concatenate with +:
           <code>x_1 + x_2 + \cdots + x_n</code>
         </li>
         <li>
           <span class="keybinding">p</span>
-          Like the above but with the ellipsis at the end:
           <code>x_1 + x_2 + x_n + \cdots</code>
         </li>
-        <li>
+	<li>
+	  <span class="keybinding">&nbsp;</span>
+	  <code>x_1x_2x_n</code>
+	</li>
+	<li>
+	  <span class="keybinding">x</span>
+	  <code>x_1x_2\cdots x_n</code>
+	</li>
+      </ul>
+
+      <p>
+        <strong>Miscellaneous:</strong>
+      </p>
+      <ul class="keybindings">
+	<li>
           <span class="keybinding">k</span>
           Build a <em>stacked limits</em> object used for adding multiple subscripts or superscripts to a large
           operator such as <code>\sum</code>.  Place the resulting object as the subscript or superscript of
           the operator and they will be lined up in a stack underneath or above.
-        </li>
+	</li>
       </ul>
 
       <h2>
