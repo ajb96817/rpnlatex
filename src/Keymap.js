@@ -11,6 +11,7 @@ const EditorKeymap = {
         // Immediate action special keys
         '!': "autoparenthesize;insert !;concat",
         'Enter': "subscript",
+	'Shift+Enter': "edit_item",
         '_': "subscript",
         '^': "superscript",
         'Backspace': "pop",

@@ -65,6 +65,11 @@ class InputContext {
         //   'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
         this.text_entry_mode = null;
 
+	// If this is set, this is the Item that is currently being edited.  While it's being edited,
+	// it doesn't exist on the stack and is temporarily held here.  If the editor is cancelled,
+	// this item will be placed back on the stack.
+	this.text_entry_edited_item = null;
+
         // Tracks multi-part custom_delimiters commands.
         this.custom_delimiters = {};
     }
@@ -896,8 +901,8 @@ class InputContext {
         return stack.push_expr(extracted_expr);
     }
 
-    do_start_text_entry(stack, text_entry_mode) {
-        this.text_entry = '';
+    do_start_text_entry(stack, text_entry_mode, initial_text) {
+        this.text_entry = initial_text || '';
         this.text_entry_mode = text_entry_mode;
         this.switch_to_mode(text_entry_mode);
         this.perform_undo_or_redo = 'suppress';
@@ -905,14 +910,20 @@ class InputContext {
     }
 
     do_cancel_text_entry(stack) {
-        this.cancel_text_entry();
         this.perform_undo_or_redo = 'suppress';
-        return stack;
+        return this.cancel_text_entry(stack);
     }
 
-    cancel_text_entry() {
+    cancel_text_entry(stack) {
         this.text_entry = null;
         this.text_entry_mode = null;
+	if(this.text_entry_edited_item) {
+	    const item = this.text_entry_edited_item;
+	    this.text_entry_edited_item = null;
+	    return stack.push(item);
+	}
+	else
+	    return stack;
     }
 
     do_append_text_entry(stack) {
@@ -944,12 +955,15 @@ class InputContext {
         }
         else {
             // Everything has been deleted; cancel text entry.
+	    // Note that when cancelling via backspace this way, even if
+	    // there was a text_entry_edited_item, it's discarded.
+            this.cancel_text_entry(stack);
             if(new_mode_when_empty) {
+		this.text_entry = '';
                 this.text_entry_mode = new_mode_when_empty;
                 this.switch_to_mode(new_mode_when_empty);
             }
-            else
-                this.cancel_text_entry();
+	    return stack;
         }
         this.perform_undo_or_redo = 'suppress';
         return stack;
@@ -964,15 +978,13 @@ class InputContext {
     do_finish_text_entry(stack, textstyle) {
         if(this.text_entry === null)
             return stack;  // shouldn't happen
-        if(this.text_entry.length === 0) {
-            this.cancel_text_entry();
-            return stack;
-        }
+        if(this.text_entry.length === 0)
+            return this.cancel_text_entry(stack);
 
         if(textstyle === 'text' || textstyle === 'heading') {
             let item = TextItem.from_string_with_placeholders(this.text_entry);
             if(textstyle === 'heading') item.is_heading = true;
-            this.cancel_text_entry();
+            this.cancel_text_entry(stack);
             return stack.push(item);
         }
 
@@ -998,8 +1010,51 @@ class InputContext {
         }
         else
             new_expr = new TextExpr(this._latex_escape(this.text_entry));
-        this.cancel_text_entry();
+        this.cancel_text_entry(stack);
         return stack.push_expr(new_expr);
+    }
+
+    // Start text entry mode using the item on the stack top.
+    // Because the minieditor is so limited, only these cases are allowed:
+    //   - TextItems without anything too "complicated" (see TextItem.as_editable_string);
+    //     these will start with the minieditor in text-entry mode.
+    //   - ExprItems that are only a simple CommandExpr with a no-argument LaTeX command;
+    //     in this case the minieditor will start directly in LaTeX-entry mode.
+    //   - ExprItems that represent a simple text string like '123' or 'xyz'.
+    //   - ExprItems that represent \mathrm{x} where x is a simple string like '123' or 'xyz'
+    //     (this is to allow expressions created via Shift+Enter in the minieditor to be editable).
+    do_edit_item(stack) {
+	const [new_stack, item] = stack.pop(1);
+	if(item.item_type() === 'text') {
+	    const s = item.as_editable_string();
+	    if(s) {
+		this.do_start_text_entry(new_stack, 'text_entry', s);
+		this.text_entry_edited_item = item;
+		return new_stack;
+	    }
+	}
+	else if(item.item_type() === 'expr') {
+	    let expr = item.expr;
+	    if(expr.expr_type() === 'command' && expr.operand_count() === 0) {
+		// LaTeX command with no arguments, e.g. \circledast
+		this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
+		this.text_entry_edited_item = item;
+		return new_stack;
+	    }
+	    // Try stripping off a single level of \mathrm{...} if there is one.
+	    if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
+	       expr.command_name === 'mathrm')
+		expr = expr.operand_exprs[0];
+	    // It's editable only if it's a basic TextExpr that doesn't start with a
+	    // backslash (so generally, only something that was directly created by
+	    // the minieditor to begin with).
+	    if(expr.expr_type() === 'text' && !expr.text.startsWith("\\")) {
+		this.do_start_text_entry(new_stack, 'math_text_entry', expr.text);
+		this.text_entry_edited_item = item;
+		return new_stack;
+	    }
+	}
+	return this.error_flash_stack();
     }
 
     // TODO: may want to make this a general utility method, but it's only used here so far.

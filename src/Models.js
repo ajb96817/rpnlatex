@@ -1887,6 +1887,35 @@ class TextItem extends Item {
 
     clone() { return new TextItem(this.elements, this.is_heading); }
 
+    // If this TextItem is simple enough, return a string representation suitable
+    // for editing using the minieditor.  "Simple enough" currently means that there
+    // are no Exprs mixed into the text, with the exception of DeferExprs which are
+    // rendered as [].  Bold flags are stripped from the text as well.
+    // If this TextItem is not simple, null is returned indicating that it's
+    // "uneditable" with the minieditor.
+    as_editable_string() {
+	let pieces = [];
+	for(let i = 0; i < this.elements.length; i++) {
+	    const elt = this.elements[i];
+	    if(elt.is_text())
+		pieces.push(elt.text);
+	    else if(elt.is_raw()) {
+		// Only basic "explicit spaces" are allowed; otherwise it's
+		// probably a LaTeX command.
+		if(elt.is_explicit_space())
+		    pieces.push(' ');
+		else return null;
+	    }
+	    else if(elt.is_expr()) {
+		// Only top-level DeferExprs are allowed.
+		if(elt.expr.expr_type() === 'defer')
+		    pieces.push('[]');
+		else return null;
+	    }
+	}
+	return pieces.join('');
+    }
+
     // Return a clone of this with all elements bolded.
     as_bold() {
         return new TextItem(
