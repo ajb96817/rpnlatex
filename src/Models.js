@@ -1793,7 +1793,7 @@ class TextItemRawElement extends TextItemElement {
 class TextItem extends Item {
     static from_expr(expr) { return new TextItem([new TextItemExprElement(expr)]); }
     static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
-    static empty_item() { return new TextItem([]); }
+    static empty_item() { return new TextItem([], true); }
 
     // Like from_string, but if the string contains "[]" sequences, these are parsed out
     // and converted into DeferExpr placeholders.

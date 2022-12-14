@@ -1203,7 +1203,11 @@ class InputContext {
     // item1, item2, ... => [item1, item2, ...]
     // column_count is optional; if omitted, the prefix argument is used.
     do_build_matrix_row(stack, matrix_type, column_count) {
-        const expr_count = column_count ? parseInt(column_count) : this._require_prefix_argument();
+        const expr_count = column_count ?
+	      parseInt(column_count) :
+	      this._get_prefix_argument(0, stack.depth());
+	if(expr_count <= 0)
+	    return this.error_flash_stack();
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         const matrix_expr = new ArrayExpr(
             (matrix_type || 'bmatrix'),
@@ -1272,7 +1276,9 @@ class InputContext {
 
     do_build_align(stack, align_type) {
         // NOTE: if align_type = 'cases' or 'rcases', align on ':' infix if there is one, and then remove the infix
-        const expr_count = this._require_prefix_argument();
+        const expr_count = this._get_prefix_argument(0, stack.depth());
+	if(expr_count <= 0)
+	    return this.error_flash_stack();
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
         let split_mode;
         switch(align_type) {
