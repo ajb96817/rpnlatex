@@ -637,6 +637,9 @@
       <p>
         Similar to <span class="keybinding">,</span>, these commands combine two items
         into an "equation" by placing a relational operator between them.
+	<strong>NOTE:</strong> There is no real distinction between relational and infix
+	operators internally, so this <span class="keybinding">=</span> prefix is just a way to
+	get more keybindings available.
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -652,17 +655,27 @@
           <tr>
             <td><span class="keybinding">i</span> <code>x\in y</code></td>
             <td><span class="keybinding">I</span> <code>x\notin y</code></td>
-            <td><span class="keybinding">l</span> <code>x &lt; y</code></td>
+            <td><span class="keybinding">j</span> <code>x\Join y</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">l</span> <code>x &lt; y</code></td>
             <td><span class="keybinding">L</span> <code>x\ll y</code></td>
             <td><span class="keybinding">!</span> or <span class="keybinding">n</span> <code>x\ne y</code></td>
-            <td><span class="keybinding">p</span> <code>x\propto y</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">o</span> <code>x\circeq y</code></td>
+            <td><span class="keybinding">p</span> <code>x\propto y</code></td>
             <td><span class="keybinding">=</span> or <span class="keybinding">q</span> <code>x = y</code></td>
+	  </tr>
+	  <tr>
             <td><span class="keybinding">s</span> <code>x\subseteq y</code></td>
             <td><span class="keybinding">S</span> <code>x\subset y</code></td>
+            <td><span class="keybinding">u</span> <code>x\supseteq y</code></td>
+	  </tr>
+	  <tr>
+            <td><span class="keybinding">U</span> <code>x\supset y</code></td>
+            <td><span class="keybinding">{</span> <code>x\sqsubset y</code></td>
+            <td><span class="keybinding">}</span> <code>x\sqsupset y</code></td>
           </tr>
           <tr>
             <td><span class="keybinding">&lt;</span> or <span class="keybinding">[</span> <code>x\le y</code></td>
@@ -670,9 +683,14 @@
             <td><span class="keybinding">:</span> <code>x\coloneqq y</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">;</span> <code>x\coloncolon y</code></td>
             <td><span class="keybinding">~</span> or <span class="keybinding">t</span> <code>x\sim y</code></td>
+            <td><span class="keybinding">.</span> <code>x\doteq y</code></td>
+	  </tr>
+	  <tr>
+            <td><span class="keybinding">^</span> <code>x\triangleq y</code></td>
+            <td><span class="keybinding">-</span> <code>x\vdash y</code></td>
             <td><span class="keybinding">|</span> <code>x\vDash y</code></td>
-            <td></td>
           </tr>
       </tbody></table>
 
