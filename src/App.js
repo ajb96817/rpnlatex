@@ -170,7 +170,7 @@ class App extends React.Component {
                 stack: app_state.stack,
                 input_context: input_context
             })];
-	if(settings.show_mode_indicator)
+	if(settings.show_mode_indicator || input_context.notification_text)
 	    stack_panel_components.push(
 		$e(ModeIndicatorComponent, {
 		    app_state: app_state,

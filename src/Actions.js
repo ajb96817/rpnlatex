@@ -1213,6 +1213,7 @@ class InputContext {
             break;
 	case 'toggle_mode_indicator':
 	    settings.show_mode_indicator = !settings.show_mode_indicator;
+	    this.notify("Mode indicator " + (settings.show_mode_indicator ? "enabled" : "disabled"));
 	    break;
         case 'stack_side':
             layout.stack_side = value;
