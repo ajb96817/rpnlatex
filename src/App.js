@@ -156,37 +156,46 @@ class App extends React.Component {
     }
 
     render() {
-        let app_state = this.state.app_state;
+	const app_state = this.state.app_state;
+	const settings = this.state.settings;
+	const input_context = this.state.input_context;
 
         this.stack_panel_ref = React.createRef();
         this.document_panel_ref = React.createRef();
         this.popup_panel_ref = React.createRef();
 
+	let stack_panel_components = [
+	    $e(StackItemsComponent, {
+                settings: settings,
+                stack: app_state.stack,
+                input_context: input_context
+            })];
+	if(settings.show_mode_indicator)
+	    stack_panel_components.push(
+		$e(ModeIndicatorComponent, {
+		    app_state: app_state,
+		    input_context: input_context
+		}));
+
         return $e(
-            'div', {id: 'panel_layout', className: 'theme_' + this.state.settings.selected_theme},
+            'div', {id: 'panel_layout', className: 'theme_' + settings.selected_theme},
             $e('div', {className: 'panel stack_panel', id: 'stack_panel', ref: this.stack_panel_ref},
-               $e(StackItemsComponent, {
-                   settings: this.state.settings,
-                   stack: app_state.stack,
-                   input_context: this.state.input_context
-               }),
-               $e(ModeIndicatorComponent, {app_state: app_state, input_context: this.state.input_context})),
+	       ...stack_panel_components),
             $e('div', {className: 'panel document_panel', id: 'document_panel', ref: this.document_panel_ref},
                $e('div', {id: 'document_container'},
                   $e(DocumentComponent, {
-                      settings: this.state.settings,
+                      settings: settings,
                       document: app_state.document,
                       filename: this.state.file_manager_state.current_filename,
                       is_dirty: app_state.is_dirty  /* TODO: revisit, maybe remove this */
                   }))),
             $e(PopupPanelComponent, {
-                settings: this.state.settings,
+                settings: settings,
                 popup_panel_ref: this.popup_panel_ref,
                 import_export_state: this.state.import_export_state,
                 document_storage: this.state.document_storage,
                 file_manager_state: this.state.file_manager_state
-            })
-        );
+            }));
     }
 
     handleKeyDown(event) {

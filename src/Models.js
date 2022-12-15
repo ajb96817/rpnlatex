@@ -45,6 +45,7 @@ class Settings {
         this.selected_theme = 'default';
         this.last_opened_filename = null;
         this.popup_mode = null;  // null, 'help', 'files'
+	this.show_mode_indicator = true;
         this.layout = this.default_layout();
     }
 
@@ -123,7 +124,8 @@ class Settings {
 }
 
 Settings.saved_keys = [
-    'selected_theme', 'last_opened_filename', 'popup_mode', 'layout'
+    'selected_theme', 'last_opened_filename', 'popup_mode', 'layout',
+    'show_mode_indicator'
 ];
 
 

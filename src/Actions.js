@@ -1211,6 +1211,9 @@ class InputContext {
             layout.inline_math = !layout.inline_math;
             full_refresh_needed = true;
             break;
+	case 'toggle_mode_indicator':
+	    settings.show_mode_indicator = !settings.show_mode_indicator;
+	    break;
         case 'stack_side':
             layout.stack_side = value;
             break;

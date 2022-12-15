@@ -159,6 +159,7 @@ const EditorKeymap = {
         'f': "fullscreen on",
         'F': "fullscreen off",
         'i': "config toggle_inline_math",
+	'I': "config toggle_mode_indicator",
         'm': "config math_align toggle_document",
         'M': "config math_align toggle_stack",
         'r': "config reset_layout",
