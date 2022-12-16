@@ -651,7 +651,7 @@ const EditorKeymap = {
         'U': "operator utilde",
         'v': "operator vec",
         'V': "apply_hat check",
-        'w': "apply_hat widehat",
+        'w': "operator overline",
         'W': "apply_hat widecheck",
         'x': "operator boxed",
         'X': "operator sout",  // strikeout
