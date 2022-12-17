@@ -387,3 +387,8 @@ table.keybindings td { padding: 0.1em 0.5em; }
 .katex .overline .overline-line, .katex .underline .underline-line {
     border-bottom-width: 0.08em !important;
 }
+
+/* Similarly, fraction bars are too thin (0.04em), especially on high-DPI displays. */
+.katex .frac-line {
+    border-bottom-width: 0.06em !important;
+}
