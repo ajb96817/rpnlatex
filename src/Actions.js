@@ -682,15 +682,22 @@ class InputContext {
         return new_stack.push_expr(result_expr);
     }
 
-    do_color(stack, colorname) {
+    // Wrap in \htmlClass{...}
+    // If it's already wrapped in the given class, unwrap it instead.
+    do_html_class(stack, class_name) {
         let [new_stack, expr] = stack.pop_exprs(1);
-
-        // Strip off any existing \textcolor
+        // Strip off any existing \htmlClass; if the one already there was the same 
         if(expr.expr_type() === 'command' &&
-           expr.command_name === 'textcolor' && expr.operand_count() === 2)
-            expr = expr.operand_exprs[1];
-
-        const new_expr = new CommandExpr('textcolor', [new TextExpr(colorname), expr]);
+           expr.command_name === 'htmlClass' && expr.operand_count() === 2) {
+            if(expr.operand_exprs[0].expr_type() === 'text' &&
+               expr.operand_exprs[0].text === class_name) {
+                // Already is wrapped in this class; toggle it off.
+                return new_stack.push_expr(expr.operand_exprs[1]);
+            }
+            else
+                expr = expr.operand_exprs[1];  // Strip existing \htmlClass
+        }
+        const new_expr = new CommandExpr('htmlClass', [new TextExpr(class_name), expr]);
         return new_stack.push_expr(new_expr);
     }
 

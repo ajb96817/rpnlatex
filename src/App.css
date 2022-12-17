@@ -60,6 +60,7 @@ div.latex_fragment {
     margin-left: 0;
     padding-left: 12px;
 }
+div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: 5px solid #aaa; }
 div.text_item div.latex_fragment { border-left: 5px solid #88f; }
 div.heading_style div.latex_fragment_inner {
@@ -84,6 +85,14 @@ div.separator_item hr {
     margin-right: 12px;
     border: none;
     background-color: #bbf; /* #8b8 */
+}
+
+/* "Emphasized" expressions created with [.][C]
+   Note that because of how KaTeX layout works, we only really have the foreground color to
+   work with here (background and borders won't work right). */
+.emphasized {
+    color: #00f;
+    text-shadow: 0 0 0.08em #88f;
 }
 
 div.latex_source_item {
@@ -155,6 +164,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk #popup_panel { background-color: #020; box-shadow: 0 0 1em 2px #000; }
 #panel_layout.theme_dusk table.file_table th { background-color: #448; }
 #panel_layout.theme_dusk table.file_table tr.selected_file td { background-color: #486; }
+#panel_layout.theme_dusk .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
 
 /* Dark theme */
 #panel_layout.theme_dark div.panel { background-color: #222; }
@@ -176,7 +186,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark #popup_panel { background-color: #200; box-shadow: 0 0 1em 2px #000; }
 #panel_layout.theme_dark table.file_table th { background-color: #448; }
 #panel_layout.theme_dark table.file_table tr.selected_file td { background-color: #486; }
-
+#panel_layout.theme_dark .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
 
 
 /* These are to support settings.layout.rightalign_math options. */

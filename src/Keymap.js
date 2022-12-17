@@ -624,7 +624,7 @@ const EditorKeymap = {
         'A': "operator acute",
         'b': "operator mathbb",
         'c': "autoparenthesize;insert 1;swap;infix -",
-        'C': "mode color",
+        'C': "html_class emphasized",
         'd': "insert \\dagger;superscript",
         'D': "insert \\ddagger;superscript",
         'e': "operator bold",  // bold roman (sort of)
@@ -670,18 +670,6 @@ const EditorKeymap = {
         "\\": "insert 1;swap;autoparenthesize;infix /",  // fixed 1/x
         '_': "operator underline",
         '?': "toggle_popup help decorations"
-    },
-
-    // .C prefix: set colors
-    color: {
-        'b': "color blue",
-        'g': "color green",
-        'h': "color #888",  // grey: [h]alf black
-        'k': "color black",
-        'o': "color orange",
-        'p': "color purple",
-        'r': "color red",
-        'y': "color #ff0"
     },
 
     // | prefix: array/matrix operations
