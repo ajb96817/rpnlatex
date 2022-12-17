@@ -96,7 +96,7 @@ div.separator_item hr {
 }
 
 div.latex_source_item {
-    border-left: 5px solid #ddd;
+    border-left: 5px solid #bcb;
     overflow-wrap: break-word;
     font-family: monospace;
     padding-left: 12px;
@@ -165,6 +165,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk table.file_table th { background-color: #448; }
 #panel_layout.theme_dusk table.file_table tr.selected_file td { background-color: #486; }
 #panel_layout.theme_dusk .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
+#panel_layout.theme_dusk div.latex_source_item div.latex_source { color: #bbb; background-color: #004; }
 
 /* Dark theme */
 #panel_layout.theme_dark div.panel { background-color: #222; }
@@ -187,6 +188,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark table.file_table th { background-color: #448; }
 #panel_layout.theme_dark table.file_table tr.selected_file td { background-color: #486; }
 #panel_layout.theme_dark .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
+#panel_layout.theme_dark div.latex_source_item div.latex_source { color: #bbb; background-color: #333; }
 
 
 /* These are to support settings.layout.rightalign_math options. */

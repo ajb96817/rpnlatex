@@ -142,7 +142,7 @@ const EditorKeymap = {
         '.': "redo",
         '!': "export_document_as_text",
         '@': "export_stack_items_as_text",
-        '$': "toggle_show_latex_source",
+        '$': "extract_latex_source",
         'ArrowRight': "scroll document_container horizontal 75",
         'ArrowLeft': "scroll document_container horizontal -75",
         '?': "toggle_popup help stack"
@@ -285,7 +285,7 @@ const EditorKeymap = {
         'S': "named_function sec",
         't': "named_function tan",
         'T': "named_function cot",
-        'u': "overunderset underset",
+        'U': "overunderset underset",
         'v': "parenthesize;insert Var;operator operatorname;swap;concat",
         'V': "swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
         'x': "insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)

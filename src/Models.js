@@ -1617,6 +1617,8 @@ class Item {
             return new TextItem(
                 json.elements.map(element_json => TextItemElement.from_json(element_json)),
                 !!json.is_heading);
+	case 'code':
+	    return new CodeItem(json.language, json.source);
         default:
             return TextItem.from_string('invalid item type ' + json.item_type);
         }
@@ -1945,6 +1947,33 @@ class TextItem extends Item {
 }
 
 
+class CodeItem extends Item {
+    static from_latex_string(s) { return new CodeItem('latex', s); }
+
+    constructor(language, source) {
+	super();
+	this.language = language;
+	this.source = source;
+    }
+
+    item_type() { return 'code'; }
+
+    to_json() {
+	return {
+	    item_type: 'code',
+	    language: this.language,
+	    source: this.source
+	};
+    }
+
+    to_latex() { return '???'; }
+
+    clone() { return new CodeItem(this.language, this.source); }
+
+    as_bold() { return this.clone(); }
+}
+
+
 // NOTE: All stack operations return a new Stack with the modified
 // items, leaving the original untouched.
 class Stack {
@@ -2120,6 +2149,7 @@ export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    Item, ExprItem, TextItem, Stack, Document
+    Item, ExprItem, TextItem, CodeItem,
+    Stack, Document
 };
 

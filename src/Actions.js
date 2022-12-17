@@ -3,7 +3,7 @@ import {
     AppState,
     Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    ExprItem, TextItem
+    ExprItem, TextItem, CodeItem
 } from './Models';
 
 
@@ -50,9 +50,6 @@ class InputContext {
 
         // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
         this.preserve_prefix_argument = false;
-
-        // If true, display the stack top's LaTeX code rather than rendering it with KaTeX.
-        this.show_latex_source = false;
 
         // If non-null, text-entry mode is active and the entry line will appear at the
         // bottom of the stack panel.
@@ -1103,9 +1100,12 @@ class InputContext {
             this.error_flash_stack();
     }
 
-    do_toggle_show_latex_source(stack) {
-        this.show_latex_source = !this.show_latex_source;
-        this.perform_undo_or_redo = 'suppress';
+    do_extract_latex_source(stack) {
+        // eslint-disable-next-line no-unused-vars
+	const [new_stack, expr] = stack.pop_exprs(1);
+	const latex_source = expr.to_text();
+	const code_item = new CodeItem('latex', latex_source);
+	return stack.push(code_item);
     }
 
     // expr_count is the number of items to pop from the stack to put inside the delimiters.

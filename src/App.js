@@ -318,18 +318,10 @@ class StackItemsComponent extends React.Component {
         const item_components = this.props.stack.items.map((item, index) => {
             // If there's an active prefix argument for stack commands, highlight the stack items that
             // will be affected.
-            let selected = (
+            const selected = (
                 input_context.mode === 'stack' &&
                     (input_context.prefix_argument < 0 ||
                      this.props.stack.items.length-index <= input_context.prefix_argument));
-            if(input_context.show_latex_source && index === this.props.stack.items.length-1) {
-                // Show LaTeX source code for the stack top.
-                return $e(
-                    LaTeXSourceComponent, {
-                        item: item,
-                        key: item.react_key(index)
-                    });
-            }
             return $e(
                 ItemComponent, {
                     item: item,
@@ -625,6 +617,11 @@ class ItemComponent extends React.Component {
                     $e('div', {className: className + 'latex_fragment'},
                        $e('div', {className: 'latex_fragment_inner', ref: ref}, '')));
 	    }
+	case 'code':
+	    // NOTE: only LaTeX source code snippets currently implemented.
+	    return $e(
+		'div', {className: 'latex_source_item'},
+		$e('div', {className: 'latex_source'}, item.source));
         default:
             return $e('div', {}, '????');
         }
@@ -665,16 +662,6 @@ class ItemComponent extends React.Component {
             const msg = e.toString();
             node.innerHTML = '<div style="color:red;">' + msg + '</div>';
         }
-    }
-}
-
-
-class LaTeXSourceComponent extends React.Component {
-    render() {
-        let item = this.props.item;
-        return $e(
-            'div', {className: 'latex_source_item'},
-            $e('div', {className: 'latex_source'}, item.to_text()));
     }
 }
 
