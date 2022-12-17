@@ -218,6 +218,7 @@ const EditorKeymap = {
         '|': "delimiters \\vert \\vert",
         '<': "delimiters \\langle \\rangle",
         '(': "delimiters ( )",
+	')': "toggle_fixed_size_delimiters",
         '[': "delimiters [ ]",
         ']': "insert \\llbracket;swap;concat;insert \\rrbracket;concat",
         '{': "delimiters \\{ \\}",

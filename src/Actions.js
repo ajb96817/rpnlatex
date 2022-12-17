@@ -760,6 +760,14 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
+    do_toggle_fixed_size_delimiters(stack) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	if(expr.expr_type() === 'delimiter')
+	    return new_stack.push_expr(expr.as_fixed_size(!expr.fixed_size));
+	else
+	    stack.type_error();
+    }
+
     // opname can be either a \latex_command or a regular string like '+'
     // The cases of Expr+Expr and Expr+Text (or Text+Text) are handled separately.
     do_infix(stack, opname) {

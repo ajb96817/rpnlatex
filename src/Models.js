@@ -734,7 +734,7 @@ class Expr {
         case 'delimiter':
             return new DelimiterExpr(
                 json.left_type, json.right_type, json.middle_type,
-                this._list(json.inner_exprs));
+                this._list(json.inner_exprs), json.fixed_size);
         case 'subscriptsuperscript':
             return new SubscriptSuperscriptExpr(
                 this._expr(json.base_expr),
@@ -1190,11 +1190,12 @@ class DelimiterExpr extends Expr {
             return expr;
     }
     
-    constructor(left_type, right_type, middle_type, inner_exprs) {
+    constructor(left_type, right_type, middle_type, inner_exprs, fixed_size) {
         super();
         this.left_type = left_type;
         this.right_type = right_type;
         this.middle_type = middle_type || null;  // to avoid 'undefined's in the JSON
+	this.fixed_size = fixed_size || false;
         this.inner_exprs = inner_exprs || [];
     }
 
@@ -1202,6 +1203,13 @@ class DelimiterExpr extends Expr {
     json_keys() { return ['left_type', 'right_type', 'middle_type', 'inner_exprs']; }
 
     emit_latex(emitter) {
+	if(this.fixed_size)
+	    this.emit_latex_fixed_size(emitter);
+	else
+	    this.emit_latex_flex_size(emitter);
+    }
+
+    emit_latex_flex_size(emitter) {
         emitter.command('left');
         emitter.text_or_command(this.left_type);
         this.inner_exprs.forEach((expr, index) => {
@@ -1213,6 +1221,31 @@ class DelimiterExpr extends Expr {
         });
         emitter.command('right');
         emitter.text_or_command(this.right_type);
+    }
+
+    emit_latex_fixed_size(emitter) {
+	if(this.left_type !== '.')
+	    emitter.text_or_command(this.left_type);
+	this.inner_exprs.forEach((expr, index) => {
+	    if(index > 0 && this.middle_type !== '.')
+		emitter.text_or_command(this.middle_type || '|');
+	    emitter.expr(expr);
+	});
+	if(this.right_type !== '.')
+	    emitter.text_or_command(this.right_type);
+    }
+
+    // Return a copy of this expression but with the given fixed_size flag.
+    as_fixed_size(fixed_size) {
+	return new DelimiterExpr(
+	    this.left_type, this.right_type, this.middle_type,
+	    this.inner_exprs, fixed_size);
+    }
+
+    to_json() {
+	let json = super.to_json();
+	if(this.fixed_size) json.fixed_size = true;
+	return json;
     }
 
     visit(fn) {
