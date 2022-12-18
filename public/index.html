@@ -161,7 +161,7 @@
           <li><span class="keybinding">1</span><span class="keybinding">2</span><span class="keybinding">3</span><span class="keybinding">&nbsp;</span><span class="keybinding">&nbsp;</span></li>
           <li><span class="keybinding">\</span><span class="keybinding">1</span><span class="keybinding">2</span><span class="keybinding">3</span><span class="keybinding">Enter</span></li>
         </ul>
-        <span class="keybinding">Esc</span> will cancel math entry mode.
+        <span class="keybinding">Esc</span> (or <span class="keybinding">Ctrl+z</span>) will cancel math entry mode.
         If you use <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
         to finish your entry, it will be typeset in a roman (non-italic) font instead of the normal italic math font.
       </p>
@@ -1556,6 +1556,12 @@
         <li>
           <span class="keybinding">$</span>
           Put a literal $ symbol onto the stack.
+        </li>
+        <li>
+          <span class="keybinding">!</span>
+          Put an object onto the stack that uses all of the available fonts.
+          This is meant to force your browser to cache the fonts for offline use
+          (normally fonts are loaded from the server on demand).
         </li>
       </ul>
 

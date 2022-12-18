@@ -1251,6 +1251,8 @@ class InputContext {
             break;
         case 'reset_layout':
             settings.layout = settings.default_layout();
+            settings.selected_theme = 'default';
+            settings.show_mode_indicator = true;
             full_refresh_needed = true;
             break;
         default:

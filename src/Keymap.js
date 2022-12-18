@@ -168,6 +168,7 @@ const EditorKeymap = {
         'z': "config zoom_factor increase",
         'Z': "config zoom_factor decrease",
         '$': "insert \\$",
+        '!': "insert \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int",
         '?': "toggle_popup help configuration"
     },
 
