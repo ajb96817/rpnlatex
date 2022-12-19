@@ -679,23 +679,27 @@ class InputContext {
         return new_stack.push_expr(result_expr);
     }
 
-    // Wrap in \htmlClass{...}
+    // Wrap expr in \htmlClass{...}
     // If it's already wrapped in the given class, unwrap it instead.
-    do_html_class(stack, class_name) {
+    // If class_name_2 is also provided, this cycles between:
+    //    nothing -> class_name -> class_name_2 -> nothing
+    do_html_class(stack, class_name, class_name_2) {
         let [new_stack, expr] = stack.pop_exprs(1);
-        // Strip off any existing \htmlClass; if the one already there was the same 
+        let new_class_name = null;
         if(expr.expr_type() === 'command' &&
-           expr.command_name === 'htmlClass' && expr.operand_count() === 2) {
-            if(expr.operand_exprs[0].expr_type() === 'text' &&
-               expr.operand_exprs[0].text === class_name) {
-                // Already is wrapped in this class; toggle it off.
-                return new_stack.push_expr(expr.operand_exprs[1]);
-            }
-            else
-                expr = expr.operand_exprs[1];  // Strip existing \htmlClass
+           expr.command_name === 'htmlClass' &&
+           expr.operand_count() === 2 &&
+           expr.operand_exprs[0].expr_type() === 'text') {
+            // It's already wrapped in \htmlClass
+            if(expr.operand_exprs[0].text === class_name)
+                new_class_name = class_name_2;  // might be null
+            expr = expr.operand_exprs[1];  // Strip existing \htmlClass
         }
-        const new_expr = new CommandExpr('htmlClass', [new TextExpr(class_name), expr]);
-        return new_stack.push_expr(new_expr);
+        else
+            new_class_name = class_name;
+        if(new_class_name)
+            expr = new CommandExpr('htmlClass', [new TextExpr(new_class_name), expr]);
+        return new_stack.push_expr(expr);
     }
 
     // For ExprItems, this just wraps the expression in \boldsymbol (if it's not already wrapped).

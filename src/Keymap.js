@@ -627,7 +627,7 @@ const EditorKeymap = {
         'A': "operator acute",
         'b': "operator mathbb",
         'c': "autoparenthesize;insert 1;swap;infix -",
-        'C': "html_class emphasized",
+        'C': "html_class emphasized emphasized2",
         'd': "insert \\dagger;superscript",
         'D': "insert \\ddagger;superscript",
         'e': "operator bold",  // bold roman (sort of)

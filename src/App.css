@@ -90,10 +90,8 @@ div.separator_item hr {
 /* "Emphasized" expressions created with [.][C]
    Note that because of how KaTeX layout works, we only really have the foreground color to
    work with here (background and borders won't work right). */
-.emphasized {
-    color: #00f;
-    text-shadow: 0 0 0.08em #88f;
-}
+.emphasized { color: #00f; text-shadow: 0 0 0.08em #88f; }
+.emphasized2 { color: #f00; text-shadow: 0 0 0.08em #f88; }
 
 div.latex_source_item {
     border-left: 5px solid #bcb;
@@ -165,6 +163,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk table.file_table th { background-color: #448; }
 #panel_layout.theme_dusk table.file_table tr.selected_file td { background-color: #486; }
 #panel_layout.theme_dusk .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
+#panel_layout.theme_dusk .emphasized2 { color: #f8c; text-shadow: 0 0 0.1em #f88; }
 #panel_layout.theme_dusk div.latex_source_item div.latex_source { color: #bbb; background-color: #004; }
 
 /* Dark theme */
