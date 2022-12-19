@@ -271,6 +271,7 @@ const EditorKeymap = {
         'F': "mode named_underset_operator",
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
+        'I': "insert \\int;swap;superscript;swap;subscript",
         'k': "delimiters . . \\vert 2;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x|y)
         'l': "insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{x}
         'L': "infix \\to;insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{y \to x}

@@ -4,7 +4,6 @@ import './katex.css';  // Must be imported before App.css
 import './App.css';
 
 import React from 'react';
-//import ReactDOM from 'react-dom';
 import katex from 'katex';
 import {
     Settings, AppState, UndoStack, DocumentStorage,
