@@ -515,7 +515,7 @@ const EditorKeymap = {
         ':': "infix :",
         ';': "infix semicolon\\:",
         '`': "swap;insert T;superscript;swap;concat",  // xTy
-        '%': "infix \\pmod",  // y (mod x)
+        '%': "operator pmod;concat",  // y (mod x)
         '*': "infix *",
         '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
