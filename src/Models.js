@@ -948,13 +948,12 @@ class CommandExpr extends Expr {
             else
                 return this;
         }
-        else if(this.command_name === 'mathtt') {
-            // Special case for monospace text: there is no monospace bold font, so wrap
-            // it in \pmb{} instead.  Since KaTeX v.0.16.2, \pmb is rendered better
-            // (via CSS shadows) which makes this feasible.
-            // TODO: add an action do_make_monospace() similar to do_make_roman to handle
-            // the inverse case (making an existing bold item monospace).
-            // TODO: also allow this for other text styles like Blackboard, etc.
+        else if(this.command_name === 'mathtt' || this.command_name === 'mathsf' ||
+                this.command_name === 'mathbb' || this.command_name === 'mathfrak' ||
+                this.command_name === 'mathscr' || this.command_name === 'mathcal') {
+            // For font families without bold fonts, wrap it in \pmb{} instead.
+            // Since KaTeX v.0.16.2, \pmb is rendered better (via CSS shadows) which
+            // makes this feasible.
             if(this.operand_count() === 1)
                 return new CommandExpr('pmb', [this]);
             else

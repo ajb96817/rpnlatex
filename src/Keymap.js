@@ -625,7 +625,7 @@ const EditorKeymap = {
         '4': "insert 4;superscript",
         '8': "insert \\infty;infix \\to",
         'A': "operator acute",
-        'b': "operator mathbb",
+        'b': "font_operator mathbb",
         'c': "autoparenthesize;insert 1;swap;infix -",
         'C': "html_class emphasized emphasized2",
         'd': "insert \\dagger;superscript",
@@ -637,9 +637,9 @@ const EditorKeymap = {
         'H': "apply_hat widehat",
         'i': "insert -;superscript",
         'I': "insert +;superscript",
-        'k': "operator mathfrak",
+        'k': "font_operator mathfrak",
         'l': "insert \\parallel;subscript",
-        'm': "operator mathtt",
+        'm': "font_operator mathtt",
         'M': "prefix \\mp",
 	'n': "prefix \\neg",
         'o': "operator bar",
@@ -647,7 +647,7 @@ const EditorKeymap = {
         'p': "insert \\perp;subscript",
         'P': "prefix \\pm",
         'r': "make_roman",
-        's': "operator mathsf",  // sans-serif
+        's': "font_operator mathsf",  // sans-serif
         't': "prefix \\to",
         'T': "operator widetilde",
         'u': "apply_hat breve",
@@ -729,13 +729,13 @@ const EditorKeymap = {
 
     // & prefix
     script: {
-        '[alpha]': "self_insert;to_case uppercase;operator mathscr",
+        '[alpha]': "self_insert;to_case uppercase;font_operator mathscr",
         '&': "insert \\&"
     },
 
     // % prefix
     calligraphic: {
-        '[alpha]': "self_insert;to_case uppercase;operator mathcal",
+        '[alpha]': "self_insert;to_case uppercase;font_operator mathcal",
         '%': "insert \\%"
     },
 

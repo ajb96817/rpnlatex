@@ -612,6 +612,31 @@ class InputContext {
         return new_stack.push_expr(result_expr);
     }
 
+    // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,
+    // unwrap it and re-wrap the font face command inside \pmb.
+    // e.g. \boldsymbol{A} -> \pmb{mathtt{A}}
+    // See also do_make_roman(), which is a special case because \bold{} creates Roman
+    // bold text without needing \pmb.
+    do_font_operator(stack, facename) {
+        const [new_stack, expr] = stack.pop_exprs(1);
+        let new_expr = null;
+        if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
+           (expr.command_name === 'boldsymbol' || expr.command_name === 'pmb'))
+            new_expr = new CommandExpr(
+                'pmb', [new CommandExpr(facename, [expr.operand_exprs[0]])]);
+        else if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
+                expr.command_name === facename) {
+            // Special case: don't wrap in the same typeface twice consecutively
+            // (don't create \mathtt{\mathtt{A}}).  This check should probably be
+            // generalized to strip existing typeface commands but there's not a good
+            // way to do this cleanly yet.
+            new_expr = expr;
+        }
+        else
+            new_expr = new CommandExpr(facename, [expr]);
+        return new_stack.push_expr(new_expr);
+    }
+
     // \sin{x} etc.  Works similarly to do_operator except the argument is autoparenthesized.
     // If superscript_text is given, the text is applied as a superscript to the function
     // itself (not to the argument).
@@ -705,14 +730,14 @@ class InputContext {
     // For ExprItems, this just wraps the expression in \boldsymbol (if it's not already wrapped).
     // For TextItems, the individual components of the text are bolded.
     do_make_bold(stack) {
-        let [new_stack, item] = stack.pop(1);
+        const [new_stack, item] = stack.pop(1);
         return new_stack.push(item.as_bold());
     }
 
     // This is equivalent to 'operator mathrm' except that if the target is already wrapped in a \boldsymbol{}
     // (presumably created by do_make_bold()), this converts it into a \bold{} which yields a bold Roman glyph.
     do_make_roman(stack) {
-        let [new_stack, expr] = stack.pop_exprs(1);
+        const [new_stack, expr] = stack.pop_exprs(1);
         let new_expr = null;
         if(expr.expr_type() === 'command' && expr.command_name === 'boldsymbol' && expr.operand_count() === 1)
             new_expr = new CommandExpr('bold', expr.operand_exprs);
