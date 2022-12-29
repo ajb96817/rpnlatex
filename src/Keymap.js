@@ -488,6 +488,7 @@ const EditorKeymap = {
         'M': "infix \\mp",
         'n': "conjunction when",
         'o': "infix \\circ",
+        'O': "infix \\odot",
         'p': "infix \\perp",
         'P': "infix \\pm",
         'q': "conjunction and",
