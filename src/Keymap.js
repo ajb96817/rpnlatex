@@ -74,12 +74,10 @@ const EditorKeymap = {
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-        'Ctrl+n': "insert 1;subscript",
         'Ctrl+o': "parenthesize;swap;operator mathopen;swap;concat",  // -> f(x): same as [/][o]
         'Ctrl+p': "delimiters ( )",
         'Ctrl+r': "infix ,;parenthesize;swap;operator mathopen;swap;concat",  // -> f(x,y): same as [/][r]
         'Ctrl+s': "save_file",
-        'Ctrl+t': "insert 2;subscript",
         'Ctrl+u': "superscript",
         'Ctrl+v': "paste_from_clipboard",
         'Ctrl+y': "redo",
