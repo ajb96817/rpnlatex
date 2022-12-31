@@ -289,6 +289,7 @@ const EditorKeymap = {
         'U': "overunderset underset",
         'v': "parenthesize;insert Var;operator operatorname;swap;concat",
         'V': "swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
+	'w': "swap_infix",
         'x': "insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
         'X': "insert E;operator mathbb;swap;subscript;operator mathopen;swap;delimiters [ ];concat",  // E_x[y] (with subscript)
         ';': "apply_tag",

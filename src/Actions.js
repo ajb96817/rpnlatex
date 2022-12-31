@@ -872,6 +872,27 @@ class InputContext {
         return new_stack.push_expr(new_infix_expr);
     }
 
+    // Swap left and right sides of an "infix" expression, which can be an
+    // actual InfixExpr or else a DelimiterExpression that has 2 inner expressions,
+    // e.g. <x | y> or \left. x \middle/ y \right.
+    do_swap_infix(stack) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	let new_expr = null;
+	if(expr.expr_type() === 'infix')
+	    new_expr = new InfixExpr(
+		expr.operator_expr, expr.right_expr, expr.left_expr, expr.split);
+	else if(expr.expr_type() === 'delimiter' &&
+		expr.inner_exprs.length === 2)
+	    new_expr = new DelimiterExpr(
+		expr.left_type, expr.right_type, expr.middle_type,
+		[expr.inner_exprs[1], expr.inner_exprs[0]],
+		expr.fixed_size);
+	if(new_expr)
+	    return new_stack.push_expr(new_expr);
+	else
+	    return this.error_flash_stack();
+    }
+
     // Stack one expr above (or below) another via \overset or \underset.
     // (overset_op can be 'overset' or 'underset').
     // If the base expr is an InfixExpr, the other one is stacked above the infix operator;
