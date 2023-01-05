@@ -203,11 +203,12 @@ class InputContext {
     }
 
     clear_all_flashes() {
-        const elt_ids = ['stack_panel', 'document_panel'];
-        for(let elt_id = 0; elt_id < elt_ids.length; elt_id++) {
-            let elt = document.getElementById(elt_ids[elt_id]);
-            elt.classList.remove('errorflash');
-        }
+	['stack_panel', 'document_panel'].forEach(elt_id =>
+	    document.getElementById(elt_id).classList.remove('errorflash'));
+        // for(let elt_id = 0; elt_id < elt_ids.length; elt_id++) {
+        //     let elt = document.getElementById(elt_ids[elt_id]);
+        //     elt.classList.remove('errorflash');
+        // }
     }
 
     notify(text) { this.notification_text = text; }
@@ -873,7 +874,7 @@ class InputContext {
     }
 
     // Swap left and right sides of an "infix" expression, which can be an
-    // actual InfixExpr or else a DelimiterExpression that has 2 inner expressions,
+    // actual InfixExpr or else a DelimiterExpr that has 2 inner expressions,
     // e.g. <x | y> or \left. x \middle/ y \right.
     do_swap_infix(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
@@ -950,17 +951,24 @@ class InputContext {
         return stack.type_error();
     }
 
-    // Extract either the left or right side of an InfixExpr.
+    // Extract either the left or right side of an InfixExpr
+    // (or a DelimiterExpr with 2 inner expressions; cf. do_swap_infix).
     do_extract_infix_side(stack, which_side) {
         // eslint-disable-next-line no-unused-vars
-        const [new_stack, infix_expr] = stack.pop_exprs(1);
-        if(infix_expr.expr_type() !== 'infix')
-            return stack.type_error();
-        const extracted_expr = (which_side === 'right') ?
-              infix_expr.right_expr : infix_expr.left_expr;
-        // NOTE: 'stack' and not 'new_stack' is used here in order to preserve
-        // the original expression on the stack.
-        return stack.push_expr(extracted_expr);
+        const [new_stack, expr] = stack.pop_exprs(1);
+	let extracted_expr = null;
+	if(expr.expr_type() === 'infix')
+	    extracted_expr = (which_side === 'right') ? expr.right_expr : expr.left_expr;
+	else if(expr.expr_type() === 'delimiter' &&
+		expr.inner_exprs.length === 2)
+	    extracted_expr = (which_side === 'right') ? expr.inner_exprs[1] : expr.inner_exprs[0];
+	if(extracted_expr) {
+            // NOTE: 'stack' and not 'new_stack' is used here in order to preserve
+            // the original expression on the stack.
+            return stack.push_expr(extracted_expr);
+	}
+	else
+	    return stack.type_error();
     }
 
     do_start_text_entry(stack, text_entry_mode, initial_text) {
@@ -1265,6 +1273,7 @@ class InputContext {
                 layout.zoom_factor -= scratch;
             else
                 layout.zoom_factor += scratch;
+	    this.notify("Zoom level: " + (layout.zoom_factor > 0 ? "+" : "") + layout.zoom_factor);
             break;
         case 'math_align':
             if(value === 'toggle_document')
