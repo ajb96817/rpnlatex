@@ -517,6 +517,7 @@ const EditorKeymap = {
         '`': "swap;insert T;superscript;swap;concat",  // xTy
         '%': "operator pmod;concat",  // y (mod x)
         '*': "infix *",
+	'(': "infix ,;delimiters ( )",  // (x,y)
         '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
         '/': "autoparenthesize;swap;autoparenthesize;swap;delimiters . . / 2",  // flex x/y
