@@ -1318,6 +1318,7 @@ class InputContext {
             break;
         }
         settings.save();
+        this.perform_undo_or_redo = 'suppress';
         this.app_component.apply_layout_to_dom();
         this.clear_all_flashes();
         if(full_refresh_needed) {
@@ -1332,6 +1333,7 @@ class InputContext {
             document.exitFullscreen();
         else
             document.getElementsByTagName('html')[0].requestFullscreen();
+        this.perform_undo_or_redo = 'suppress';
         return stack;
     }
 
@@ -1509,6 +1511,7 @@ class InputContext {
             this.notify("Copied to clipboard");
         else
             this.notify("Copied to clipboard slot " + slot);
+        this.perform_undo_or_redo = 'suppress';
         return new_stack.push(item);
     }
 
@@ -1556,6 +1559,7 @@ class InputContext {
         const exported_text = this.app_state.document.to_text();
         navigator.clipboard.writeText(exported_text);
         this.notify("Copied document to clipboard");
+        this.perform_undo_or_redo = 'suppress';
     }
 
     do_export_stack_items_as_text(stack) {
@@ -1565,6 +1569,7 @@ class InputContext {
         const exported_text = items.map(item => item.to_text()).join("\n\n");
         navigator.clipboard.writeText(exported_text);
         this.notify("Copied " + arg + " item" + (arg === 1 ? "" : "s") + " to clipboard");
+        this.perform_undo_or_redo = 'suppress';
     }
 }
 

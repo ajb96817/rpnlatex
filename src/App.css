@@ -379,17 +379,6 @@ table.keybindings td { padding: 0.1em 0.5em; }
 }
 .katex-display.fleqn > .katex { padding-left: 0; }
 
-/* Attempt to get math fonts and normal text to match in size better. 
-   katex-html seems to start at 1.21em font size. */
-.katex .katex-html { font-size: 92%; }
+/* See: https://katex.org/docs/font.html */
+.katex { font-size: 1.1em; }
 
-/* KaTeX adds an explicit style="border-bottom-width: 0.04em" to overline/underline structures
-   which is too thin.  !important here is to override the explicit inline style. */
-.katex .overline .overline-line, .katex .underline .underline-line {
-    border-bottom-width: 0.08em !important;
-}
-
-/* Similarly, fraction bars are too thin (0.04em), especially on high-DPI displays. */
-.katex .frac-line {
-    border-bottom-width: 0.06em !important;
-}

@@ -653,7 +653,8 @@ class ItemComponent extends React.Component {
             // NOTE: trust: true here allows the use of \htmlClass etc.
             katex.render(
                 latex_code, node,
-                { throwOnError: false, displayMode: display_mode, fleqn: true, trust: true });
+                { throwOnError: false, displayMode: display_mode, fleqn: true, trust: true,
+		  minRuleThickness: 0.06 });
         }
         catch(e) {
             // KaTeX throws actual errors for some inputs, even if throwOnError is false.
