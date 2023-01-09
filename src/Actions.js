@@ -1119,7 +1119,10 @@ class InputContext {
 	    // backslash (so generally, only something that was directly created by
 	    // the minieditor to begin with).
 	    if(expr.expr_type() === 'text' && !expr.text.startsWith("\\")) {
-		this.do_start_text_entry(new_stack, 'math_text_entry', expr.text);
+		this.do_start_text_entry(
+		    new_stack,
+		    'math_text_entry',
+		    this._latex_unescape(expr.text));
 		this.text_entry_edited_item = item;
 		return new_stack;
 	    }
@@ -1145,6 +1148,31 @@ class InputContext {
             "\\": "\\backslash "
         };
         return text.replaceAll(/[ _^%'`$&#}{~\\]/g, match => replacements[match]);
+    }
+
+    // Inverse of _latex_escape.  This is used by do_edit_item to allow simple TextExprs
+    // to be editable again in the minieditor.
+    _latex_unescape(text) {
+	// TODO: figure out a better way of handling this so it doesn't repeat
+	// what's in _latex_escape
+        const replacements = {
+            "\\,": ' ',
+            "\\_": '_',
+            "\\wedge ": '^',
+            "\\%": '%',
+            "\\rq ": "'",
+            "\\lq ": "`",
+            "\\$": '$',
+            "\\&": '&',
+            "\\#": '#',
+            "\\}": '}',
+            "\\{": '{',
+            "\\sim ": '~',
+            "\\backslash ": "\\"
+        };
+        return text.replaceAll(
+	    /\\,|\\_|\\wedge |\\%|\\rq |\\lq |\\\$|\\&|\\#|\\\}|\\\{|\\sim |\\backslash /g,
+	    match => replacements[match]);
     }
 
     do_toggle_is_heading(stack) {

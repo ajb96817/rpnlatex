@@ -651,10 +651,13 @@ class ItemComponent extends React.Component {
         }
         try {
             // NOTE: trust: true here allows the use of \htmlClass etc.
-            katex.render(
-                latex_code, node,
-                { throwOnError: false, displayMode: display_mode, fleqn: true, trust: true,
-		  minRuleThickness: 0.06 });
+            katex.render(latex_code, node, {
+		throwOnError: false,
+		displayMode: display_mode,
+		fleqn: true,
+		trust: true,
+		minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
+	    });
         }
         catch(e) {
             // KaTeX throws actual errors for some inputs, even if throwOnError is false.
