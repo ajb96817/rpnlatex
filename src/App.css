@@ -189,6 +189,15 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
 #panel_layout.theme_dark div.latex_source_item div.latex_source { color: #bbb; background-color: #333; }
 
+/* Minimal theme */
+#panel_layout.theme_minimal div.panel { background-color: white; }
+#panel_layout.theme_minimal #stack_panel.errorflash { animation-name: none; }
+#panel_layout.theme_minimal #stack_panel { box-shadow: none; }
+#panel_layout.theme_minimal #stack_panel div.indicator span.mode { color: white; }
+#panel_layout.theme_minimal #document_panel.errorflash { animation-name: none; }
+#panel_layout.theme_minimal #document_panel div.selected { box-shadow: inset 0 0 4px 0 #bbb; }
+
+
 
 /* These are to support settings.layout.rightalign_math options. */
 .rightalign_math .katex-display.fleqn > .katex {
