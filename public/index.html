@@ -691,18 +691,23 @@
           </tr>
           <tr>
             <td><span class="keybinding">&gt;</span> or <span class="keybinding">]</span> <code>x\ge y</code></td>
-            <td><span class="keybinding">:</span> <code>x\coloneqq y</code></td>
+            <td><span class="keybinding">9</span> <code>x\prec y</code></td>
+            <td><span class="keybinding">0</span> <code>x\succ y</code></td>
+	  </tr>
+	  <tr>
+            <td><span class="keybinding">(</span> <code>x\preceq y</code></td>
+            <td><span class="keybinding">)</span> <code>x\succeq y</code></td>
             <td><span class="keybinding">;</span> <code>x\coloncolon y</code></td>
 	  </tr>
 	  <tr>
+            <td><span class="keybinding">:</span> <code>x\coloneqq y</code></td>
             <td><span class="keybinding">~</span> or <span class="keybinding">t</span> <code>x\sim y</code></td>
             <td><span class="keybinding">.</span> <code>x\doteq y</code></td>
-            <td><span class="keybinding">^</span> <code>x\triangleq y</code></td>
 	  </tr>
 	  <tr>
+            <td><span class="keybinding">^</span> <code>x\triangleq y</code></td>
             <td><span class="keybinding">-</span> <code>x\vdash y</code></td>
             <td><span class="keybinding">|</span> <code>x\vDash y</code></td>
-	    <td></td>
           </tr>
       </tbody></table>
 
@@ -829,9 +834,7 @@
       <p>
         <strong>Tags:</strong>
         The <span class="keybinding">/</span><span class="keybinding">;</span>
-        command takes the stack top and adds it as a &quot;tag&quot;
-        to the expression beneath it.  The tag is typically a text object created with
-        <span class="keybinding">&quot;</span>, but can be any expression.  Tags can be used as equation
+        command takes the stack top and adds it as a &quot;tag&quot; to the expression beneath it.  Tags can be used as equation
         numbers or labels and will be displayed to the right of the tagged item.  Note that any further
         operation on a tagged item will remove the tag, so tags are generally added just before moving
         an item into the document.

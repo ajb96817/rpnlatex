@@ -527,6 +527,8 @@ const EditorKeymap = {
 
     // = prefix: relational operators
     relational: {
+	'9': "infix \\prec",
+	'0': "infix \\succ",
         'a': "infix \\approx",
         'c': "infix \\cong",  // =~  congruent
         'e': "infix \\equiv",
@@ -558,6 +560,8 @@ const EditorKeymap = {
         ']': "infix \\ge",
 	'{': "infix \\sqsubset",
 	'}': "infix \\sqsupset",
+	'(': "infix \\preceq",
+	')': "infix \\succeq",
 	'.': "infix \\doteq",
         ':': "infix \\coloneqq",
         ';': "infix \\coloncolon",
