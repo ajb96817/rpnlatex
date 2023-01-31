@@ -143,7 +143,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dawn div.separator_item hr { background-color: #dce695; }
 #panel_layout.theme_dawn div.heading_style div.latex_fragment_inner { border-bottom-color: #dce695; }
 
-/* Dusk theme */*
+/* Dusk theme */
 #panel_layout.theme_dusk div.panel { background-color: #447; }
 #panel_layout.theme_dusk { color: #ddf; /*    scrollbar-color: #996 #eee; */ }
 #panel_layout.theme_dusk a, #panel_layout.theme_dusk a:visited { color: #bb8aeb; }
@@ -181,8 +181,7 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark div.help h2 { border-color: #868686; }
 #panel_layout.theme_dark div.separator_item hr { background-color: #868686; }
 #panel_layout.theme_dark div.heading_style div.latex_fragment_inner { border-bottom-color: #868686; }
-#panel_layout.theme_dark div.tag_expr { background-color: #422; border-color: #833;
-}
+#panel_layout.theme_dark div.tag_expr { background-color: #422; border-color: #833; }
 #panel_layout.theme_dark #popup_panel { background-color: #200; box-shadow: 0 0 1em 2px #000; }
 #panel_layout.theme_dark table.file_table th { background-color: #448; }
 #panel_layout.theme_dark table.file_table tr.selected_file td { background-color: #486; }

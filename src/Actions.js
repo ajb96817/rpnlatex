@@ -338,6 +338,7 @@ class InputContext {
         const new_items = items.map(item => item.clone());  // keep item serial_numbers unique
         return new_stack.push_all(items.concat(new_items));
     }
+
     // Drop the top N stack items (default=1).
     do_pop(stack) {
         const arg = this._get_prefix_argument(1, stack.depth());
@@ -345,12 +346,14 @@ class InputContext {
         const [new_stack, ...items] = stack.pop(arg);
         return new_stack;
     }
+
     // Drop the Nth stack item (default=2, i.e.: a b -> b)
     do_nip(stack) {
         const arg = this._get_prefix_argument(2, stack.depth());
         const [new_stack, ...items] = stack.pop(arg);
         return new_stack.push_all(items.slice(1));
     }
+
     // Reverse top N stack items (default=2)
     do_swap(stack) {
         const arg = this._get_prefix_argument(2, stack.depth());
@@ -358,7 +361,8 @@ class InputContext {
         items.reverse();
         return new_stack.push_all(items);
     }
-    // Copy stack top above the current Nth stack item
+
+    // Copy stack top above the current Nth stack item.
     // Default argument of 2 is: a b -> b a b
     // Argument of 1 acts as "dup".
     do_tuck(stack) {
@@ -367,6 +371,7 @@ class InputContext {
         const last_item = items[items.length-1];
         return new_stack.push_all([last_item.clone()].concat(items));
     }
+
     // Pick the Nth item from the stack and copy it to the stack top.
     // Default argument of 2 is: a b -> a b a
     do_over(stack) {
@@ -374,6 +379,7 @@ class InputContext {
         const [new_stack, ...items] = stack.pop(arg);
         return new_stack.push_all(items.concat([items[0].clone()]));
     }
+
     // Rotate N top stack items (default=3: a b c -> b c a)
     do_rot(stack) {
         const arg = this._get_prefix_argument(3, stack.depth());
@@ -381,6 +387,7 @@ class InputContext {
         const new_items = items.slice(1).concat([items[0]]);
         return new_stack.push_all(new_items);
     }
+
     // Rotate N top stack items backwards (default=3: a b c -> c a b)
     do_unrot(stack) {
         const arg = this._get_prefix_argument(3, stack.depth());
