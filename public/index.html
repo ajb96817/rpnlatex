@@ -130,7 +130,7 @@
         <li><span class="keybinding">/</span> Apply various <a href="#operators">functions and operators</a> to arguments from the stack.</li>
         <li><span class="keybinding">/</span><span class="keybinding">d</span> Build different kinds of <a href="#derivatives">derivatives</a>.</li>
         <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#integrals">integral limits</a>.</li>
-        <li><span class="keybinding">/</span><span class="keybinding">f</span> or <span class="keybinding">F</span> Create <a href="#named_operators">named operators</a>.</li>
+        <li><span class="keybinding">/</span><span class="keybinding">f</span> Create <a href="#named_operators">named operators</a>.</li>
         <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
         <li><span class="keybinding">}</span> Build <a href="#custom_delimiters">custom delimiter</a> structures.</li>
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
@@ -727,13 +727,12 @@
           <span class="keybinding">E</span> <code>\exp x</code>
         </li>
         <li><span class="keybinding">f</span> Prefix for creating standalone <a href="#named_operators">named operators</a>.</li>
-        <li><span class="keybinding">F</span> Prefix for creating <a href="#named_operators">named operators</a> with underset arguments.</li>
         <li><span class="keybinding">i</span> Prefix for applying <a href="#integrals">integral</a> limits.</li>
         <li><span class="keybinding">I</span> <code>x\enspace y \to \int_x^y</code></li>
         <li><span class="keybinding">k</span> <code>f\enspace y\enspace x \to f(y|x)</code></li>
         <li>
           <span class="keybinding">l</span> <code>x \to \lim\limits_x</code>
-          (shortcut for <span class="keybinding">/</span><span class="keybinding">F</span><span class="keybinding">l</span>)
+          (shortcut for <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">L</span>)
         </li>
         <li><span class="keybinding">L</span> <code>y\enspace x \to \lim\limits_{y\to x}</code></li>
         <li>
@@ -964,23 +963,21 @@
         <a name="named_operators">
           Named Operators
           <span class="keybinding">/</span><span class="keybinding">f</span>
-          and
-          <span class="keybinding">/</span><span class="keybinding">F</span>
         </a>
       </h2>
       <p>
-        These prefixes create either:
-        <ul class="keybindings">
-          <li>
-            <span class="keybinding">/</span><span class="keybinding">f</span>
-            standalone named operators like <code>\lim</code>
-          </li>
-          <li>
-            <span class="keybinding">/</span><span class="keybinding">F</span>
-            operators with an expression from the stack placed beneath them like
-            <code>\underset{x\to\infty}{\lim}</code>
-          </li>
-        </ul>
+        These commands attach named operators like <code>\max</code> to an expression from
+        the stack.  No automatic parenthesization is performed, and operators with multiple
+        arguments need to have the arguments combined into one expression manually first.
+      </p>
+      <p>
+        Capitalized versions of these commands take two expressions from the stack,
+        placing the stack top under the operator name, and the other expression as the
+        operator's argument.  For example:
+        <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">g</span>
+        creates <code>\argmax x</code> while
+        <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">G</span>
+        creates <code>\underset{x}{\argmax y}</code>
       </p>
       <table class="keybindings"><tbody>
           <tr>

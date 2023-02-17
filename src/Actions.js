@@ -678,17 +678,21 @@ class InputContext {
         return new_stack.push_expr(expr);
     }
 
-    // opname == 'argmax': x -> \underset{x}{\argmax}
+    // opname == 'argmax': y x -> \argmax\limits_{x} y
     // If make_operatorname is true, opname is not a built-in LaTeX operator
     // but is instead wrapped in an \operatorname{} to simulate it.
     do_underset_operator(stack, opname, make_operatorname) {
-        const [new_stack, underset_expr] = stack.pop_exprs(1);
-        let base_expr;
+        const [new_stack, argument_expr, sub_expr] = stack.pop_exprs(2);
+        let command_expr;
         if(make_operatorname)
-            base_expr = new CommandExpr('operatorname', [new TextExpr(opname)]);
+            command_expr = new CommandExpr('operatorname', [new TextExpr(opname)]);
         else
-            base_expr = new CommandExpr(opname);
-        const new_expr = new CommandExpr('underset', [underset_expr, base_expr]);
+            command_expr = new CommandExpr(opname);
+        const limits_expr = new SubscriptSuperscriptExpr(
+            new CommandExpr('limits'), sub_expr);
+        const new_expr = Expr.combine_pair(
+            Expr.combine_pair(command_expr, limits_expr),
+            argument_expr);
         return new_stack.push_expr(new_expr);
     }
 
