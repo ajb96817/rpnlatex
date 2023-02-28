@@ -815,17 +815,25 @@ class InputContext {
         const [new_stack, left_item, right_item] = stack.pop(2);
         const left_type = left_item.item_type(), right_type = right_item.item_type();
         if(left_type === 'expr' && right_type === 'expr') {
-            // Expr+Expr case.  Result is an InfixExpr item.
-            let operator_expr;
+            // Expr+Expr (the usual case).
+            let operator_expr, new_expr;
             if(opname.startsWith("\\"))  // TODO: handle this better
                 operator_expr = new CommandExpr(opname.slice(1));
             else
                 operator_expr = new TextExpr(opname);
-            return new_stack.push_expr(new InfixExpr(operator_expr, left_item.expr, right_item.expr));
+            if(left_item.expr.expr_type() === 'prefix') {
+                // Special case: (prefix1 expr1) infixop expr2  =>  prefix1 (expr1 infixop expr2)
+                new_expr = new PrefixExpr(
+                    new InfixExpr(operator_expr, left_item.expr.base_expr, right_item.expr),
+                    left_item.expr.prefix_expr);
+            }
+            else
+                new_expr = new InfixExpr(operator_expr, left_item.expr, right_item.expr)
+            return new_stack.push_expr(new_expr);
         }
         else if((left_type === 'expr' || left_type === 'text') &&
                 (right_type === 'expr' || right_type === 'text')) {
-            // Expr+Text or Text+Expr or Text+Text
+            // Expr+Text or Text+Expr or Text+Text.
             const new_item = TextItem.concatenate_items(left_item, right_item, opname);
             return new_stack.push(new_item);
         }
