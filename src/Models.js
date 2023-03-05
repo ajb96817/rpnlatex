@@ -894,6 +894,8 @@ class Expr {
 class CommandExpr extends Expr {
     // NOTES:
     //   - 'command_name' does not include the initial \ character
+    //   - 'command_name' can be an empty string, in order to surround the operand expression(s)
+    //     with braces.  This is used to fix the spacing in cases like f\left(x\right).
     //   - 'options', if provided, is a plain string that becomes "\command_name[options]{...}"
     //   - 'command_name' itself can include the options in [brackets], in which case it is
     //     automatically split off into 'options' (this is used for keybindings).
@@ -917,7 +919,8 @@ class CommandExpr extends Expr {
     json_keys() { return ['command_name', 'operand_exprs', 'options']; }
 
     emit_latex(emitter) {
-        emitter.command(this.command_name, this.options);
+        if(this.command_name !== '')
+            emitter.command(this.command_name, this.options);
         // Braces need to be forced around each operand, even single-letter operands.
         this.operand_exprs.forEach(operand_expr => emitter.grouped_expr(operand_expr, 'force'));
     }
@@ -1115,22 +1118,7 @@ class SequenceExpr extends Expr {
     json_keys() { return ['exprs']; }
 
     emit_latex(emitter) {
-        // Emit each subexpression in order, with a special case for a large operator
-        // like \sum followed by a \mathopen{} (e.g. f(x) created with [/][o]).
-        // KaTeX renders this case with too little spacing between the two, so
-        // explicitly insert a thinspace here.
-        //
-        // NOTE: \int (and related symbols like \oint) have the same problem, but
-        // because of the shape of these operators it looks fine and there's no need
-        // for this workaround.
-        const problematic_large_operators = ['sum', 'prod', 'bigcup', 'bigcap'];
-        let last_was_large_op = false;
-        this.exprs.forEach(expr => {
-            if(last_was_large_op && expr.is_command_with_name('mathopen'))
-                emitter.command(',');
-            emitter.expr(expr);
-            last_was_large_op = problematic_large_operators.some(op => expr.is_command_with_name(op));
-        });
+        this.exprs.forEach(expr => emitter.expr(expr));
     }
 
     visit(fn) {

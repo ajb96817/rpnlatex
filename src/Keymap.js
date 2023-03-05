@@ -74,9 +74,9 @@ const EditorKeymap = {
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-        'Ctrl+o': "parenthesize;swap;operator mathopen;swap;concat",  // -> f(x): same as [/][o]
+        'Ctrl+o': "parenthesize;wrap_braces;concat",  // -> f(x): same as [/][o]
         'Ctrl+p': "delimiters ( )",
-        'Ctrl+r': "infix ,;parenthesize;swap;operator mathopen;swap;concat",  // -> f(x,y): same as [/][r]
+        'Ctrl+r': "infix ,;parenthesize;wrap_braces;concat",  // -> f(x,y): same as [/][r]
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
         'Ctrl+v': "paste_from_clipboard",
@@ -269,18 +269,18 @@ const EditorKeymap = {
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
         'I': "insert \\int;swap;superscript;swap;subscript",
-        'k': "delimiters . . \\vert 2;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x|y)
+        'k': "delimiters . . \\vert 2;parenthesize;wrap_braces;concat",  // f x y -> f(x|y)
         'l': "insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{x}
         'L': "infix \\to;insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{y \to x}
         'n': "named_function ln",
         'N': "named_function log",
-        'o': "parenthesize;swap;operator mathopen;swap;concat",   // f x -> f(x)  "of"; \mathopen closes up the spacing after 'f'
+        'o': "parenthesize;wrap_braces;concat",  // f x -> f(x)  "of" (wrap_braces closes up the spacing after 'f')
         'O': "overunderset overset",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
-        'r': "infix ,;parenthesize;swap;operator mathopen;swap;concat",  // f x y -> f(x,y)
+        'r': "infix ,;parenthesize;wrap_braces;concat",  // f x y -> f(x,y)
         's': "named_function sin",
         'S': "named_function sec",
         't': "named_function tan",
@@ -289,13 +289,13 @@ const EditorKeymap = {
         'v': "parenthesize;insert Var;operator operatorname;swap;concat",
         'V': "swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
 	'w': "swap_infix",
-        'x': "insert E;operator mathbb;operator mathopen;swap;delimiters [ ];concat",  // E[x] (expectation)
-        'X': "insert E;operator mathbb;swap;subscript;operator mathopen;swap;delimiters [ ];concat",  // E_x[y] (with subscript)
+        'x': "insert E;operator mathbb;swap;delimiters [ ];wrap_braces;concat",  // E[x] (expectation)
+        'X': "insert E;operator mathbb;swap;subscript;swap;delimiters [ ];wrap_braces;concat",  // E_x[y] (with subscript)
         ';': "apply_tag",
         ',': "split_infix",
         '/': "operator frac 2",
-        '[': "delimiters [ ];swap;operator mathopen;swap;concat",  // f x -> f[x]
-        ']': "delimiters \\{ \\};swap;operator mathopen;swap;concat",  // f x -> f{x}
+        '[': "delimiters [ ];wrap_braces;concat",  // f x -> f[x]
+        ']': "delimiters \\{ \\};wrap_braces;concat",  // f x -> f{x}
         '}': "swap;operator underbrace;swap;subscript",
         '{': "swap;operator overbrace;swap;superscript",
         '<': "extract_infix_side left",
