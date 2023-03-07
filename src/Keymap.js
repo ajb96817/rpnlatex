@@ -292,7 +292,7 @@ const EditorKeymap = {
         'x': "insert E;operator mathbb;swap;delimiters [ ];wrap_braces;concat",  // E[x] (expectation)
         'X': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;insert E;operator mathbb;swap;concat",  // E[y|x]
         'y': "insert E;operator mathbb;swap;subscript;swap;delimiters [ ];wrap_braces;concat",  // E_x[y] (with subscript)
-        'Y': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;swap;insert E;operator mathbb;swap;subscript;swap;concat",  // E_x[z|y]
+        'Y': "unrot;insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;swap;insert E;operator mathbb;swap;subscript;swap;concat",  // E_x[z|y]
         ';': "apply_tag",
         ',': "split_infix",
         '/': "operator frac 2",
