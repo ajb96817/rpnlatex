@@ -1304,7 +1304,7 @@ class SubscriptSuperscriptExpr extends Expr {
 
 
 // \begin{bmatrix} ... etc
-// Currently support "array types" are:
+// Currently supported "array types" are:
 //   matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
 //   non-matrices (alignment environments): gathered, gather, cases, rcases
 class ArrayExpr extends Expr {
@@ -1403,8 +1403,7 @@ class ArrayExpr extends Expr {
             this.array_type,
             this.row_count,
             this.column_count,
-            this.element_exprs.map(row_exprs =>
-                row_exprs.map(expr => expr.as_bold())),
+            this.element_exprs.map(row_exprs => row_exprs.map(expr => expr.as_bold())),
             this.row_separators,
             this.column_separators);
     }
@@ -1427,7 +1426,7 @@ class ArrayExpr extends Expr {
     // NOTE: this does not preserve column/row separators.  There's not really a
     // consistent way of doing this automatically.
     with_ellipses() {
-        const make_cell = (content) => new TextExpr(content);
+        const make_cell = content => new TextExpr(content);
         let new_row_count = this.row_count, new_column_count = this.column_count;
         let new_element_exprs;
         if(this.column_count > 1) {
@@ -1487,7 +1486,7 @@ class ArrayExpr extends Expr {
     }
 
     // Return a copy with a changed row or column separator at the specified location.
-    // 'index'=0 means right after the first row or column, etc.
+    // 'index'=0 means right after the first row or column.
     // 'index'=null means apply separators to ALL rows or columns.
     // 'type' is one of: [null, 'solid', 'dashed'].
     // If 'toggle' is true, that indicates that if the current separator is already
@@ -1513,6 +1512,25 @@ class ArrayExpr extends Expr {
         return new ArrayExpr(
             this.array_type, this.row_count, this.column_count, this.element_exprs,
             row_separators, column_separators);
+    }
+
+    emit_latex(emitter) {
+        // Matrices with row or column separators require special handling in LaTeX.
+        if(this.is_matrix() &&
+           !(this.column_separators.every(s => s === null) &&
+             this.row_separators.every(s => s === null)))
+            return this._emit_array_with_separators(emitter);
+
+        emitter.begin_environment(this.array_type);
+        this.element_exprs.forEach((row_exprs, row_index) => {
+            if(row_index > 0)
+                emitter.row_separator();
+            row_exprs.forEach((expr, col_index) => {
+                if(col_index > 0) emitter.align_separator();
+                if(expr) emitter.expr(expr);
+            });
+        });
+        emitter.end_environment(this.array_type);
     }
 
     // This is a matrix with at least one column separator specified.
@@ -1579,25 +1597,6 @@ class ArrayExpr extends Expr {
             emitter.command('right');
             emitter.text_or_command(right_delim);
         }
-    }
-
-    emit_latex(emitter) {
-        // Matrices with row or column separators require special handling in LaTeX.
-        if(this.is_matrix() &&
-           !(this.column_separators.every(s => s === null) &&
-             this.row_separators.every(s => s === null)))
-            return this._emit_array_with_separators(emitter);
-
-        emitter.begin_environment(this.array_type);
-        this.element_exprs.forEach((row_exprs, row_index) => {
-            if(row_index > 0)
-                emitter.row_separator();
-            row_exprs.forEach((expr, col_index) => {
-                if(col_index > 0) emitter.align_separator();
-                if(expr) emitter.expr(expr);
-            });
-        });
-        emitter.end_environment(this.array_type);
     }
 
     visit(fn) {

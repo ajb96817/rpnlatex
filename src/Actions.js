@@ -1490,21 +1490,25 @@ class InputContext {
 
     // item1, item2, ..., N => "item1, item2, ..."
     // Concatenate N items from the stack with separator_text between each one.
-    // If separator_text is the string 'nothing', items are simply concatenated together.
+    // 'separator_text' has two special cases:
+    //    'nothing': items are simply concatenated together.
+    //    'product': items are autoparenthesized and then concatenated together (i.e. implicit multiplication)
     // 'final_separator_text' is used as the next to last item if provided.
     do_build_list(stack, separator_text, final_separator_text) {
 	this._require_prefix_argument(true);
         const expr_count = this._get_prefix_argument(1, stack.depth());
-        const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
+        let [new_stack, ...exprs] = stack.pop_exprs(expr_count);
+        if(separator_text === 'product')
+            exprs = exprs.map(expr => DelimiterExpr.autoparenthesize(expr));
         let expr = exprs[0];
         for(let i = 1; i < expr_count; i++) {
             const s = (final_separator_text && i === expr_count-1) ? final_separator_text : separator_text;
-	    if(s !== 'nothing') {
-		if(s.startsWith("\\"))  // TODO: clean up this check
+            if(!(s === 'nothing' || s === 'product')) {
+                if(s.startsWith("\\"))  // TODO: clean up this check
 		    expr = Expr.combine_pair(expr, new CommandExpr(s.slice(1)));
-		else
+	        else
 		    expr = Expr.combine_pair(expr, new TextExpr(s));
-	    }
+            }
             expr = Expr.combine_pair(expr, exprs[i]);
         }
         return new_stack.push_expr(expr);
