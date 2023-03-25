@@ -1856,14 +1856,16 @@ class TextItem extends Item {
             else if(last_merged_element.is_raw() && last_merged_element.is_explicit_space() &&
                     elements[i].is_text()) {
                 // raw space + TextElement
-                merged_elements[last_index] =
-                    new TextItemTextElement(' ' + elements[i].text, elements[i].is_bold);
+                merged_elements[last_index] = new TextItemTextElement(
+                    ' ' + elements[i].text,
+                    elements[i].is_bold);
             }
             else if(last_merged_element.is_text() &&
                     elements[i].is_raw() && elements[i].is_explicit_space()) {
                 // TextElement + raw space
-                merged_elements[last_index] =
-                    new TextItemTextElement(last_merged_element.text + ' ', last_merged_element.is_bold);
+                merged_elements[last_index] = new TextItemTextElement(
+                    last_merged_element.text + ' ',
+                    last_merged_element.is_bold);
             }
             else {
                 // Any other combinations are left alone.

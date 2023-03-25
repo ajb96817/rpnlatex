@@ -831,14 +831,7 @@ class InputContext {
                 operator_expr = new CommandExpr(opname.slice(1));
             else
                 operator_expr = new TextExpr(opname);
-            if(left_item.expr.expr_type() === 'prefix') {
-                // Special case: (prefix1 expr1) infixop expr2  =>  prefix1 (expr1 infixop expr2)
-                new_expr = new PrefixExpr(
-                    new InfixExpr(operator_expr, left_item.expr.base_expr, right_item.expr),
-                    left_item.expr.prefix_expr);
-            }
-            else
-                new_expr = new InfixExpr(operator_expr, left_item.expr, right_item.expr)
+            new_expr = new InfixExpr(operator_expr, left_item.expr, right_item.expr)
             return new_stack.push_expr(new_expr);
         }
         else if((left_type === 'expr' || left_type === 'text') &&
