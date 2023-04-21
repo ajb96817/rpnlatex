@@ -552,7 +552,7 @@ class InputContext {
     }
 
     do_extract_from_document(stack, preserve) {
-        const arg = this._get_prefix_argument(1, -1);
+        const arg = this._get_prefix_argument(1, this.app_state.document.items.length);
         if(arg <= 0) return stack;
         let new_document = this.app_state.document;
         // Make sure there are enough items above the current document selection to extract.
