@@ -1,6 +1,6 @@
 
 import {
-    AppState,
+    AppState, Document, Stack,
     Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem, CodeItem
@@ -568,6 +568,13 @@ class InputContext {
         if(!preserve)
             this.new_document = new_document;
         return stack.push_all(new_items);
+    }
+
+    // Clear stack and document.
+    do_reset_all(stack) {
+        this.notify("Stack and document cleared");
+        this.new_document = new Document([], 0);
+        return new Stack([]);
     }
 
     do_insert_separator(stack) {

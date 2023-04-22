@@ -134,6 +134,7 @@ const EditorKeymap = {
         't': "tuck",
         'u': "unrot",
         'v': "paste_from_clipboard",
+        'X': "reset_all",
         'Enter': "dup",
         'Backspace': "pop",
         'Tab': "undo",
