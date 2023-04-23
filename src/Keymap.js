@@ -1,15 +1,15 @@
 
 const EditorKeymap = {
     base: {
-        // Self-insert keys
-        '[alnum]': "self_insert",
-        '#': "insert \\#",
-        '@': "insert @",
-        '*': "insert *",
-        '~': "insert \\sim",
+        // Letters/numbers and some symbols immediately push onto the stack
+        '[alnum]': "self_push",
+        '#': "push \\#",
+        '@': "push @",
+        '*': "push *",
+        '~': "push \\sim",
 
         // Immediate action special keys
-        '!': "autoparenthesize;insert !;concat",
+        '!': "autoparenthesize;push !;concat",
         'Enter': "subscript",
 	'Shift+Enter': "edit_item",
         '_': "subscript",
@@ -60,15 +60,15 @@ const EditorKeymap = {
         '?': "toggle_popup help",
 
         // Other Ctrl-based shortcuts
-        'Ctrl+0': "insert 0;subscript",
-        'Ctrl+1': "insert -1;superscript",
-        'Ctrl+2': "insert 2;superscript",
-        'Ctrl+3': "insert 3;superscript",
-        'Ctrl+4': "insert 4;superscript",
+        'Ctrl+0': "push 0;subscript",
+        'Ctrl+1': "push -1;superscript",
+        'Ctrl+2': "push 2;superscript",
+        'Ctrl+3': "push 3;superscript",
+        'Ctrl+4': "push 4;superscript",
         'Ctrl+a': "swap",
         'Ctrl+b': "make_bold",
         'Ctrl+c': "copy_to_clipboard",
-        'Ctrl+e': "insert e;operator mathrm;swap;superscript",  // exp(x) - same as [/][e]
+        'Ctrl+e': "push e;operator mathrm;swap;superscript",  // exp(x) - same as [/][e]
         'Ctrl+i': "pop_to_document",
         'Ctrl+j': "extract_from_document",
         'Ctrl+k': "infix \\,",
@@ -166,8 +166,8 @@ const EditorKeymap = {
         't': "config theme",
         'z': "config zoom_factor increase",
         'Z': "config zoom_factor decrease",
-        '$': "insert \\$",
-        '!': "insert \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int",
+        '$': "push \\$",
+        '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int",
         '?': "toggle_popup help configuration"
     },
 
@@ -220,7 +220,7 @@ const EditorKeymap = {
         '(': "delimiters ( )",
 	')': "toggle_fixed_size_delimiters",
         '[': "delimiters [ ]",
-        ']': "insert \\llbracket;swap;concat;insert \\rrbracket;concat",
+        ']': "push \\llbracket;swap;concat;push \\rrbracket;concat",
         '{': "delimiters \\{ \\}",
         '?': "toggle_popup help delimiters"
     },
@@ -255,7 +255,7 @@ const EditorKeymap = {
 
     // forward-slash prefix: assorted functions/operators
     operator: {
-        '1': "insert 1;swap;operator frac 2",
+        '1': "push 1;swap;operator frac 2",
         '2': "mode squared",
         'a': "apply_operator 1",
         'A': "apply_operator 2",
@@ -264,21 +264,21 @@ const EditorKeymap = {
         'C': "named_function csc",
         'd': "mode derivative",
         'D': "named_function det",
-        'e': "insert e;operator mathrm;swap;superscript",  // exp(x)
+        'e': "push e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
         'f': "mode named_operator",
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
-        'I': "insert \\int;swap;superscript;swap;subscript",
+        'I': "push \\int;swap;superscript;swap;subscript",
         'k': "delimiters . . \\vert 2;parenthesize;wrap_braces;concat",  // f x y -> f(x|y)
-        'l': "insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{x}
-        'L': "infix \\to;insert \\limits;swap;subscript;insert \\lim;swap;concat",  // lim_{y \to x}
+        'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
+        'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;wrap_braces;concat",  // f x -> f(x)  "of" (wrap_braces closes up the spacing after 'f')
         'O': "overunderset overset",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
-        'P': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
+        'P': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
         'r': "infix ,;parenthesize;wrap_braces;concat",  // f x y -> f(x,y)
@@ -287,13 +287,13 @@ const EditorKeymap = {
         't': "named_function tan",
         'T': "named_function cot",
         'U': "overunderset underset",
-        'v': "parenthesize;insert Var;operator operatorname;swap;concat",
-        'V': "swap;insert ,;concat;swap;concat;parenthesize;insert Cov;operator operatorname;swap;concat",
+        'v': "parenthesize;push Var;operator operatorname;swap;concat",
+        'V': "swap;push ,;concat;swap;concat;parenthesize;push Cov;operator operatorname;swap;concat",
 	'w': "swap_infix",
-        'x': "insert E;operator mathbb;swap;delimiters [ ];wrap_braces;concat",  // E[x] (expectation)
-        'X': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;insert E;operator mathbb;swap;concat",  // E[y|x]
-        'y': "insert E;operator mathbb;swap;subscript;swap;delimiters [ ];wrap_braces;concat",  // E_x[y] (with subscript)
-        'Y': "unrot;insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;swap;insert E;operator mathbb;swap;subscript;swap;concat",  // E_x[z|y]
+        'x': "push E;operator mathbb;swap;delimiters [ ];wrap_braces;concat",  // E[x] (expectation)
+        'X': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;push E;operator mathbb;swap;concat",  // E[y|x]
+        'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];wrap_braces;concat",  // E_x[y] (with subscript)
+        'Y': "unrot;push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;swap;push E;operator mathbb;swap;subscript;swap;concat",  // E_x[z|y]
         ';': "apply_tag",
         ',': "split_infix",
         '/': "operator frac 2",
@@ -304,8 +304,8 @@ const EditorKeymap = {
         '<': "extract_infix_side left",
         '>': "extract_infix_side right",
         '-': "mode inverse",
-        '=': "unrot;infix =;insert \\sum;swap;subscript;swap;superscript",
-        '+': "infix \\ge;insert \\sum;swap;subscript",
+        '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
+        '+': "infix \\ge;push \\sum;swap;subscript",
         "'": "substitute_placeholder",
         "\"": "toggle_is_heading",
         'Enter': "unrot;subscript;swap;superscript",  // apply superscript and subscript at once
@@ -326,13 +326,13 @@ const EditorKeymap = {
         'l': "operator lim",
         'm': "operator min",
         'n': "operator argmin",
-        'o': "insert Cov;operator operatorname;swap;concat",
+        'o': "push Cov;operator operatorname;swap;concat",
         'p': "operator Pr",
         'r': "operator projlim",
         's': "operator sup",
         't': "operator det",
         'u': "operator limsup",
-        'v': "insert Var;operator operatorname;swap;concat",
+        'v': "push Var;operator operatorname;swap;concat",
         'x': "operator max",
 
         'A': "underset_operator arg",
@@ -412,62 +412,62 @@ const EditorKeymap = {
 
     // /i prefix
     integral_limits: {
-        'r': "insert -\\infty;subscript;insert \\infty;superscript",  // -oo..oo : [r]eals
-        'n': "insert -\\infty;subscript;insert 0;superscript",  // -oo..0 : [n]egative 
-        'p': "insert 0;subscript;insert \\infty;superscript",  // 0..oo : [p]ositive
-        'u': "insert 0;subscript;insert 1;superscript",  // 0..1 : [u]nit
-        'U': "insert -1;subscript;insert 1;superscript",  // -1..1 : symmetric [U]nit
-        't': "insert 0;subscript;insert 2\\pi;superscript",  // 0..2pi : [t]rigonometric
-        'T': "insert -\\pi;subscript;insert \\pi;superscript",  // -pi..pi : symmetric [T]rigonometric
+        'r': "push -\\infty;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
+        'n': "push -\\infty;subscript;push 0;superscript",  // -oo..0 : [n]egative 
+        'p': "push 0;subscript;push \\infty;superscript",  // 0..oo : [p]ositive
+        'u': "push 0;subscript;push 1;superscript",  // 0..1 : [u]nit
+        'U': "push -1;subscript;push 1;superscript",  // -1..1 : symmetric [U]nit
+        't': "push 0;subscript;push 2\\pi;superscript",  // 0..2pi : [t]rigonometric
+        'T': "push -\\pi;subscript;push \\pi;superscript",  // -pi..pi : symmetric [T]rigonometric
         '?': "toggle_popup help integrals"
     },
 
     // /d prefix: derivative operations
     derivative: {
         // \partial y / \partial x
-        'j': "insert \\partial;swap;concat;swap;insert \\partial;swap;concat;swap;operator frac 2",
+        'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;operator frac 2",
         // \partial^2 y / \partial x^2
-        'J': "insert 2;superscript;insert \\partial;swap;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
+        'J': "push 2;superscript;push \\partial;swap;concat;swap;push \\partial;push 2;superscript;swap;concat;swap;operator frac 2",
         // dy/dx
-        'k': "insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;swap;concat;swap;operator frac 2",
+        'k': "push d;operator mathrm;swap;concat;swap;push d;operator mathrm;swap;concat;swap;operator frac 2",
         // d^2(y) / dx^2
-        'K': "insert 2;superscript;insert d;operator mathrm;swap;concat;swap;insert d;operator mathrm;insert 2;superscript;swap;concat;swap;operator frac 2",
+        'K': "push 2;superscript;push d;operator mathrm;swap;concat;swap;push d;operator mathrm;push 2;superscript;swap;concat;swap;operator frac 2",
         // \partial / \partial x
-        'q': "insert \\partial;swap;concat;insert \\partial;swap;operator frac 2",
+        'q': "push \\partial;swap;concat;push \\partial;swap;operator frac 2",
         // \partial^2 / \partial x^2
-        'Q': "insert 2;superscript;insert \\partial;swap;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
+        'Q': "push 2;superscript;push \\partial;swap;concat;push \\partial;push 2;superscript;swap;operator frac 2",
         // d/dx
-        'x': "insert d;operator mathrm;swap;concat;insert d;operator mathrm;swap;operator frac 2",
+        'x': "push d;operator mathrm;swap;concat;push d;operator mathrm;swap;operator frac 2",
         // d^2 / dx^2
-        'X': "insert 2;superscript;insert d;operator mathrm;swap;concat;insert d;operator mathrm;insert 2;superscript;swap;operator frac 2",
+        'X': "push 2;superscript;push d;operator mathrm;swap;concat;push d;operator mathrm;push 2;superscript;swap;operator frac 2",
         // \partial^2 / \partial x\,\partial y
-        'm': "insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;insert \\partial;insert 2;superscript;swap;operator frac 2",
+        'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;push 2;superscript;swap;operator frac 2",
         // \partial^2 z / \partial x\,\partial y
-        'M': "insert \\partial;swap;concat;insert \\partial;rot;concat;swap;insert \\,;swap;concat;concat;swap;insert \\partial;insert 2;superscript;swap;concat;swap;operator frac 2",
+        'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;push 2;superscript;swap;concat;swap;operator frac 2",
         // gradient
-        'g': "insert \\nabla;swap;concat",
+        'g': "push \\nabla;swap;concat",
         // gradient with respect to x
-        'G': "insert \\nabla;swap;subscript;swap;concat",
+        'G': "push \\nabla;swap;subscript;swap;concat",
         // divergence
-        '.': "insert \\nabla;insert \\cdot;concat;swap;concat",
+        '.': "push \\nabla;push \\cdot;concat;swap;concat",
         // curl
-        'c': "insert \\nabla;insert \\times;concat;swap;concat",
+        'c': "push \\nabla;push \\times;concat;swap;concat",
         // Laplacian
-        'l': "insert \\nabla;insert 2;superscript;swap;concat",
+        'l': "push \\nabla;push 2;superscript;swap;concat",
         // d'Alembertian
-        'L': "insert \\Box;insert 2;superscript;swap;concat",
+        'L': "push \\Box;push 2;superscript;swap;concat",
         // x -> dx
-        'd': "insert d;operator mathrm;swap;concat",
+        'd': "push d;operator mathrm;swap;concat",
         // x -> d^2x
-        '2': "insert d;operator mathrm;insert 2;superscript;swap;concat",
-        '3': "insert d;operator mathrm;insert 3;superscript;swap;concat",
-        '4': "insert d;operator mathrm;insert 4;superscript;swap;concat",
+        '2': "push d;operator mathrm;push 2;superscript;swap;concat",
+        '3': "push d;operator mathrm;push 3;superscript;swap;concat",
+        '4': "push d;operator mathrm;push 4;superscript;swap;concat",
         // y x -> y dx
-        'i': "swap;insert \\,;concat;swap;insert d;operator mathrm;swap;concat;concat",
+        'i': "swap;push \\,;concat;swap;push d;operator mathrm;swap;concat;concat",
         // y x -> ydx (with thinspace after the dx)
-        'I': "insert d;operator mathrm;swap;concat;concat;insert \\,;concat",
+        'I': "push d;operator mathrm;swap;concat;concat;push \\,;concat",
         // y x -> ydx (no spacing around the dx)
-        ' ': "insert d;operator mathrm;swap;concat;concat",
+        ' ': "push d;operator mathrm;swap;concat;concat",
 
         '?': "toggle_popup help derivatives"
     },
@@ -482,7 +482,7 @@ const EditorKeymap = {
         'f': "conjunction if",
         'F': "conjunction iff",
         'g': "infix \\gets",
-        'k': "insert \\,;swap;concat;swap;insert \\,;concat;swap;delimiters . . \\vert 2",  // x | y  ([k]onditional)
+        'k': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2",  // x | y  ([k]onditional)
         'l': "infix \\parallel",
         'M': "infix \\mp",
         'n': "conjunction when",
@@ -514,7 +514,7 @@ const EditorKeymap = {
         ' ': "infix ,\\,",  // comma plus thinspace
         ':': "infix :",
         ';': "infix semicolon\\:",
-        '`': "swap;insert T;superscript;swap;concat",  // xTy
+        '`': "swap;push T;superscript;swap;concat",  // xTy
         '%': "operator pmod;concat",  // y (mod x)
         '*': "infix *",
 	'(': "infix ,;delimiters ( )",  // (x,y)
@@ -573,83 +573,83 @@ const EditorKeymap = {
 
     // apostrophe prefix: assorted standalone math symbols
     symbol: {
-        '0': "insert \\varnothing",
-        '1': "insert -1",
-        '2': "insert 1;insert 2;operator frac 2",  // 1/2 (display)
-        '3': "insert 1;insert 2;infix /",  // 1/2 (inline)
-        '8': "insert \\infty",
-        'a': "insert \\forall",
-        'c': "insert \\cdot",
-        'C': "insert \\bigcap",
-        'd': "insert \\partial",
-        'e': "insert \\exists",
-	'E': "insert \\nexists",
-        'h': "insert \\hslash",
-        'i': "insert \\int",
-        'I': "insert \\iint",
-        'l': "insert \\ell",
-        'M': "insert \\mp",
-        'o': "insert \\circ",
-        'p': "insert \\prod",
-        'P': "insert \\pm",
-        's': "insert \\sum",
-        't': "insert \\therefore",
-        'U': "insert \\bigcup",
-        'v': "insert \\vee",
-	'V': "insert \\bigvee",
-        'w': "insert \\wedge",
-	'W': "insert \\bigwedge",
-        'y': "insert \\oint",
-        'Y': "insert \\oiint",
-        '.': "insert \\dots",
-        '>': "insert \\cdots",
-        '-': "insert -",
-        '+': "insert +",
-        '*': "insert \\star",
-        '|': "insert |",
-        '=': "insert_separator",
-        '?': "insert ?",  // NOTE: no mode-sensitive help shortcut for symbols because of this
-        '!': "insert !",
-        ',': "insert ,",
-        ';': "insert semicolon",
-        ':': "insert :",
-        '`': "insert `",
-        '_': "insert \\_",
-        "'": "insert_placeholder",
-        ' ': "insert ",  // "nothing", e.g. when you don't want something on one side of an infix
-        'ArrowUp': "insert \\uparrow",
-        'ArrowDown': "insert \\downarrow"
+        '0': "push \\varnothing",
+        '1': "push -1",
+        '2': "push 1;push 2;operator frac 2",  // 1/2 (display)
+        '3': "push 1;push 2;infix /",  // 1/2 (inline)
+        '8': "push \\infty",
+        'a': "push \\forall",
+        'c': "push \\cdot",
+        'C': "push \\bigcap",
+        'd': "push \\partial",
+        'e': "push \\exists",
+	'E': "push \\nexists",
+        'h': "push \\hslash",
+        'i': "push \\int",
+        'I': "push \\iint",
+        'l': "push \\ell",
+        'M': "push \\mp",
+        'o': "push \\circ",
+        'p': "push \\prod",
+        'P': "push \\pm",
+        's': "push \\sum",
+        't': "push \\therefore",
+        'U': "push \\bigcup",
+        'v': "push \\vee",
+	'V': "push \\bigvee",
+        'w': "push \\wedge",
+	'W': "push \\bigwedge",
+        'y': "push \\oint",
+        'Y': "push \\oiint",
+        '.': "push \\dots",
+        '>': "push \\cdots",
+        '-': "push -",
+        '+': "push +",
+        '*': "push \\star",
+        '|': "push |",
+        '=': "push_separator",
+        '?': "push ?",  // NOTE: no mode-sensitive help shortcut for symbols because of this
+        '!': "push !",
+        ',': "push ,",
+        ';': "push semicolon",
+        ':': "push :",
+        '`': "push `",
+        '_': "push \\_",
+        "'": "push_placeholder",
+        ' ': "push ",  // "nothing", e.g. when you don't want something on one side of an infix
+        'ArrowUp': "push \\uparrow",
+        'ArrowDown': "push \\downarrow"
     },
 
     // . prefix: expression decorators (fonts, hats, etc)
     decoration: {
-        '0': "insert 0;subscript",
-        '1': "insert -1;superscript",
-        '2': "insert 2;superscript",
-        '3': "insert 3;superscript",
-        '4': "insert 4;superscript",
-        '8': "insert \\infty;infix \\to",
+        '0': "push 0;subscript",
+        '1': "push -1;superscript",
+        '2': "push 2;superscript",
+        '3': "push 3;superscript",
+        '4': "push 4;superscript",
+        '8': "push \\infty;infix \\to",
         'A': "operator acute",
         'b': "font_operator mathbb",
-        'c': "autoparenthesize;insert 1;swap;infix -",
+        'c': "autoparenthesize;push 1;swap;infix -",
         'C': "html_class emphasized emphasized2",
-        'd': "insert \\dagger;superscript",
-        'D': "insert \\ddagger;superscript",
+        'd': "push \\dagger;superscript",
+        'D': "push \\ddagger;superscript",
         'e': "operator bold",  // bold roman (sort of)
         'g': "operator mathring",
         'G': "operator grave",
         'h': "apply_hat hat",
         'H': "apply_hat widehat",
-        'i': "insert -;superscript",
-        'I': "insert +;superscript",
+        'i': "push -;superscript",
+        'I': "push +;superscript",
         'k': "font_operator mathfrak",
-        'l': "insert \\parallel;subscript",
+        'l': "push \\parallel;subscript",
         'm': "font_operator mathtt",
         'M': "prefix \\mp",
 	'n': "prefix \\neg",
         'o': "operator bar",
         'O': "operator overline",
-        'p': "insert \\perp;subscript",
+        'p': "push \\perp;subscript",
         'P': "prefix \\pm",
         'q': "prefix =",
         'r': "make_roman",
@@ -667,16 +667,16 @@ const EditorKeymap = {
         'z': "operator cancel",
         '.': "apply_hat dot",
         "\"": "apply_hat ddot",
-        ' ': "insert \\,;concat",  // append thin space
+        ' ': "push \\,;concat",  // append thin space
         "'": "autoparenthesize;prime",
-        '*': "insert *;superscript",
+        '*': "push *;superscript",
         '~': "apply_hat tilde",
         '=': "prefix \\Rightarrow",
         '-': "prefix -",
         '+': "prefix +",
-        '`': "insert T;superscript",  // transpose
-        '/': "insert 1;swap;autoparenthesize;delimiters . . / 2",  // flex 1/x
-        "\\": "insert 1;swap;autoparenthesize;infix /",  // fixed 1/x
+        '`': "push T;superscript",  // transpose
+        '/': "push 1;swap;autoparenthesize;delimiters . . / 2",  // flex 1/x
+        "\\": "push 1;swap;autoparenthesize;infix /",  // fixed 1/x
         '_': "operator underline",
         '?': "toggle_popup help decorations"
     },
@@ -689,15 +689,15 @@ const EditorKeymap = {
         'c': "build_align cases",
         'C': "build_align rcases",
         'd': "dissolve_array",
-        'e': "build_list ,\\,;insert ,\\,\\dots;concat",
-        'E': "insert_matrix_ellipses",
+        'e': "build_list ,\\,;push ,\\,\\dots;concat",
+        'E': "push_matrix_ellipses",
         'f': "build_align cases_if",
         'F': "build_align rcases_if",
         'g': "build_align gathered",
         'h': "transpose_matrix;swap;transpose_matrix;swap;stack_arrays;transpose_matrix",  // i.e., stack horizontally
         'k': "build_substack",
         'm': "build_matrix_row matrix",
-        'p': "build_list +;insert +\\cdots;concat",
+        'p': "build_list +;push +\\cdots;concat",
         's': "split_array",
         't': "mode change_matrix_type",
         'T': "transpose_matrix",
@@ -735,31 +735,31 @@ const EditorKeymap = {
 
     // & prefix
     script: {
-        '[alpha]': "self_insert;to_case uppercase;font_operator mathscr",
-        '&': "insert \\&"
+        '[alpha]': "self_push;to_case uppercase;font_operator mathscr",
+        '&': "push \\&"
     },
 
     // % prefix
     calligraphic: {
-        '[alpha]': "self_insert;to_case uppercase;font_operator mathcal",
-        '%': "insert \\%"
+        '[alpha]': "self_push;to_case uppercase;font_operator mathcal",
+        '%': "push \\%"
     },
 
     // ; prefix: lowercase Greek letters
     lowercase_greek: {
-        'a': "insert \\alpha",     'b': "insert \\beta",
-        'c': "insert \\chi",       'd': "insert \\delta",
-        'e': "insert \\epsilon",   'f': "insert \\phi",
-        'g': "insert \\gamma",     'h': "insert \\eta",
-        'i': "insert \\iota",      'j': "insert \\varphi",
-        'k': "insert \\kappa",     'l': "insert \\lambda",
-        'm': "insert \\mu",        'n': "insert \\nu",
-        'o': "insert \\omega",     'p': "insert \\pi",
-        'q': "insert \\vartheta",  'r': "insert \\rho",
-        's': "insert \\sigma",     't': "insert \\tau",
-        'u': "insert \\upsilon",   'v': "insert \\theta",
-        'w': "insert \\omega",     'x': "insert \\xi",
-        'y': "insert \\psi",       'z': "insert \\zeta",
+        'a': "push \\alpha",     'b': "push \\beta",
+        'c': "push \\chi",       'd': "push \\delta",
+        'e': "push \\epsilon",   'f': "push \\phi",
+        'g': "push \\gamma",     'h': "push \\eta",
+        'i': "push \\iota",      'j': "push \\varphi",
+        'k': "push \\kappa",     'l': "push \\lambda",
+        'm': "push \\mu",        'n': "push \\nu",
+        'o': "push \\omega",     'p': "push \\pi",
+        'q': "push \\vartheta",  'r': "push \\rho",
+        's': "push \\sigma",     't': "push \\tau",
+        'u': "push \\upsilon",   'v': "push \\theta",
+        'w': "push \\omega",     'x': "push \\xi",
+        'y': "push \\psi",       'z': "push \\zeta",
 
         ':': "mode variant_greek",
         ';': "infix semicolon",
@@ -768,29 +768,29 @@ const EditorKeymap = {
 
     // : prefix: uppercase Greek letters
     uppercase_greek: {
-        'd': "insert \\Delta",     'e': "insert \\varepsilon",
-        'f': "insert \\Phi",       'g': "insert \\Gamma",
-        'k': "insert \\varkappa",  'l': "insert \\Lambda",
-        'm': "insert \\varpi",     'o': "insert \\Omega",
-        'p': "insert \\Pi",        'q': "insert \\vartheta",
-        'r': "insert \\varrho",    's': "insert \\Sigma",
-        't': "insert \\varsigma",  'u': "insert \\Upsilon",
-        'v': "insert \\Theta",     'w': "insert \\Omega",
-        'x': "insert \\Xi",        'y': "insert \\Psi",
-        '6': "insert \\digamma",   '^': "insert \\digamma",
-        'n': "insert \\nabla",  // special case
+        'd': "push \\Delta",     'e': "push \\varepsilon",
+        'f': "push \\Phi",       'g': "push \\Gamma",
+        'k': "push \\varkappa",  'l': "push \\Lambda",
+        'm': "push \\varpi",     'o': "push \\Omega",
+        'p': "push \\Pi",        'q': "push \\vartheta",
+        'r': "push \\varrho",    's': "push \\Sigma",
+        't': "push \\varsigma",  'u': "push \\Upsilon",
+        'v': "push \\Theta",     'w': "push \\Omega",
+        'x': "push \\Xi",        'y': "push \\Psi",
+        '6': "push \\digamma",   '^': "push \\digamma",
+        'n': "push \\nabla",  // special case
 
         // TODO: support for case-insensitive keybindings in general
-        'D': "insert \\Delta",     'E': "insert \\varepsilon",
-        'F': "insert \\Phi",       'G': "insert \\Gamma",
-        'K': "insert \\varkappa",  'L': "insert \\Lambda",
-        'M': "insert \\varpi",     'O': "insert \\Omega",
-        'P': "insert \\Pi",        'Q': "insert \\vartheta",
-        'R': "insert \\varrho",    'S': "insert \\Sigma",
-        'T': "insert \\varsigma",  'U': "insert \\Upsilon",
-        'V': "insert \\Theta",     'W': "insert \\Omega",
-        'X': "insert \\Xi",        'Y': "insert \\Psi",
-        'N': "insert \\nabla",
+        'D': "push \\Delta",     'E': "push \\varepsilon",
+        'F': "push \\Phi",       'G': "push \\Gamma",
+        'K': "push \\varkappa",  'L': "push \\Lambda",
+        'M': "push \\varpi",     'O': "push \\Omega",
+        'P': "push \\Pi",        'Q': "push \\vartheta",
+        'R': "push \\varrho",    'S': "push \\Sigma",
+        'T': "push \\varsigma",  'U': "push \\Upsilon",
+        'V': "push \\Theta",     'W': "push \\Omega",
+        'X': "push \\Xi",        'Y': "push \\Psi",
+        'N': "push \\nabla",
 
         ':': "infix :",
         '?': "toggle_popup help greek"
@@ -798,17 +798,17 @@ const EditorKeymap = {
 
     // "variant" uppercase Greek letters - these are italic versions of the normal ones
     variant_greek: {
-        'd': "insert \\varDelta",    'D': "insert \\varDelta",
-        'f': "insert \\varPhi",      'F': "insert \\varPhi",
-        'g': "insert \\varGamma",    'G': "insert \\varGamma",
-        'l': "insert \\varLambda",   'L': "insert \\varLambda",
-        'o': "insert \\varOmega",    'O': "insert \\varOmega",
-        'p': "insert \\varPi",       'P': "insert \\varPi",
-        'q': "insert \\varTheta",    'Q': "insert \\varTheta",
-        's': "insert \\varSigma",    'S': "insert \\varSigma",
-        'u': "insert \\varUpsilon",  'U': "insert \\varUpsilon",
-        'x': "insert \\varXi",       'X': "insert \\varXi",
-        'y': "insert \\varPsi",      'Y': "insert \\varPsi",
+        'd': "push \\varDelta",    'D': "push \\varDelta",
+        'f': "push \\varPhi",      'F': "push \\varPhi",
+        'g': "push \\varGamma",    'G': "push \\varGamma",
+        'l': "push \\varLambda",   'L': "push \\varLambda",
+        'o': "push \\varOmega",    'O': "push \\varOmega",
+        'p': "push \\varPi",       'P': "push \\varPi",
+        'q': "push \\varTheta",    'Q': "push \\varTheta",
+        's': "push \\varSigma",    'S': "push \\varSigma",
+        'u': "push \\varUpsilon",  'U': "push \\varUpsilon",
+        'x': "push \\varXi",       'X': "push \\varXi",
+        'y': "push \\varPsi",      'Y': "push \\varPsi",
 
         '?': "toggle_popup help greek"
     }

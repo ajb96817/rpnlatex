@@ -577,25 +577,25 @@ class InputContext {
         return new Stack([]);
     }
 
-    do_insert_separator(stack) {
+    do_push_separator(stack) {
 	// See TextItem.is_empty() comment
 	return stack.push(TextItem.empty_item());
     }
 
-    do_insert(stack, text) {
+    do_push(stack, text) {
         // TODO: handle this better
-        text = text || '';  // handle 'insert nothing' case
+        text = text || '';  // handle 'push nothing' case
         if(text.startsWith("\\"))
             return stack.push_expr(new CommandExpr(text.slice(1)));
         else
             return stack.push_expr(new TextExpr(text));
     }
 
-    do_self_insert(stack) {
-        return this.do_insert(stack, this.last_keypress);
+    do_self_push(stack) {
+        return this.do_push(stack, this.last_keypress);
     }
 
-    do_insert_placeholder(stack) {
+    do_push_placeholder(stack) {
         return stack.push_expr(new PlaceholderExpr());
     }
 
