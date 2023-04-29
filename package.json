@@ -10,7 +10,7 @@
         "@testing-library/react": "^13.3.0",
         "@testing-library/user-event": "^14.2.0",
         "jszip": "^3.10.1",
-        "katex": "^0.16.4",
+        "katex": "^0.16.7",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-scripts": "4.0.0",
@@ -42,6 +42,6 @@
         ]
     },
     "devDependencies": {
-        "electron": "^19.0.7"
+        "electron": "^24.1.3"
     }
 }

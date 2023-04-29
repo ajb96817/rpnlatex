@@ -40,3 +40,10 @@ To build/run from source (not needed unless you want to change something):
   * To build a packaged release, run 'npm run build' and the release will be created in the build/ subdirectory
 
 A pre-built version is available here: https://ajb96817.github.io/rpnlatex
+
+## Running via Electron
+
+There is some initial support for running this as an Electron app.  To try it, follow the above instructions
+for building from source but run 'npm run start_electron' instead of 'npm start'.  Certain things like pop-up
+dialog boxes (e.g. for saving files) are not working yet under Electron.
+
