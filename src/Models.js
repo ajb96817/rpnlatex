@@ -66,10 +66,18 @@ class Settings {
         // Show or hide popup panel.
         popup_panel_elt.style.display = this.popup_mode ? 'block' : 'none';
 
-        // Set overall scale factor.
+        // Set overall font scale factor.
         const root_elt = document.getElementById('root');
         const percentage = Math.round(100*Math.pow(1.05, layout.zoom_factor || 0));
         root_elt.style.fontSize = percentage + '%';
+
+	// Set some specific scale factors for other UI elements
+	// by manipulating the corresponding CSS variables.
+	const root_vars = document.querySelector(':root');
+	const itembar_pixels = Math.min(10, Math.max(2, Math.round(4 * percentage/100)));
+	root_vars.style.setProperty('--itemtype-bar-width', itembar_pixels + 'px');
+	const headingbar_pixels = Math.max(1, Math.round(3 * percentage/100));
+	root_vars.style.setProperty('--heading-bar-height', headingbar_pixels + 'px');
 
         // Set up panel layout.
         let [stack_bounds, document_bounds] = this._split_rectangle(

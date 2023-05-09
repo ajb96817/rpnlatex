@@ -1,4 +1,9 @@
 
+:root {
+    --itemtype-bar-width: 5px;
+    --heading-bar-height: 3px;
+}
+
 html { height: 100%; }
 body {
     margin: 0;
@@ -61,10 +66,10 @@ div.latex_fragment {
     padding-left: 12px;
 }
 div.latex_fragment span.katex-error { font-family: monospace; }
-div.expr_item div.latex_fragment { border-left: 5px solid #aaa; }
-div.text_item div.latex_fragment { border-left: 5px solid #88f; }
+div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
+div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #88f; }
 div.heading_style div.latex_fragment_inner {
-    border-bottom: 3px solid #bbf;
+    border-bottom: var(--heading-bar-height) solid #bbf;
     padding-top: 0.3em;
     margin-right: 12px;
     font-size: 125%;
@@ -75,12 +80,12 @@ div.separator_item {
        Not sure why this is. */
     padding-top: 1px;
     padding-bottom: 1px;
-    border-left: 5px solid #88f; /* #6a6; */
+    border-left: var(--itemtype-bar-width) solid #88f; /* #6a6; */
 }
 div.separator_item hr {
     /* These hrules should visually look like the underline of section headings.
        Should match what is in div.heading_style .katex-html. */
-    height: 3px;
+    height: var(--heading-bar-height);
     margin-left: 12px;
     margin-right: 12px;
     border: none;
@@ -94,7 +99,7 @@ div.separator_item hr {
 .emphasized2 { color: #f00; text-shadow: 0 0 0.08em #f88; }
 
 div.latex_source_item {
-    border-left: 5px solid #bcb;
+    border-left: var(--itemtype-bar-width) solid #bcb;
     overflow-wrap: break-word;
     font-family: monospace;
     padding-left: 12px;
