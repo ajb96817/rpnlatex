@@ -140,8 +140,7 @@ class App extends React.Component {
     componentDidUpdate() {
         // Show the currently opened file in the browser's document title.
         const filename = this.state.file_manager_state.current_filename;
-        const program_name = 'rpnlatex';
-        const new_title = filename ? (program_name + ' - ' + filename) : program_name;
+        const new_title = '[' + (filename || 'rpnlatex') + ']';
         if(new_title !== document.title)
             document.title = new_title;
     }
