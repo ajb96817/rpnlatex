@@ -639,7 +639,7 @@ class InputContext {
 
     // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,
     // unwrap it and re-wrap the font face command inside \pmb.
-    // e.g. \boldsymbol{A} -> \pmb{mathtt{A}}
+    // e.g. \boldsymbol{A} -> \pmb{A}
     // See also do_make_roman(), which is a special case because \bold{} creates Roman
     // bold text without needing \pmb.
     do_font_operator(stack, facename) {

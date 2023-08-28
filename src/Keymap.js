@@ -667,6 +667,7 @@ const EditorKeymap = {
         'X': "operator sout",  // strikeout
         'z': "operator cancel",
         '.': "apply_hat dot",
+        '>': "push .;concat",
         "\"": "apply_hat ddot",
         ' ': "push \\,;concat",  // append thin space
         "'": "autoparenthesize;prime",
