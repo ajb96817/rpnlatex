@@ -206,7 +206,7 @@ const EditorKeymap = {
 
     // right-parenthesis prefix: special delimiters
     delimiters: {
-        'b': "delimiters \\langle \\vert",  //  <x| Dirac bra
+        'b': "delimiters \\langle \\vert",  // <x| Dirac bra
         'c': "delimiters \\lceil \\rceil",
         'f': "delimiters \\lfloor \\rfloor",
         'g': "delimiters \\lgroup \\rgroup",
@@ -521,8 +521,8 @@ const EditorKeymap = {
 	'(': "infix ,;delimiters ( )",  // (x,y)
         '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
-        '/': "autoparenthesize;swap;autoparenthesize;swap;delimiters . . / 2",  // flex x/y
-        "\\": "autoparenthesize;swap;autoparenthesize;swap;infix /",  // fixed x/y
+        '/': "autoparenthesize 2;delimiters . . / 2",  // flex x/y
+        "\\": "autoparenthesize 2;infix /",  // fixed x/y
         '?': "toggle_popup help infix"
     },
 
