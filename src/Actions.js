@@ -1,6 +1,6 @@
 
 import {
-    AppState, Document, Stack, ExprPath,
+    AppState, Document, Stack,
     Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem, CodeItem
@@ -1159,151 +1159,6 @@ class InputContext {
 	return this.error_flash_stack();
     }
 
-    // Dissect mode commands:
-    // When in 'dissect' mode, subexpressions of the stack top can be selected and
-    // operated upon.  Changing the selection does not modify the actual Expr; instead
-    // it generates new ExprItems with the updated 'selected_expr_path'.  This is a
-    // property of the ExprItem, not the Expr, so dissect mode commands have to explicitly
-    // manipulate the ExprItem instances (rather than using push_expr()).
-
-    do_start_dissect_mode(stack) {
-	this.switch_to_mode('dissect');
-	const [new_stack, expr] = stack.pop_exprs(1);
-	// Build a new ExprItem with a default initial selection.
-	return new_stack.push(new ExprItem(expr, null, new ExprPath(expr, [], 1, [])));
-    }
-
-    do_cancel_dissect_mode(stack) {
-	const [new_stack, expr] = stack.pop_exprs(1);
-	this.perform_undo_or_redo = 'suppress';
-	return new_stack.push(new ExprItem(expr, null, null));  // i.e., get rid of the selection
-    }
-
-    // Descend into a subexpression, if possible.
-    // direction can be 'left' or 'right' indicating leftmost or rightmost subexpression.
-    do_dissect_descend(stack, direction) {
-	return this._do_dissect_path_operation(stack, expr_path => {
-	    const subexprs = expr_path.selected_subexprs();
-	    // Can't descend if there is a multi-selection.
-	    if(subexprs.length !== 1) return null;
-	    const subexpr = subexprs[0];
-	    const [left, right] = subexpr.subexpr_selector_range();
-	    const new_selector = direction === 'right' ? right : left;  // may be null (leaf node)
-	    return expr_path.descend(new_selector);
-	});
-    }
-
-    // Ascend to the parent of the current selection(s), if possible.
-    do_dissect_ascend(stack) {
-	return this._do_dissect_path_operation(stack, expr_path => expr_path.ascend());
-    }
-
-    // Move the selection left or right within its parent Expr.
-    // If there is currently a multi-selection, it is cancelled and
-    // "left" or "right" is taken relative to the original multi-selection.
-    do_dissect_move_selection(stack, direction) {
-	return this._do_dissect_path_operation(stack, expr_path => expr_path.move(direction));
-    }
-
-    // Replace the stack top with an "extracted" version where the selected
-    // subexpression(s) are replaced with a placeholder.  The extracted subexpression(s)
-    // are then put on the stack top.  If multiple subexpressions were selected they are
-    // grouped into a SequenceExpr.
-    // This command also exits dissect mode.
-    do_dissect_extract_selection(stack) {
-	const [new_stack, item] = stack.pop(1);
-	if(item.item_type() !== 'expr') stack.type_error();
-	const expr_path = item.selected_expr_path;
-        // eslint-disable-next-line no-unused-vars
-	const [with_placeholder_expr, placeholder, with_selection_deleted_expr, extracted_expr] =
-	      expr_path.extract_subexprs();
-	return new_stack.push_all_exprs([with_placeholder_expr, extracted_expr]);
-    }
-
-    // Replace the stack top with a version with the selected subexpression
-    // "deleted".  In some cases this means the subexpression is replaced with
-    // a blank instead of being truly deleted.
-    // If it's a top-level selection, the entire item is just dropped from the
-    // stack instead.
-    // This command also exits dissect mode.
-    do_dissect_delete_selection(stack) {
-	const [new_stack, item] = stack.pop(1);
-	if(item.item_type() !== 'expr') stack.type_error();
-	const expr_path = item.selected_expr_path;
-	if(expr_path.is_top_level())
-	    return new_stack;
-	else {
-            // eslint-disable-next-line no-unused-vars
-	    const [with_placeholder_expr, placeholder, with_selection_deleted_expr, extracted_expr] =
-		  expr_path.extract_subexprs();
-	    return new_stack.push_expr(with_selection_deleted_expr);
-	}
-    }
-
-    // If the current selection points to a DelimiterExpr, the left and right brackets
-    // are changed to the indicated types.
-    // If left/right are null, the delimiters will be removed instead, leaving the
-    // unbracketed subexpression (this only works for simple delimiters, not for
-    // cases like <x|y|z> where there is more than one inner expression).
-    // TODO: most of the logic in this command should probably be extracted to
-    // a method like ExprPath.change_delimiter_type().
-    do_dissect_change_delimiter_type(stack, left, right) {
-	const [new_stack, item] = stack.pop(1);
-	if(item.item_type() !== 'expr') stack.type_error();
-	this.perform_undo_or_redo = 'suppress';
-	this.switch_to_mode(this.mode);
-	const expr_path = item.selected_expr_path;
-        // eslint-disable-next-line no-unused-vars
-	const [with_placeholder_expr, placeholder, with_selection_deleted_expr, extracted_expr] =
-	      expr_path.extract_subexprs();
-	let new_delimiter_expr = null;
-	if(left && right) {
-	    // If extracted_expr is a DelimiterExpr, its bracket type is changed;
-	    // otherwise extracted_expr is parenthesized with the given bracket type.
-	    // In either case, the new subexpression is spliced back into the overall item.
-	    if(extracted_expr.expr_type() === 'delimiter') 
-		new_delimiter_expr = new DelimiterExpr(
-		    left, right, extracted_expr.middle_type,
-		    extracted_expr.inner_exprs, extracted_expr.fixed_size);
-	    else 
-		new_delimiter_expr = new DelimiterExpr(left, right, null, [extracted_expr]);
-	}
-	else {
-	    // Left/right delimiters were omitted in the command.
-	    // In this case, try to remove existing delimiters instead.
-	    if(extracted_expr.expr_type() === 'delimiter' &&
-	       extracted_expr.inner_exprs.length === 1)
-		new_delimiter_expr = extracted_expr.inner_exprs[0];
-	    else
-		new_delimiter_expr = extracted_expr;  // i.e., do nothing
-	}
-	const new_expr = with_placeholder_expr.substitute_expr(placeholder, new_delimiter_expr);
-	// NOTE: The selection path remains unmodified in all cases because the tree structure
-	// up until the selected expression has not changed.  The path needs to be "rebased"
-	// to the newly-created expression though (otherwise it would still be pointing to the
-	// original expression).
-	const new_expr_item = new ExprItem(new_expr, null, expr_path.rebase(new_expr));
-	return new_stack.push(new_expr_item);
-    }
-
-    // This abstracts out dissect mode operations that modify the selected
-    // subexpression path.
-    // fn() takes the existing ExprPath, and should return the new ExprPath,
-    // or null if the operation is considered an error.
-    _do_dissect_path_operation(stack, fn) {
-	const [new_stack, item] = stack.pop(1);
-	if(item.item_type() !== 'expr') stack.type_error();
-	this.perform_undo_or_redo = 'suppress';
-	this.switch_to_mode(this.mode);
-	const expr_path = item.selected_expr_path;
-	const new_expr_path = fn(expr_path);
-	if(new_expr_path) {
-	    const new_expr_item = new ExprItem(item.expr, null, new_expr_path);
-	    return new_stack.push(new_expr_item);
-	}
-	else return this.error_flash_stack();
-    }
-
     // TODO: may want to make this a general utility method, but it's only used here so far.
     _latex_escape(text) {
         const replacements = {
@@ -1413,19 +1268,6 @@ class InputContext {
                 items.map(item => DelimiterExpr.autoparenthesize(item.expr)));
         else
             return stack;
-    }
-
-    // Change the bracket type of an existing DelimiterExpr.
-    do_change_delimiter_type(stack, new_left, new_right) {
-	const [new_stack, expr] = stack.pop_exprs(1);
-	if(expr.expr_type() === 'delimiter') {
-	    const new_expr = new DelimiterExpr(
-		new_left, new_right, expr.middle_type,
-		expr.inner_exprs, expr.fixed_size);
-	    return new_stack.push_expr(new_expr);
-	}
-	else
-	    return this.error_flash_stack();
     }
 
     // Combine command name and arguments from the stack into a CommandExpr.

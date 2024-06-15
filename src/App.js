@@ -631,7 +631,7 @@ class ItemComponent extends React.Component {
         if(!node) return;  // shouldn't happen
         if(item.item_type() === 'expr') {
             // Render math with KaTeX
-            this._render_with_katex(item.to_latex(), node, !this.props.inline_math);
+            this._render_with_katex(item.expr.to_latex(), node, !this.props.inline_math);
             if(item.tag_expr && this.tag_ref.current)
                 this._render_with_katex(item.tag_expr.to_latex(), this.tag_ref.current, false);
         }

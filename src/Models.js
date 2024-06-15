@@ -139,11 +139,9 @@ Settings.saved_keys = [
 
 // Helper for generating LaTeX strings from Expr objects.
 class LatexEmitter {
-    constructor(selected_expr_path) {
+    constructor() {
         this.tokens = [];
         this.last_token_type = null;
-	this.selected_exprs = new Set(
-	    selected_expr_path ? selected_expr_path.selected_subexprs() : []);
     }
 
     emit_token(text, token_type) {
@@ -152,21 +150,7 @@ class LatexEmitter {
         this.last_token_type = token_type;
     }
 
-    expr(expr) {
-	if(this.selected_exprs.has(expr)) {
-	    const highlight_expr = new CommandExpr(
-		'htmlClass',
-		[new TextExpr('dissect_highlight'), expr]);
-	    // Now that the selected_expr has been 'seen', remove it from the
-	    // set of expressions to watch out for.  Otherwise, it'd be an infinite
-	    // recursion when this htmlClass command is rendered with the original
-	    // expression.
-	    this.selected_exprs.delete(expr);
-	    highlight_expr.emit_latex(this);
-	}
-	else
-	    expr.emit_latex(this);
-    }
+    expr(expr) { expr.emit_latex(this); }
 
     grouped_expr(expr, force_braces) { this.grouped(() => this.expr(expr), force_braces); }
 
@@ -737,190 +721,6 @@ class FileManagerState {
 }
 
 
-// Represents a "path" within an Expr to one of its subexpressions.
-// Each element (selector) along the path is an integer identifying one of the
-// children of the Expr at that level.  An empty path just refers to the base
-// Expr itself (as when starting a new selection).
-//
-// The final step of the path (as long as the path is nonempty) can optionally
-// span multiple subexpressions for certain Expr types (e.g. SequenceExpr).
-// This is indicated by the 'selection_length' instance variable, which is
-// normally 1, indicating a single selected subexpression.  If there is a
-// multi-selection, the selector itself indicates the leftmost subexpression,
-// and 'selection_length' subexpressions are taken from there to the right.
-//
-// subpath_lengths represents how many intervening Exprs are skipped
-// over when descending each level in the path.
-// Normally this is 1, but when encountering 'trivial' intervening
-// expressions such as font commands, we skip directly over them and
-// this generates subpaths lengths greater than 1.  When this happens,
-// the skipped subexpressions are implictly treated as selector===0.
-class ExprPath {
-    constructor(expr, path_selectors, selection_length, subpath_lengths) {
-	this.expr = expr;
-	this.path_selectors = path_selectors;
-	this.selection_length = 1;
-	this.subpath_lengths = subpath_lengths;
-    }
-
-    // Top-level selections (selecting 'expr' itself) are a small special case.
-    is_top_level() { return this.path_selectors.length === 0; }
-
-    // Return the last-but-one Expr along the path.  This is always a single Expr
-    // since multi-selections are only allowed at the final level.
-    penultimate_subexpr() {
-	let expr = this.expr;
-	for(let i = 0; i < this.path_selectors.length-1; i++) {
-	    const info = expr.expr_path_info(this.path_selectors[i]);
-	    expr = info.selected_expr;
-	}
-	return expr;
-    }
-
-    // Caller must ensure this is not a top-level path.
-    final_selector() {
-	return this.path_selectors[this.path_selectors.length - 1];
-    }
-
-    // Return a new ExprPath that is "rebased" to new_expr, which must have
-    // the exact same structure as the current expr.
-    // In other words, the rebased path represents the same path through the
-    // expression, but with a different expression of the same structure.
-    rebase(new_expr) {
-	return new ExprPath(
-	    new_expr, this.path_selectors, this.selection_length, this.subpath_lengths);
-    }
-
-    selected_subexprs() {
-	// A top-level selection is a special case.
-	if(this.is_top_level()) return [this.expr];
-	const expr = this.penultimate_subexpr();
-	// Collect the subexpressions at the last level, where there
-	// may be a multi-selection.
-	let subexprs = [];
-	let selector = this.path_selectors[this.path_selectors.length-1];
-	for(let i = 0; i < this.selection_length; i++) {
-	    const info = expr.expr_path_info(selector);
-	    subexprs.push(info.selected_expr);
-	    selector = info.right;
-	}
-	return subexprs;
-    }
-
-    // Returns four objects:
-    //   - A version of the base Expr with the current selected subexpression(s)
-    //     replaced with a PlaceholderExpr.
-    //   - The actual PlaceholderExpr instance in the above.
-    //   - A version of the base Expr with the selected subexpression(s) deleted
-    //     from the structure (or at least replaced with blanks).
-    //   - The extracted subexpressions(s), grouped into a new SequenceExpr if needed.
-    extract_subexprs() {
-	if(this.is_top_level()) {
-	    const placeholder = new PlaceholderExpr();
-	    return [placeholder, placeholder, TextExpr.blank(), this.expr];
-	}
-	else {
-	    const expr = this.penultimate_subexpr();
-	    const info = expr.expr_path_info(this.final_selector());
-	    return [
-		info.with_placeholder_expr,
-		info.placeholder,
-		info.with_selection_deleted_expr,
-		info.selected_expr];
-	}
-    }
-
-    // Return a new ExprPath descended into the subexpression of the
-    // selected expression indicated by 'selector'.
-    // selection_length must be 1 for this to make sense.
-    // Skip over font commands and other 'trivial' exprs.
-    // Skipped expressions generate this.subpath_lengths values greater than 1
-    // so that we know how many to undo in ascend().
-    descend(selector) {
-	return new ExprPath(
-	    this.expr,
-	    this.path_selectors.concat([selector]),
-	    1,
-	    this.subpath_lengths.concat([1]));
-    }
-
-    // Return a new ExprPath that selects the parent Expr of the current
-    // subexpression(s).
-    ascend() {
-	if(this.is_top_level())
-	    return this;
-	else return new ExprPath(
-	    this.expr,
-	    this.path_selectors.slice(0, -1),
-	    1,
-	    this.subpath_lengths.slice(0, -1));
-    }
-
-    // Return a new Expr that is like this one but with the "sibling" subexpression
-    // in the given direction selected.  If this path is a multi-selection, the new
-    // path will be a single selection but with "left" or "right" taken relative to
-    // the original multi-selection.
-    // 'direction' can be 'left' or 'right'.  The selection wraps around when going
-    // past the ends of the expression.
-    move(direction) {
-	if(this.is_top_level()) return this;
-	const parent_expr = this.penultimate_subexpr();
-	const info = parent_expr.expr_path_info(this.final_selector());
-	const new_selector = direction === 'right' ? info.right : info.left;
-	return this.ascend().descend(new_selector);
-    }
-}
-
-
-// TODO: abstract the result of ExprPath.extract_subexprs()
-// class ExtractedSubexpression { }
-
-
-
-// This is a helper object generated by Expr instances to help guide the subexpression
-// selection and "dissection" functionality.
-//
-// Given a current subexpression selection (in the form of an ExprPath), further operations
-// on the selection require contextual information about the subexpression.  For example, we
-// need to know the "neighbors" of the subexpression within its parent in order to move the
-// selection around.  We also need to be able to extract the subexpression itself and/or replace
-// it with a placeholder in the original expression.
-//
-// The 'expr_path_info()' method of Expr objects takes in the current subexpression selection
-// and generates an ExprPathInfo object containing all the contextual information to act on that selection.
-//
-// allows_multiselect: True if multiple children of this expr can be selected
-//    (i.e., selection_length can be more than 1).
-// left/right: Indicates the selectors 'adjacent' to the current selection selectors
-//    in the given direction; these are null if that direction is not allowed.  Generally,
-//    wraparound is supported, so the 'left' of the leftmost subexpression will be the rightmost, etc.
-//    However, if selection_length is more than 1, it cannot wrap around (the selection always has
-//    to be contiguous).
-// left_at_edge/right_at_edge: True if the selection is at the "edge" of the expression to either direction.
-//    value is null instead.  This is only relevant/used if 'allows_multiselect' is true.
-// selected_expr: An Expr representing the currently selected subexpression.  This may be a new object
-//    for something like a SequenceExpr with selection_length > 1.
-// with_placeholder_expr: An Expr that represents the selected Expr but with the current selection replaced
-//    with a PlaceholderExpr.
-// placeholder: The PlaceholderExpr instance used in the above (this is needed in some edge cases if
-//    there are multiple placeholders in an expression).
-// with_selection_deleted_expr: An Expr that represents the selected Expr but with the current selection
-//    "deleted".  Depending on the expression type, this could mean replacing the selection with a blank,
-//    or something else (like removing the superscript or subscript from a SubscriptSuperscriptExpr).
-class ExprPathInfo {
-    constructor(expr) {
-	this.expr = expr;
-    }
-
-    // Helper function n%modulus.
-    // Javascript's native % is negative if n is, whereas here we always
-    // want the result within [0..modulus-1].
-    mod(n, modulus) {
-	return (n%modulus + modulus) % modulus;
-    }
-}
-
-
 // Abstract superclass for expression trees.
 class Expr {
     static from_json(json) {
@@ -1033,11 +833,9 @@ class Expr {
     
     expr_type() { return '???'; }
 
-    // 'selected_expr_path' is an optional ExprPath object; the emitter will
-    // wrap the corresponding selected subexpressions in a highlighted style.
-    to_latex(selected_expr_path) {
-        let emitter = new LatexEmitter(selected_expr_path);
-	emitter.expr(this);
+    to_latex() {
+        let emitter = new LatexEmitter();
+        this.emit_latex(emitter);
         return emitter.finished_string();
     }
 
@@ -1092,20 +890,6 @@ class Expr {
         else
             return this;
     }
-
-    // Return the [left, right] range of subexpression selectors for this Expr.
-    // The range is inclusive; that is, the 'left' value is the selector for the
-    // leftmost subexpression and 'right' is the selector for the rightmost.
-    // If null is returned, this expression has no selectable subexpressions.
-    subexpr_selector_range() { return null; }
-
-    // Return an ExprPathInfo instance for the current subexpression selection
-    // (see the comment in that class for more details).  If 'selector' is null,
-    // that indicates this entire expression is selected and is a sort of special
-    // case.  If this expr_path_info() method itself returns null, that indicates
-    // this expression has no further structure (i.e., is a leaf node in the expr tree).
-    // Subclasses that have child Exprs must override this.
-    expr_path_info(selector, selection_length) { return null; }
 
     // NOTE: CommandExpr overrides this
     as_bold() { return new CommandExpr('boldsymbol', [this]); }
@@ -1162,37 +946,6 @@ class CommandExpr extends Expr {
             this.options);
     }
 
-    subexpr_selector_range() { return [0, this.operand_count()-1]; }
-
-    // Selectors: 0..operand_count-1
-    // Note that the command_name/options cannot be directly selected.
-    // Also note that CommandExprs that represent font commands (expr.is_font_command())
-    // are considered "trivial" and implicitly skipped through when selecting subexpressions
-    // (see ExprPath.descend()).
-    expr_path_info(selector) {
- 	let info = new ExprPathInfo(this);
-	const operand_count = this.operand_count();
-	info.allows_multiselect = false;
-	info.left = info.mod(selector-1, operand_count);
-	info.right = info.mod(selector+1, operand_count);
-	info.selected_expr = this.operand_exprs[selector];
-	info.placeholder = new PlaceholderExpr();
-	info.with_placeholder_expr = new CommandExpr(
-	    this.command_name,
-	    this.operand_exprs.map(
-		(operand_expr, index) => index === selector ? info.placeholder : operand_expr),
-	    this.options);
-	// "deleted" operands have to be converted to blanks since it rarely makes sense to
-	// actually remove operands from CommandExprs.
-	info.with_selection_deleted_expr = new CommandExpr(
-	    this.command_name,
-	    this.operand_exprs.map(
-		(operand_expr, index) => index === selector ? TextExpr.blank() : operand_expr),
-	    this.options);
-	    
-	return info;
-    }
-
     // Wrap this expression in a \boldsymbol{...} command if it's not already.
     // LaTeX has different ways of expressing 'bold' so this is not quite trivial.
     // TextItem implements as_bold() in yet another way.
@@ -1219,14 +972,6 @@ class CommandExpr extends Expr {
         }
         else
             return super.as_bold();
-    }
-
-    is_font_command() {
-	if(this.operand_count() !== 1) return false;
-	const c = this.command_name;
-	return c === 'boldsymbol' || c === 'bold' || c === 'pmb' ||
-	    c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
-	    c === 'mathfrak' || c === 'mathscr' || c === 'mathcal';
     }
 
     is_command_with_name(command_name) {
@@ -1263,28 +1008,6 @@ class PrefixExpr extends Expr {
         return new PrefixExpr(
             this.base_expr.substitute_expr(old_expr, new_expr),
             this.prefix_expr.substitute_expr(old_expr, new_expr));
-    }
-
-    subexpr_selector_range() { return [0, 1]; }
-
-    // Selectors: 0=prefix, 1=base
-    expr_path_info(selector) {
- 	let info = new ExprPathInfo(this);
-	info.placeholder = new PlaceholderExpr();
-	info.allows_multiselect = false;
-	info.left = info.mod(selector-1, 2);
-	info.right = info.mod(selector+1, 2);
- 	let subexpr = null;
-	if(selector === 0) subexpr = this.prefix_expr;
-	else if(selector === 1) subexpr = this.base_expr;
-	info.selected_expr = subexpr;
-	info.with_placeholder_expr = new PrefixExpr(
-	    (selector === 1) ? info.placeholder : this.base_expr,
-	    (selector === 0) ? info.placeholder : this.prefix_expr);
-	// Deleting one of the selected pieces just leaves the other one.
-	info.with_selection_deleted_expr =
-	    (selector === 0) ? this.base_expr : this.prefix_expr;
-	return info;
     }
 }
 
@@ -1361,37 +1084,6 @@ class InfixExpr extends Expr {
         return new InfixExpr(
             this.operator_expr, this.left_expr, this.right_expr, new_split_mode);
     }
-
-    subexpr_selector_range() { return [0, 2]; }
-
-    // Selectors: 0=left, 1=operator, 2=right
-    expr_path_info(selector) {
- 	let info = new ExprPathInfo(this);
-	info.placeholder = new PlaceholderExpr();
-	info.allows_multiselect = false;
-	info.left = info.mod(selector-1, 3);
-	info.right = info.mod(selector+1, 3);
- 	let subexpr = null;
-	if(selector === 0) subexpr = this.left_expr;
-	else if(selector === 1) subexpr = this.operator_expr;
-	else if(selector === 2) subexpr = this.right_expr;
-	info.selected_expr = subexpr;
-	info.with_placeholder_expr = new InfixExpr(
-	    (selector === 1) ? info.placeholder : this.operator_expr,
-	    (selector === 0) ? info.placeholder : this.left_expr,
-	    (selector === 2) ? info.placeholder : this.right_expr);
-	// Deleting the left_expr converts into a PrefixExpr.
-	// Any other case and we have to replace with blanks.
-	const blank = TextExpr.blank();
-	if(selector === 0)
-	    info.with_selection_deleted_expr = new PrefixExpr(
-		this.right_expr, this.operator_expr);
-	else info.with_selection_deleted_expr = new InfixExpr(
-	    (selector === 1) ? blank : this.operator_expr,
-	    (selector === 0) ? blank : this.left_expr,
-	    (selector === 2) ? blank : this.right_expr);
-	return info;
-    }
 }
 
 
@@ -1410,8 +1102,6 @@ class PlaceholderExpr extends Expr {
 
 // Represents a snippet of LaTeX code; these are the "leaves" of Expr-trees.
 class TextExpr extends Expr {
-    static blank() { return new TextExpr(''); }
-    
     constructor(text) {
         super();
         this.text = text;
@@ -1448,31 +1138,6 @@ class SequenceExpr extends Expr {
         if(this === old_expr) return new_expr;
         return new SequenceExpr(
             this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
-    }
-
-    subexpr_selector_range() { return [0, this.exprs.length-1]; }
-
-    // Selectors: 0..expr_count-1
-    expr_path_info(selector) {
-	const expr_count = this.exprs.length;
- 	let info = new ExprPathInfo(this);
-	info.allows_multiselect = true;
-	info.left = info.mod(selector-1, expr_count);
-	info.right = info.mod(selector+1, expr_count);
-	info.selected_expr = this.exprs[selector];
-	info.placeholder = new PlaceholderExpr();
-	info.with_placeholder_expr = new SequenceExpr(
-	    this.exprs.map(
-		(expr, index) => index === selector ? info.placeholder : expr));
-	// Deleting from a SequenceExpr leaves a smaller SequenceExpr.
-	// length-1 SequenceExprs shouldn't exist, but if they do then deleting
-	// them results in a blank instead.
-	if(expr_count <= 1)
-	    info.with_selection_deleted_expr = TextExpr.blank();
-	else
-	    info.with_selection_deleted_expr = new SequenceExpr(
-		this.exprs.slice(0, selector-1).concat(this.exprs.slice(selector)));
-	return info;
     }
 }
 
@@ -1589,29 +1254,6 @@ class DelimiterExpr extends Expr {
             this.left_type, this.right_type, this.middle_type,
             this.inner_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
     }
-
-    subexpr_selector_range() { return [0, this.inner_exprs.length-1]; }
-
-    // Selectors: 0..inner_exprs-1
-    expr_path_info(selector) {
-	const expr_count = this.inner_exprs.length;
- 	let info = new ExprPathInfo(this);
-	info.left = info.mod(selector-1, expr_count);
-	info.right = info.mod(selector+1, expr_count);
-	info.selected_expr = this.inner_exprs[selector];
-	info.placeholder = new PlaceholderExpr();
-	info.with_placeholder_expr = new DelimiterExpr(
-	    this.left_type, this.right_type, this.middle_type,
-	    this.inner_exprs.map(
-		(expr, index) => index === selector ? info.placeholder : expr),
-	    this.fixed_size);
-	info.with_selection_deleted_expr = new DelimiterExpr(
-	    this.left_type, this.right_type, this.middle_type,
-	    this.inner_exprs.map(
-		(expr, index) => index === selector ? TextExpr.blank() : expr),
-	    this.fixed_size);
-	return info;
-    }
 }
 
 
@@ -1661,64 +1303,6 @@ class SubscriptSuperscriptExpr extends Expr {
             this.base_expr.substitute_expr(old_expr, new_expr),
             this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
             this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
-    }
-
-    subexpr_selector_range() {
-	return [0, this.subscript_expr ? 2 : 1];
-    }
-
-    // Selectors: 0=base, 1=superscript, 2=subscript
-    // We can also go "down" from the base or superscript to the subscript,
-    // and "up" from the base or subscript to the superscript.
-    // Note that the superscript or subscript may be null, which constrains
-    // what may be part of a selection.  (But there is always at least one of
-    // the two populated.)
-    expr_path_info(selector) {
- 	let info = new ExprPathInfo(this);
-	const has_super = this.superscript_expr !== null;
-	const has_sub = this.subscript_expr !== null;
-	info.allows_multiselect = false;
-	// TODO: implement up/down
-	info.left = info.mod(selector-1, 3);
-	if(info.left === 1 && !has_super) info.left = 0;
-	if(info.left === 2 && !has_sub) info.left = 1;
-	info.right = info.mod(selector+1, 3);
-	if(info.right === 1 && !has_super) info.right = 2;
-	if(info.right === 2 && !has_sub) info.right = 0;
-	let subexpr = null;
-	if(selector === 0) subexpr = this.base_expr;
-	if(selector === 1) subexpr = this.superscript_expr;
-	if(selector === 2) subexpr = this.subscript_expr;
-	info.selected_expr = subexpr;
-	info.placeholder = new PlaceholderExpr();
-	info.with_placeholder_expr = new SubscriptSuperscriptExpr(
-	    (selector === 0) ? info.placeholder : this.base_expr,
-	    (selector === 1) ? info.placeholder : this.superscript_expr,
-	    (selector === 2) ? info.placeholder : this.subscript_expr);
-	let deleted_expr = null;
-	if(selector === 0) {  // base
-	    // Deleting the base expression replaces it with a blank.
-	    deleted_expr = new SubscriptSuperscriptExpr(
-		TextExpr.blank(), this.subscript_expr, this.superscript_expr);
-	}
-	else if(selector === 1) {  // superscript
-	    // Replace the superscript with null as long as there is still a subscript;
-	    // otherwise decay into the base expression by itself.
-	    if(this.subscript_expr)
-		deleted_expr = new SubscriptSuperscriptExpr(
-		    this.base_expr, this.subscript_expr, null);
-	    else
-		deleted_expr = this.base_expr;
-	}
-	else if(selector === 2) {  // subscript
-	    if(this.superscript_expr)
-		deleted_expr = new SubscriptSuperscriptExpr(
-		    this.base_expr, null, this.superscript_expr);
-	    else
-		deleted_expr = this.base_expr;
-	}
-	info.with_selection_deleted_expr = deleted_expr;
-	return info;
     }
 
     is_command_with_name(command_name) {
@@ -2038,17 +1622,6 @@ class ArrayExpr extends Expr {
             this.array_type, this.row_count, this.column_count, new_element_exprs,
             this.row_separators, this.column_separators);
     }
-
-    subexpr_selector_range() { return [0, this.row_count*this.column_count-1]; }
-
-    // Selectors: 0..N-1 where N is the total number of array elements.
-    // The selector is the element index in row-major order.
-    expr_path_info(selector) {
- 	let info = new ExprPathInfo(this);
-	info.placeholder = new PlaceholderExpr();
-	info.allows_multiselect = true;
-	return null;  // FIX
-    }
 }
 
 
@@ -2117,13 +1690,10 @@ Item.serial_number = 1;
 // Represents a math expression (Expr instance) in the stack or document.
 class ExprItem extends Item {
     // tag_expr is an optional tag shown to the right of the item.
-    // selected_expr_path is an optional ExprPath object; the indicated subexpression(s)
-    //     will be highlighted in a "selected" style by the renderer.
-    constructor(expr, tag_expr, selected_expr_path) {
+    constructor(expr, tag_expr) {
         super()
         this.expr = expr;
         this.tag_expr = tag_expr;
-	this.selected_expr_path = selected_expr_path;
     }
 
     item_type() { return 'expr'; }
@@ -2132,10 +1702,6 @@ class ExprItem extends Item {
         let json = {item_type: 'expr', expr: this.expr.to_json()};
         if(this.tag_expr) json.tag_expr = this.tag_expr.to_json();
         return json;
-    }
-
-    to_latex() {
-	return this.expr.to_latex(this.selected_expr_path);
     }
 
     to_text() { return this.expr.to_text(); }
@@ -2608,7 +2174,7 @@ class Document {
 
 export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
-    ExprPath, Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     Item, ExprItem, TextItem, CodeItem,
     Stack, Document
