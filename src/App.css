@@ -98,6 +98,9 @@ div.separator_item hr {
 .emphasized { color: #00f; text-shadow: 0 0 0.08em #88f; }
 .emphasized2 { color: #f00; text-shadow: 0 0 0.08em #f88; }
 
+/* Highlight the selected subexpression(s) in "dissect" mode. */
+.dissect_highlight { background-color: #ddf; }
+
 div.latex_source_item {
     border-left: var(--itemtype-bar-width) solid #bcb;
     overflow-wrap: break-word;
