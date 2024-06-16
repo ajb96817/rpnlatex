@@ -841,15 +841,14 @@ class ExprPath {
 	return this.ascend().descend(new_index);
     }
 
-    // "Extract" the currently selected subexpression, replacing it with a placeholder
-    // where it previously was.  This returns a version of the original this.expr, except the
-    // indicated subexpression has been replaced by a PlaceholderExpr.
-    // The subexpression that has been "extracted" is still available via this.selected_expr().
-    extract_selection() {
+    // Replace the currently selected subexpression with new_expr.
+    // This returns a version of the original this.expr, except the
+    // indicated subexpression has been replaced by the given expression.
+    // The subexpression that has been replaced is still available via this.selected_expr().
+    replace_selection(new_expr) {
 	const parent_expr = this.last_expr_but(1);
 	const final_index = this.last_index_but(1);
-	const placeholder = new PlaceholderExpr();
-	let expr = parent_expr.replace_subexpression(final_index, placeholder);
+	let expr = parent_expr.replace_subexpression(final_index, new_expr);
 	// Unwind back up the ExprPath "stack" backwards, replacing subexpressions along the way.
 	// This is O(n^2) in the depth of the tree structure.  This could be optimized to O(n)
 	// by streamlining the repetitive last_*_but() calls.
@@ -859,6 +858,12 @@ class ExprPath {
 	    expr = local_parent.replace_subexpression(subexpr_index, expr);
 	}
 	return expr;
+    }
+
+    // "Extract" the currently selected subexpression, replacing it with a placeholder
+    // where it previously was.
+    extract_selection() {
+	return this.replace_selection(new PlaceholderExpr());
     }
 
     // "Delete" the currently selected subexpression from the expression tree entirely.
@@ -886,23 +891,35 @@ class Expr {
     static from_json(json) {
         switch(json.expr_type) {
         case 'command':
-            return new CommandExpr(json.command_name, this._list(json.operand_exprs), json.options);
+            return new CommandExpr(
+		json.command_name,
+		this._list(json.operand_exprs),
+		json.options);
         case 'prefix':
-            return new PrefixExpr(this._expr(json.base_expr), this._expr(json.prefix_expr));
+            return new PrefixExpr(
+		this._expr(json.base_expr),
+		this._expr(json.prefix_expr));
         case 'infix':
             return new InfixExpr(
-                this._expr(json.operator_expr), this._expr(json.left_expr),
-                this._expr(json.right_expr), json.split || null);
+                this._expr(json.operator_expr),
+		this._expr(json.left_expr),
+                this._expr(json.right_expr),
+		json.split || null);
         case 'placeholder':
             return new PlaceholderExpr();
         case 'text':
             return new TextExpr(json.text);
         case 'sequence':
-            return new SequenceExpr(this._list(json.exprs));
+            return new SequenceExpr(
+		this._list(json.exprs),
+		!!json.inhibit_combining);
         case 'delimiter':
             return new DelimiterExpr(
-                json.left_type, json.right_type, json.middle_type,
-                this._list(json.inner_exprs), json.fixed_size);
+                json.left_type,
+		json.right_type,
+		json.middle_type,
+                this._list(json.inner_exprs),
+		json.fixed_size);
         case 'subscriptsuperscript':
             return new SubscriptSuperscriptExpr(
                 this._expr(json.base_expr),
@@ -926,30 +943,33 @@ class Expr {
     // nodes when possible, instead of creating nested SequenceExprs.
     static combine_pair(left, right) {
         const left_type = left.expr_type(), right_type = right.expr_type();
-        if(left_type === 'sequence' && right_type === 'sequence')
+        if(left_type === 'sequence' && !left.inhibit_combining &&
+	   right_type === 'sequence' && !right.inhibit_combining)
             return new SequenceExpr(left.exprs.concat(right.exprs));
         else if(left_type === 'text' && right_type === 'text')
             return new TextExpr(left.text + right.text);
-        else if(left_type === 'sequence' && right_type === 'text' &&
-                left.exprs[left.exprs.length-1].expr_type() === 'text') {
+        else if(left_type === 'sequence' && !left.inhibit_combining &&
+		right_type === 'text' &&
+		left.exprs[left.exprs.length-1].expr_type() === 'text') {
             // Left sequence ends in a Text; merge it with the new Text.
             return new SequenceExpr(
                 left.exprs.slice(0, -1).concat([
                     new TextExpr(left.exprs[left.exprs.length-1].text + right.text)
                 ]));
         }
-        else if(left_type === 'text' && right_type === 'text' &&
+        else if(left_type === 'text' &&
+		right_type === 'sequence' && !right.inhibit_combining &&
                 right.exprs[0].expr_type() === 'text') {
             // Right sequence starts with a Text; merge it with the new Text.
             return new SequenceExpr(
                 [new TextExpr(left.text + right.exprs[0].text)
                 ].concat(right.exprs.slice(1)));
         }
-        else if(left_type === 'sequence') {
+        else if(left_type === 'sequence' && !left.inhibit_combining) {
             // Sequence + anything => longer Sequence
             return new SequenceExpr(left.exprs.concat([right]));
         }
-        else if(right_type === 'sequence') {
+        else if(right_type === 'sequence' && !right.inhibit_combining) {
             // Anything + Sequence => longer Sequence
             return new SequenceExpr([left].concat(right.exprs));
         }
@@ -1339,13 +1359,24 @@ class TextExpr extends Expr {
 // Represents a sequence of expressions all concatenated together.
 // Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
 class SequenceExpr extends Expr {
-    constructor(exprs) {
+    // If inhibit_combining is true, this will not be combined with other
+    // adjacent expressions in Expr.combine_pair(), etc.
+    // This can be used to group things that functionally belong together
+    // like f(x), which matters for 'dissect' mode.
+    constructor(exprs, inhibit_combining) {
         super();
         this.exprs = exprs;
+	this.inhibit_combining = !!inhibit_combining;
     }
 
     expr_type() { return 'sequence'; }
     json_keys() { return ['exprs']; }
+
+    to_json() {
+	let json = super.to_json();
+	if(this.inhibit_combining) json.inhibit_combining = true;
+	return json;
+    }
 
     emit_latex(emitter) {
         this.exprs.forEach((expr, index) => emitter.expr(expr, index));

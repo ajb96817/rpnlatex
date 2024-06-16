@@ -74,9 +74,9 @@ const EditorKeymap = {
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-        'Ctrl+o': "parenthesize;wrap_braces;concat",  // -> f(x): same as [/][o]
+        'Ctrl+o': "parenthesize;wrap_braces;fuse",  // -> f(x): same as [/][o]
         'Ctrl+p': "delimiters ( )",
-        'Ctrl+r': "infix ,;parenthesize;wrap_braces;concat",  // -> f(x,y): same as [/][r]
+        'Ctrl+r': "infix ,;parenthesize;wrap_braces;fuse",  // -> f(x,y): same as [/][r]
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
         'Ctrl+v': "paste_from_clipboard",
@@ -273,18 +273,18 @@ const EditorKeymap = {
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
         'I': "push \\int;swap;superscript;swap;subscript",
-        'k': "delimiters . . \\vert 2;parenthesize;wrap_braces;concat",  // f x y -> f(x|y)
+        'k': "delimiters . . \\vert 2;parenthesize;wrap_braces;fuse",  // f x y -> f(x|y)
         'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
         'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
         'n': "named_function ln",
         'N': "named_function log",
-        'o': "parenthesize;wrap_braces;concat",  // f x -> f(x)  "of" (wrap_braces closes up the spacing after 'f')
+        'o': "parenthesize;wrap_braces;fuse",  // f x -> f(x)  "of" (wrap_braces closes up the spacing after 'f')
         'O': "overunderset overset",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
-        'r': "infix ,;parenthesize;wrap_braces;concat",  // f x y -> f(x,y)
+        'r': "infix ,;parenthesize;wrap_braces;fuse",  // f x y -> f(x,y)
         's': "named_function sin",
         'S': "named_function sec",
         't': "named_function tan",
@@ -458,17 +458,17 @@ const EditorKeymap = {
         // d'Alembertian
         'L': "push \\Box;push 2;superscript;swap;concat",
         // x -> dx
-        'd': "push d;operator mathrm;swap;concat",
+        'd': "push d;operator mathrm;swap;fuse",
         // x -> d^2x
-        '2': "push d;operator mathrm;push 2;superscript;swap;concat",
-        '3': "push d;operator mathrm;push 3;superscript;swap;concat",
-        '4': "push d;operator mathrm;push 4;superscript;swap;concat",
+        '2': "push d;operator mathrm;push 2;superscript;swap;fuse",
+        '3': "push d;operator mathrm;push 3;superscript;swap;fuse",
+        '4': "push d;operator mathrm;push 4;superscript;swap;fuse",
         // y x -> y dx
-        'i': "swap;push \\,;concat;swap;push d;operator mathrm;swap;concat;concat",
+        'i': "swap;push \\,;concat;swap;push d;operator mathrm;swap;fuse;concat",
         // y x -> ydx (with thinspace after the dx)
-        'I': "push d;operator mathrm;swap;concat;concat;push \\,;concat",
+        'I': "push d;operator mathrm;swap;fuse;concat;push \\,;concat",
         // y x -> ydx (no spacing around the dx)
-        ' ': "push d;operator mathrm;swap;concat;concat",
+        ' ': "push d;operator mathrm;swap;fuse;concat",
 
         '?': "toggle_popup help derivatives"
     },

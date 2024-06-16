@@ -942,7 +942,7 @@ class InputContext {
 
     do_cancel() {}
 
-    do_concat(stack /*, separator_text*/) {
+    do_concat(stack) {
         let [new_stack, left_item, right_item] = stack.pop(2);
         const left_type = left_item.item_type(), right_type = right_item.item_type();
         if(left_type === 'expr' && right_type === 'expr') {
@@ -952,11 +952,21 @@ class InputContext {
         }
         else if((left_type === 'expr' || left_type === 'text') &&
                 (right_type === 'expr' || right_type === 'text')) {
-            const new_item = TextItem.concatenate_items(left_item, right_item /*, separator_text*/);
+            const new_item = TextItem.concatenate_items(left_item, right_item);
             return new_stack.push(new_item);
         }
         else
             return stack.type_error();
+    }
+
+    // "Fuse" two expressions into a uncombinable SequenceExpr.
+    // This is used to create things like f(x) where it is to be treated
+    // as a unit and not merged into adjacent SequenceExprs.
+    // (This matters for purposes of selecting subexpressions in 'dissect' mode).
+    do_fuse(stack) {
+	const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
+	const new_expr = new SequenceExpr([left_expr, right_expr], true);
+	return new_stack.push_expr(new_expr);
     }
 
     // Substitute the stack top expression into the first available placeholder marker in the
