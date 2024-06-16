@@ -139,9 +139,19 @@ Settings.saved_keys = [
 
 // Helper for generating LaTeX strings from Expr objects.
 class LatexEmitter {
-    constructor() {
+    // selected_expr_path is optional, but if provided it is an ExprPath
+    // object that indicates which Expr is to be rendered with a "highlight"
+    // indicating that it's currently selected.
+    constructor(base_expr, selected_expr_path) {
         this.tokens = [];
         this.last_token_type = null;
+	this.selected_expr_path = selected_expr_path;
+
+	// Initialize a "blank" ExprPath that tracks the rendering.
+	// When this current_path matches up with selected_expr_path,
+	// that's when it's pointing at the selected expr.
+	if(this.selected_expr_path)
+	    this.current_path = new ExprPath(base_expr, []);
     }
 
     emit_token(text, token_type) {
@@ -150,9 +160,39 @@ class LatexEmitter {
         this.last_token_type = token_type;
     }
 
-    expr(expr) { expr.emit_latex(this); }
+    // 'index' is the index of this (sub)expression within its parent.
+    // This is used to correlate with this given this.selected_expr_path
+    // so that we know when we've hit the right subexpression to highlight.
+    // (Expr objects can be aliased so we can't just rely on object identity.)
+    expr(expr, index) {
+	if(index !== null && this.selected_expr_path)
+	    this.current_path = this.current_path.descend(index);
+	// Check if we're now rendering the 'selected' expression.
+	if(this.selected_expr_path &&
+	   this.selected_expr_path.equals(this.current_path)) {
+	    // Wrap the selected expression in something to "highlight" it
+	    // and render that instead.
 
-    grouped_expr(expr, force_braces) { this.grouped(() => this.expr(expr), force_braces); }
+	    //const highlight_expr = new CommandExpr('overbrace', [expr]);
+
+	    const highlight_expr = new CommandExpr('htmlClass', [
+		new TextExpr('dissect_highlight_brace'),
+		new CommandExpr('overbrace', [
+		    new CommandExpr('htmlClass', [
+			new TextExpr('dissect_highlight'),
+			expr])])]);
+	    
+            highlight_expr.emit_latex(this);
+	}
+	else
+	    expr.emit_latex(this);
+	if(index !== null && this.selected_expr_path)
+	    this.current_path = this.current_path.ascend();
+    }
+
+    grouped_expr(expr, force_braces, index) {
+	this.grouped(() => this.expr(expr, index), force_braces);
+    }
 
     grouped(fn, force_braces) {
         let [old_tokens, old_last_token_type] = [this.tokens, this.last_token_type];
@@ -721,6 +761,126 @@ class FileManagerState {
 }
 
 
+// Represents a "path" within an Expr to one of its subexpressions.
+// Each element (selector) along the path is an integer identifying one of the
+// children of the Expr at that level.  In the current implementation, the
+// path must be at least of length 1; in other words an ExprPath can't refer
+// directly to its base expression.
+class ExprPath {
+    constructor(expr, subexpr_indexes) {
+	this.expr = expr;
+	this.subexpr_indexes = subexpr_indexes;
+    }
+
+    depth() { return this.subexpr_indexes.length; }
+
+    // This comparison is needed by the LatexEmitter to determine when the
+    // rendering path matches up with the selected expression path.
+    equals(other_path) {
+	if(this.expr !== other_path.expr) return false;
+	if(this.subexpr_indexes.length !== other_path.subexpr_indexes.length) return false;
+	for(let i = 0; i < this.subexpr_indexes.length; i++)
+	    if(this.subexpr_indexes[i] !== other_path.subexpr_indexes[i])
+		return false;
+	return true;
+    }
+
+    // Return the 'n'th parent of the selected subexpression.
+    // n === 0 returns the actual selected subexpression;
+    // n === 1 is its first parent, etc.
+    last_expr_but(n) {
+	let expr = this.expr;
+	for(let i = 0; i < this.subexpr_indexes.length-n; i++)
+	    expr = expr.subexpressions()[this.subexpr_indexes[i]];
+	return expr;
+    }
+
+    selected_expr() { return this.last_expr_but(0); }
+
+    last_index_but(n) {
+	return this.subexpr_indexes[this.subexpr_indexes.length-n];
+    }
+
+    // Return a new ExprPath that is "rebased" to new_expr, which must have
+    // the exact same structure as the current expr.
+    // In other words, the rebased path represents the same path through the
+    // expression, but with a different expression of the same structure.
+//    rebase(new_expr) {
+//	return new ExprPath(new_expr, this.subexpr_indexes);
+//    }
+
+    // Return a new ExprPath descended into the subexpression of the
+    // selected expression indicated by 'index'.
+    descend(index) {
+	return new ExprPath(
+	    this.expr,
+	    this.subexpr_indexes.concat([index]));
+    }
+
+    // Return a new ExprPath that selects the parent Expr of the current
+    // subexpression(s).
+    ascend() {
+	return new ExprPath(
+	    this.expr,
+	    this.subexpr_indexes.slice(0, -1));
+    }
+
+    // Return a new Expr that is like this one but with the "sibling" subexpression
+    // in the given direction selected.
+    // 'direction' can be 'left' or 'right'.  The selection wraps around when going
+    // past the ends of the expression.
+    move(direction) {
+	const parent_expr = this.last_expr_but(1);
+	const final_index = this.last_index_but(1);
+	const subexpr_count = parent_expr.subexpressions().length;
+	let new_index = final_index + (direction === 'right' ? +1 : -1);
+	// NOTE: could use % but Javascript returns negative when new_index goes negative.
+	// We need it between 0 and subexpr_count-1.
+	if(new_index < 0) new_index = subexpr_count-1;
+	if(new_index >= subexpr_count) new_index = 0;
+	return this.ascend().descend(new_index);
+    }
+
+    // "Extract" the currently selected subexpression, replacing it with a placeholder
+    // where it previously was.  This returns a version of the original this.expr, except the
+    // indicated subexpression has been replaced by a PlaceholderExpr.
+    // The subexpression that has been "extracted" is still available via this.selected_expr().
+    extract_selection() {
+	const parent_expr = this.last_expr_but(1);
+	const final_index = this.last_index_but(1);
+	const placeholder = new PlaceholderExpr();
+	let expr = parent_expr.replace_subexpression(final_index, placeholder);
+	// Unwind back up the ExprPath "stack" backwards, replacing subexpressions along the way.
+	// This is O(n^2) in the depth of the tree structure.  This could be optimized to O(n)
+	// by streamlining the repetitive last_*_but() calls.
+	for(let i = 2; i <= this.subexpr_indexes.length; i++) {
+	    const local_parent = this.last_expr_but(i);
+	    const subexpr_index = this.last_index_but(i);
+	    expr = local_parent.replace_subexpression(subexpr_index, expr);
+	}
+	return expr;
+    }
+
+    // "Delete" the currently selected subexpression from the expression tree entirely.
+    // This is not always possible; in such cases the expression is instead replaced with
+    // a blank TextExpr.  This returns a version of the original this.expr, except the
+    // indicated subexpression has been removed from the tree, or at least been replaced
+    // by a blank.
+    delete_selection() {
+	const parent_expr = this.last_expr_but(1);
+	const final_index = this.last_index_but(1);
+	let expr = parent_expr.delete_subexpression(final_index);
+	// The rest follows as in extract_selection().
+	for(let i = 2; i <= this.subexpr_indexes.length; i++) {
+	    const local_parent = this.last_expr_but(i);
+	    const subexpr_index = this.last_index_but(i);
+	    expr = local_parent.replace_subexpression(subexpr_index, expr);
+	}
+	return expr;
+    }
+}
+
+
 // Abstract superclass for expression trees.
 class Expr {
     static from_json(json) {
@@ -833,9 +993,9 @@ class Expr {
     
     expr_type() { return '???'; }
 
-    to_latex() {
-        let emitter = new LatexEmitter();
-        this.emit_latex(emitter);
+    to_latex(selected_expr_path) {
+        let emitter = new LatexEmitter(this, selected_expr_path);
+	emitter.expr(this, null);
         return emitter.finished_string();
     }
 
@@ -872,6 +1032,26 @@ class Expr {
     // The visiting is performed depth-first, left-to-right, so should correspond visually
     // to the left-to-right rendering of the expression.
     visit(fn) { fn(this); }
+
+    // Return a list of all subexpressions of this one, in (at least approximate) left-to-right order.
+    subexpressions() { return []; }
+
+    has_subexpressions() { return this.subexpressions().length > 0; }
+
+    // Return a new Expr like this one but with the subexpression at the given index replaced
+    // with a new one.  The subexpression indexes here correspond to what is returned by subexpressions().
+    replace_subexpression(index, new_expr) { return this; }
+
+    // Return a new Expr with the subexpression at the given index "deleted".
+    // If deletion is not structurally possible, the subexpression might instead
+    // be replaced by a blank TextExpr.
+    // Note that the returned Expr may not be the same type as the original; for example,
+    // deleting the last superscript or subscript from a SubscriptSuperscriptExpr leaves
+    // only the base Expr.
+    delete_subexpression(index) {
+	// Default implementation; subclasses can override.
+	return this.replace_subexpression(index, TextExpr.blank());
+    }
 
     // Find the first PlaceholderExpr that exists in this expression.  Returns null if none.
     find_placeholder() {
@@ -930,12 +1110,22 @@ class CommandExpr extends Expr {
         if(this.command_name !== '')
             emitter.command(this.command_name, this.options);
         // Braces need to be forced around each operand, even single-letter operands.
-        this.operand_exprs.forEach(operand_expr => emitter.grouped_expr(operand_expr, 'force'));
+        this.operand_exprs.forEach((operand_expr, index) => emitter.grouped_expr(operand_expr, 'force', index));
     }
 
     visit(fn) {
         fn(this);
         this.operand_exprs.forEach(operand_expr => operand_expr.visit(fn));
+    }
+
+    subexpressions() { return this.operand_exprs; }
+
+    replace_subexpression(index, new_expr) {
+	return new CommandExpr(
+	    this.command_name,
+	    this.operand_exprs.map(
+		(operand_expr, op_index) => op_index === index ? new_expr : operand_expr),
+	    this.options);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -993,14 +1183,29 @@ class PrefixExpr extends Expr {
     json_keys() { return ['base_expr', 'prefix_expr']; }
 
     emit_latex(emitter) {
-        emitter.expr(this.prefix_expr);
-        emitter.expr(this.base_expr);
+        emitter.expr(this.prefix_expr, 0);
+        emitter.expr(this.base_expr, 1);
     }
 
     visit(fn) {
         this.prefix_expr.visit(fn);
         fn(this);
         this.base_expr.visit(fn);
+    }
+
+    subexpressions() {
+	return [this.prefix_expr, this.base_expr];
+    }
+
+    replace_subexpression(index, new_expr) {
+	return new PrefixExpr(
+	    index === 1 ? new_expr : this.base_expr,
+	    index === 0 ? new_expr : this.prefix_expr);
+    }
+
+    delete_subexpression(index) {
+	if(index === 0) return this.base_expr;  // prefix deleted
+	else return this.prefix_expr;  // base deleted
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1050,17 +1255,17 @@ class InfixExpr extends Expr {
     }
 
     emit_latex(emitter) {
-        emitter.expr(this.left_expr);
+        emitter.expr(this.left_expr, 0);
         if(this.split === 'before') {
             emitter.command("\\");
             emitter.command("qquad");
         }
-        emitter.expr(this.operator_expr);
+        emitter.expr(this.operator_expr, 1);
         if(this.split === 'after') {
             emitter.command("\\");
             emitter.command("qquad");
         }
-        emitter.expr(this.right_expr);
+        emitter.expr(this.right_expr, 2);
     }
 
     visit(fn) {
@@ -1069,6 +1274,21 @@ class InfixExpr extends Expr {
         fn(this);
         this.right_expr.visit(fn);
     }
+
+    subexpressions() {
+	return [this.left_expr, this.operator_expr, this.right_expr];
+    }
+
+    replace_subexpression(index, new_expr) {
+	return new InfixExpr(
+	    index === 1 ? new_expr : this.operator_expr,
+	    index === 0 ? new_expr : this.left_expr,
+	    index === 2 ? new_expr : this.right_expr,
+	    this.split);
+    }
+
+    // TODO: check if subexpressions are blanks
+    // delete_subexpression(index) { ... }
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
@@ -1095,13 +1315,15 @@ class PlaceholderExpr extends Expr {
     emit_latex(emitter) {
         const expr = new CommandExpr('htmlClass', [
             new TextExpr('placeholder_expr'), new TextExpr("\\blacksquare")]);
-        emitter.expr(expr);
+        emitter.expr(expr, null);
     }
 }
 
 
 // Represents a snippet of LaTeX code; these are the "leaves" of Expr-trees.
 class TextExpr extends Expr {
+    static blank() { return new TextExpr(''); }
+    
     constructor(text) {
         super();
         this.text = text;
@@ -1110,7 +1332,7 @@ class TextExpr extends Expr {
     expr_type() { return 'text'; }
     json_keys() { return ['text']; }
 
-    emit_latex(emitter) { emitter.text(this.text); }
+    emit_latex(emitter) { emitter.text(this.text, null); }
 }
 
 
@@ -1126,12 +1348,30 @@ class SequenceExpr extends Expr {
     json_keys() { return ['exprs']; }
 
     emit_latex(emitter) {
-        this.exprs.forEach(expr => emitter.expr(expr));
+        this.exprs.forEach((expr, index) => emitter.expr(expr, index));
     }
 
     visit(fn) {
         fn(this);
         this.exprs.forEach(expr => expr.visit(fn));
+    }
+
+    subexpressions() { return this.exprs; }
+
+    replace_subexpression(index, new_expr) {
+	return new SequenceExpr(
+	    this.exprs.map(
+		(subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
+    }
+
+    // If this SequenceExpr is left with only one item after deletion,
+    // the result is just that item.
+    // (Note that SequenceExprs always must have >= 2 items.)
+    delete_subexpression(index) {
+	const new_exprs = this.exprs.slice(0, index).concat(this.exprs.slice(index+1));
+	if(new_exprs.length === 1)
+	    return new_exprs[0];
+	else return new SequenceExpr(new_exprs);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1212,7 +1452,7 @@ class DelimiterExpr extends Expr {
                 emitter.command('middle');
                 emitter.text_or_command(this.middle_type || '|');
             }
-            emitter.expr(expr);
+            emitter.expr(expr, index);
         });
         emitter.command('right');
         emitter.text_or_command(this.right_type);
@@ -1224,7 +1464,7 @@ class DelimiterExpr extends Expr {
 	this.inner_exprs.forEach((expr, index) => {
 	    if(index > 0 && this.middle_type !== '.')
 		emitter.text_or_command(this.middle_type || '|');
-	    emitter.expr(expr);
+	    emitter.expr(expr, index);
 	});
 	if(this.right_type !== '.')
 	    emitter.text_or_command(this.right_type);
@@ -1246,6 +1486,15 @@ class DelimiterExpr extends Expr {
     visit(fn) {
         fn(this);
         this.inner_exprs.forEach(expr => expr.visit(fn));
+    }
+
+    subexpressions() { return this.inner_exprs; }
+
+    replace_subexpression(index, new_expr) {
+        return new DelimiterExpr(
+            this.left_type, this.right_type, this.middle_type,
+            this.inner_exprs.map(
+		(expr, expr_index) => expr_index === index ? new_expr : expr));
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1274,19 +1523,21 @@ class SubscriptSuperscriptExpr extends Expr {
         // This accounts for attaching subscripts or superscripts to commands
         // with arguments such as \underbrace{xyz}_{abc}.
         if(this.base_expr.expr_type() === 'command')
-            emitter.expr(this.base_expr);
+            emitter.expr(this.base_expr, 0);
         else
-            emitter.grouped_expr(this.base_expr);
+            emitter.grouped_expr(this.base_expr, false, 0);
+	let subexpr_index = 1;
+        if(this.superscript_expr) {
+            emitter.text('^');
+            emitter.grouped_expr(this.superscript_expr, 'force_commands', subexpr_index);
+	    subexpr_index++;
+        }
         if(this.subscript_expr) {
             emitter.text('_');
             // 'force_commands' ensures that single LaTeX commands are still grouped, even
             // though single-letter super/subscripts are still OK to leave ungrouped.
             // e.g.: x^{\sum} instead of x^\sum, but x^2 is fine.
-            emitter.grouped_expr(this.subscript_expr, 'force_commands');
-        }
-        if(this.superscript_expr) {
-            emitter.text('^');
-            emitter.grouped_expr(this.superscript_expr, 'force_commands');
+            emitter.grouped_expr(this.subscript_expr, 'force_commands', subexpr_index);
         }
     }
 
@@ -1295,6 +1546,35 @@ class SubscriptSuperscriptExpr extends Expr {
         this.base_expr.visit(fn);
         if(this.subscript_expr) this.subscript_expr.visit(fn);
         if(this.superscript_expr) this.superscript_expr.visit(fn);
+    }
+
+    subexpressions() {
+	let exprs = [this.base_expr];
+	if(this.superscript_expr) exprs.push(this.superscript_expr);
+	if(this.subscript_expr) exprs.push(this.subscript_expr);
+	return exprs;
+    }
+
+    // NOTE: the meaning of 'index' may vary depending on whether sub/superscript is populated.
+    replace_subexpression(index, new_expr) {
+	return new SubscriptSuperscriptExpr(
+	    index === 0 ? new_expr : this.base_expr,
+	    (index === 2 || (!this.superscript_expr && index === 1)) ? new_expr : this.subscript_expr,
+	    (index === 1 && this.superscript_expr) ? new_expr : this.superscript_expr);
+    }
+
+    delete_subexpression(index) {
+	// When deleting the base, we always have to just replace it with a blank.
+	if(index === 0) return super.delete_subexpression(index);
+	// Deleting the last remaining subscript or superscript decays into the base expression.
+	if(index === 1 && (!this.subscript_expr || !this.superscript_expr))
+	    return this.base_expr;
+	// Otherwise, both subscript and superscript exist and we can delete one of them
+	// and still have a SubscriptSuperscriptExpr.
+	return new SubscriptSuperscriptExpr(
+	    this.base_expr,
+	    index === 2 ? null : this.subscript_expr,
+	    index === 1 ? null : this.superscript_expr);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1529,13 +1809,15 @@ class ArrayExpr extends Expr {
              this.row_separators.every(s => s === null)))
             return this._emit_array_with_separators(emitter);
 
+	let subexpr_index = 0;
         emitter.begin_environment(this.array_type);
         this.element_exprs.forEach((row_exprs, row_index) => {
             if(row_index > 0)
                 emitter.row_separator();
             row_exprs.forEach((expr, col_index) => {
                 if(col_index > 0) emitter.align_separator();
-                if(expr) emitter.expr(expr);
+                if(expr) emitter.expr(expr, subexpr_index);  // should always be true
+		subexpr_index++;
             });
         });
         emitter.end_environment(this.array_type);
@@ -1583,6 +1865,7 @@ class ArrayExpr extends Expr {
         if(!has_row_separators)
             emitter.text_or_command("\\kern-5pt");
         emitter.begin_environment('array', column_layout_string);
+	let subexpr_index = 0;
         this.element_exprs.forEach((row_exprs, row_index) => {
             if(row_index > 0) {
                 emitter.row_separator();
@@ -1595,7 +1878,8 @@ class ArrayExpr extends Expr {
             }
             row_exprs.forEach((expr, col_index) => {
                 if(col_index > 0) emitter.align_separator();
-                if(expr) emitter.expr(expr);
+                if(expr) emitter.expr(expr, subexpr_index);  // should always be true
+		subexpr_index++;
             });
         });
         emitter.end_environment('array');
@@ -1611,6 +1895,22 @@ class ArrayExpr extends Expr {
         fn(this);
         this.element_exprs.forEach(
             row_exprs => row_exprs.forEach(expr => expr.visit(fn)));
+    }
+
+    subexpressions() {
+	// Flatten element expressions in row-major order.
+	return [].concat(...this.element_exprs);
+    }
+
+    replace_subexpression(index, new_expr) {
+	const column = index % this.column_count;
+	const row = Math.floor((index - column) / this.column_count);  // floor() is not strictly needed
+	const new_element_exprs = this.element_exprs.map(
+	    (row_exprs, row_index) => row_exprs.map(
+		(expr, col_index) => (row_index === row && col_index === column) ? new_expr : expr));
+        return new ArrayExpr(
+            this.array_type, this.row_count, this.column_count, new_element_exprs,
+            this.row_separators, this.column_separators);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1690,14 +1990,21 @@ Item.serial_number = 1;
 // Represents a math expression (Expr instance) in the stack or document.
 class ExprItem extends Item {
     // tag_expr is an optional tag shown to the right of the item.
-    constructor(expr, tag_expr) {
+    // selected_expr_path is an optional ExprPath object; the indicated subexpression(s)
+    //     will be highlighted in a "selected" style by the renderer.
+    constructor(expr, tag_expr, selected_expr_path) {
         super()
         this.expr = expr;
         this.tag_expr = tag_expr;
+	this.selected_expr_path = selected_expr_path;
     }
 
     item_type() { return 'expr'; }
 
+    to_latex() {
+	return this.expr.to_latex(this.selected_expr_path);
+    }
+    
     to_json() {
         let json = {item_type: 'expr', expr: this.expr.to_json()};
         if(this.tag_expr) json.tag_expr = this.tag_expr.to_json();
@@ -2174,7 +2481,7 @@ class Document {
 
 export {
     Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
-    Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     Item, ExprItem, TextItem, CodeItem,
     Stack, Document

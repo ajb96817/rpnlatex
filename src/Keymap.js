@@ -12,7 +12,7 @@ const EditorKeymap = {
         '!': "autoparenthesize;push !;concat",
         'Enter': "subscript",
 	'Shift+Enter': "edit_item",
-        '_': "subscript",
+        '_': "start_dissect_mode",
         '^': "superscript",
         'Backspace': "pop",
         "`": "superscript",
@@ -733,6 +733,16 @@ const EditorKeymap = {
         '(': "change_matrix_type pmatrix",
         '[': "change_matrix_type bmatrix",
         '{': "change_matrix_type Bmatrix"
+    },
+
+    dissect: {
+	'default': "cancel_dissect_mode",
+	'_': "dissect_descend",
+	'u': "dissect_ascend",
+	'ArrowRight': "dissect_move_selection right",
+	'ArrowLeft': "dissect_move_selection left",
+	'x': "dissect_extract_selection",
+	'Backspace': "dissect_delete_selection"
     },
 
     // & prefix

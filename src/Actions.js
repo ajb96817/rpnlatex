@@ -1,7 +1,7 @@
 
 import {
     AppState, Document, Stack,
-    Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem, CodeItem
 } from './Models';
@@ -1157,6 +1157,113 @@ class InputContext {
 	    }
 	}
 	return this.error_flash_stack();
+    }
+
+    // Dissect mode commands:
+    //
+    // When in 'dissect' mode, subexpressions of the stack top can be selected and
+    // operated upon.  Changing the selection does not modify the actual Expr; instead
+    // it generates new ExprItems with the updated 'selected_expr_path'.  This is a
+    // property of the ExprItem, not the Expr, so dissect mode commands have to explicitly
+    // manipulate the ExprItem instances (rather than using push_expr()).
+
+    do_start_dissect_mode(stack) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	// The expression to be 'dissected' must have subexpressions or it's an error.
+	if(expr.has_subexpressions()) {
+	    this.switch_to_mode('dissect');
+	    // Build a new ExprItem with a default initial selection.
+	    return new_stack.push(new ExprItem(expr, null, new ExprPath(expr, [0])));
+	}
+	else
+	    return this.error_flash_stack();
+    }
+
+    do_cancel_dissect_mode(stack) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	this.perform_undo_or_redo = 'suppress';
+	return new_stack.push(new ExprItem(expr, null, null));  // i.e., get rid of the selection
+    }
+
+    // Descend into a subexpression, if possible.
+    // The new selection will point at the first (index=0) subexpression
+    // of the current selection.
+    do_dissect_descend(stack) {
+	return this._do_dissect_path_operation(stack, expr_path => {
+	    const subexpr = expr_path.selected_expr();
+	    if(subexpr.has_subexpressions())
+		return expr_path.descend(0);
+	    else
+		return expr_path;
+	});
+    }
+
+    // Ascend to the parent of the current selection(s), if possible.
+    do_dissect_ascend(stack) {
+	return this._do_dissect_path_operation(stack, expr_path => {
+	    // For consistency, do not allow ascending to the "top level" Expr
+	    // (the one actually on the stack).  This would be technically OK, but
+	    // of limited use and inconsistent with the usual UI (where we immediately
+	    // select the first subexpression of the stack top upon starting dissect mode).
+	    if(expr_path.depth() <= 1)
+		return null;
+	    else
+		return expr_path.ascend();
+	});
+    }
+
+    // Move the selection left or right within its parent Expr.
+    // If there is currently a multi-selection, it is cancelled and
+    // "left" or "right" is taken relative to the original multi-selection.
+    do_dissect_move_selection(stack, direction) {
+	return this._do_dissect_path_operation(stack, expr_path => expr_path.move(direction));
+    }
+
+    // Replace the stack top with an "extracted" version where the selected
+    // subexpression(s) are replaced with a placeholder.  The extracted subexpression(s)
+    // are then put on the stack top.  If multiple subexpressions were selected they are
+    // grouped into a SequenceExpr.
+    // This command also exits dissect mode.
+    do_dissect_extract_selection(stack) {
+	const [new_stack, item] = stack.pop(1);
+	if(item.item_type() !== 'expr') stack.type_error();
+	const expr_path = item.selected_expr_path;
+	const expr_with_placeholder = expr_path.extract_selection();
+	const extracted_expr = expr_path.selected_expr();
+	return new_stack.push_all_exprs([expr_with_placeholder, extracted_expr]);
+    }
+
+    // Replace the stack top with a version with the selected subexpression
+    // "deleted".  In some cases this means the subexpression is replaced with
+    // a blank instead of being truly deleted.
+    // If it's a top-level selection, the entire item is just dropped from the
+    // stack instead.
+    // This command also exits dissect mode.
+    do_dissect_delete_selection(stack) {
+	const [new_stack, item] = stack.pop(1);
+	if(item.item_type() !== 'expr') stack.type_error();
+	const expr_path = item.selected_expr_path;
+	const expr_with_deletion = expr_path.delete_selection();
+	return new_stack.push_expr(expr_with_deletion);
+    }
+
+    // This abstracts out dissect mode operations that modify the selected
+    // subexpression path.
+    // fn() takes the existing ExprPath, and should return the new ExprPath,
+    // or null if the operation is considered an error.
+    _do_dissect_path_operation(stack, fn) {
+	const [new_stack, item] = stack.pop(1);
+	if(item.item_type() !== 'expr') stack.type_error();
+	this.perform_undo_or_redo = 'suppress';
+	this.switch_to_mode(this.mode);
+	const expr_path = item.selected_expr_path;
+	const new_expr_path = fn(expr_path);
+	if(new_expr_path) {
+	    const new_expr_item = new ExprItem(item.expr, null, new_expr_path);
+	    return new_stack.push(new_expr_item);
+	}
+	else
+	    return this.error_flash_stack();
     }
 
     // TODO: may want to make this a general utility method, but it's only used here so far.
