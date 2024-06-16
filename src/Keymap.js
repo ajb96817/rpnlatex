@@ -739,6 +739,8 @@ const EditorKeymap = {
 	'default': "cancel_dissect_mode",
 	'_': "dissect_descend",
 	'u': "dissect_ascend",
+	'ArrowUp': "dissect_ascend",
+	'ArrowDown': "dissect_descend",
 	'ArrowRight': "dissect_move_selection right",
 	'ArrowLeft': "dissect_move_selection left",
 	'x': "dissect_extract_selection",

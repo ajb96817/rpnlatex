@@ -838,7 +838,7 @@ class InputContext {
                 operator_expr = new CommandExpr(opname.slice(1));
             else
                 operator_expr = new TextExpr(opname);
-            new_expr = new InfixExpr(operator_expr, left_item.expr, right_item.expr)
+	    new_expr = InfixExpr.combine_infix(left_item.expr, right_item.expr, operator_expr);
             return new_stack.push_expr(new_expr);
         }
         else if((left_type === 'expr' || left_type === 'text') &&
@@ -862,7 +862,7 @@ class InputContext {
                 new CommandExpr('quad'),
                 new CommandExpr('text', [new TextExpr(phrase.replaceAll('_', ' '))]),
                 new CommandExpr('quad')]);
-            return new_stack.push_expr(new InfixExpr(operator_expr, left_item.expr, right_item.expr));
+            return new_stack.push_expr(new InfixExpr([left_item.expr, right_item.expr], [operator_expr]));
         }
         else if((left_type === 'expr' || left_type === 'text') &&
                 (right_type === 'expr' || right_type === 'text')) {
@@ -893,24 +893,30 @@ class InputContext {
             this.error_flash_stack();
             return;
         }
-        const split_mode = infix_expr.split;
-        let new_split_mode = null;
-        if(split_mode === 'after') new_split_mode = 'before';
-        else if(split_mode === 'before') new_split_mode = null;
-        else new_split_mode = 'after';
-        const new_infix_expr = infix_expr.with_split_mode(new_split_mode);
+        const split_type = infix_expr.split;
+        let new_split_type = null;
+        if(split_type === 'after') new_split_type = 'before';
+        else if(split_type === 'before') new_split_type = null;
+        else new_split_type = 'after';
+        const new_infix_expr = infix_expr.with_split_at(
+	    infix_expr.operand_exprs.length-1,
+	    new_split_type);
         return new_stack.push_expr(new_infix_expr);
     }
 
     // Swap left and right sides of an "infix" expression, which can be an
     // actual InfixExpr or else a DelimiterExpr that has 2 inner expressions,
     // e.g. <x | y> or \left. x \middle/ y \right.
+    // TODO: revisit in light of the new multi-InfixExpr model.
     do_swap_infix(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
 	let new_expr = null;
-	if(expr.expr_type() === 'infix')
+	if(expr.expr_type() === 'infix' && expr.operator_exprs.length === 1)
 	    new_expr = new InfixExpr(
-		expr.operator_expr, expr.right_expr, expr.left_expr, expr.split);
+		[expr.operand_exprs[1], expr.operand_exprs[0]],
+		expr.operator_exprs,
+		expr.split_at_index,
+		expr.split_type);
 	else if(expr.expr_type() === 'delimiter' &&
 		expr.inner_exprs.length === 2)
 	    new_expr = new DelimiterExpr(
@@ -930,11 +936,10 @@ class InputContext {
     do_overunderset(stack, overset_op) {
         const [new_stack, base_expr, stacked_expr] = stack.pop_exprs(2);
         let new_expr;
-        if(base_expr.expr_type() === 'infix') {
+        if(base_expr.expr_type() === 'infix')
             new_expr = new InfixExpr(
-                new CommandExpr(overset_op, [stacked_expr, base_expr.operator_expr]),
-                base_expr.left_expr, base_expr.right_expr);
-        }
+                [base_expr.left_expr, base_expr.right_expr],
+	        [new CommandExpr(overset_op, [stacked_expr, base_expr.operator_expr])]);
         else
             new_expr = new CommandExpr(overset_op, [stacked_expr, base_expr]);
         return new_stack.push_expr(new_expr);
@@ -1409,7 +1414,9 @@ class InputContext {
            operator_expr.operand_count() === 1)
             operator_expr = new SequenceExpr([
                 new CommandExpr('quad'), operator_expr, new CommandExpr('quad')]);
-        const new_expr = new InfixExpr(operator_expr, left_expr, right_expr);
+        const new_expr = new InfixExpr(
+	    [left_expr, right_expr],
+	    [operator_expr]);
         return new_stack.push_expr(new_expr);
     }
 

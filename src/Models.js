@@ -901,10 +901,10 @@ class Expr {
 		this._expr(json.prefix_expr));
         case 'infix':
             return new InfixExpr(
-                this._expr(json.operator_expr),
-		this._expr(json.left_expr),
-                this._expr(json.right_expr),
-		json.split || null);
+                this._list(json.operand_exprs),
+		this._list(json.operator_exprs),
+		json.split_at_index || null,
+		json.split_type || null);
         case 'placeholder':
             return new PlaceholderExpr();
         case 'text':
@@ -977,7 +977,7 @@ class Expr {
             return Expr.combine_command_pair(left, right);
         else if(right_type === 'prefix') {
             // X + prefix(Y) -> infix(X, Y) (this should always be OK to do)
-            return new InfixExpr(right.prefix_expr, left, right.base_expr);
+            return new InfixExpr([left, right.base_expr], [right.prefix_expr]);
         }
         else
             return new SequenceExpr([left, right]);
@@ -1190,7 +1190,9 @@ class CommandExpr extends Expr {
 }
 
 
-// Represents one expression in front of another.  Similar to InfixExpr.
+// Represents one expression in front of another.
+// Acts like a limited version of InfixExpr.
+// TODO: Maybe delete this.
 class PrefixExpr extends Expr {
     constructor(base_expr, prefix_expr) {
         super();
@@ -1237,92 +1239,148 @@ class PrefixExpr extends Expr {
 }
 
 
-// Represents two expressions joined by textual infix (something like + or \wedge).
+// Represents two or more expressions joined by infix operators (like + or \wedge).
 // This is similar to concatenated TextNodes, but using InfixExpr lets things like ArrayExpr
 // automatically detect where to put alignments when the contents are InfixExprs.
+// Fields:
+//   - operand_exprs: The x,y,z in 'x + y - z'.  There must be at least 2.
+//   - operator_exprs: The +,- in 'x + y - z'.  Length must be 1 less than operand_exprs.
+//   - split_at_index: if not null, the equation is split via \\ and \qquad at the
+//        given operator index (i.e. split_at_index === 0 breaks at the first operator).
+//   - split_type: 'before', or 'after', indicating where the line break goes.
 class InfixExpr extends Expr {
-    // split can be null, 'before', or 'after'.
-    // If it's non-null, the equation is split via \\ and \qquad, either before or after the infix.
-    constructor(operator_expr, left_expr, right_expr, split) {
-        super();
-        this.operator_expr = operator_expr;
-        this.left_expr = left_expr;
-        this.right_expr = right_expr;
-        this.split = split || null;  // to avoid 'undefined's in the JSON
+    // Combine two existing expressions into an InfixExpr.
+    // If one or both of the expressions are already InfixExprs, they are
+    // merged into a larger InfixExpr.  Otherwise, a new binary InfixExpr
+    // will be created to contain them.  In either case, the result is
+    // joined by 'op_expr' as the infix operator.
+    static combine_infix(left_expr, right_expr, op_expr) {
+	let new_operand_exprs = [];
+	let new_operator_exprs = [];
+	if(left_expr.expr_type() === 'infix') {
+	    new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
+	    new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
+	}
+	else
+	    new_operand_exprs.push(left_expr);
+	new_operator_exprs.push(op_expr);
+	if(right_expr.expr_type() === 'infix') {
+	    new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
+	    new_operator_exprs = new_operator_exprs.concat(right_expr.operator_exprs);
+	}
+	else
+	    new_operand_exprs.push(right_expr);
+	return new InfixExpr(new_operand_exprs, new_operator_exprs);
+    }
+    
+    constructor(operand_exprs, operator_exprs, split_at_index, split_type) {
+	super();
+	this.operand_exprs = operand_exprs;
+	this.operator_exprs = operator_exprs;
+	this.split_at_index = split_at_index;
+	this.split_type = split_type;
     }
 
     expr_type() { return 'infix'; }
 
-    json_keys() { return ['operator_expr', 'left_expr', 'right_expr', 'split']; }
+    json_keys() { return ['operand_exprs', 'operator_exprs', 'split_at_index', 'split_type']; }
 
-    // If the infix operator is a simple command like '+' or '\cap', return it
-    // (without the initial \ if it has one).  If it's anything more complex, return null.
-    operator_text() {
-        const op_expr = this.operator_expr;
-        if(op_expr.expr_type() === 'command' && op_expr.operand_count() === 0)
-            return op_expr.command_name;
-        else if(op_expr.expr_type() === 'text')
-            return op_expr.text;
-        else
-            return null;
+    // If the given infix operator is a simple command like '+' or '\cap',
+    // return the command name (without the initial \ if it has one).
+    // If it's anything more complex, return null.
+    // If 'op_expr' is omitted, check only the first operator, and return
+    // null if there is more than one operator.
+    operator_text(op_expr) {
+	if(op_expr) {
+            if(op_expr.expr_type() === 'command' && op_expr.operand_count() === 0)
+		return op_expr.command_name;
+            else if(op_expr.expr_type() === 'text')
+		return op_expr.text;
+            else
+		return null;
+	}
+	else {
+	    if(this.operator_exprs.length === 1)
+		return this.operator_text(this.operator_exprs[0]);
+	    else
+		return null;
+	}
     }
 
     // Check if this is a low-precedence infix expression like x+y
     // This is mostly for convenience so it doesn't need to be that precise.
     needs_autoparenthesization() {
-        const op = this.operator_text();
-        return op && (op === '+' || op === '-');
+	return this.operator_exprs.every(op_expr => {
+	    const op = this.operator_text(op_expr);
+            return op && (op === '+' || op === '-');
+	});
     }
 
     emit_latex(emitter) {
-        emitter.expr(this.left_expr, 0);
-        if(this.split === 'before') {
-            emitter.command("\\");
-            emitter.command("qquad");
-        }
-        emitter.expr(this.operator_expr, 1);
-        if(this.split === 'after') {
-            emitter.command("\\");
-            emitter.command("qquad");
-        }
-        emitter.expr(this.right_expr, 2);
+	for(let i = 0; i < this.operator_exprs.length; i++) {
+	    emitter.expr(this.operand_exprs[i], 2*i);
+	    if(this.split_at_index === i && this.split_type === 'before') {
+		emitter.command("\\");
+		emitter.command("qquad");
+	    }
+	    emitter.expr(this.operator_exprs[i], 2*i+1);
+	    if(this.split_at_index === i && this.split_type === 'after') {
+		emitter.command("\\");
+		emitter.command("qquad");
+	    }
+	}
+	emitter.expr(
+	    this.operand_exprs[this.operand_exprs.length-1],
+	    2*this.operator_exprs.length);
     }
 
     visit(fn) {
-        this.left_expr.visit(fn);
-        this.operator_expr.visit(fn);
-        fn(this);
-        this.right_expr.visit(fn);
+	fn(this);
+	for(let i = 0; i < this.operator_exprs.length; i++) {
+	    this.operand_exprs[i].visit(fn);
+	    this.operator_exprs[i].visit(fn);
+	}
+	this.operand_exprs[this.operand_exprs.length-1].visit(fn);
     }
 
     subexpressions() {
-	return [this.left_expr, this.operator_expr, this.right_expr];
+	// Interleave operators and operands.
+	let exprs = [];
+	for(let i = 0; i < this.operator_exprs.length; i++) {
+	    exprs.push(this.operand_exprs[i]);
+	    exprs.push(this.operator_exprs[i]);
+	}
+	exprs.push(this.operand_exprs[this.operand_exprs.length-1]);
+	return exprs;
     }
 
+    // Even indices reference operands; odd indices reference operators.
     replace_subexpression(index, new_expr) {
 	return new InfixExpr(
-	    index === 1 ? new_expr : this.operator_expr,
-	    index === 0 ? new_expr : this.left_expr,
-	    index === 2 ? new_expr : this.right_expr,
-	    this.split);
+	    this.operand_exprs.map((operand_expr, expr_index) =>
+		expr_index*2 === index ? new_expr : operand_expr),
+	    this.operator_exprs.map((operator_expr, expr_index) =>
+		expr_index*2 + 1 === index ? new_expr : operator_expr),
+	    this.split_at_index,
+	    this.split_type);
     }
 
-    // TODO: check if subexpressions are blanks
-    // delete_subexpression(index) { ... }
+    // TODO: delete_subexpression() - create PrefixExpr when appropriate
 
     substitute_expr(old_expr, new_expr) {
-        if(this === old_expr) return new_expr;
-        return new InfixExpr(
-            this.operator_expr.substitute_expr(old_expr, new_expr),
-            this.left_expr.substitute_expr(old_expr, new_expr),
-            this.right_expr.substitute_expr(old_expr, new_expr),
-            this.split);
+	if(this === old_expr) return new_expr;
+	return new InfixExpr(
+	    this.operand_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
+	    this.operator_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
+	    this.split_at_index,
+	    this.split_type);
     }
 
     // Returns an InfixExpr like this one, but with the specified split mode set.
-    with_split_mode(new_split_mode) {
+    with_split_at(new_split_at_index, new_split_type) {
         return new InfixExpr(
-            this.operator_expr, this.left_expr, this.right_expr, new_split_mode);
+	    this.operand_exprs, this.operator_exprs,
+	    new_split_at_index, new_split_type);
     }
 }
 
@@ -1657,24 +1715,38 @@ class ArrayExpr extends Expr {
         case 'none':
             return [expr];
         case 'infix':
-            if(expr.expr_type() === 'infix')
-                return [expr.left_expr, new PrefixExpr(expr.right_expr, expr.operator_expr)];
+            if(expr.expr_type() === 'infix') {
+		// Left side will be the first operand expression in the infix.
+		// Right side will be a new infix expression with the remaining operators
+		// and operands, but we have to insert a new initial "fake" blank operand to
+		// give it the right structure.
+		// In the special case of a two-operand InfixExpr, a PrefixExpr will be used instead.
+		if(expr.operator_exprs.length === 1)
+                    return [
+			expr.operand_exprs[0],
+			new PrefixExpr(expr.operand_exprs[1], expr.operator_exprs[0])];
+		else return [
+		    expr.operand_exprs[0],
+		    new InfixExpr(
+			[TextExpr.blank()].concat(expr.operand_exprs.slice(1)),
+			expr.operator_exprs)];
+	    }
             else
                 return [expr, null];
         case 'colon':
             if(expr.expr_type() === 'infix' && expr.operator_text() === ':')
-                return [expr.left_expr, expr.right_expr];
+                return expr.operand_exprs;  // should always be 2
             else
                 return [expr, null];
         case 'colon_if':
             if(expr.expr_type() === 'infix' && expr.operator_text() === ':')
                 return [
-                    expr.left_expr,
+                    expr.operand_exprs[0],
                     Expr.combine_pair(
                         Expr.combine_pair(
                             new CommandExpr('mathrm', [new TextExpr('if')]),
                             new CommandExpr('enspace'), []),
-                        expr.right_expr)];
+                        expr.operand_exprs[1])];
             else
                 return [
                     expr,
