@@ -590,6 +590,7 @@ const EditorKeymap = {
         'I': "push \\iint",
         'l': "push \\ell",
         'M': "push \\mp",
+	'n': "push \\ne",
         'o': "push \\circ",
         'p': "push \\prod",
         'P': "push \\pm",

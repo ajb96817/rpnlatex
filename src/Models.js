@@ -801,14 +801,6 @@ class ExprPath {
 	return this.subexpr_indexes[this.subexpr_indexes.length-n];
     }
 
-    // Return a new ExprPath that is "rebased" to new_expr, which must have
-    // the exact same structure as the current expr.
-    // In other words, the rebased path represents the same path through the
-    // expression, but with a different expression of the same structure.
-//    rebase(new_expr) {
-//	return new ExprPath(new_expr, this.subexpr_indexes);
-//    }
-
     // Return a new ExprPath descended into the subexpression of the
     // selected expression indicated by 'index'.
     descend(index) {
@@ -819,7 +811,7 @@ class ExprPath {
 
     // Return a new ExprPath that selects the parent Expr of the current
     // subexpression(s).
-    ascend() {
+    ascend(skip_skippable_exprs) {
 	return new ExprPath(
 	    this.expr,
 	    this.subexpr_indexes.slice(0, -1));
@@ -1056,6 +1048,12 @@ class Expr {
     // Return a list of all subexpressions of this one, in (at least approximate) left-to-right order.
     subexpressions() { return []; }
 
+    // True if this has any subexpressions to descend into via ExprPath.
+    // As a special case, CommandExprs that represent font commands peek into
+    // their arguments (recursively) to determine this.  This is to prevent
+    // selecting "inside" font commands that only wrap a simple leaf expression.
+    // This means that has_subexpressions() may sometimes return false even
+    // if subexpressions() is nonempty.
     has_subexpressions() { return this.subexpressions().length > 0; }
 
     // Return a new Expr like this one but with the subexpression at the given index replaced
@@ -1140,6 +1138,14 @@ class CommandExpr extends Expr {
 
     subexpressions() { return this.operand_exprs; }
 
+    // See comment in Expr.has_subexpressions().
+    has_subexpressions() {
+	if(this.is_font_command())
+	    return this.operand_exprs[0].has_subexpressions();
+	else
+	    return super.has_subexpressions();
+    }
+
     replace_subexpression(index, new_expr) {
 	return new CommandExpr(
 	    this.command_name,
@@ -1186,6 +1192,15 @@ class CommandExpr extends Expr {
 
     is_command_with_name(command_name) {
         return this.command_name === command_name;
+    }
+
+    is_font_command() {
+	if(this.operand_count() !== 1)
+	    return false;
+	const c = this.command_name;
+	return c === 'boldsymbol' || c === 'bold' || c === 'pmb' ||
+	    c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
+	    c === 'mathfrak' || c === 'mathscr' || c === 'mathcal';
     }
 }
 

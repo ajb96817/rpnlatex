@@ -1180,7 +1180,8 @@ class InputContext {
     // operated upon.  Changing the selection does not modify the actual Expr; instead
     // it generates new ExprItems with the updated 'selected_expr_path'.  This is a
     // property of the ExprItem, not the Expr, so dissect mode commands have to explicitly
-    // manipulate the ExprItem instances (rather than using push_expr()).
+    // manipulate the ExprItem instances (rather than using push_expr()).  This is
+    // mostly abstracted into _do_dissect_operation() below.
 
     do_start_dissect_mode(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
@@ -1204,7 +1205,7 @@ class InputContext {
     // The new selection will point at the first (index=0) subexpression
     // of the current selection.
     do_dissect_descend(stack) {
-	return this._do_dissect_path_operation(stack, expr_path => {
+	return this._do_dissect_operation(stack, expr_path => {
 	    const subexpr = expr_path.selected_expr();
 	    if(subexpr.has_subexpressions())
 		return expr_path.descend(0);
@@ -1215,7 +1216,7 @@ class InputContext {
 
     // Ascend to the parent of the current selection(s), if possible.
     do_dissect_ascend(stack) {
-	return this._do_dissect_path_operation(stack, expr_path => {
+	return this._do_dissect_operation(stack, expr_path => {
 	    // For consistency, do not allow ascending to the "top level" Expr
 	    // (the one actually on the stack).  This would be technically OK, but
 	    // of limited use and inconsistent with the usual UI (where we immediately
@@ -1231,7 +1232,8 @@ class InputContext {
     // If there is currently a multi-selection, it is cancelled and
     // "left" or "right" is taken relative to the original multi-selection.
     do_dissect_move_selection(stack, direction) {
-	return this._do_dissect_path_operation(stack, expr_path => expr_path.move(direction));
+	return this._do_dissect_operation(stack, expr_path =>
+	    expr_path.move(direction));
     }
 
     // Replace the stack top with an "extracted" version where the selected
@@ -1253,7 +1255,7 @@ class InputContext {
     // a blank instead of being truly deleted.
     // If it's a top-level selection, the entire item is just dropped from the
     // stack instead.
-    // This command also exits dissect mode.
+    // Unlike do_dissect_extract_selection(), this remains in dissect mode.  (TODO)
     do_dissect_delete_selection(stack) {
 	const [new_stack, item] = stack.pop(1);
 	if(item.item_type() !== 'expr') stack.type_error();
@@ -1262,11 +1264,10 @@ class InputContext {
 	return new_stack.push_expr(expr_with_deletion);
     }
 
-    // This abstracts out dissect mode operations that modify the selected
-    // subexpression path.
-    // fn() takes the existing ExprPath, and should return the new ExprPath,
+    // This abstracts out dissect mode operations.  The given function fn()
+    // takes the existing ExprPath, and should return the new ExprPath,
     // or null if the operation is considered an error.
-    _do_dissect_path_operation(stack, fn) {
+    _do_dissect_operation(stack, fn) {
 	const [new_stack, item] = stack.pop(1);
 	if(item.item_type() !== 'expr') stack.type_error();
 	this.perform_undo_or_redo = 'suppress';
@@ -1274,7 +1275,7 @@ class InputContext {
 	const expr_path = item.selected_expr_path;
 	const new_expr_path = fn(expr_path);
 	if(new_expr_path) {
-	    const new_expr_item = new ExprItem(item.expr, null, new_expr_path);
+	    const new_expr_item = new ExprItem(new_expr_path.expr, null, new_expr_path);
 	    return new_stack.push(new_expr_item);
 	}
 	else
@@ -1638,25 +1639,30 @@ class InputContext {
         return new_stack.push_expr(expr);
     }
 
-    // Take [x_1,...,x_n] from the stack and build a nested InfixExpr with
+    // Take [x_1,...,x_n] from the stack and build an InfixExpr with
     // the given text between each term as an infix operator.
     // 'final_separator_text' is used as the next to last item if provided.
     do_build_infix_list(stack, infix_text, final_separator_text) {
 	this._require_prefix_argument(true);
         const expr_count = this._get_prefix_argument(1, stack.depth());
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-        let expr = exprs[expr_count-1];
 	// TODO: handle these repetitive s.startsWith("\\") checks more cleanly
         const infix_operator_expr = infix_text.startsWith("\\") ?
 	      new CommandExpr(infix_text.slice(1)) : new TextExpr(infix_text);
-        if(final_separator_text && expr_count > 1)
-	    expr = new InfixExpr(infix_operator_expr,
-				 (final_separator_text.startsWith("\\") ?
-				  new CommandExpr(final_separator_text.slice(1)) :
-				  new TextExpr(final_separator_text)), expr);
-        for(let i = expr_count-2; i >= 0; i--)
-	    expr = new InfixExpr(infix_operator_expr, exprs[i], expr);
-        return new_stack.push_expr(expr);
+	let operator_exprs = [];
+	for(let i = 0; i < expr_count-1; i++)
+	    operator_exprs.push(infix_operator_expr);
+	let operand_exprs = exprs;
+	if(final_separator_text) {
+	    const final_operand = 
+		final_separator_text.startsWith("\\") ?
+		  new CommandExpr(final_separator_text.slice(1)) :
+		  new TextExpr(final_separator_text);
+	    operand_exprs.push(final_operand);
+	    operator_exprs.push(infix_operator_expr);
+	}
+	const new_expr = new InfixExpr(operand_exprs, operator_exprs);
+	return new_stack.push_expr(new_expr);
     }
 
     // Take [x_1, ..., x_n] from the stack and build a \substack{...} command.
