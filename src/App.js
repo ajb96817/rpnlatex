@@ -655,6 +655,7 @@ class ItemComponent extends React.Component {
 		displayMode: display_mode,
 		fleqn: true,
 		trust: true,
+                strict: false,
 		minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
 	    });
         }
@@ -729,8 +730,12 @@ class PopupPanelComponent extends React.Component {
             let code_elt = children[i];
             const latex_code = code_elt.textContent;
             if(latex_code)
-                katex.render(latex_code, code_elt,
-                             { throwOnError: false, displayMode: false, trust: true });
+                katex.render(latex_code, code_elt, {
+                    throwOnError: false,
+                    displayMode: false,
+                    trust: true,
+                    strict: false
+                });
         }
     }
 }

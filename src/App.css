@@ -99,16 +99,17 @@ div.separator_item hr {
 .emphasized2 { color: #f00; text-shadow: 0 0 0.08em #f88; }
 
 /* Highlight the selected subexpression(s) in "dissect" mode. */
-.dissect_highlight_brace { color: #f8f; }
+.dissect_highlight_brace { color: #83cc; }
 .dissect_highlight {
-    color: #c00;
-    text-shadow: 0 0 0.16em #faa;
+    color: #f33;
+    text-shadow: 0 0 0.16em #f88;
     animation: dissect_blink 0.75s steps(1) infinite;
 }
 @keyframes dissect_blink {
-    0% { color: #c00; }
-    50% { color: #408; }
+    0% { color: #c33; }
+    50% { color: #40a; }
 }
+
 
 
 div.latex_source_item {
@@ -182,6 +183,9 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dusk table.file_table tr.selected_file td { background-color: #486; }
 #panel_layout.theme_dusk .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
 #panel_layout.theme_dusk .emphasized2 { color: #f8c; text-shadow: 0 0 0.1em #f88; }
+#panel_layout.theme_dusk .dissect_highlight_brace { color: #6f6; }
+#panel_layout.theme_dusk .dissect_highlight { color: #ff4; text-shadow: 0 0 0.16em #8f8; animation: dissect_blink_theme_dusk 0.75s steps(1) infinite; }
+@keyframes dissect_blink_theme_dusk { 0% { color: #ff4; } 50% { color: #8f8; }}
 #panel_layout.theme_dusk div.latex_source_item div.latex_source { color: #bbb; background-color: #004; }
 
 /* Dark theme */
@@ -204,6 +208,8 @@ textarea { font-size: 16px; }
 #panel_layout.theme_dark table.file_table th { background-color: #448; }
 #panel_layout.theme_dark table.file_table tr.selected_file td { background-color: #486; }
 #panel_layout.theme_dark .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
+#panel_layout.theme_dark .dissect_highlight_brace { color: #6f6; }
+#panel_layout.theme_dark .dissect_highlight { color: #ff4; text-shadow: 0 0 0.16em #8f8; animation: dissect_blink_theme_dusk 0.75s steps(1) infinite; }
 #panel_layout.theme_dark div.latex_source_item div.latex_source { color: #bbb; background-color: #333; }
 
 /* Minimal theme */

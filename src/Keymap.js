@@ -12,7 +12,6 @@ const EditorKeymap = {
         '!': "autoparenthesize;push !;concat",
         'Enter': "subscript",
 	'Shift+Enter': "edit_item",
-        '_': "start_dissect_mode",
         '^': "superscript",
         'Backspace': "pop",
         "`": "superscript",
@@ -56,6 +55,7 @@ const EditorKeymap = {
         "\\": "start_text_entry math_text_entry",
         "\"": "start_text_entry text_entry",
         '|': "mode array",
+        '_': "start_dissect_mode",
         '$': "mode config",
         '?': "toggle_popup help",
 
@@ -737,7 +737,11 @@ const EditorKeymap = {
     },
 
     dissect: {
-	'default': "cancel_dissect_mode",
+	'default': "finish_dissect_mode",
+        'Enter': "finish_dissect_mode",
+        'Escape': "cancel_dissect_mode",
+        'Tab': "dissect_undo",
+        'Ctrl+z': "dissect_undo",
 	'_': "dissect_descend",
 	'u': "dissect_ascend",
 	'ArrowUp': "dissect_ascend",
@@ -745,7 +749,7 @@ const EditorKeymap = {
 	'ArrowRight': "dissect_move_selection right",
 	'ArrowLeft': "dissect_move_selection left",
 	'x': "dissect_extract_selection",
-	'Backspace': "dissect_delete_selection"
+        'c': "dissect_copy_selection"
     },
 
     // & prefix

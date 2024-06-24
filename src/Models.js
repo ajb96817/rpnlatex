@@ -141,7 +141,7 @@ Settings.saved_keys = [
 class LatexEmitter {
     // selected_expr_path is optional, but if provided it is an ExprPath
     // object that indicates which Expr is to be rendered with a "highlight"
-    // indicating that it's currently selected.
+    // indicating that is currently selected.
     constructor(base_expr, selected_expr_path) {
         this.tokens = [];
         this.last_token_type = null;
@@ -172,16 +172,12 @@ class LatexEmitter {
 	   this.selected_expr_path.equals(this.current_path)) {
 	    // Wrap the selected expression in something to "highlight" it
 	    // and render that instead.
-
-	    //const highlight_expr = new CommandExpr('overbrace', [expr]);
-
 	    const highlight_expr = new CommandExpr('htmlClass', [
 		new TextExpr('dissect_highlight_brace'),
 		new CommandExpr('overbrace', [
 		    new CommandExpr('htmlClass', [
 			new TextExpr('dissect_highlight'),
-			expr])])]);
-	    
+			expr])])]);	    
             highlight_expr.emit_latex(this);
 	}
 	else
@@ -387,6 +383,37 @@ class UndoStack {
 }
 
 
+// Like UndoStack but specialized to 'dissect' mode.
+// With DissectUndoStack, there is no need to keep track of the entire stack,
+// only the changes to the item being edited on the stack top.
+// Also, 'redo' in not supported by this currently (though it could be added).
+class DissectUndoStack {
+    // Unlike UndoStack, this.expr_path_stack stores ExprPath instances rather than
+    // entire Stacks.
+    // 'initial_expr' is the original Expr as it was before dissect mode was entered.
+    constructor(initial_expr) {
+        this.initial_expr = initial_expr;
+        this.expr_path_stack = [];
+        this.max_stack_depth = 100;
+    }
+    
+    push(expr_path) {
+        this.expr_path_stack.push(expr_path);
+        if(this.expr_path_stack.length > this.max_stack_depth)
+            this.expr_path_stack = this.expr_path_stack.slice(
+                this.expr_path_stack.length - this.max_stack_depth);
+        return expr_path;
+    }
+
+    pop() {
+        if(this.expr_path_stack.length > 0)
+            return this.expr_path_stack.pop();
+        else
+            return null;
+    }
+}
+
+
 // Interface to the browser's IndexedDB storage.
 // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
 class DocumentStorage {
@@ -578,7 +605,7 @@ class ImportExportState {
     // TODO: -> state_description()
     textual_state() {
         switch(this.state) {
-        case 'idle': return this.download_url ? 'Download Ready' : 'Ready for export or import';
+        case 'idle': return this.download_url ? 'Download ready' : 'Ready for export or import';
         case 'error': return 'Error: ' + this.error_message;
         case 'loading': return 'Extacting database...';
         case 'zipping': return 'Compressing files...';
@@ -858,7 +885,7 @@ class ExprPath {
 	return this.replace_selection(new PlaceholderExpr());
     }
 
-    // "Delete" the currently selected subexpression from the expression tree entirely.
+/*    // "Delete" the currently selected subexpression from the expression tree entirely.
     // This is not always possible; in such cases the expression is instead replaced with
     // a blank TextExpr.  This returns a version of the original this.expr, except the
     // indicated subexpression has been removed from the tree, or at least been replaced
@@ -874,7 +901,7 @@ class ExprPath {
 	    expr = local_parent.replace_subexpression(subexpr_index, expr);
 	}
 	return expr;
-    }
+    } */
 }
 
 
@@ -1060,7 +1087,7 @@ class Expr {
     // with a new one.  The subexpression indexes here correspond to what is returned by subexpressions().
     replace_subexpression(index, new_expr) { return this; }
 
-    // Return a new Expr with the subexpression at the given index "deleted".
+/*    // Return a new Expr with the subexpression at the given index "deleted".
     // If deletion is not structurally possible, the subexpression might instead
     // be replaced by a blank TextExpr.
     // Note that the returned Expr may not be the same type as the original; for example,
@@ -1069,7 +1096,7 @@ class Expr {
     delete_subexpression(index) {
 	// Default implementation; subclasses can override.
 	return this.replace_subexpression(index, TextExpr.blank());
-    }
+    } */
 
     // Find the first PlaceholderExpr that exists in this expression.  Returns null if none.
     find_placeholder() {
@@ -1240,10 +1267,10 @@ class PrefixExpr extends Expr {
 	    index === 0 ? new_expr : this.prefix_expr);
     }
 
-    delete_subexpression(index) {
+/*    delete_subexpression(index) {
 	if(index === 0) return this.base_expr;  // prefix deleted
 	else return this.prefix_expr;  // base deleted
-    }
+    } */
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
@@ -1468,7 +1495,7 @@ class SequenceExpr extends Expr {
 		(subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
     }
 
-    // If this SequenceExpr is left with only one item after deletion,
+/*    // If this SequenceExpr is left with only one item after deletion,
     // the result is just that item.
     // (Note that SequenceExprs always must have >= 2 items.)
     delete_subexpression(index) {
@@ -1476,7 +1503,7 @@ class SequenceExpr extends Expr {
 	if(new_exprs.length === 1)
 	    return new_exprs[0];
 	else return new SequenceExpr(new_exprs);
-    }
+    } */
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
@@ -1667,7 +1694,7 @@ class SubscriptSuperscriptExpr extends Expr {
 	    (index === 1 && this.superscript_expr) ? new_expr : this.superscript_expr);
     }
 
-    delete_subexpression(index) {
+/*    delete_subexpression(index) {
 	// When deleting the base, we always have to just replace it with a blank.
 	if(index === 0) return super.delete_subexpression(index);
 	// Deleting the last remaining subscript or superscript decays into the base expression.
@@ -1679,7 +1706,7 @@ class SubscriptSuperscriptExpr extends Expr {
 	    this.base_expr,
 	    index === 2 ? null : this.subscript_expr,
 	    index === 1 ? null : this.superscript_expr);
-    }
+    }  */
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
@@ -2598,7 +2625,8 @@ class Document {
 
 
 export {
-    Keymap, Settings, AppState, UndoStack, DocumentStorage, ImportExportState, FileManagerState,
+    Keymap, Settings, AppState, UndoStack, DissectUndoStack,
+    DocumentStorage, ImportExportState, FileManagerState,
     ExprPath, Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     Item, ExprItem, TextItem, CodeItem,
