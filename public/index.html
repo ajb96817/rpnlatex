@@ -72,11 +72,12 @@
         </li>
         <li>
           <span class="keybinding">&nbsp;</span> <em>(space)</em> Concatenate the top two stack entries.
+        </li>
         <li>
           <span class="keybinding">`</span> <em>(backtick)</em> or <span class="keybinding">^</span> 
           Make superscript: <code>y\enspace x \to y^x</code>
         </li>
-        <li><span class="keybinding">Enter</span> or <span class="keybinding">_</span>
+        <li><span class="keybinding">Enter</span>
           Make subscript: <code>y\enspace x \to y_x</code>
         </li>
         <li><span class="keybinding">Shift+Enter</span>
@@ -85,7 +86,7 @@
         <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
         <li>
           <span class="keybinding">!</span>
-          Append a <tt>!</tt> to the stack top (factorial notation).
+          Append a <kbd>!</kbd> to the stack top (factorial notation).
         </li>
         <li>
           <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span>
@@ -134,11 +135,12 @@
         <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
         <li><span class="keybinding">}</span> Build <a href="#custom_delimiters">custom delimiter</a> structures.</li>
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
+        <li><span class="keybinding">_</span> Manipulate subexpressions of the stack top with <a href="#dissect">dissect</a> mode.</li>
         <li><span class="keybinding">;</span> Insert <a href="#greek">lowercase Greek</a> letters.</li>
         <li><span class="keybinding">:</span> Insert <a href="#greek">uppercase Greek</a> letters.</li>
-        <li><span class="keybinding">&</span>
+        <li><span class="keybinding">&amp;</span>
           Insert script-style uppercase letters such as: <code>\mathscr{ABCDE}</code>;
-          <span class="keybinding">&</span><span class="keybinding">&</span> inserts a literal &.
+          <span class="keybinding">&amp;</span><span class="keybinding">&amp;</span> inserts a literal &amp;.
         </li>
         <li><span class="keybinding">%</span>
           Insert calligraphic-style uppercase letters such as: <code>\mathcal{ABCDE}</code>;
@@ -172,7 +174,7 @@
       <p>If you type another <span class="keybinding">\</span>
         after the first one, you will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
         LaTeX command.  This can be used to create any standard LaTeX symbol.
-        For example: <tt>\\boxdot</tt> <code>\to\boxdot</code>
+        For example: <kbd>\\boxdot</kbd> <code>\to\boxdot</code>
       </p>
       <p>
         The <span class="keybinding">&quot;</span> prefix starts <em>text entry</em> mode which
@@ -193,7 +195,7 @@
             <span class="keybinding">/</span><span class="keybinding">&quot;</span> command.
           </li>
           <li>
-            Typing <tt>[]</tt> in a text object will create a <a href="#placeholders">placeholder</a>
+            Typing <kbd>[]</kbd> in a text object will create a <a href="#placeholders">placeholder</a>
             at that location for substituting a math formula later.
           </li>
         </ul>
@@ -311,6 +313,7 @@
 	<li>
 	  <span class="keybinding">$</span>
 	  Extract the LaTeX source of the top stack item as a special code object.
+        </li>
         <li>
           <span class="keybinding">&larr;</span> <span class="keybinding">&rarr;</span>
           <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide.
@@ -1030,7 +1033,7 @@
           <tr>
             <td><span class="keybinding">v</span> <code>\operatorname{Var}</code></td>
             <td><span class="keybinding">x</span> <code>\max</code></td>
-            <td></tr>
+            <td></td>
           </tr>
       </tbody></table>
 
@@ -1302,11 +1305,11 @@
       <ul class="keybindings">
         <li>
           <span class="keybinding">a</span>
-          Stack N equations together into a LaTeX <tt>align</tt> environment, aligned by their infix operator, if any.
+          Stack N equations together into a LaTeX <kbd>align</kbd> environment, aligned by their infix operator, if any.
         </li>
         <li>
           <span class="keybinding">g</span>
-          Stack N equations together into a <tt>gathered</tt> environment,
+          Stack N equations together into a <kbd>gathered</kbd> environment,
           similar to <span class="keybinding">a</span> but each equation is centered on its own.
         </li>
         <li>
@@ -1367,7 +1370,7 @@
         <li>
 	  <span class="keybinding">;</span>
 	  <code>x_1;\,x_2;\,x_n</code>
-	<li>
+	</li>
         <li>
           <span class="keybinding">+</span>
           <code>x_1 + x_2 + \cdots + x_n</code>
@@ -1399,7 +1402,58 @@
       </ul>
 
       <h2>
-        <a name="greek">Greek letters</a>
+        <a name="dissect">Dissect Mode</a>
+        <span class="keybinding">_</span>
+      </h2>
+      <p>
+        Entering <em>dissect</em> mode with <span class="keybinding">_</span> (underscore)
+        allows selecting and manipulating subexpressions of the stack top.
+        This can be useful to copy out a part of an existing expression, or to replace a part
+        with something else.
+      </p>
+      <p>
+        <strong>NOTE:</strong> These commands operate on the internal tree structure of expressions.
+        Generally, the tree structure will reflect the way the expression was originally created, but
+        there is no particular guarantee of this.  Some ways of building expressions can flatten tree
+        structure or change it in unexpected ways.
+      </p>
+      <p>
+        Once <em>dissect</em> mode is entered, the currently-selected subexpression will be highlighted
+        in a special way and framed with an overbrace to show what is selected.
+        The following commands will then be available:
+      </p>
+      <ul class="keybindings">
+        <li><span class="keybinding">]</span> or <span class="keybinding">&rarr;</span>
+          Move the selection to its nearest "sibling" to the right, if available.
+        </li>
+        <li><span class="keybinding">[</span> or <span class="keybinding">&larr;</span>
+          Move the selection to the left instead.
+        </li>
+        <li><span class="keybinding">_</span> or <span class="keybinding">&darr;</span>
+          Descend further into the tree structure, if possible.  The leftmost subexpression will be selected.
+        </li>
+        <li><span class="keybinding">u</span> or <span class="keybinding">&uarr;</span>
+          Ascend the tree structure if possible, selecting a larger expression containing the current selection.
+          Note that the top-level expression itself as a whole cannot be selected in <em>dissect</em> mode.
+        </li>
+        <li><span class="keybinding">x</span> or <span class="keybinding">&#39;</span>
+          <strong>Extract</strong> the currently selected subexpression, replacing it with a
+          <a href="#placeholders">placeholder</a>.  The extracted subexpression will be left on the stack
+          top, where it can be further manipulated or replaced with normal commands, and then re-substituted
+          back into the original expression using <span class="keybinding">/</span><span class="keybinding">&#39;</span>.
+        </li>
+        <li><span class="keybinding">c</span>
+          <strong>Copy</strong> the currently selected subexpression.  This works the same
+          as <span class="keybinding">x</span>, but a placeholder is not inserted (the original
+          expression is left unmodified).
+        </li>
+        <li><span class="keybinding">q</span> or <span class="keybinding">Esc</span>
+          Cancel out of <em>dissect</em> mode.
+        </li>
+      </ul>
+
+      <h2>
+        <a name="greek">Greek Letters</a>
         <span class="keybinding">;</span>
         <span class="keybinding">:</span>
       </h2>
@@ -1529,7 +1583,7 @@
       </h2>
       <p>
         These commands let you change global configuration settings.
-        The settings are saved between sessions in your web browser's <tt>localStorage</tt>.
+        The settings are saved between sessions in your web browser's <kbd>localStorage</kbd>.
       </p>
       <ul class="keybindings">
         <li>
