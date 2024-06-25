@@ -693,7 +693,7 @@ const EditorKeymap = {
         'C': "build_align rcases",
         'd': "dissolve_array",
         'e': "build_list ,\\,;push ,\\,\\dots;concat",
-        'E': "push_matrix_ellipses",
+        'E': "insert_matrix_ellipses",
         'f': "build_align cases_if",
         'F': "build_align rcases_if",
         'g': "build_align gathered",
@@ -736,24 +736,32 @@ const EditorKeymap = {
         '{': "change_matrix_type Bmatrix"
     },
 
+    // NOTE: The duplicate keybindings here are for the user's convenience
+    // (e.g., capitals so they don't have to release the Shift key).
     dissect: {
 	'default': "finish_dissect_mode",
         'Enter': "finish_dissect_mode",
         'Escape': "cancel_dissect_mode",
         'q': "cancel_dissect_mode",
+        'Q': "cancel_dissect_mode",
         'Tab': "dissect_undo",
         'Ctrl+z': "dissect_undo",
 	'_': "dissect_descend",
 	'u': "dissect_ascend",
+	'U': "dissect_ascend",
 	'ArrowUp': "dissect_ascend",
 	'ArrowDown': "dissect_descend",
 	'ArrowLeft': "dissect_move_selection left",
 	'ArrowRight': "dissect_move_selection right",
 	'[': "dissect_move_selection left",
+	'{': "dissect_move_selection left",
 	']': "dissect_move_selection right",
+	'}': "dissect_move_selection right",
 	'x': "dissect_extract_selection",
+	'X': "dissect_extract_selection",
 	"'": "dissect_extract_selection",
-        'c': "dissect_copy_selection"
+        'c': "dissect_copy_selection",
+        'C': "dissect_copy_selection"
     },
 
     // & prefix

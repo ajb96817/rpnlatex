@@ -1423,31 +1423,31 @@
         The following commands will then be available:
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">]</span> or <span class="keybinding">&rarr;</span>
+        <li><span class="keybinding">]</span> or <span class="keybinding">}</span> or <span class="keybinding">&rarr;</span>
           Move the selection to its nearest "sibling" to the right, if available.
         </li>
-        <li><span class="keybinding">[</span> or <span class="keybinding">&larr;</span>
+        <li><span class="keybinding">[</span> or <span class="keybinding">{</span> or <span class="keybinding">&larr;</span>
           Move the selection to the left instead.
         </li>
         <li><span class="keybinding">_</span> or <span class="keybinding">&darr;</span>
           Descend further into the tree structure, if possible.  The leftmost subexpression will be selected.
         </li>
-        <li><span class="keybinding">u</span> or <span class="keybinding">&uarr;</span>
+        <li><span class="keybinding">u</span> or <span class="keybinding">U</span> or <span class="keybinding">&uarr;</span>
           Ascend the tree structure if possible, selecting a larger expression containing the current selection.
           Note that the top-level expression itself as a whole cannot be selected in <em>dissect</em> mode.
         </li>
-        <li><span class="keybinding">x</span> or <span class="keybinding">&#39;</span>
+        <li><span class="keybinding">x</span> or <span class="keybinding">X</span> or <span class="keybinding">&#39;</span>
           <strong>Extract</strong> the currently selected subexpression, replacing it with a
           <a href="#placeholders">placeholder</a>.  The extracted subexpression will be left on the stack
           top, where it can be further manipulated or replaced with normal commands, and then re-substituted
           back into the original expression using <span class="keybinding">/</span><span class="keybinding">&#39;</span>.
         </li>
-        <li><span class="keybinding">c</span>
+        <li><span class="keybinding">c</span> or <span class="keybinding">C</span>
           <strong>Copy</strong> the currently selected subexpression.  This works the same
           as <span class="keybinding">x</span>, but a placeholder is not inserted (the original
           expression is left unmodified).
         </li>
-        <li><span class="keybinding">q</span> or <span class="keybinding">Esc</span>
+        <li><span class="keybinding">q</span> or <span class="keybinding">Q</span> or <span class="keybinding">Esc</span>
           Cancel out of <em>dissect</em> mode.
         </li>
       </ul>
