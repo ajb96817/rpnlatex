@@ -935,17 +935,9 @@ class InputContext {
 
     // Stack one expr above (or below) another via \overset or \underset.
     // (overset_op can be 'overset' or 'underset').
-    // If the base expr is an InfixExpr, the other one is stacked above the infix operator;
-    // otherwise the actual items are stacked.
     do_overunderset(stack, overset_op) {
         const [new_stack, base_expr, stacked_expr] = stack.pop_exprs(2);
-        let new_expr;
-        if(base_expr.expr_type() === 'infix')
-            new_expr = new InfixExpr(
-                [base_expr.left_expr, base_expr.right_expr],
-	        [new CommandExpr(overset_op, [stacked_expr, base_expr.operator_expr])]);
-        else
-            new_expr = new CommandExpr(overset_op, [stacked_expr, base_expr]);
+        let new_expr = new CommandExpr(overset_op, [stacked_expr, base_expr]);
         return new_stack.push_expr(new_expr);
     }
 
