@@ -1305,6 +1305,10 @@ class InfixExpr extends Expr {
 	}
 	else
 	    new_operand_exprs.push(left_expr);
+        // Determine index of the new op_expr within the new InfixExpr;
+        // this becomes the split_at_index determining where do_split_infix()
+        // applies at.
+        const split_at_index = new_operator_exprs.length;
 	new_operator_exprs.push(op_expr);
 	if(right_expr.expr_type() === 'infix') {
 	    new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
@@ -1312,9 +1316,14 @@ class InfixExpr extends Expr {
 	}
 	else
 	    new_operand_exprs.push(right_expr);
-	return new InfixExpr(new_operand_exprs, new_operator_exprs);
+	return new InfixExpr(new_operand_exprs, new_operator_exprs, split_at_index);
     }
     
+    // NOTE: split_at_index is always set to the index of the most 'recent' operator
+    // in the creation of this InfixExpr.  For example, when combining 'a + b' and 'c + d'
+    // with '=' to form 'a + b = c + d', split_at_index==1 (the '=').
+    // Nothing really depends on this behavior, but it simplifies things for the user when
+    // using do_split_infix().
     constructor(operand_exprs, operator_exprs, split_at_index, split_type) {
 	super();
 	this.operand_exprs = operand_exprs;

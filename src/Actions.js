@@ -897,13 +897,13 @@ class InputContext {
             this.error_flash_stack();
             return;
         }
-        const split_type = infix_expr.split;
+        const split_type = infix_expr.split_type;
         let new_split_type = null;
         if(split_type === 'after') new_split_type = 'before';
         else if(split_type === 'before') new_split_type = null;
         else new_split_type = 'after';
         const new_infix_expr = infix_expr.with_split_at(
-	    infix_expr.operand_exprs.length-1,
+            infix_expr.split_at_index,
 	    new_split_type);
         return new_stack.push_expr(new_infix_expr);
     }
