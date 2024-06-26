@@ -1214,13 +1214,17 @@ class InputContext {
 
     // Accept any changes that have been done while in dissect mode
     // and exit the mode.
-    do_finish_dissect_mode(stack) {
+    // NOTE: Can't currently modify the active expression, so this is not needed yet.
+    // If this is implemented, make sure that if the expression has not actually been
+    // modified, undo is suppressed for this action.  Only log an undo if there has been
+    // a change.
+/*    do_finish_dissect_mode(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
         this.dissect_undo_stack = null;
         // A new ExprItem needs to be constructed in order to remove
         // the existing ExprPath selection.
 	return new_stack.push(new ExprItem(expr, null, null));
-    }
+      }     */
 
     // Undo last action while in dissect mode, if possible.
     // Cancel dissect mode if there are no undo states.
@@ -1275,11 +1279,11 @@ class InputContext {
     }
 
     // Replace the stack top with an "extracted" version where the selected
-    // subexpression(s) are replaced with a placeholder.  The extracted subexpression(s)
-    // are then put on the stack top.  If multiple subexpressions were selected they are
-    // grouped into a SequenceExpr.
+    // subexpression is replaced with a placeholder.  The extracted subexpression
+    // is then put on the stack top, unless 'trim' is given, in which case only
+    // the original expression with placeholder is left on the stack.
     // This command also exits dissect mode.
-    do_dissect_extract_selection(stack) {
+    do_dissect_extract_selection(stack, trim) {
 	const [new_stack, item] = stack.pop(1);
 	if(item.item_type() !== 'expr')
             stack.type_error();
@@ -1287,19 +1291,27 @@ class InputContext {
 	const expr_with_placeholder = expr_path.extract_selection();
 	const extracted_expr = expr_path.selected_expr();
         this.dissect_undo_stack = null;  // exiting dissect mode
-	return new_stack.push_all_exprs([expr_with_placeholder, extracted_expr]);
+        if(trim === 'trim')
+            return new_stack.push_expr(expr_with_placeholder);
+        else
+	    return new_stack.push_all_exprs([expr_with_placeholder, extracted_expr]);
     }
 
     // Same as do_dissect_extract_selection, but the original expression
     // is left unmodified (no placeholder replacement).
-    do_dissect_copy_selection(stack) {
+    // If 'trim' is given, the original expression is removed from the stack,
+    // leaving only the selected subexpression.
+    do_dissect_copy_selection(stack, trim) {
 	const [new_stack, item] = stack.pop(1);
 	if(item.item_type() !== 'expr')
             stack.type_error();
 	const expr_path = item.selected_expr_path;
 	const extracted_expr = expr_path.selected_expr();
         this.dissect_undo_stack = null;  // exiting dissect mode
-	return new_stack.push_all_exprs([expr_path.expr, extracted_expr]);
+        if(trim === 'trim')
+            return new_stack.push_expr(extracted_expr);
+        else
+	    return new_stack.push_all_exprs([expr_path.expr, extracted_expr]);
     }
 
     // This abstracts out dissect mode operations.  The given function fn()

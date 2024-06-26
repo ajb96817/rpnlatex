@@ -739,8 +739,8 @@ const EditorKeymap = {
     // NOTE: The duplicate keybindings here are for the user's convenience
     // (e.g., capitals so they don't have to release the Shift key).
     dissect: {
-	'default': "finish_dissect_mode",
-        'Enter': "finish_dissect_mode",
+	'default': "cancel_dissect_mode",
+        //'Enter': "finish_dissect_mode",
         'Escape': "cancel_dissect_mode",
         'q': "cancel_dissect_mode",
         'Q': "cancel_dissect_mode",
@@ -759,9 +759,14 @@ const EditorKeymap = {
 	'}': "dissect_move_selection right",
 	'x': "dissect_extract_selection",
 	'X': "dissect_extract_selection",
+	'd': "dissect_extract_selection trim",
+	'D': "dissect_extract_selection trim",
+	'Backspace': "dissect_extract_selection trim",
 	"'": "dissect_extract_selection",
         'c': "dissect_copy_selection",
-        'C': "dissect_copy_selection"
+        'C': "dissect_copy_selection",
+        't': "dissect_copy_selection trim",
+        'T': "dissect_copy_selection trim"
     },
 
     // & prefix

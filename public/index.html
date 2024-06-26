@@ -1442,10 +1442,20 @@
           top, where it can be further manipulated or replaced with normal commands, and then re-substituted
           back into the original expression using <span class="keybinding">/</span><span class="keybinding">&#39;</span>.
         </li>
+        <li><span class="keybinding">d</span> or <span class="keybinding">D</span> or <span class="keybinding">Backspace</span>
+          <strong>Delete</strong> the currently selected subexpression, replacing it with a
+          <a href="#placeholders">placeholder</a>.  Same as <span class="keybinding">x</span>, but
+          the selected subexpression is not left on the stack.
+        </li>
         <li><span class="keybinding">c</span> or <span class="keybinding">C</span>
-          <strong>Copy</strong> the currently selected subexpression.  This works the same
-          as <span class="keybinding">x</span>, but a placeholder is not inserted (the original
+          <strong>Copy</strong> the currently selected subexpression.  Same as
+          <span class="keybinding">x</span>, but a placeholder is not inserted (the original
           expression is left unmodified).
+        </li>
+        <li><span class="keybinding">t</span> or <span class="keybinding">T</span>
+          <strong>Trim</strong> down to the currently selected subexpression.
+          Same as <span class="keybinding">x</span>, but only the selected subexpression is left
+          on the stack.
         </li>
         <li><span class="keybinding">q</span> or <span class="keybinding">Q</span> or <span class="keybinding">Esc</span>
           Cancel out of <em>dissect</em> mode.
