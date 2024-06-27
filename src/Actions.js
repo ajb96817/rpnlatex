@@ -911,16 +911,14 @@ class InputContext {
     // Swap left and right sides of an "infix" expression, which can be an
     // actual InfixExpr or else a DelimiterExpr that has 2 inner expressions,
     // e.g. <x | y> or \left. x \middle/ y \right.
-    // TODO: revisit in light of the new multi-InfixExpr model.
+    // For InfixExpr, the "pivot" operator for the swap is taken from split_at_index,
+    // which is generally the most recently-used operator in the creation of the
+    // infix expression.
     do_swap_infix(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
 	let new_expr = null;
-	if(expr.expr_type() === 'infix' && expr.operator_exprs.length === 1)
-	    new_expr = new InfixExpr(
-		[expr.operand_exprs[1], expr.operand_exprs[0]],
-		expr.operator_exprs,
-		expr.split_at_index,
-		expr.split_type);
+	if(expr.expr_type() === 'infix')
+            new_expr = expr.swap_sides_at(expr.split_at_index);
 	else if(expr.expr_type() === 'delimiter' &&
 		expr.inner_exprs.length === 2)
 	    new_expr = new DelimiterExpr(
@@ -931,14 +929,6 @@ class InputContext {
 	    return new_stack.push_expr(new_expr);
 	else
 	    return this.error_flash_stack();
-    }
-
-    // Stack one expr above (or below) another via \overset or \underset.
-    // (overset_op can be 'overset' or 'underset').
-    do_overunderset(stack, overset_op) {
-        const [new_stack, base_expr, stacked_expr] = stack.pop_exprs(2);
-        let new_expr = new CommandExpr(overset_op, [stacked_expr, base_expr]);
-        return new_stack.push_expr(new_expr);
     }
 
     do_cancel() {}
@@ -998,17 +988,14 @@ class InputContext {
         const [new_stack, expr] = stack.pop_exprs(1);
 	let extracted_expr = null;
 	if(expr.expr_type() === 'infix')
-	    extracted_expr = (which_side === 'right') ? expr.right_expr : expr.left_expr;
+	    extracted_expr = expr.extract_side_at(expr.split_at_index, which_side);
 	else if(expr.expr_type() === 'delimiter' &&
 		expr.inner_exprs.length === 2)
 	    extracted_expr = (which_side === 'right') ? expr.inner_exprs[1] : expr.inner_exprs[0];
-	if(extracted_expr) {
-            // NOTE: 'stack' and not 'new_stack' is used here in order to preserve
-            // the original expression on the stack.
-            return stack.push_expr(extracted_expr);
-	}
-	else
-	    return stack.type_error();
+        else return stack.type_error();
+        // NOTE: 'stack' and not 'new_stack' is used here in order to preserve
+        // the original expression on the stack.
+        return stack.push_expr(extracted_expr);
     }
 
     do_start_text_entry(stack, text_entry_mode, initial_text) {
@@ -1466,8 +1453,7 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
-    // NOTE: if 'help_location' is given, jump to the given anchor in the help text.
-    do_toggle_popup(stack, mode_string, help_location) {
+    do_toggle_popup(stack, mode_string) {
         // Hack: Save help panel scroll position so we can restore it next
         // time the help is displayed.  This isn't very good because browser
         // window/font resizings will throw it off.  Needs revisiting.
@@ -1479,8 +1465,6 @@ class InputContext {
         }
         this.settings.popup_mode =
             (this.settings.popup_mode === mode_string) ? null : mode_string;
-        if(this.settings.popup_mode === 'help' && help_location)
-            this.settings.help_scroll_top = help_location;
         this.settings.save();
         this.app_component.apply_layout_to_dom();
     }
@@ -1540,6 +1524,9 @@ class InputContext {
             settings.selected_theme = 'default';
             settings.show_mode_indicator = true;
             full_refresh_needed = true;
+            break;
+        case 'reload_page':
+            window.location.reload();
             break;
         default:
             break;

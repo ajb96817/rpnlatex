@@ -1433,6 +1433,47 @@ class InfixExpr extends Expr {
 	    this.operand_exprs, this.operator_exprs,
 	    new_split_at_index, new_split_type);
     }
+
+    // Swap everything to the left of operator_index with everything to the right of operator_index.
+    swap_sides_at(operator_index) {
+        const new_operand_exprs =
+              this.operand_exprs.slice(operator_index+1).concat(
+                  this.operand_exprs.slice(0, operator_index+1));
+        const new_operator_exprs =
+              this.operator_exprs.slice(operator_index+1).concat(
+                  [this.operator_exprs[operator_index]]).concat(
+                      this.operator_exprs.slice(0, operator_index));
+        return new InfixExpr(
+            new_operand_exprs, new_operator_exprs,
+            this.split_at_index, this.split_type);
+    }
+
+    // Extract everything to one side of the given operator index.
+    // The resulting Expr may not necessarily be another InfixExpr.
+    // 'side' can be 'left' or 'right'.
+    // NOTE: The new split_at_index will always be 0.  There is not a good way
+    // to do this properly currently since we only track the most recent operator
+    // in InfixExpr.
+    extract_side_at(operator_index, side) {
+        if(side === 'right') {
+            if(operator_index === this.operator_exprs.length-1)
+                return this.operand_exprs[operator_index+1];  // rightmost operand
+            else
+                return new InfixExpr(
+                    this.operand_exprs.slice(operator_index+1),
+                    this.operator_exprs.slice(operator_index+1),
+                    0, null);
+        }
+        else {
+            if(operator_index === 0)
+                return this.operand_exprs[0];  // leftmost operand
+            else
+                return new InfixExpr(
+                    this.operand_exprs.slice(0, operator_index+1),
+                    this.operator_exprs.slice(0, operator_index),
+                    0, null);
+        }
+    }
 }
 
 

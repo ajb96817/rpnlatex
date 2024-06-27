@@ -711,14 +711,8 @@ class PopupPanelComponent extends React.Component {
         if(mode === 'help' &&
            this.props.settings.help_scroll_top !== undefined &&
            this.props.popup_panel_ref.current) {
-            if(typeof(this.props.settings.help_scroll_top) === 'string') {
-                // Jump to a specified anchor in the help text.
-                window.location.hash = '#' + this.props.settings.help_scroll_top;
-            }
-            else {
-                // Restore helptext scroll position previously saved by 'do_toggle_popup'.
-                this.props.popup_panel_ref.current.scrollTop = this.props.settings.help_scroll_top;
-            }
+            // Restore helptext scroll position previously saved by 'do_toggle_popup'.
+            this.props.popup_panel_ref.current.scrollTop = this.props.settings.help_scroll_top;
             this.props.settings.help_scroll_top = undefined;
         }
     }

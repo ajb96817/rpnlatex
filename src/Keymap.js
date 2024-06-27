@@ -146,8 +146,7 @@ const EditorKeymap = {
         '@': "export_stack_items_as_text",
         '$': "extract_latex_source",
         'ArrowRight': "scroll document_container horizontal 75",
-        'ArrowLeft': "scroll document_container horizontal -75",
-        '?': "toggle_popup help stack"
+        'ArrowLeft': "scroll document_container horizontal -75"
     },
 
     // $ prefix: configuration
@@ -165,13 +164,13 @@ const EditorKeymap = {
         'm': "config math_align toggle_document",
         'M': "config math_align toggle_stack",
         'r': "config reset_layout",
+        'R': "config reload_page",
         's': "config stack_split",
         't': "config theme",
         'z': "config zoom_factor increase",
         'Z': "config zoom_factor decrease",
         '$': "push \\$",
-        '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int",
-        '?': "toggle_popup help configuration"
+        '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int"
     },
 
     // " prefix (TextItem text)
@@ -224,8 +223,7 @@ const EditorKeymap = {
 	')': "toggle_fixed_size_delimiters",
         '[': "delimiters [ ]",
         ']': "push \\llbracket;swap;concat;push \\rrbracket;concat",
-        '{': "delimiters \\{ \\}",
-        '?': "toggle_popup help delimiters"
+        '{': "delimiters \\{ \\}"
     },
 
     // right-curly-brace prefix: custom delimiter builder mode
@@ -252,8 +250,7 @@ const EditorKeymap = {
         ' ': "custom_delimiter .",
         '/': "custom_delimiter /",
         "\\": "custom_delimiter \\backslash",
-        '|': "custom_delimiter |",
-        '?': "toggle_popup help delimiters"
+        '|': "custom_delimiter |"
     },
 
     // forward-slash prefix: assorted functions/operators
@@ -279,7 +276,7 @@ const EditorKeymap = {
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;wrap_braces;fuse",  // f x -> f(x)  "of" (wrap_braces closes up the spacing after 'f')
-        'O': "overunderset overset",
+        'O': "operator overset 2",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
@@ -289,7 +286,7 @@ const EditorKeymap = {
         'S': "named_function sec",
         't': "named_function tan",
         'T': "named_function cot",
-        'U': "overunderset underset",
+        'U': "swap;operator underset 2",
         'v': "parenthesize;push Var;operator operatorname;swap;concat",
         'V': "swap;push ,;concat;swap;concat;parenthesize;push Cov;operator operatorname;swap;concat",
 	'w': "swap_infix",
@@ -311,8 +308,7 @@ const EditorKeymap = {
         '+': "infix \\ge;push \\sum;swap;subscript",
         "'": "substitute_placeholder",
         "\"": "toggle_is_heading",
-        'Enter': "unrot;subscript;swap;superscript",  // apply superscript and subscript at once
-        '?': "toggle_popup help operators"
+        'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once
     },
 
     named_operator: {
@@ -419,8 +415,7 @@ const EditorKeymap = {
         'u': "push 0;subscript;push 1;superscript",  // 0..1 : [u]nit
         'U': "push -1;subscript;push 1;superscript",  // -1..1 : symmetric [U]nit
         't': "push 0;subscript;push 2\\pi;superscript",  // 0..2pi : [t]rigonometric
-        'T': "push -\\pi;subscript;push \\pi;superscript",  // -pi..pi : symmetric [T]rigonometric
-        '?': "toggle_popup help integrals"
+        'T': "push -\\pi;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
     },
 
     // /d prefix: derivative operations
@@ -468,9 +463,7 @@ const EditorKeymap = {
         // y x -> ydx (with thinspace after the dx)
         'I': "push d;operator mathrm;swap;fuse;concat;push \\,;concat",
         // y x -> ydx (no spacing around the dx)
-        ' ': "push d;operator mathrm;swap;fuse;concat",
-
-        '?': "toggle_popup help derivatives"
+        ' ': "push d;operator mathrm;swap;fuse;concat"
     },
 
     // comma prefix: combine two objects with an infix operation
@@ -522,8 +515,7 @@ const EditorKeymap = {
         '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
         '/': "autoparenthesize 2;delimiters . . / 2",  // flex x/y
-        "\\": "autoparenthesize 2;infix /",  // fixed x/y
-        '?': "toggle_popup help infix"
+        "\\": "autoparenthesize 2;infix /"  // fixed x/y
     },
 
     // = prefix: relational operators
@@ -569,7 +561,7 @@ const EditorKeymap = {
         '~': "infix \\sim",
 	'-': "infix \\vdash",
         '|': "infix \\vDash",
-        '?': "toggle_popup help relational"
+        '?': "push ?;push =;operator stackrel 2;apply_infix"
     },
 
     // apostrophe prefix: assorted standalone math symbols
@@ -680,8 +672,7 @@ const EditorKeymap = {
         '`': "push T;superscript",  // transpose
         '/': "push 1;swap;autoparenthesize;delimiters . . / 2",  // flex 1/x
         "\\": "push 1;swap;autoparenthesize;infix /",  // fixed 1/x
-        '_': "operator underline",
-        '?': "toggle_popup help decorations"
+        '_': "operator underline"
     },
 
     // | prefix: array/matrix operations
@@ -723,7 +714,6 @@ const EditorKeymap = {
         '!': "array_separator column solid",
         '-': "array_separator row dashed",
         '_': "array_separator row solid",
-        '?': "toggle_popup help arrays",
         'Enter': "stack_arrays"
     },
 
@@ -798,8 +788,7 @@ const EditorKeymap = {
         'y': "push \\psi",       'z': "push \\zeta",
 
         ':': "mode variant_greek",
-        ';': "infix semicolon",
-        '?': "toggle_popup help greek"
+        ';': "infix semicolon"
     },
 
     // : prefix: uppercase Greek letters
@@ -828,8 +817,7 @@ const EditorKeymap = {
         'X': "push \\Xi",        'Y': "push \\Psi",
         'N': "push \\nabla",
 
-        ':': "infix :",
-        '?': "toggle_popup help greek"
+        ':': "infix :"
     },
 
     // "variant" uppercase Greek letters - these are italic versions of the normal ones
@@ -844,9 +832,7 @@ const EditorKeymap = {
         's': "push \\varSigma",    'S': "push \\varSigma",
         'u': "push \\varUpsilon",  'U': "push \\varUpsilon",
         'x': "push \\varXi",       'X': "push \\varXi",
-        'y': "push \\varPsi",      'Y': "push \\varPsi",
-
-        '?': "toggle_popup help greek"
+        'y': "push \\varPsi",      'Y': "push \\varPsi"
     }
 };
 
