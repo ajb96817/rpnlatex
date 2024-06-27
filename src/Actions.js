@@ -209,10 +209,6 @@ class InputContext {
     clear_all_flashes() {
 	['stack_panel', 'document_panel'].forEach(elt_id =>
 	    document.getElementById(elt_id).classList.remove('errorflash'));
-        // for(let elt_id = 0; elt_id < elt_ids.length; elt_id++) {
-        //     let elt = document.getElementById(elt_ids[elt_id]);
-        //     elt.classList.remove('errorflash');
-        // }
     }
 
     notify(text) { this.notification_text = text; }
@@ -235,11 +231,9 @@ class InputContext {
             // Create a new expr instead.  The base will be parenthesized if
             // it's a low-precedence infix expression.
             base_expr = DelimiterExpr.autoparenthesize(base_expr);
-
             // This will automatically parenthesize fractions like x/y -> (x/y)^2.
             // This line can be removed if this becomes undesired behavior.
             base_expr = DelimiterExpr.autoparenthesize_frac(base_expr);
-
             return new SubscriptSuperscriptExpr(
                 base_expr,
                 (is_superscript ? null : child_expr),
@@ -251,7 +245,8 @@ class InputContext {
     // subscript or superscript depending on 'is_superscript'.
     make_subscript_superscript(stack, is_superscript) {
         const [new_stack, base_expr, child_expr] = stack.pop_exprs(2);
-        const new_expr = this._build_subscript_superscript(base_expr, child_expr, is_superscript);
+        const new_expr = this._build_subscript_superscript(
+            base_expr, child_expr, is_superscript);
         return new_stack.push_expr(new_expr);
     }
 
@@ -263,7 +258,6 @@ class InputContext {
     do_prime(stack) {
         const [new_stack, base_expr] = stack.pop_exprs(1);
         const new_prime_expr = new CommandExpr('prime', []);
-
         // Check whether the base expr is already of the form x^{\prime}, x^{\prime\prime}, etc.
         // If so, add an extra \prime into the superscript.
         if(base_expr.expr_type() === 'subscriptsuperscript' && base_expr.superscript_expr) {
@@ -284,7 +278,6 @@ class InputContext {
                 return new_stack.push_expr(new_expr);
             }
         }
-
         // Otherwise, adding a prime works just like adding a \prime superscript.
         const new_expr = this._build_subscript_superscript(base_expr, new_prime_expr, true);
         return new_stack.push_expr(new_expr);
@@ -494,13 +487,7 @@ class InputContext {
 
         // This basically works like loading from a blank file.
         let new_state = new AppState();
-
-        // // Start the document with a default header showing the filename.
-        // const heading_item = TextItem.from_string(new_filename.replaceAll('_', ' '));
-        // heading_item.is_heading = true;
-        // this.new_document = new_state.document.insert_item(heading_item);
         this.new_document = new_state.document;
-
         file_manager_state.selected_filename = file_manager_state.current_filename = new_filename;
         this.settings.last_opened_filename = new_filename;
         this.settings.save();
@@ -713,6 +700,7 @@ class InputContext {
             expr = new CommandExpr(expr.text === 'i' ? 'imath' : 'jmath');
         else if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
                 (expr.command_name === 'boldsymbol' || expr.command_name === 'mathbf')) {
+            // Check for bolded literal i/j
             const inner_expr = expr.operand_exprs[0];
             if(inner_expr.expr_type() === 'text' &&
                (inner_expr.text === 'i' || inner_expr.text === 'j'))
@@ -858,7 +846,9 @@ class InputContext {
                 new CommandExpr('quad'),
                 new CommandExpr('text', [new TextExpr(phrase.replaceAll('_', ' '))]),
                 new CommandExpr('quad')]);
-            return new_stack.push_expr(new InfixExpr([left_item.expr, right_item.expr], [operator_expr]));
+            return new_stack.push_expr(
+                InfixExpr.combine_infix(
+                    left_item.expr, right_item.expr, operator_expr));
         }
         else if((left_type === 'expr' || left_type === 'text') &&
                 (right_type === 'expr' || right_type === 'text')) {
@@ -1063,14 +1053,12 @@ class InputContext {
             return stack;  // shouldn't happen
         if(this.text_entry.length === 0)
             return this.cancel_text_entry(stack);
-
         if(textstyle === 'text' || textstyle === 'heading') {
             let item = TextItem.from_string_with_placeholders(this.text_entry);
             if(textstyle === 'heading') item.is_heading = true;
             this.cancel_text_entry(stack);
             return stack.push(item);
         }
-
         // math or roman_math or latex
         let new_expr;
         if(textstyle === 'roman_math') {
@@ -1408,7 +1396,6 @@ class InputContext {
             expr = new DelimiterExpr('(', ')', expr.middle_type, expr.inner_exprs);
         else if(expr.expr_type() !== 'delimiter')
             expr = DelimiterExpr.parenthesize(expr);
-
         return new_stack.push_expr(expr);
     }
 
@@ -1666,15 +1653,13 @@ class InputContext {
     }
 
     // Take [x_1, ..., x_n] from the stack and build a \substack{...} command.
-    // This "cheats" by converting the stacked items to LaTeX and concatenating
-    // with \\ so any structure in the stacked items will be lost, same as
-    // do_build_list(), etc.
+    // This is treated internally as a special kind of ArrayExpr.
     do_build_substack(stack) {
         const expr_count = this._require_prefix_argument();
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-        const content = exprs.map(expr => expr.to_latex()).join("\\\\");
-        const new_expr = new CommandExpr('substack', [new TextExpr(content)]);
-        return new_stack.push_expr(new_expr);
+        const rows = exprs.map(expr => [expr]);  // Nx1 array
+        return new_stack.push_expr(
+            new ArrayExpr('substack', expr_count, 1, rows));
     }
 
     do_apply_tag(stack) {

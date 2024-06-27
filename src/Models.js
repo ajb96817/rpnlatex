@@ -1805,7 +1805,7 @@ class SubscriptSuperscriptExpr extends Expr {
 // \begin{bmatrix} ... etc
 // Currently supported "array types" are:
 //   matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
-//   non-matrices (alignment environments): gathered, gather, cases, rcases
+//   non-matrices (alignment environments): gathered, gather, cases, rcases, substack
 class ArrayExpr extends Expr {
     // Stack two ArrayExprs on top of each other.
     // If there is an incompatibility such as mismatched column counts, null is returned.
@@ -1879,6 +1879,8 @@ class ArrayExpr extends Expr {
         }
     }
 
+    // element_exprs is a nested array of length 'row_count', each of which is
+    // an array of 'column_count' Exprs.
     // row_separators and column_separators can either be null or an array of N-1
     // items (where N is the row or column count respectively).  Each item can be
     // one of: [null, 'solid', 'dashed'] indicating the type of separator to put
@@ -2034,9 +2036,11 @@ class ArrayExpr extends Expr {
            !(this.column_separators.every(s => s === null) &&
              this.row_separators.every(s => s === null)))
             return this._emit_array_with_separators(emitter);
-
 	let subexpr_index = 0;
-        emitter.begin_environment(this.array_type);
+        if(this.array_type === 'substack')  // substack is a special case here
+            emitter.text("\\substack{\n");
+        else
+            emitter.begin_environment(this.array_type);
         this.element_exprs.forEach((row_exprs, row_index) => {
             if(row_index > 0)
                 emitter.row_separator();
@@ -2046,7 +2050,10 @@ class ArrayExpr extends Expr {
 		subexpr_index++;
             });
         });
-        emitter.end_environment(this.array_type);
+        if(this.array_type === 'substack')
+            emitter.text("}");
+        else
+            emitter.end_environment(this.array_type);
     }
 
     // This is a matrix with at least one column separator specified.
