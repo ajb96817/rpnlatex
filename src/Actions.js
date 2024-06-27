@@ -589,10 +589,7 @@ class InputContext {
     do_push(stack, text) {
         // TODO: handle this better
         text = text || '';  // handle 'push nothing' case
-        if(text.startsWith("\\"))
-            return stack.push_expr(new CommandExpr(text.slice(1)));
-        else
-            return stack.push_expr(new TextExpr(text));
+        return stack.push_expr(Expr.text_or_command(text));
     }
 
     do_self_push(stack) {
@@ -835,12 +832,9 @@ class InputContext {
         const left_type = left_item.item_type(), right_type = right_item.item_type();
         if(left_type === 'expr' && right_type === 'expr') {
             // Expr+Expr (the usual case).
-            let operator_expr, new_expr;
-            if(opname.startsWith("\\"))  // TODO: handle this better
-                operator_expr = new CommandExpr(opname.slice(1));
-            else
-                operator_expr = new TextExpr(opname);
-	    new_expr = InfixExpr.combine_infix(left_item.expr, right_item.expr, operator_expr);
+            let operator_expr = Expr.text_or_command(opname);
+            const new_expr = InfixExpr.combine_infix(
+                left_item.expr, right_item.expr, operator_expr);
             return new_stack.push_expr(new_expr);
         }
         else if((left_type === 'expr' || left_type === 'text') &&
@@ -881,11 +875,7 @@ class InputContext {
     // Similar to do_infix but only takes 1 item from the stack and makes a PrefixExpr.
     do_prefix(stack, opname) {
         const [new_stack, base_expr] = stack.pop_exprs(1);
-        let operator_expr;
-        if(opname.startsWith("\\"))  // TODO: handle this better
-            operator_expr = new CommandExpr(opname.slice(1));
-        else
-            operator_expr = new TextExpr(opname);
+        const operator_expr = Expr.text_or_command(opname);
         return new_stack.push_expr(new PrefixExpr(base_expr, operator_expr));
     }
 
@@ -1456,9 +1446,7 @@ class InputContext {
            operator_expr.operand_count() === 1)
             operator_expr = new SequenceExpr([
                 new CommandExpr('quad'), operator_expr, new CommandExpr('quad')]);
-        const new_expr = new InfixExpr(
-	    [left_expr, right_expr],
-	    [operator_expr]);
+        const new_expr = InfixExpr.combine_infix(left_expr, right_expr, operator_expr);
         return new_stack.push_expr(new_expr);
     }
 
@@ -1654,55 +1642,26 @@ class InputContext {
         return new_stack.push_expr(array_expr);
     }
 
-    // item1, item2, ..., N => "item1, item2, ..."
-    // Concatenate N items from the stack with separator_text between each one.
-    // 'separator_text' has two special cases:
-    //    'nothing': items are simply concatenated together.
-    //    'product': items are autoparenthesized and then concatenated together (i.e. implicit multiplication)
-    // 'final_separator_text' is used as the next to last item if provided.
-    do_build_list(stack, separator_text, final_separator_text) {
-	this._require_prefix_argument(true);
-        const expr_count = this._get_prefix_argument(1, stack.depth());
-        let [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-        if(separator_text === 'product')
-            exprs = exprs.map(expr => DelimiterExpr.autoparenthesize(expr));
-        let expr = exprs[0];
-        for(let i = 1; i < expr_count; i++) {
-            const s = (final_separator_text && i === expr_count-1) ? final_separator_text : separator_text;
-            if(!(s === 'nothing' || s === 'product')) {
-                if(s.startsWith("\\"))  // TODO: clean up this check
-		    expr = Expr.combine_pair(expr, new CommandExpr(s.slice(1)));
-	        else
-		    expr = Expr.combine_pair(expr, new TextExpr(s));
-            }
-            expr = Expr.combine_pair(expr, exprs[i]);
-        }
-        return new_stack.push_expr(expr);
-    }
-
-    // Take [x_1,...,x_n] from the stack and build an InfixExpr with
-    // the given text between each term as an infix operator.
-    // 'final_separator_text' is used as the next to last item if provided.
-    do_build_infix_list(stack, infix_text, final_separator_text) {
+    // Take [x_1,...,x_n] from the stack (where n is the prefix argument)
+    // and build an InfixExpr with the given text between each term as an infix operator.
+    // 'final_operand_text' is used as the next to last operand if provided.
+    do_build_infix_list(stack, infix_text, final_operand_text) {
 	this._require_prefix_argument(true);
         const expr_count = this._get_prefix_argument(1, stack.depth());
         const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-	// TODO: handle these repetitive s.startsWith("\\") checks more cleanly
-        const infix_operator_expr = infix_text.startsWith("\\") ?
-	      new CommandExpr(infix_text.slice(1)) : new TextExpr(infix_text);
-	let operator_exprs = [];
-	for(let i = 0; i < expr_count-1; i++)
-	    operator_exprs.push(infix_operator_expr);
-	let operand_exprs = exprs;
-	if(final_separator_text) {
-	    const final_operand = 
-		final_separator_text.startsWith("\\") ?
-		  new CommandExpr(final_separator_text.slice(1)) :
-		  new TextExpr(final_separator_text);
-	    operand_exprs.push(final_operand);
-	    operator_exprs.push(infix_operator_expr);
-	}
-	const new_expr = new InfixExpr(operand_exprs, operator_exprs);
+        const infix_operator_expr = Expr.text_or_command(infix_text);
+        let operand_exprs = exprs;
+	if(final_operand_text) {
+            // Splice in the final_operand if specified.
+	    const final_operand = Expr.text_or_command(final_operand_text);
+            operand_exprs = operand_exprs.slice(0, expr_count-1).concat(
+                [final_operand]).concat(operand_exprs.slice(expr_count-1));
+        }
+        // Build up the resulting InfixExpr one term at a time.
+        let new_expr = operand_exprs[0];
+        for(let i = 1; i < operand_exprs.length; i++)
+            new_expr = InfixExpr.combine_infix(
+                new_expr, operand_exprs[i], infix_operator_expr);
 	return new_stack.push_expr(new_expr);
     }
 

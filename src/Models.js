@@ -1029,6 +1029,15 @@ class Expr {
 	// Everything else just becomes a SequenceExpr.
         return new SequenceExpr([left, right]);
     }
+
+    // Convert a string into a TextExpr, or a CommandExpr if it begins
+    // with \ (i.e. a latex command).
+    static text_or_command(s) {
+        if(s.startsWith("\\"))
+            return new CommandExpr(s.slice(1));
+        else
+            return new TextExpr(s);
+    }
     
     expr_type() { return '???'; }
 
@@ -1324,11 +1333,13 @@ class InfixExpr extends Expr {
     // with '=' to form 'a + b = c + d', split_at_index==1 (the '=').
     // Nothing really depends on this behavior, but it simplifies things for the user when
     // using do_split_infix().
+    // 'split_type', if set, determines whether to break the expression with a newline
+    // before or after the split_at_index operator.
     constructor(operand_exprs, operator_exprs, split_at_index, split_type) {
 	super();
 	this.operand_exprs = operand_exprs;
 	this.operator_exprs = operator_exprs;
-	this.split_at_index = split_at_index;
+	this.split_at_index = split_at_index || 0;
 	this.split_type = split_type;
     }
 
