@@ -1498,14 +1498,12 @@ class InputContext {
             if(scratch > 100) scratch = 100;
             layout.stack_split = scratch;
             break;
-        case 'theme':
-            scratch = this._get_prefix_argument(1, 1);
-            if(scratch < 1 || scratch > 5) scratch = 1;
-            settings.selected_theme = ['default', 'dawn', 'dusk', 'dark', 'minimal'][scratch-1];
+        case 'inverse_video':
+            settings.inverse_video = !settings.inverse_video;
             break;
         case 'reset_layout':
             settings.layout = settings.default_layout();
-            settings.selected_theme = 'default';
+            settings.inverse_video = false;
             settings.show_mode_indicator = true;
             full_refresh_needed = true;
             break;

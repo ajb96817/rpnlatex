@@ -166,7 +166,7 @@ const EditorKeymap = {
         'r': "config reset_layout",
         'R': "config reload_page",
         's': "config stack_split",
-        't': "config theme",
+        'v': "config inverse_video",
         'z': "config zoom_factor increase",
         'Z': "config zoom_factor decrease",
         '$': "push \\$",

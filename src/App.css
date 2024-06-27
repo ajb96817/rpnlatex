@@ -11,6 +11,9 @@ body {
     background-color: #bbb;
     height: 100%;
 }
+body.inverse_video {
+    filter: invert(100%);
+}
 
 #root {
     width: 100%;
@@ -33,25 +36,6 @@ div.help .version_info {
     font-size: 80%;
 }
 
-
-#stack_panel.errorflash {
-    animation-name: errorflash_stack_theme_default;
-    animation-duration: 0.3s;
-}
-/* NOTE: each area/theme errorflash combo needs its own animation entry it seems */
-@keyframes errorflash_stack_theme_default { from { background-color: #fdd; } to { background-color: #f8f8f8; } }
-@keyframes errorflash_stack_theme_dawn { from { background-color: #fcc; } to { background-color: #f7f2ce; } }
-@keyframes errorflash_stack_theme_dusk { from { background-color: #935d9b; } to { background-color: #447; } }
-@keyframes errorflash_stack_theme_dark { from { background-color: #600; } to { background-color: #333; } }
-
-#document_panel.errorflash {
-    animation-name: errorflash_document_theme_default;
-    animation-duration: 0.3s;
-}
-@keyframes errorflash_document_theme_default { from { background-color: #fdd; } to { background-color: #fff; } }
-@keyframes errorflash_document_theme_dawn { from { background-color: #fcc; } to { background-color: #ffd; } }
-@keyframes errorflash_document_theme_dusk { from { background-color: #935d9b; } to { background-color: #336; } }
-@keyframes errorflash_document_theme_dark { from { background-color: #600; } to { background-color: black; } }
 
 
 /* div.expr_item {}
@@ -126,7 +110,6 @@ div.latex_source_item div.latex_source {
 }
 
 div.tag_expr {
-    /* TODO: customize colors per theme */
     position: absolute;
     z-index: 10;
     width: auto;
@@ -141,86 +124,6 @@ div.tag_expr {
 /* for iphone */
 textarea { font-size: 16px; }
 
-/* User-selectable color themes */
-
-/* Default theme */
-#panel_layout.theme_default div.panel { background-color: #f8f8f8; }
-#panel_layout.theme_default #document_panel, #panel_layout.theme_default #aux_panel { background-color: white; }
-
-/* Dawn theme */
-#panel_layout.theme_dawn div.panel { background-color: #f7f2ce; }
-#panel_layout.theme_dawn { color: #400; /*    scrollbar-color: #996 #eee; */ }
-#panel_layout.theme_dawn a, #panel_layout.theme_dawn a:visited { color: #e46; }
-#panel_layout.theme_dawn #document_panel, #panel_layout.theme_dawn #aux_panel { background-color: #ffd; }
-#panel_layout.theme_dawn div.stack_items div.selected { background-color: #dda; }
-#panel_layout.theme_dawn #document_panel div.selected, #panel_layout.theme_dawn ul.files_list li.selected_file { background-color: #e0f0e0; }
-#panel_layout.theme_dawn div.stack_items textarea { background-color: #336; color: white; }
-#panel_layout.theme_dawn #stack_panel.errorflash { animation-name: errorflash_stack_theme_dawn; }
-#panel_layout.theme_dawn #document_panel.errorflash { animation-name: errorflash_document_theme_dawn; }
-#panel_layout.theme_dawn span.keybinding { color: #822; background-color: #edb; border-color: #a66; }
-#panel_layout.theme_dawn div.help h2 { color: #400; border-color: #822; }
-#panel_layout.theme_dawn div.separator_item hr { background-color: #dce695; }
-#panel_layout.theme_dawn div.heading_style div.latex_fragment_inner { border-bottom-color: #dce695; }
-
-/* Dusk theme */
-#panel_layout.theme_dusk div.panel { background-color: #447; }
-#panel_layout.theme_dusk { color: #ddf; /*    scrollbar-color: #996 #eee; */ }
-#panel_layout.theme_dusk a, #panel_layout.theme_dusk a:visited { color: #bb8aeb; }
-#panel_layout.theme_dusk #document_panel, #panel_layout.theme_dusk #aux_panel { background-color: #336; }
-#panel_layout.theme_dusk #document_panel div.selected, #panel_layout.theme_dusk ul.files_list li.selected_file { background-color: #66a; }
-#panel_layout.theme_dusk div.stack_items div.selected { background-color: #225; }
-#panel_layout.theme_dusk div.stack_items textarea { background-color: #336; color: #bbf; }
-#panel_layout.theme_dusk #stack_panel.errorflash { animation-name: errorflash_stack_theme_dusk; }
-#panel_layout.theme_dusk #stack_panel { box-shadow: inset 0 0 1em 0 #000; }
-#panel_layout.theme_dusk #document_panel.errorflash { animation-name: errorflash_document_theme_dusk; }
-#panel_layout.theme_dusk span.keybinding { color: #c7c5ca; background-color: #204080; border-color: #808080; }
-#panel_layout.theme_dusk div.help h2 { border-color: #56999f; }
-#panel_layout.theme_dusk div.separator_item hr { background-color: #56999f; }
-#panel_layout.theme_dusk div.heading_style div.latex_fragment_inner { border-bottom-color: #56999f; }
-#panel_layout.theme_dusk div.tag_expr { background-color: #2c67a7; border-color: #7796b8; }
-#panel_layout.theme_dusk #popup_panel { background-color: #020; box-shadow: 0 0 1em 2px #000; }
-#panel_layout.theme_dusk table.file_table th { background-color: #448; }
-#panel_layout.theme_dusk table.file_table tr.selected_file td { background-color: #486; }
-#panel_layout.theme_dusk .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
-#panel_layout.theme_dusk .emphasized2 { color: #f8c; text-shadow: 0 0 0.1em #f88; }
-#panel_layout.theme_dusk .dissect_highlight_brace { color: #6f6; }
-#panel_layout.theme_dusk .dissect_highlight { color: #ff4; text-shadow: 0 0 0.16em #8f8; animation: dissect_blink_theme_dusk 0.75s steps(1) infinite; }
-@keyframes dissect_blink_theme_dusk { 0% { color: #ff4; } 50% { color: #8f8; }}
-#panel_layout.theme_dusk div.latex_source_item div.latex_source { color: #bbb; background-color: #004; }
-
-/* Dark theme */
-#panel_layout.theme_dark div.panel { background-color: #222; }
-#panel_layout.theme_dark { color: white; }
-#panel_layout.theme_dark a, #panel_layout.theme_dark a:visited { color: #99f; }
-#panel_layout.theme_dark #document_panel, #panel_layout.theme_dark #aux_panel { background-color: black; }
-#panel_layout.theme_dark #document_panel div.selected, #panel_layout.theme_dark ul.files_list li.selected_file { background-color: #333; }
-#panel_layout.theme_dark div.stack_items div.selected { background-color: #333; }
-#panel_layout.theme_dark div.stack_items textarea { background-color: #336; color: white; }
-#panel_layout.theme_dark #stack_panel.errorflash { animation-name: errorflash_stack_theme_dark; }
-#panel_layout.theme_dark #stack_panel { box-shadow: inset 0 0 1em 0 #000; }
-#panel_layout.theme_dark #document_panel.errorflash { animation-name: errorflash_document_theme_dark; }
-#panel_layout.theme_dark span.keybinding { color: #6f6; background-color: #040; }
-#panel_layout.theme_dark div.help h2 { border-color: #868686; }
-#panel_layout.theme_dark div.separator_item hr { background-color: #868686; }
-#panel_layout.theme_dark div.heading_style div.latex_fragment_inner { border-bottom-color: #868686; }
-#panel_layout.theme_dark div.tag_expr { background-color: #422; border-color: #833; }
-#panel_layout.theme_dark #popup_panel { background-color: #200; box-shadow: 0 0 1em 2px #000; }
-#panel_layout.theme_dark table.file_table th { background-color: #448; }
-#panel_layout.theme_dark table.file_table tr.selected_file td { background-color: #486; }
-#panel_layout.theme_dark .emphasized { color: #cfc; text-shadow: 0 0 0.1em #faa; }
-#panel_layout.theme_dark .dissect_highlight_brace { color: #6f6; }
-#panel_layout.theme_dark .dissect_highlight { color: #ff4; text-shadow: 0 0 0.16em #8f8; animation: dissect_blink_theme_dusk 0.75s steps(1) infinite; }
-#panel_layout.theme_dark div.latex_source_item div.latex_source { color: #bbb; background-color: #333; }
-
-/* Minimal theme */
-#panel_layout.theme_minimal div.panel { background-color: white; }
-#panel_layout.theme_minimal #stack_panel.errorflash { animation-name: none; }
-#panel_layout.theme_minimal #stack_panel { box-shadow: none; }
-#panel_layout.theme_minimal #stack_panel div.indicator span.mode { color: white; }
-#panel_layout.theme_minimal #document_panel.errorflash { animation-name: none; }
-#panel_layout.theme_minimal #document_panel div.selected { box-shadow: inset 0 0 4px 0 #bbb; }
-
-
 
 /* These are to support settings.layout.rightalign_math options. */
 .rightalign_math .katex-display.fleqn > .katex {
@@ -233,12 +136,22 @@ textarea { font-size: 16px; }
     right: initial;
 }
 
-
-/* TODO: customize color based on theme (but not really needed with the current themes) */
 .placeholder_expr { color: #6c6; }  
 
-
 #panel_layout { height: 100%; }
+
+div.panel { background-color: #f8f8f8; }
+#aux_panel { background-color: white; }
+
+#stack_panel.errorflash {
+    animation-name: errorflash_stack;
+    animation-duration: 0.3s;
+}
+@keyframes errorflash_stack {
+    from { background-color: #fdd; }
+    to { background-color: #f8f8f8; }
+}
+
 #stack_panel {
     position: absolute;
     height: 100%;
@@ -246,7 +159,6 @@ textarea { font-size: 16px; }
     overflow-y: auto;
     box-shadow: inset 0 0 1em 0 #ccc;
 }
-
 #stack_panel div.indicator {
     position: absolute;
     right: 0.5em;
@@ -316,6 +228,15 @@ div.stack_items div.latex_entry_mode::before {
 #document_panel {
     position: absolute;
     overflow: hidden;
+    background-color: white;
+}
+#document_panel.errorflash {
+    animation-name: errorflash_document;
+    animation-duration: 0.3s;
+}
+@keyframes errorflash_document {
+    from { background-color: #fdd; }
+    to { background-color: #fff; }
 }
 #document_panel div.selected {
     background-color: #eee;
@@ -365,8 +286,11 @@ span.keybinding {
     margin: 0.5em 0;
     padding: 0;
 }
-#files_panel div.current_file span.filename { padding-left: 0.5em; font-weight: bold; font-family: monospace; }
-
+#files_panel div.current_file span.filename {
+    padding-left: 0.5em;
+    font-weight: bold;
+    font-family: monospace;
+}
 table.file_table {
     border: 1px solid #ddd;
     border-collapse: collapse;

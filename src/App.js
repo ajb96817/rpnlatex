@@ -129,6 +129,11 @@ class App extends React.Component {
     }
 
     apply_layout_to_dom() {
+        let body = document.getElementById('body');
+        if(this.state.settings.inverse_video)
+            body.classList.add('inverse_video');
+        else
+            body.classList.remove('inverse_video');
         if(this.stack_panel_ref.current && this.document_panel_ref.current &&
            this.popup_panel_ref.current) {
             this.state.settings.apply_layout_to_dom(
@@ -176,7 +181,7 @@ class App extends React.Component {
 		}));
 
         return $e(
-            'div', {id: 'panel_layout', className: 'theme_' + settings.selected_theme},
+            'div', {id: 'panel_layout'},
             $e('div', {className: 'panel stack_panel', id: 'stack_panel', ref: this.stack_panel_ref},
 	       ...stack_panel_components),
             $e('div', {className: 'panel document_panel', id: 'document_panel', ref: this.document_panel_ref},

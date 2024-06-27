@@ -42,7 +42,7 @@ class Settings {
     
     constructor() {
         this.current_keymap = new Keymap();
-        this.selected_theme = 'default';
+        this.inverse_video = false;
         this.last_opened_filename = null;
         this.popup_mode = null;  // null, 'help', 'files'
 	this.show_mode_indicator = true;
@@ -132,7 +132,10 @@ class Settings {
 }
 
 Settings.saved_keys = [
-    'selected_theme', 'last_opened_filename', 'popup_mode', 'layout',
+    'inverse_video',
+    'last_opened_filename',
+    'popup_mode',
+    'layout',
     'show_mode_indicator'
 ];
 
@@ -1162,7 +1165,8 @@ class CommandExpr extends Expr {
         if(this.command_name !== '')
             emitter.command(this.command_name, this.options);
         // Braces need to be forced around each operand, even single-letter operands.
-        this.operand_exprs.forEach((operand_expr, index) => emitter.grouped_expr(operand_expr, 'force', index));
+        this.operand_exprs.forEach((operand_expr, index) =>
+            emitter.grouped_expr(operand_expr, 'force', index));
     }
 
     visit(fn) {
