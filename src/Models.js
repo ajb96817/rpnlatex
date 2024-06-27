@@ -838,7 +838,7 @@ class ExprPath {
 
     // Return a new ExprPath that selects the parent Expr of the current
     // subexpression(s).
-    ascend(skip_skippable_exprs) {
+    ascend() {
 	return new ExprPath(
 	    this.expr,
 	    this.subexpr_indexes.slice(0, -1));
@@ -1339,8 +1339,7 @@ class InfixExpr extends Expr {
     // If the given infix operator is a simple command like '+' or '\cap',
     // return the command name (without the initial \ if it has one).
     // If it's anything more complex, return null.
-    // If 'op_expr' is omitted, check only the first operator, and return
-    // null if there is more than one operator.
+    // If 'op_expr' is omitted, check only the operator at the split_at point.
     operator_text(op_expr) {
 	if(op_expr) {
             if(op_expr.expr_type() === 'command' && op_expr.operand_count() === 0)
@@ -1350,12 +1349,8 @@ class InfixExpr extends Expr {
             else
 		return null;
 	}
-	else {
-	    if(this.operator_exprs.length === 1)
-		return this.operator_text(this.operator_exprs[0]);
-	    else
-		return null;
-	}
+	else
+            return this.operator_text(this.operator_exprs[this.split_at_index]);
     }
 
     // Check if this is a low-precedence infix expression like x+y
@@ -1820,41 +1815,42 @@ class ArrayExpr extends Expr {
             return [expr];
         case 'infix':
             if(expr.expr_type() === 'infix') {
-		// Left side will be the first operand expression in the infix.
-		// Right side will be a new infix expression with the remaining operators
-		// and operands, but we have to insert a new initial "fake" blank operand to
-		// give it the right structure.
+		// Left side will be the left "side" of the infix at its split_at_index point.
+                // Right side will be the right "side", but we have to insert a new initial "fake"
+                // blank operand to give it the right structure.
 		// In the special case of a two-operand InfixExpr, a PrefixExpr will be used instead.
 		if(expr.operator_exprs.length === 1)
                     return [
 			expr.operand_exprs[0],
 			new PrefixExpr(expr.operand_exprs[1], expr.operator_exprs[0])];
 		else return [
-		    expr.operand_exprs[0],
-		    new InfixExpr(
-			[TextExpr.blank()].concat(expr.operand_exprs.slice(1)),
-			expr.operator_exprs)];
+                    expr.extract_side_at(expr.split_at_index, 'left'),
+                    InfixExpr.combine_infix(
+                        TextExpr.blank(),
+                        expr.extract_side_at(expr.split_at_index, 'right'),
+                        expr.operator_exprs[expr.split_at_index])];
 	    }
             else
                 return [expr, null];
         case 'colon':
             if(expr.expr_type() === 'infix' && expr.operator_text() === ':')
-                return expr.operand_exprs;  // should always be 2
+                return [
+                    expr.extract_side_at(expr.split_at_index, 'left'),
+                    expr.extract_side_at(expr.split_at_index, 'right')];
             else
                 return [expr, null];
         case 'colon_if':
             if(expr.expr_type() === 'infix' && expr.operator_text() === ':')
                 return [
-                    expr.operand_exprs[0],
+                    expr.extract_side_at(expr.split_at_index, 'left'),
                     Expr.combine_pair(
                         Expr.combine_pair(
                             new CommandExpr('mathrm', [new TextExpr('if')]),
                             new CommandExpr('enspace'), []),
-                        expr.operand_exprs[1])];
-            else
-                return [
-                    expr,
-                    new CommandExpr('mathrm', [new TextExpr('otherwise')])];
+                        expr.extract_side_at(expr.split_at_index, 'right'))];
+            else return [
+                expr,
+                new CommandExpr('mathrm', [new TextExpr('otherwise')])];
         default:
             return [expr];
         }
