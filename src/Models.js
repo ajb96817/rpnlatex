@@ -1658,6 +1658,18 @@ class DelimiterExpr extends Expr {
 	    this.inner_exprs, fixed_size);
     }
 
+    // Return a version of this expression with the delimiters removed.
+    // For simple delimiter expressions, this just returns the wrapped expression.
+    // If there are multiple inner_exprs, this has to be "faked" by replacing the
+    // delimiters with blank ones.
+    without_delimiters() {
+        if(this.inner_exprs.length === 1)
+            return this.inner_exprs[0];
+        else return new DelimiterExpr(
+            '.', '.', this.middle_type,
+            this.inner_exprs, this.fixed_size);
+    }
+
     to_json() {
 	let json = super.to_json();
 	if(this.fixed_size) json.fixed_size = true;

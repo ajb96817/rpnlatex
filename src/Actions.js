@@ -830,6 +830,14 @@ class InputContext {
 	    stack.type_error();
     }
 
+    do_remove_delimiters(stack) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	if(expr.expr_type() === 'delimiter')
+            return new_stack.push_expr(expr.without_delimiters());
+        else
+            return stack;  // not considered an error
+    }
+
     // opname can be either a \latex_command or a regular string like '+'
     // The cases of Expr+Expr and Expr+Text (or Text+Text) are handled separately.
     do_infix(stack, opname) {
@@ -984,7 +992,6 @@ class InputContext {
     // Extract either the left or right side of an InfixExpr
     // (or a DelimiterExpr with 2 inner expressions; cf. do_swap_infix).
     do_extract_infix_side(stack, which_side) {
-        // eslint-disable-next-line no-unused-vars
         const [new_stack, expr] = stack.pop_exprs(1);
 	let extracted_expr = null;
 	if(expr.expr_type() === 'infix')
@@ -992,10 +999,9 @@ class InputContext {
 	else if(expr.expr_type() === 'delimiter' &&
 		expr.inner_exprs.length === 2)
 	    extracted_expr = (which_side === 'right') ? expr.inner_exprs[1] : expr.inner_exprs[0];
-        else return stack.type_error();
-        // NOTE: 'stack' and not 'new_stack' is used here in order to preserve
-        // the original expression on the stack.
-        return stack.push_expr(extracted_expr);
+        else
+            return stack.type_error();
+        return new_stack.push_expr(extracted_expr);
     }
 
     do_start_text_entry(stack, text_entry_mode, initial_text) {
@@ -1392,14 +1398,27 @@ class InputContext {
     do_delimiters(stack, left, right, middle, expr_count_string) {
         const expr_count = (expr_count_string === undefined) ? 1 : parseInt(expr_count_string);
         const [new_stack, ...inner_exprs] = stack.pop_exprs(expr_count);
-        const new_expr = new DelimiterExpr(left, right, middle, inner_exprs);
+        let new_expr = null;
+        // Special case: if the stack top is already a DelimiterExpr with "blank" delimiters
+        // we can just rebuild a new DelimiterExpr with the specified delimiters instead,
+        // without wrapping it in another DelimiterExpr.
+        if(expr_count === 1 && inner_exprs[0].expr_type() === 'delimiter' &&
+           inner_exprs[0].left_type === '.' && inner_exprs[0].right_type === '.') {
+            new_expr = new DelimiterExpr(
+                left, right, inner_exprs[0].middle_type,
+                inner_exprs[0].inner_exprs);
+        }
+        else {
+            // The usual case.
+            new_expr = new DelimiterExpr(
+                left, right, middle, inner_exprs);
+        }
         return new_stack.push_expr(new_expr);
     }
 
     // Wrap stack top in parentheses if it's not already in delimiters.
     do_parenthesize(stack) {
         let [new_stack, expr] = stack.pop_exprs(1);
-
         // Special case: \left. X \middle| \right. style delimiters
         // are treated as a kind of pseudo-infix expression here.
         // This is to make things like Pr(x | y) work better when | is a

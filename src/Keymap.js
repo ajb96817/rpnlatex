@@ -208,6 +208,7 @@ const EditorKeymap = {
         'b': "delimiters \\langle \\vert",  // <x| Dirac bra
         'c': "delimiters \\lceil \\rceil",
         'f': "delimiters \\lfloor \\rfloor",
+	'F': "toggle_fixed_size_delimiters",
         'g': "delimiters \\lgroup \\rgroup",
         'i': "delimiters \\langle \\rangle \\vert 2",  // <x|y>; mnemonic: [i]nner product
         'I': "delimiters \\langle \\rangle \\vert 3",  // <x|y|z>
@@ -217,10 +218,10 @@ const EditorKeymap = {
         'N': "delimiters \\lVert \\rVert",  // alias for n
         'w': "delimiters . \\vert",  // "where"
         'W': "delimiters . \\vert",  // alias for w
+        'x': "remove_delimiters",
         '|': "delimiters \\vert \\vert",
         '<': "delimiters \\langle \\rangle",
         '(': "delimiters ( )",
-	')': "toggle_fixed_size_delimiters",
         '[': "delimiters [ ]",
         ']': "push \\llbracket;swap;concat;push \\rrbracket;concat",
         '{': "delimiters \\{ \\}"
@@ -561,7 +562,7 @@ const EditorKeymap = {
         '~': "infix \\sim",
 	'-': "infix \\vdash",
         '|': "infix \\vDash",
-        '?': "push ?;push =;operator stackrel 2;apply_infix"
+        '?': "push ?;push =;operator overset 2;apply_infix"
     },
 
     // apostrophe prefix: assorted standalone math symbols
