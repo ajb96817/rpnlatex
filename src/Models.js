@@ -348,20 +348,16 @@ class UndoStack {
         if(this.state_stack.length > this.undo_count &&
            this.state_stack[this.state_stack.length - this.undo_count - 1].same_as(state))
             return null;
-
         if(this.undo_count > 0) {
             // Truncate already-undone saved states.  This means that 'redo' will no longer work
             // until some more undos are performed.
             this.state_stack = this.state_stack.slice(0, this.state_stack.length - this.undo_count);
             this.undo_count = 0;
         }
-
         this.state_stack.push(state);
-
         // Prevent the undo list from growing indefinitely.
         if(this.state_stack.length > this.max_stack_depth)
             this.state_stack = this.state_stack.slice(this.state_stack.length - this.max_stack_depth);
-
         return state;
     }
 
@@ -370,7 +366,8 @@ class UndoStack {
             this.undo_count++;
             return this.state_stack[this.state_stack.length - this.undo_count - 1];
         }
-        else return null;
+        else
+            return null;
     }
 
     redo_state() {
@@ -378,7 +375,8 @@ class UndoStack {
             this.undo_count--;
             return this.state_stack[this.state_stack.length - this.undo_count - 1];
         }
-        else return null;
+        else
+            return null;
     }
 }
 
@@ -507,7 +505,6 @@ class DocumentStorage {
         // IndexedDB also does this serialization itself, but there doesn't
         // seem to be any way to reuse that result directly.
         const filesize = JSON.stringify(serialized_json).length;
-
         const metadata_json = {
             filename: filename,
             filesize: filesize,
@@ -516,7 +513,6 @@ class DocumentStorage {
             document_item_count: app_state.document.items.length,
             timestamp: new Date()
         };
-        
         let transaction = this.create_transaction(true);
         transaction.objectStore('documents').put(serialized_json);
         transaction.objectStore('documents_metadata').put(metadata_json);
@@ -804,8 +800,10 @@ class ExprPath {
     // This comparison is needed by the LatexEmitter to determine when the
     // rendering path matches up with the selected expression path.
     equals(other_path) {
-	if(this.expr !== other_path.expr) return false;
-	if(this.subexpr_indexes.length !== other_path.subexpr_indexes.length) return false;
+	if(this.expr !== other_path.expr)
+            return false;
+	if(this.subexpr_indexes.length !== other_path.subexpr_indexes.length)
+            return false;
 	for(let i = 0; i < this.subexpr_indexes.length; i++)
 	    if(this.subexpr_indexes[i] !== other_path.subexpr_indexes[i])
 		return false;
@@ -1291,14 +1289,16 @@ class PrefixExpr extends Expr {
 
 
 // Represents two or more expressions joined by infix operators (like + or \wedge).
-// This is similar to concatenated TextNodes, but using InfixExpr lets things like ArrayExpr
-// automatically detect where to put alignments when the contents are InfixExprs.
 // Fields:
 //   - operand_exprs: The x,y,z in 'x + y - z'.  There must be at least 2.
 //   - operator_exprs: The +,- in 'x + y - z'.  Length must be 1 less than operand_exprs.
-//   - split_at_index: if not null, the equation is split via \\ and \qquad at the
-//        given operator index (i.e. split_at_index === 0 breaks at the first operator).
-//   - split_type: 'before', or 'after', indicating where the line break goes.
+//   - split_at_index: Index of the operator_expr that is considered the 'split point'
+//     for this InfixExpr.  Generally this is the last operator used to create the
+//     infix expression.  For binary expressions this is 0; for something like x+y = z+w
+//     it would be 1 if the '=' was used to join the existing x+y and z+w.
+//   - split_type: null, 'before', or 'after'; if not null, the equation is split
+//     via \\ and \qquad at the split_at_index (i.e. split_at_index === 0 breaks
+//     at the first operator).
 class InfixExpr extends Expr {
     // Combine two existing expressions into an InfixExpr.
     // If one or both of the expressions are already InfixExprs, they are
@@ -1328,13 +1328,6 @@ class InfixExpr extends Expr {
 	return new InfixExpr(new_operand_exprs, new_operator_exprs, split_at_index);
     }
     
-    // NOTE: split_at_index is always set to the index of the most 'recent' operator
-    // in the creation of this InfixExpr.  For example, when combining 'a + b' and 'c + d'
-    // with '=' to form 'a + b = c + d', split_at_index==1 (the '=').
-    // Nothing really depends on this behavior, but it simplifies things for the user when
-    // using do_split_infix().
-    // 'split_type', if set, determines whether to break the expression with a newline
-    // before or after the split_at_index operator.
     constructor(operand_exprs, operator_exprs, split_at_index, split_type) {
 	super();
 	this.operand_exprs = operand_exprs;
@@ -1450,8 +1443,10 @@ class InfixExpr extends Expr {
                   [this.operator_exprs[operator_index]]).concat(
                       this.operator_exprs.slice(0, operator_index));
         return new InfixExpr(
-            new_operand_exprs, new_operator_exprs,
-            this.split_at_index, this.split_type);
+            new_operand_exprs,
+            new_operator_exprs,
+            new_operator_exprs.length - this.split_at_index - 1,
+            this.split_type);
     }
 
     // Extract everything to one side of the given operator index.
