@@ -931,7 +931,7 @@ class Expr {
         case 'sequence':
             return new SequenceExpr(
 		this._list(json.exprs),
-		!!json.inhibit_combining);
+		!!json.fused);
         case 'delimiter':
             return new DelimiterExpr(
                 json.left_type,
@@ -962,12 +962,12 @@ class Expr {
     // nodes when possible, instead of creating nested SequenceExprs.
     static combine_pair(left, right) {
         const left_type = left.expr_type(), right_type = right.expr_type();
-        if(left_type === 'sequence' && !left.inhibit_combining &&
-	   right_type === 'sequence' && !right.inhibit_combining)
+        if(left_type === 'sequence' && !left.fused &&
+	   right_type === 'sequence' && !right.fused)
             return new SequenceExpr(left.exprs.concat(right.exprs));
         else if(left_type === 'text' && right_type === 'text')
             return new TextExpr(left.text + right.text);
-        else if(left_type === 'sequence' && !left.inhibit_combining &&
+        else if(left_type === 'sequence' && !left.fused &&
 		right_type === 'text' &&
 		left.exprs[left.exprs.length-1].expr_type() === 'text') {
             // Left sequence ends in a Text; merge it with the new Text.
@@ -977,18 +977,18 @@ class Expr {
                 ]));
         }
         else if(left_type === 'text' &&
-		right_type === 'sequence' && !right.inhibit_combining &&
+		right_type === 'sequence' && !right.fused &&
                 right.exprs[0].expr_type() === 'text') {
             // Right sequence starts with a Text; merge it with the new Text.
             return new SequenceExpr(
                 [new TextExpr(left.text + right.exprs[0].text)
                 ].concat(right.exprs.slice(1)));
         }
-        else if(left_type === 'sequence' && !left.inhibit_combining) {
+        else if(left_type === 'sequence' && !left.fused) {
             // Sequence + anything => longer Sequence
             return new SequenceExpr(left.exprs.concat([right]));
         }
-        else if(right_type === 'sequence' && !right.inhibit_combining) {
+        else if(right_type === 'sequence' && !right.fused) {
             // Anything + Sequence => longer Sequence
             return new SequenceExpr([left].concat(right.exprs));
         }
@@ -1503,15 +1503,15 @@ class TextExpr extends Expr {
 
 // Represents a sequence of expressions all concatenated together.
 // Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
+// If 'fused' is true, this will not be combined with other adjacent
+// expressions in Expr.combine_pair(), etc.
+// This can be used to group things that functionally belong together
+// like f(x), which matters for 'dissect' mode.
 class SequenceExpr extends Expr {
-    // If inhibit_combining is true, this will not be combined with other
-    // adjacent expressions in Expr.combine_pair(), etc.
-    // This can be used to group things that functionally belong together
-    // like f(x), which matters for 'dissect' mode.
-    constructor(exprs, inhibit_combining) {
+    constructor(exprs, fused) {
         super();
         this.exprs = exprs;
-	this.inhibit_combining = !!inhibit_combining;
+	this.fused = !!fused;
     }
 
     expr_type() { return 'sequence'; }
@@ -1519,12 +1519,24 @@ class SequenceExpr extends Expr {
 
     to_json() {
 	let json = super.to_json();
-	if(this.inhibit_combining) json.inhibit_combining = true;
+	if(this.fused) json.fused = true;
 	return json;
     }
 
+    // Special case: Two-element "fused" SequenceExprs of the form
+    // [Expr, DelimiterExpr] automatically wrap the DelimiterExpr in an "empty"
+    // latex command (i.e., set of braces).
+    // For example: f(x) is [TextExpr('f'), DelimiterExpr('(', 'x', ')')]
+    // so this becomes f{(x)} instead of f(x).  This has the effect of tightening
+    // the spacing after f to better match normal function notation.
     emit_latex(emitter) {
-        this.exprs.forEach((expr, index) => emitter.expr(expr, index));
+        if(this.exprs.length === 2 &&
+           this.exprs[1].expr_type() === 'delimiter') {
+            emitter.expr(this.exprs[0], 0);
+            emitter.grouped_expr(this.exprs[1], 'force', 1);
+        }
+        else
+            this.exprs.forEach((expr, index) => emitter.expr(expr, index));
     }
 
     visit(fn) {

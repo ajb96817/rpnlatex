@@ -631,16 +631,6 @@ class InputContext {
         return new_stack.push_expr(result_expr);
     }
 
-    // Wrap the stack top in an "empty" CommandExpr.  This causes the expression's
-    // LaTeX to be rendered inside {} braces which is needed to fix up the spacing for
-    // function applications.  For example: f\left(x\right) has extra spacing after
-    // the 'f', but f{\left(x\right)} does not.
-    do_wrap_braces(stack) {
-        const [new_stack, expr] = stack.pop_exprs(1);
-        const result_expr = new CommandExpr('', [expr]);
-        return new_stack.push_expr(result_expr);
-    }
-
     // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,
     // unwrap it and re-wrap the font face command inside \pmb.
     // e.g. \boldsymbol{A} -> \pmb{A}

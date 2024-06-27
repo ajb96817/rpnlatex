@@ -74,9 +74,9 @@ const EditorKeymap = {
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
         'Ctrl+m': "prefix -",
-        'Ctrl+o': "parenthesize;wrap_braces;fuse",  // -> f(x): same as [/][o]
+        'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
         'Ctrl+p': "delimiters ( )",
-        'Ctrl+r': "infix ,;parenthesize;wrap_braces;fuse",  // -> f(x,y): same as [/][r]
+        'Ctrl+r': "infix ,;parenthesize;fuse",  // -> f(x,y): same as [/][r]
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
         'Ctrl+v': "paste_from_clipboard",
@@ -271,18 +271,18 @@ const EditorKeymap = {
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
         'I': "push \\int;swap;superscript;swap;subscript",
-        'k': "delimiters . . \\vert 2;parenthesize;wrap_braces;fuse",  // f x y -> f(x|y)
+        'k': "delimiters . . \\vert 2;parenthesize;fuse",  // f x y -> f(x|y)
         'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
         'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
         'n': "named_function ln",
         'N': "named_function log",
-        'o': "parenthesize;wrap_braces;fuse",  // f x -> f(x)  "of" (wrap_braces closes up the spacing after 'f')
+        'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
         'O': "operator overset 2",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
-        'r': "infix ,;parenthesize;wrap_braces;fuse",  // f x y -> f(x,y)
+        'r': "infix ,;parenthesize;fuse",  // f x y -> f(x,y)
         's': "named_function sin",
         'S': "named_function sec",
         't': "named_function tan",
@@ -291,15 +291,15 @@ const EditorKeymap = {
         'v': "parenthesize;push Var;operator operatorname;swap;concat",
         'V': "swap;push ,;concat;swap;concat;parenthesize;push Cov;operator operatorname;swap;concat",
 	'w': "swap_infix",
-        'x': "push E;operator mathbb;swap;delimiters [ ];wrap_braces;concat",  // E[x] (expectation)
-        'X': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;push E;operator mathbb;swap;concat",  // E[y|x]
-        'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];wrap_braces;concat",  // E_x[y] (with subscript)
-        'Y': "unrot;push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];wrap_braces;swap;push E;operator mathbb;swap;subscript;swap;concat",  // E_x[z|y]
+        'x': "push E;operator mathbb;swap;delimiters [ ];fuse",  // E[x] (expectation)
+        'X': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];push E;operator mathbb;swap;fuse",  // E[y|x]
+        'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
+        'Y': "unrot;push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];swap;push E;operator mathbb;swap;subscript;swap;fuse",  // E_x[z|y]
         ';': "apply_tag",
         ',': "split_infix",
         '/': "operator frac 2",
-        '[': "delimiters [ ];wrap_braces;concat",  // f x -> f[x]
-        ']': "delimiters \\{ \\};wrap_braces;concat",  // f x -> f{x}
+        '[': "delimiters [ ];fuse",  // f x -> f[x]
+        ']': "delimiters \\{ \\};fuse",  // f x -> f{x}
         '}': "swap;operator underbrace;swap;subscript",
         '{': "swap;operator overbrace;swap;superscript",
         '<': "extract_infix_side left",
