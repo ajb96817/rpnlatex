@@ -2181,20 +2181,6 @@ class Item {
         }
     }
 
-    // // Create an appropriate Item subclass instance for the given string.
-    // // If string is wrapped in $$ pairs, it's treated as an ExprItem containing raw LaTeX code.
-    // // Otherwise, it's treated as Markdown text.
-    // static from_string(string) {
-    //     string = (string || '').trim();
-    //     // NOTE: .slice(2) here is to avoid pathological cases '$$', '$$$'
-    //     if(string.startsWith('$$') && string.slice(2).endsWith('$$')) {
-    //         const latex = string.slice(2, -2);
-    //         return new ExprItem(new TextExpr(latex));
-    //     }
-    //     else
-    //         return new MarkdownItem(string);
-    // }
-    
     constructor() {
         this.serial = Item.next_serial();
     }
@@ -2373,10 +2359,10 @@ class TextItem extends Item {
     static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
     static empty_item() { return new TextItem([], true); }
 
-    // "Parse" a string which may or may not contain certain escape sequence:
+    // "Parse" a string which may or may not contain certain escape sequences:
     //    [] - converts into a TextItemExprElement wrapping a PlaceholderExpr
     //    **bold text** - converts into a bolded TextItemTextElement
-    //    //italic text// - converts into an italic TextItemTextElement (not yet implemented)
+    //    //italic text// - converts into an italic TextItemTextElement
     // The result is returned as an array of TextItemElement subclass instances.
     static parse_string(s) {
         // First handle [] placeholders.
@@ -2389,8 +2375,7 @@ class TextItem extends Item {
             const pieces2 = pieces[i].split('**');
             for(let j = 0; j < pieces2.length; j++) {
                 // Every odd-index piece2 is to be bolded; but if the total number of pieces
-                // is also odd that means there is an unpaired **, so that last odd piece
-                // stays unbolded;
+                // is even that means there is an unpaired **, so that last odd piece stays unbolded.
                 const is_bold = (j % 2 === 1) && (j < pieces2.length-1);
                 if(pieces2[j].length > 0) {
                     // Handle //italic// within each of these sub-pieces using similar logic,
@@ -2421,7 +2406,8 @@ class TextItem extends Item {
             separator_text ? [new TextItemRawElement(separator_text)] : [],
             item2.elements);
         // Coalesce adjacent elements.  Rules are:
-        //   - Adjacent TextElements are concatenated directly as long as their is_bold flags match.
+        //   - Adjacent TextElements are concatenated directly as long as their
+        //     is_bold and is_italic flags match.
         //   - A RawElement representing an explicit space character (\,) is absorbed into an
         //     adjacent TextElement as a normal space character (this is to make the spacing
         //     less weird when attaching a text and expression via an infix space).
@@ -2430,24 +2416,26 @@ class TextItem extends Item {
             const last_index = merged_elements.length-1;
             const last_merged_element = merged_elements[last_index];
             if(last_merged_element.is_text() && elements[i].is_text() &&
-               last_merged_element.is_bold === elements[i].is_bold) {
-                // Two adjacent TextElements with the same is_bold flag.
+               last_merged_element.is_bold === elements[i].is_bold &&
+               last_merged_element.is_italic === elements[i].is_italic) {
+                // Two adjacent TextElements with the same is_bold/is_italic flags.
                 merged_elements[last_index] = new TextItemTextElement(
-                    last_merged_element.text + elements[i].text, elements[i].is_bold);
+                    last_merged_element.text + elements[i].text,
+                    elements[i].is_bold, elements[i].is_italic);
             }
             else if(last_merged_element.is_raw() && last_merged_element.is_explicit_space() &&
                     elements[i].is_text()) {
                 // raw space + TextElement
                 merged_elements[last_index] = new TextItemTextElement(
                     ' ' + elements[i].text,
-                    elements[i].is_bold);
+                    elements[i].is_bold, elements[i].is_italic);
             }
             else if(last_merged_element.is_text() &&
                     elements[i].is_raw() && elements[i].is_explicit_space()) {
                 // TextElement + raw space
                 merged_elements[last_index] = new TextItemTextElement(
                     last_merged_element.text + ' ',
-                    last_merged_element.is_bold);
+                    last_merged_element.is_bold, last_merged_element.is_italic);
             }
             else {
                 // Any other combinations are left alone.
