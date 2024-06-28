@@ -277,7 +277,7 @@ const EditorKeymap = {
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
-        'O': "operator overset 2",
+        'O': "swap;operator overset 2",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
         'P': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",

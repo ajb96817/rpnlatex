@@ -1054,7 +1054,7 @@ class InputContext {
         if(this.text_entry.length === 0)
             return this.cancel_text_entry(stack);
         if(textstyle === 'text' || textstyle === 'heading') {
-            let item = TextItem.from_string_with_placeholders(this.text_entry);
+            let item = TextItem.parse_string(this.text_entry);
             if(textstyle === 'heading') item.is_heading = true;
             this.cancel_text_entry(stack);
             return stack.push(item);

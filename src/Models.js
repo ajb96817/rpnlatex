@@ -305,10 +305,8 @@ class AppState {
     }
 
     _default_stack() {
-        const item = new TextItem([
-            new TextItemTextElement("Welcome to the editor. Press "),
-            new TextItemTextElement("[?]", true),
-            new TextItemTextElement(" to view the User Guide.")]);
+        const item = TextItem.parse_string(
+            "Welcome to the editor.  Press **[?]** to view the User Guide.");
         return new Stack([item]);
     }
 
@@ -2259,7 +2257,7 @@ class TextItemElement {
         if(json.expr)
             return new TextItemExprElement(Expr.from_json(json.expr));
         else if(json.text)
-            return new TextItemTextElement(json.text, !!json.is_bold);
+            return new TextItemTextElement(json.text, !!json.is_bold, !!json.is_italic);
         else
             return new TextItemRawElement(json.raw);
     }
@@ -2271,12 +2269,15 @@ class TextItemElement {
 
 
 class TextItemTextElement extends TextItemElement {
-    // Bold font is handled specially for text items.
-    // Within a \text{...}, bold is switched on and off via \bf{} and \rm{} commands.
-    constructor(text, is_bold) {
+    // Bold/italic fonts are handled specially for text items.
+    // Within a \text{...}, bold and italic are switched on and off
+    // via \bf{}, \it{}, and \rm{} commands.
+    // Currently bold and italic at once is not supported.
+    constructor(text, is_bold, is_italic) {
         super();
         this.text = text;
         this.is_bold = !!is_bold;
+        this.is_italic = !!is_italic;
     }
 
     is_text() { return true; }
@@ -2285,11 +2286,18 @@ class TextItemTextElement extends TextItemElement {
     to_json() {
         let json = { 'text': this.text };
         if(this.is_bold) json.is_bold = true;
+        if(this.is_italic) json.is_italic = true;
         return json;
     }
 
-    // TODO: respect is_bold here
-    to_text() { return this.text; }
+    to_text() {
+        if(this.is_bold)
+            return ['**', this.text, '**'].join('');
+        else if(this.is_italic)
+            return ['//', this.text, '//'].join('');
+        else
+            return this.text;
+    }
 
     to_latex() {
         // This is a little messy because of how KaTeX handles line breaks.
@@ -2305,6 +2313,8 @@ class TextItemTextElement extends TextItemElement {
             pieces.push("\\text{");
             if(this.is_bold)
                 pieces.push("\\bf{}");
+            else if(this.is_italic)
+                pieces.push("\\it{}");
             pieces.push(this._latex_escape(tokens[i]));
             if(i < tokens.length-1)
                 pieces.push(' ');  // preserve spacing between words
@@ -2363,19 +2373,46 @@ class TextItem extends Item {
     static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
     static empty_item() { return new TextItem([], true); }
 
-    // Like from_string, but if the string contains "[]" sequences, these are parsed out
-    // and converted into PlaceholderExpr placeholders.
-    static from_string_with_placeholders(string) {
-        const pieces = string.split('[]');
+    // "Parse" a string which may or may not contain certain escape sequence:
+    //    [] - converts into a TextItemExprElement wrapping a PlaceholderExpr
+    //    **bold text** - converts into a bolded TextItemTextElement
+    //    //italic text// - converts into an italic TextItemTextElement (not yet implemented)
+    // The result is returned as an array of TextItemElement subclass instances.
+    static parse_string(s) {
+        // First handle [] placeholders.
+        // Note that we don't allow bold/italic to straddle []'s, for example
+        // "text **text [] text** text" will drop the bolding.
+        const pieces = s.split('[]');
         let elements = [];
+        // Handle **bold** within each piece between []'s.
         for(let i = 0; i < pieces.length; i++) {
-            elements.push(new TextItemTextElement(pieces[i]));
+            const pieces2 = pieces[i].split('**');
+            for(let j = 0; j < pieces2.length; j++) {
+                // Every odd-index piece2 is to be bolded; but if the total number of pieces
+                // is also odd that means there is an unpaired **, so that last odd piece
+                // stays unbolded;
+                const is_bold = (j % 2 === 1) && (j < pieces2.length-1);
+                if(pieces2[j].length > 0) {
+                    // Handle //italic// within each of these sub-pieces using similar logic,
+                    // but only if the sub-piece is not already bolded (can't be both at once).
+                    if(is_bold)
+                        elements.push(new TextItemTextElement(pieces2[j], is_bold));
+                    else {
+                        const pieces3 = pieces2[j].split('//');
+                        for(let k = 0; k < pieces3.length; k++) {
+                            const is_italic = (k % 2 === 1) && (k < pieces3.length-1);
+                            if(pieces3[k].length > 0)
+                                elements.push(new TextItemTextElement(pieces3[k], false, is_italic));
+                        }
+                    }
+                }
+            }
             if(i < pieces.length-1)
                 elements.push(new TextItemExprElement(new PlaceholderExpr()));
         }
         return new TextItem(elements);
     }
-
+    
     // item1/2 can each be TextItems or ExprItems.
     static concatenate_items(item1, item2, separator_text) {
         if(item1.item_type() === 'expr') item1 = TextItem.from_expr(item1.expr);
@@ -2468,7 +2505,7 @@ class TextItem extends Item {
 	for(let i = 0; i < this.elements.length; i++) {
 	    const elt = this.elements[i];
 	    if(elt.is_text())
-		pieces.push(elt.text);
+		pieces.push(elt.to_text());
 	    else if(elt.is_raw()) {
 		// Only basic "explicit spaces" are allowed; otherwise it's
 		// probably a LaTeX command.
