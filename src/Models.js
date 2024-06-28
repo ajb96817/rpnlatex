@@ -913,10 +913,6 @@ class Expr {
 		json.command_name,
 		this._list(json.operand_exprs),
 		json.options);
-        case 'prefix':
-            return new PrefixExpr(
-		this._expr(json.base_expr),
-		this._expr(json.prefix_expr));
         case 'infix':
             return new InfixExpr(
                 this._list(json.operand_exprs),
@@ -993,10 +989,6 @@ class Expr {
         }
         else if(left_type === 'command' && right_type === 'command')
             return Expr.combine_command_pair(left, right);
-        else if(right_type === 'prefix') {
-            // X + prefix(Y) -> infix(X, Y) (this should always be OK to do)
-            return new InfixExpr([left, right.base_expr], [right.prefix_expr]);
-        }
         else
             return new SequenceExpr([left, right]);
     }
@@ -1241,55 +1233,6 @@ class CommandExpr extends Expr {
 }
 
 
-// Represents one expression in front of another.
-// Acts like a limited version of InfixExpr.
-// TODO: Maybe delete this.
-class PrefixExpr extends Expr {
-    constructor(base_expr, prefix_expr) {
-        super();
-        this.base_expr = base_expr;
-        this.prefix_expr = prefix_expr;
-    }
-
-    expr_type() { return 'prefix'; }
-
-    json_keys() { return ['base_expr', 'prefix_expr']; }
-
-    emit_latex(emitter) {
-        emitter.expr(this.prefix_expr, 0);
-        emitter.expr(this.base_expr, 1);
-    }
-
-    visit(fn) {
-        this.prefix_expr.visit(fn);
-        fn(this);
-        this.base_expr.visit(fn);
-    }
-
-    subexpressions() {
-	return [this.prefix_expr, this.base_expr];
-    }
-
-    replace_subexpression(index, new_expr) {
-	return new PrefixExpr(
-	    index === 1 ? new_expr : this.base_expr,
-	    index === 0 ? new_expr : this.prefix_expr);
-    }
-
-/*    delete_subexpression(index) {
-	if(index === 0) return this.base_expr;  // prefix deleted
-	else return this.prefix_expr;  // base deleted
-    } */
-
-    substitute_expr(old_expr, new_expr) {
-        if(this === old_expr) return new_expr;
-        return new PrefixExpr(
-            this.base_expr.substitute_expr(old_expr, new_expr),
-            this.prefix_expr.substitute_expr(old_expr, new_expr));
-    }
-}
-
-
 // Represents two or more expressions joined by infix operators (like + or \wedge).
 // Fields:
 //   - operand_exprs: The x,y,z in 'x + y - z'.  There must be at least 2.
@@ -1416,8 +1359,6 @@ class InfixExpr extends Expr {
 	    this.split_at_index,
 	    this.split_type);
     }
-
-    // TODO: delete_subexpression() - create PrefixExpr when appropriate
 
     substitute_expr(old_expr, new_expr) {
 	if(this === old_expr) return new_expr;
@@ -1838,12 +1779,7 @@ class ArrayExpr extends Expr {
 		// Left side will be the left "side" of the infix at its split_at_index point.
                 // Right side will be the right "side", but we have to insert a new initial "fake"
                 // blank operand to give it the right structure.
-		// In the special case of a two-operand InfixExpr, a PrefixExpr will be used instead.
-		if(expr.operator_exprs.length === 1)
-                    return [
-			expr.operand_exprs[0],
-			new PrefixExpr(expr.operand_exprs[1], expr.operator_exprs[0])];
-		else return [
+		return [
                     expr.extract_side_at(expr.split_at_index, 'left'),
                     InfixExpr.combine_infix(
                         TextExpr.blank(),
@@ -2739,7 +2675,7 @@ class Document {
 export {
     Keymap, Settings, AppState, UndoStack, DissectUndoStack,
     DocumentStorage, ImportExportState, FileManagerState,
-    ExprPath, Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     Item, ExprItem, TextItem, CodeItem,
     Stack, Document

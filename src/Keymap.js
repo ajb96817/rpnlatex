@@ -73,7 +73,7 @@ const EditorKeymap = {
         'Ctrl+j': "extract_from_document",
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
-        'Ctrl+m': "prefix -",
+        'Ctrl+m': "push -;swap;fuse",
         'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
         'Ctrl+p': "delimiters ( )",
         'Ctrl+r': "infix ,;parenthesize;fuse",  // -> f(x,y): same as [/][r]
@@ -640,16 +640,16 @@ const EditorKeymap = {
         'k': "font_operator mathfrak",
         'l': "push \\parallel;subscript",
         'm': "font_operator mathtt",
-        'M': "prefix \\mp",
-	'n': "prefix \\neg",
+        'M': "push \\mp;swap;fuse",
+	'n': "push \\neg;swap;fuse",
         'o': "operator bar",
         'O': "operator overline",
         'p': "push \\perp;subscript",
-        'P': "prefix \\pm",
-        'q': "prefix =",
+        'P': "push \\pm;swap;fuse",
+        'q': "push =;swap;fuse",
         'r': "make_roman",
         's': "font_operator mathsf",  // sans-serif
-        't': "prefix \\to",
+        't': "push \\to;swap;fuse",
         'T': "operator widetilde",
         'u': "apply_hat breve",
         'U': "operator utilde",
@@ -667,9 +667,9 @@ const EditorKeymap = {
         "'": "autoparenthesize;prime",
         '*': "push *;superscript",
         '~': "apply_hat tilde",
-        '=': "prefix \\Rightarrow",
-        '-': "prefix -",
-        '+': "prefix +",
+        '=': "push \\Rightarrow;swap;fuse",
+        '-': "push -;swap;fuse",
+        '+': "push +;swap;fuse",
         '`': "push T;superscript",  // transpose
         '/': "push 1;swap;autoparenthesize;delimiters . . / 2",  // flex 1/x
         "\\": "push 1;swap;autoparenthesize;infix /",  // fixed 1/x

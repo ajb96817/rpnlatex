@@ -1,7 +1,7 @@
 
 import {
     AppState, Document, Stack, DissectUndoStack,
-    ExprPath, Expr, CommandExpr, PrefixExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem, CodeItem
 } from './Models';
@@ -574,7 +574,6 @@ class InputContext {
     }
 
     do_push(stack, text) {
-        // TODO: handle this better
         text = text || '';  // handle 'push nothing' case
         return stack.push_expr(Expr.text_or_command(text));
     }
@@ -860,13 +859,6 @@ class InputContext {
         }
         else
             return stack.type_error();
-    }
-
-    // Similar to do_infix but only takes 1 item from the stack and makes a PrefixExpr.
-    do_prefix(stack, opname) {
-        const [new_stack, base_expr] = stack.pop_exprs(1);
-        const operator_expr = Expr.text_or_command(opname);
-        return new_stack.push_expr(new PrefixExpr(base_expr, operator_expr));
     }
 
     do_split_infix(stack) {
