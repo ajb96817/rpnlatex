@@ -173,10 +173,8 @@ const EditorKeymap = {
         '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int"
     },
 
-    // " prefix (TextItem text)
-    text_entry: {
-        'Enter': "finish_text_entry text",
-        'Shift+Enter': "finish_text_entry heading",
+    // Delegate (shared) keymap for the 3 text_entry modes' editor commands.
+    _editor_commands: {
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry",
@@ -189,36 +187,26 @@ const EditorKeymap = {
         'default': "append_text_entry"
     },
 
+    // " prefix (TextItem text)
+    text_entry: {
+        'Enter': "finish_text_entry text",
+        'Shift+Enter': "finish_text_entry heading",
+        'delegate': "_editor_commands"
+    },
+
     // \ prefix (math text)
     math_text_entry: {
         'Enter': "finish_text_entry math",
         'Shift+Enter': "finish_text_entry roman_math",
         "\\": "start_text_entry latex_entry",
-        'Escape': "cancel_text_entry",
-        'Ctrl+z': "cancel_text_entry",
-        'Backspace': "backspace_text_entry",
-        'ArrowLeft': "text_entry_move_cursor left",
-        'ArrowRight': "text_entry_move_cursor right",
-        'Ctrl+a': "text_entry_move_cursor begin",
-        'Ctrl+e': "text_entry_move_cursor end",
-        'Ctrl+f': "text_entry_move_cursor right",
-        'Ctrl+b': "text_entry_move_cursor left",
-        'default': "append_text_entry"
+        'delegate': "_editor_commands"
     },
 
     // double \ prefix (latex command)
     latex_entry: {
         'Enter': "finish_text_entry latex",
-        'Escape': "cancel_text_entry",
-        'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry math_text_entry",
-        'ArrowLeft': "text_entry_move_cursor left",
-        'ArrowRight': "text_entry_move_cursor right",
-        'Ctrl+a': "text_entry_move_cursor begin",
-        'Ctrl+e': "text_entry_move_cursor end",
-        'Ctrl+f': "text_entry_move_cursor right",
-        'Ctrl+b': "text_entry_move_cursor left",
-        'default': "append_text_entry"
+        'delegate': "_editor_commands"
     },
 
     // right-parenthesis prefix: special delimiters

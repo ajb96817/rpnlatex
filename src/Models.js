@@ -16,6 +16,7 @@ class Keymap {
         if(mode_map['[alpha]'] && /^[a-zA-Z]$/.test(key)) return mode_map['[alpha]'];
         if(mode_map['[digit]'] && /^[0-9]$/.test(key)) return mode_map['[digit]'];
         if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key)) return mode_map['[alnum]'];
+        if(mode_map['delegate']) return this.lookup_binding(mode_map['delegate'], key);
         if(mode_map['default']) return mode_map['default'];
         if(mode === 'base' || mode === 'editor')
             return null;
