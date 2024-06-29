@@ -603,11 +603,10 @@ class ItemComponent extends React.Component {
             className = 'heading_style ' + className;
         switch(item.item_type()) {
         case 'expr':
-            if(item.tag_expr) {
-                this.tag_ref = React.createRef();
+            if(item.tag_string) {
                 return $e(
                     'div', {className: 'expr_item'},
-                    $e('div', {className: 'tag_expr', ref: this.tag_ref}, ''),
+                    $e('div', {className: 'tag_string'}, '(' + item.tag_string + ')'),
                     $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
             }
             else 
@@ -645,8 +644,6 @@ class ItemComponent extends React.Component {
         if(item.item_type() === 'expr') {
             // Render math with KaTeX
             this._render_with_katex(item.to_latex(), node, !this.props.inline_math);
-            if(item.tag_expr && this.tag_ref.current)
-                this._render_with_katex(item.tag_expr.to_latex(), this.tag_ref.current, false);
         }
         else if(item.item_type() === 'text') {
             // TextItems are always rendered in inline mode.

@@ -2064,7 +2064,7 @@ class Item {
         case 'expr':
             return new ExprItem(
                 Expr.from_json(json.expr),
-                json.tag_expr ? Expr.from_json(json.tag_expr) : null);
+                json.tag_string || null);
         case 'text':
             return new TextItem(
                 json.elements.map(element_json => TextItemElement.from_json(element_json)),
@@ -2100,13 +2100,13 @@ Item.serial_number = 1;
 
 // Represents a math expression (Expr instance) in the stack or document.
 class ExprItem extends Item {
-    // tag_expr is an optional tag shown to the right of the item.
+    // tag_string is an optional tag shown to the right of the item.
     // selected_expr_path is an optional ExprPath object; the indicated subexpression(s)
     //     will be highlighted in a "selected" style by the renderer.
-    constructor(expr, tag_expr, selected_expr_path) {
+    constructor(expr, tag_string, selected_expr_path) {
         super()
         this.expr = expr;
-        this.tag_expr = tag_expr;
+        this.tag_string = tag_string;
 	this.selected_expr_path = selected_expr_path;
     }
 
@@ -2118,13 +2118,14 @@ class ExprItem extends Item {
     
     to_json() {
         let json = {item_type: 'expr', expr: this.expr.to_json()};
-        if(this.tag_expr) json.tag_expr = this.tag_expr.to_json();
+        if(this.tag_string) json.tag_string = this.tag_string;
         return json;
     }
 
     to_text() { return this.expr.to_text(); }
-    clone() { return new ExprItem(this.expr, this.tag_expr); }
-    as_bold() { return new ExprItem(this.expr.as_bold(), this.tag_expr); }
+    clone() { return new ExprItem(this.expr, this.tag_string); }
+    as_bold() { return new ExprItem(this.expr.as_bold(), this.tag_string); }
+    with_tag(new_tag_string) { return new ExprItem(this.expr, new_tag_string); }
 }
 
 

@@ -111,16 +111,15 @@ div.latex_source_item div.latex_source {
     padding: 0.2em 0.5em;
 }
 
-div.tag_expr {
+div.tag_string {
     position: absolute;
     z-index: 10;
     width: auto;
-    right: 0.25em;
-    border: 1px solid #aca;
-    padding: 0.15em 0.5em;
-    margin: 0.2em 1em;
-    background-color: #e8f0e8;
-    font-size: 80%;
+    right: 0.5em;
+    margin-top: 0.1em;
+    font-size: 90%;
+    font-weight: bold;
+    color: #666;
 }
 
 /* for iphone */
@@ -133,7 +132,7 @@ textarea { font-size: 16px; }
     padding-left: 0;
     padding-right: 1em;
 }
-.rightalign_math div.tag_expr {
+.rightalign_math div.tag_string {
     left: 0.25em;
     right: initial;
 }
@@ -210,11 +209,22 @@ div.stack_items div.math_text_entry_mode { background-color: #eee; }
 div.stack_items div.text_entry_mode { background-color: #eef; }
 div.stack_items div.latex_entry_mode { background-color: #ded; }
 div.stack_items div.conjunction_entry_mode { background-color: #fec; }
+div.stack_items div.tag_entry_mode { background-color: #dfe; }
 
 /* show an initial backslash at the beginning when in latex entry mode */
 div.stack_items div.latex_entry_mode::before {
     content: "\\";
     font-weight: bold;
+}
+div.stack_items div.conjunction_entry_mode::before {
+    content: "phrase: ";
+    font-weight: bold;
+    color: #620;
+}
+div.stack_items div.tag_entry_mode::before {
+    content: "tag: ";
+    font-weight: bold;
+    color: #264;
 }
 
 

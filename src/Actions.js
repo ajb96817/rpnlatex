@@ -998,10 +998,11 @@ class InputContext {
     }
 
     do_start_text_entry(stack, text_entry_mode, initial_text) {
-        // Special case: for conjunction_entry mode, make sure there are
-        // two expressions on the stack beforehand.
-        if(text_entry_mode === 'conjunction_entry' &&
-           !stack.check_exprs(2))
+        // Special cases:
+        //   conjunction_entry mode: make sure there are two expressions on the stack beforehand.
+        //   tag: make sure there is one expression
+        if((text_entry_mode === 'conjunction_entry' && !stack.check_exprs(2)) ||
+           (text_entry_mode === 'tag_entry' && !stack.check_exprs(1)))
             return this.error_flash_stack();
         this.text_entry = new TextEntryState(text_entry_mode, initial_text);
         this.switch_to_mode(text_entry_mode);
@@ -1079,13 +1080,16 @@ class InputContext {
     //   'heading' - TextItem with is_heading flag set
     //   'conjunction' - "X  iff  Y" style InfixExpr conjunction
     //   'bold_conjunction' - same but the "iff" is bolded
+    //   'tag' - set the tag_string of the stack top
     do_finish_text_entry(stack, textstyle) {
         if(!this.text_entry)
             return stack;  // shouldn't happen
-        if(this.text_entry.is_empty())
+        if(this.text_entry.is_empty() && textstyle !== 'tag')
             return this.cancel_text_entry(stack);
+        const text = this.text_entry.current_text;
+        const trimmed_text = text.trim();
         if(textstyle === 'text' || textstyle === 'heading') {
-            let item = TextItem.parse_string(this.text_entry.current_text);
+            let item = TextItem.parse_string(text);
             if(textstyle === 'heading') item.is_heading = true;
             this.cancel_text_entry(stack);
             return stack.push(item);
@@ -1094,26 +1098,31 @@ class InputContext {
         let new_expr;
         if(textstyle === 'roman_math') {
             new_expr = new CommandExpr('mathrm', [
-                new TextExpr(this._latex_escape(this.text_entry.current_text))]);
+                new TextExpr(this._latex_escape(text))]);
         }
         else if(textstyle === 'latex') {
             // NOTE: do_append_text_entry should only allow alphabetic characters through,
             // so no real need to do sanitization here.
-            new_expr = new CommandExpr(this.text_entry.current_text);
+            new_expr = new CommandExpr(trimmed_text);
         }
         else if(textstyle === 'conjunction' ||
                 textstyle === 'bold_conjunction') {
             const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
             const new_expr = Expr.combine_with_conjunction(
                 left_expr, right_expr,
-                this.text_entry.current_text,
-                textstyle === 'bold_conjunction');
+                trimmed_text, textstyle === 'bold_conjunction');
             this.cancel_text_entry(new_stack);
             return new_stack.push_expr(new_expr);
         }
+        else if(textstyle === 'tag') {
+            const [new_stack, item] = stack.pop(1);
+            const new_item = item.with_tag(
+                trimmed_text.length === 0 ? null : trimmed_text);
+            this.cancel_text_entry(new_stack);
+            return new_stack.push(new_item);
+        }
         else
-            new_expr = new TextExpr(
-                this._latex_escape(this.text_entry.current_text));
+            new_expr = new TextExpr(this._latex_escape(text));
         this.cancel_text_entry(stack);
         return stack.push_expr(new_expr);
     }
@@ -1691,20 +1700,6 @@ class InputContext {
         const rows = exprs.map(expr => [expr]);  // Nx1 array
         return new_stack.push_expr(
             new ArrayExpr('substack', expr_count, 1, rows));
-    }
-
-    do_apply_tag(stack) {
-        let [new_stack, tagged_item, tag_item] = stack.pop(2);
-        if(tagged_item.item_type() !== 'expr')
-            return stack.type_error();
-        let tag_expr;
-        // if(tag_item.item_type() === 'text')
-        //     tag_expr = new CommandExpr('text', [new TextExpr(tag_item.source_text.trim())]);
-        /*else*/ if(tag_item.item_type() === 'expr')
-            tag_expr = tag_item.expr;
-        else
-            return stack.type_error();
-        return new_stack.push(new ExprItem(tagged_item.expr, tag_expr));
     }
 
     // Copy stack top to an internal clipboard slot.

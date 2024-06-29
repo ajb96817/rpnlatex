@@ -209,9 +209,16 @@ const EditorKeymap = {
         'delegate': "_editor_commands"
     },
 
+    // [,]['] (custom conjunction)
     conjunction_entry: {
         'Enter': "finish_text_entry conjunction",
         'Shift+Enter': "finish_text_entry bold_conjunction",
+        'delegate': "_editor_commands"
+    },
+
+    // [/][;] (equation tag)
+    tag_entry: {
+        'Enter': "finish_text_entry tag",
         'delegate': "_editor_commands"
     },
 
@@ -307,7 +314,7 @@ const EditorKeymap = {
         'X': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];push E;operator mathbb;swap;fuse",  // E[y|x]
         'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
         'Y': "unrot;push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];swap;push E;operator mathbb;swap;subscript;swap;fuse",  // E_x[z|y]
-        ';': "apply_tag",
+        ';': "start_text_entry tag_entry",
         ',': "split_infix",
         '/': "operator frac 2",
         '[': "delimiters [ ];fuse",  // f x -> f[x]
