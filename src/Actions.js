@@ -7,6 +7,45 @@ import {
 } from './Models';
 
 
+// Holds context for the text entry mode line editor (InputContext.text_entry).
+// Fields:
+// 'mode': Type of text entry currently being performed.
+//         (these strings also correspond to the InputContext mode).
+//     'text_entry': ["] - text entry will become a TextItem (a section heading if Shift+Enter is used)
+//     'math_text_entry': [\] - text entry will become a ExprItem with either normal italic math text
+//         (if Enter is used) or \mathrm roman math text (if Shift+Enter)
+//     'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
+// 'text': The string to be edited (editing is done non-destructively).
+// 'edited_item': If this is set, this is the Item that is currently being edited.
+//      While it's being edited, it doesn't exist on the stack and is temporarily held here.
+//      If the editor is cancelled, this item will be placed back on the stack.
+// 'cursor_position':
+//     0: for beginning of string,
+//     text.length: after end of string (the usual case)
+class TextEntryState {
+    constructor(mode, text, edited_item) {
+        this.mode = mode;
+        this.current_text = text || '';
+        this.cursor_position = this.current_text.length;
+        this.edited_item = edited_item;
+    }
+
+    is_empty() {
+        return this.current_text.length === 0;
+    }
+
+    insert(s) {
+        this.current_text += s;
+        this.cursor_position++;
+    }
+
+    backspace() {
+        if(this.cursor_position > 0)
+            this.current_text = this.current_text.slice(0, -1);
+    }
+}
+
+
 // This acts as a sort of extension to the main App component.
 // TODO: rename -> EditorActions or something
 class InputContext {
@@ -52,20 +91,8 @@ class InputContext {
         this.preserve_prefix_argument = false;
 
         // If non-null, text-entry mode is active and the entry line will appear at the
-        // bottom of the stack panel.
+        // bottom of the stack panel.  this.text_entry will be a TextEntryState object.
         this.text_entry = null;
-
-        // Type of text entry currently being performed.
-        //   'text_entry': ["] - text entry will become a TextItem (a section heading if Shift+Enter is used)
-        //   'math_text_entry': [\] - text entry will become a ExprItem with either normal italic math text
-        //               (if Enter is used) or \mathrm roman math text (if Shift+Enter)
-        //   'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
-        this.text_entry_mode = null;
-
-	// If this is set, this is the Item that is currently being edited.  While it's being edited,
-	// it doesn't exist on the stack and is temporarily held here.  If the editor is cancelled,
-	// this item will be placed back on the stack.
-	this.text_entry_edited_item = null;
 
         // Tracks multi-part custom_delimiters commands.
         this.custom_delimiters = {};
@@ -967,8 +994,7 @@ class InputContext {
     }
 
     do_start_text_entry(stack, text_entry_mode, initial_text) {
-        this.text_entry = initial_text || '';
-        this.text_entry_mode = text_entry_mode;
+        this.text_entry = new TextEntryState(text_entry_mode, initial_text);
         this.switch_to_mode(text_entry_mode);
         this.perform_undo_or_redo = 'suppress';
         return stack;
@@ -980,15 +1006,12 @@ class InputContext {
     }
 
     cancel_text_entry(stack) {
+        const edited_item = this.text_entry.edited_item;
         this.text_entry = null;
-        this.text_entry_mode = null;
-	if(this.text_entry_edited_item) {
-	    const item = this.text_entry_edited_item;
-	    this.text_entry_edited_item = null;
-	    return stack.push(item);
-	}
-	else
-	    return stack;
+        if(edited_item)
+            return stack.push(edited_item);
+        else
+            return stack;
     }
 
     do_append_text_entry(stack) {
@@ -996,7 +1019,7 @@ class InputContext {
         this.perform_undo_or_redo = 'suppress';
         this.switch_to_mode(this.mode);
         if(key.length === 1) {
-            if(this.text_entry_mode === 'latex_entry') {
+            if(this.text_entry.mode === 'latex_entry') {
                 // Disallow characters that are invalid as part of a LaTeX command.
                 // Technically, commands like \$ should be allowed here, but those are all
                 // accessible by their own keybindings already.  So only alphabetic characters
@@ -1004,7 +1027,7 @@ class InputContext {
                 if(!/^[a-zA-Z]$/.test(key))
                     return this.error_flash_stack();
             }
-            this.text_entry = (this.text_entry || '') + key;
+            this.text_entry.insert(key);
         }
         return stack;
     }
@@ -1013,22 +1036,20 @@ class InputContext {
     // backspace was done while the text field is empty.  This is currently
     // used to switch back from latex entry mode to normal math entry mode.
     do_backspace_text_entry(stack, new_mode_when_empty) {
-        let text = this.text_entry || '';
-        if(text.length > 0) {
-            this.text_entry = text.slice(0, -1);
-            this.switch_to_mode(this.mode);
-        }
-        else {
+        if(this.text_entry.is_empty()) {
             // Everything has been deleted; cancel text entry.
 	    // Note that when cancelling via backspace this way, even if
 	    // there was a text_entry_edited_item, it's discarded.
             this.cancel_text_entry(stack);
             if(new_mode_when_empty) {
-		this.text_entry = '';
-                this.text_entry_mode = new_mode_when_empty;
+                this.text_entry = new TextEntryState(new_mode_when_empty, '');
                 this.switch_to_mode(new_mode_when_empty);
             }
 	    return stack;
+        }
+        else {
+            this.text_entry.backspace();
+            this.switch_to_mode(this.mode);
         }
         this.perform_undo_or_redo = 'suppress';
         return stack;
@@ -1041,12 +1062,12 @@ class InputContext {
     //   'text' - TextItem
     //   'heading' - TextItem with is_heading flag set
     do_finish_text_entry(stack, textstyle) {
-        if(this.text_entry === null)
+        if(!this.text_entry)
             return stack;  // shouldn't happen
-        if(this.text_entry.length === 0)
+        if(this.text_entry.is_empty())
             return this.cancel_text_entry(stack);
         if(textstyle === 'text' || textstyle === 'heading') {
-            let item = TextItem.parse_string(this.text_entry);
+            let item = TextItem.parse_string(this.text_entry.current_text);
             if(textstyle === 'heading') item.is_heading = true;
             this.cancel_text_entry(stack);
             return stack.push(item);
@@ -1055,7 +1076,7 @@ class InputContext {
         let new_expr;
         if(textstyle === 'roman_math') {
             new_expr = new CommandExpr('mathrm', [
-                new TextExpr(this._latex_escape(this.text_entry))]);
+                new TextExpr(this._latex_escape(this.text_entry.current_text))]);
         }
         else if(textstyle === 'latex') {
             // NOTE: do_append_text_entry should only allow alphabetic characters through,
@@ -1069,10 +1090,11 @@ class InputContext {
             // }
             // new_expr = new CommandExpr(sanitized);
 
-            new_expr = new CommandExpr(this.text_entry);
+            new_expr = new CommandExpr(this.text_entry.current_text);
         }
         else
-            new_expr = new TextExpr(this._latex_escape(this.text_entry));
+            new_expr = new TextExpr(
+                this._latex_escape(this.text_entry.current_text));
         this.cancel_text_entry(stack);
         return stack.push_expr(new_expr);
     }
@@ -1092,7 +1114,7 @@ class InputContext {
 	    const s = item.as_editable_string();
 	    if(s) {
 		this.do_start_text_entry(new_stack, 'text_entry', s);
-		this.text_entry_edited_item = item;
+                this.text_entry.edited_item = item;
 		return new_stack;
 	    }
 	}
@@ -1101,7 +1123,7 @@ class InputContext {
 	    if(expr.expr_type() === 'command' && expr.operand_count() === 0) {
 		// LaTeX command with no arguments, e.g. \circledast
 		this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
-		this.text_entry_edited_item = item;
+                this.text_entry.edited_item = item;
 		return new_stack;
 	    }
 	    // Try stripping off a single level of \mathrm{...} if there is one.
@@ -1116,7 +1138,7 @@ class InputContext {
 		    new_stack,
 		    'math_text_entry',
 		    this._latex_unescape(expr.text));
-		this.text_entry_edited_item = item;
+                this.text_entry.edited_item = item;
 		return new_stack;
 	    }
 	}

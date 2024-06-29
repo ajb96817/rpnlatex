@@ -293,7 +293,7 @@ class ModeIndicatorComponent extends React.Component {
                 ')'
             ].join('');
         }
-        // if(input_context.text_entry !== null)
+        // if(input_context.text_entry)
         //     input_mode = 'text_entry';
         if(notification_text) {
             // Auto-highlight anything after the colon in the notification message.
@@ -334,11 +334,11 @@ class StackItemsComponent extends React.Component {
                     key: item.react_key(index)
                 });
         });
-        if(input_context.text_entry !== null) {
+        if(input_context.text_entry) {
             const component = $e(
                 TextEntryComponent, {
-                    text: input_context.text_entry,
-                    entry_type: input_context.text_entry_mode,
+                    text: input_context.text_entry.current_text,
+                    entry_type: input_context.text_entry.mode,
                     key: 'textentry'
                 });
             item_components.push(component);

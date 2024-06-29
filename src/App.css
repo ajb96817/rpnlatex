@@ -194,6 +194,7 @@ div.stack_items div.text_entry {
     padding: 0.25em 1.25em;
     color: black;
     white-space: break-spaces;
+    overflow-wrap: break-word;
 }
 
 /* blinking cursor effect */
