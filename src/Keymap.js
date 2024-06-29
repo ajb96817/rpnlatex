@@ -48,9 +48,9 @@ const EditorKeymap = {
         '}': "custom_delimiter",
         ';': "mode lowercase_greek",
         ':': "mode uppercase_greek",
-        '%': "mode calligraphic",
+        '@': "mode calligraphic",
         '&': "mode script",
-        '@': "mode blackboard",
+        '%': "mode blackboard",
         '/': "mode operator",
         "\\": "start_text_entry math_text_entry",
         "\"": "start_text_entry text_entry",
@@ -783,16 +783,16 @@ const EditorKeymap = {
         '&': "push \\&"
     },
 
-    // % prefix
+    // @ prefix
     calligraphic: {
         '[alpha]': "self_push;to_case uppercase;font_operator mathcal",
-        '%': "push \\%"
+        '@': "push @"
     },
 
-    // @ prefix
+    // % prefix
     blackboard: {
         '[alpha]': "self_push;to_case uppercase;font_operator mathbb",
-        '@': "push @"
+        '%': "push \\%"
     },
 
     // ; prefix: lowercase Greek letters
