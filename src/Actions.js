@@ -51,14 +51,15 @@ class TextEntryState {
         }
     }
 
-    left() {
-        if(this.cursor_position > 0)
+    move(direction) {
+        if(direction === 'left' && this.cursor_position > 0)
             this.cursor_position--;
-    }
-
-    right() {
-        if(this.cursor_position < this.current_text.length)
+        if(direction === 'right' && this.cursor_position < this.current_text.length)
             this.cursor_position++;
+        if(direction === 'begin')
+            this.cursor_position = 0;
+        if(direction === 'end')
+            this.cursor_position = this.current_text.length;
     }
 }
 
@@ -1034,10 +1035,7 @@ class InputContext {
     do_text_entry_move_cursor(stack, move_type) {
         this.perform_undo_or_redo = 'suppress';
         this.switch_to_mode(this.mode);
-        if(move_type === 'left')
-            this.text_entry.left();
-        else if(move_type === 'right')
-            this.text_entry.right();
+        this.text_entry.move(move_type);
         return stack;
     }
 

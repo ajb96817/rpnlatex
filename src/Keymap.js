@@ -182,6 +182,10 @@ const EditorKeymap = {
         'Backspace': "backspace_text_entry",
         'ArrowLeft': "text_entry_move_cursor left",
         'ArrowRight': "text_entry_move_cursor right",
+        'Ctrl+a': "text_entry_move_cursor begin",  // NOTE: Ctrl editor commands here are undocumented
+        'Ctrl+e': "text_entry_move_cursor end",
+        'Ctrl+f': "text_entry_move_cursor right",
+        'Ctrl+b': "text_entry_move_cursor left",
         'default': "append_text_entry"
     },
 
@@ -195,6 +199,10 @@ const EditorKeymap = {
         'Backspace': "backspace_text_entry",
         'ArrowLeft': "text_entry_move_cursor left",
         'ArrowRight': "text_entry_move_cursor right",
+        'Ctrl+a': "text_entry_move_cursor begin",
+        'Ctrl+e': "text_entry_move_cursor end",
+        'Ctrl+f': "text_entry_move_cursor right",
+        'Ctrl+b': "text_entry_move_cursor left",
         'default': "append_text_entry"
     },
 
@@ -206,6 +214,10 @@ const EditorKeymap = {
         'Backspace': "backspace_text_entry math_text_entry",
         'ArrowLeft': "text_entry_move_cursor left",
         'ArrowRight': "text_entry_move_cursor right",
+        'Ctrl+a': "text_entry_move_cursor begin",
+        'Ctrl+e': "text_entry_move_cursor end",
+        'Ctrl+f': "text_entry_move_cursor right",
+        'Ctrl+b': "text_entry_move_cursor left",
         'default': "append_text_entry"
     },
 
