@@ -338,6 +338,7 @@ class StackItemsComponent extends React.Component {
             const component = $e(
                 TextEntryComponent, {
                     text: input_context.text_entry.current_text,
+                    cursor_position: input_context.text_entry.cursor_position,
                     entry_type: input_context.text_entry.mode,
                     key: 'textentry'
                 });
@@ -412,12 +413,19 @@ class DocumentComponent extends React.Component {
 }
 
 
-// Accumulate a single line of text for literal or Latex command entry
-// (backslash key activates this).
+// Accumulate a single line of text for literal or Latex command entry.
 class TextEntryComponent extends React.Component {
     render() {
         const class_name = 'text_entry ' + this.props.entry_type + '_mode';
-        return $e('div', {className: class_name}, this.props.text);
+        const cursor_pos = this.props.cursor_position;
+        let s = this.props.text;
+        if(this.props.cursor_position === s.length)
+            s += ' ';  // so that we can show the cursor when it's at the end of the text
+        return $e(
+            'div', {className: class_name},
+            $e('span', {className: 'normal_characters'}, s.slice(0, cursor_pos)),
+            $e('span', {className: 'cursored_character'}, s.slice(cursor_pos, cursor_pos+1)),
+            $e('span', {className: 'normal_characters'}, s.slice(cursor_pos+1)));
     }
 }
 

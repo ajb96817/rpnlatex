@@ -180,6 +180,8 @@ const EditorKeymap = {
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry",
+        'ArrowLeft': "text_entry_move_cursor left",
+        'ArrowRight': "text_entry_move_cursor right",
         'default': "append_text_entry"
     },
 
@@ -191,6 +193,8 @@ const EditorKeymap = {
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry",
+        'ArrowLeft': "text_entry_move_cursor left",
+        'ArrowRight': "text_entry_move_cursor right",
         'default': "append_text_entry"
     },
 
@@ -200,6 +204,8 @@ const EditorKeymap = {
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
         'Backspace': "backspace_text_entry math_text_entry",
+        'ArrowLeft': "text_entry_move_cursor left",
+        'ArrowRight': "text_entry_move_cursor right",
         'default': "append_text_entry"
     },
 

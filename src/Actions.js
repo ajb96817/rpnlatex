@@ -35,13 +35,30 @@ class TextEntryState {
     }
 
     insert(s) {
-        this.current_text += s;
+        this.current_text = [
+            this.current_text.slice(0, this.cursor_position),
+            s,
+            this.current_text.slice(this.cursor_position)].join('');
         this.cursor_position++;
     }
 
     backspace() {
+        if(this.cursor_position > 0) {
+            this.cursor_position--;
+            this.current_text = [
+                this.current_text.slice(0, this.cursor_position),
+                this.current_text.slice(this.cursor_position+1)].join('');
+        }
+    }
+
+    left() {
         if(this.cursor_position > 0)
-            this.current_text = this.current_text.slice(0, -1);
+            this.cursor_position--;
+    }
+
+    right() {
+        if(this.cursor_position < this.current_text.length)
+            this.cursor_position++;
     }
 }
 
@@ -1012,6 +1029,16 @@ class InputContext {
             return stack.push(edited_item);
         else
             return stack;
+    }
+
+    do_text_entry_move_cursor(stack, move_type) {
+        this.perform_undo_or_redo = 'suppress';
+        this.switch_to_mode(this.mode);
+        if(move_type === 'left')
+            this.text_entry.left();
+        else if(move_type === 'right')
+            this.text_entry.right();
+        return stack;
     }
 
     do_append_text_entry(stack) {
