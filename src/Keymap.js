@@ -4,7 +4,6 @@ const EditorKeymap = {
         // Letters/numbers and some symbols immediately push onto the stack
         '[alnum]': "self_push",
         '#': "push \\#",
-        '@': "push @",
         '*': "push *",
         '~': "push \\sim",
 
@@ -51,6 +50,7 @@ const EditorKeymap = {
         ':': "mode uppercase_greek",
         '%': "mode calligraphic",
         '&': "mode script",
+        '@': "mode blackboard",
         '/': "mode operator",
         "\\": "start_text_entry math_text_entry",
         "\"": "start_text_entry text_entry",
@@ -645,7 +645,6 @@ const EditorKeymap = {
         '4': "push 4;superscript",
         '8': "push \\infty;infix \\to",
         'A': "operator acute",
-        'b': "font_operator mathbb",
         'c': "autoparenthesize;push 1;swap;infix -",
         'C': "html_class emphasized emphasized2",
         'd': "push \\dagger;superscript",
@@ -788,6 +787,12 @@ const EditorKeymap = {
     calligraphic: {
         '[alpha]': "self_push;to_case uppercase;font_operator mathcal",
         '%': "push \\%"
+    },
+
+    // @ prefix
+    blackboard: {
+        '[alpha]': "self_push;to_case uppercase;font_operator mathbb",
+        '@': "push @"
     },
 
     // ; prefix: lowercase Greek letters
