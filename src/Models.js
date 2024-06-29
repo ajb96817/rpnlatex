@@ -1206,7 +1206,8 @@ class CommandExpr extends Expr {
 	const c = this.command_name;
 	return c === 'boldsymbol' || c === 'bold' || c === 'pmb' ||
 	    c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
-	    c === 'mathfrak' || c === 'mathscr' || c === 'mathcal';
+	    c === 'mathfrak' || c === 'mathscr' || c === 'mathcal' ||
+            c === 'text' || c === 'textbf' || c === 'textit';
     }
 }
 
