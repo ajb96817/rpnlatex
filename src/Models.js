@@ -2191,11 +2191,12 @@ class TextItemTextElement extends TextItemElement {
         const tokens = this.text.split(/ +/);
         let pieces = [];
         for(let i = 0; i < tokens.length; i++) {
-            pieces.push("\\text{");
             if(this.is_bold)
-                pieces.push("\\bf{}");
+                pieces.push("\\textbf{");
             else if(this.is_italic)
-                pieces.push("\\it{}");
+                pieces.push("\\textit{");
+            else
+                pieces.push("\\text{");
             pieces.push(this._latex_escape(tokens[i]));
             if(i < tokens.length-1)
                 pieces.push(' ');  // preserve spacing between words
