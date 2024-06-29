@@ -209,6 +209,12 @@ const EditorKeymap = {
         'delegate': "_editor_commands"
     },
 
+    conjunction_entry: {
+        'Enter': "finish_text_entry conjunction",
+        'Shift+Enter': "finish_text_entry bold_conjunction",
+        'delegate': "_editor_commands"
+    },
+
     // right-parenthesis prefix: special delimiters
     delimiters: {
         'b': "delimiters \\langle \\vert",  // <x| Dirac bra
@@ -515,6 +521,7 @@ const EditorKeymap = {
         ' ': "infix ,\\,",  // comma plus thinspace
         ':': "infix :",
         ';': "infix semicolon\\:",
+        "'": "start_text_entry conjunction_entry",
         '`': "swap;push T;superscript;swap;concat",  // xTy
         '%': "operator pmod;concat",  // y (mod x)
         '*': "infix *",

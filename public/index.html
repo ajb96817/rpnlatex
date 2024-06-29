@@ -644,14 +644,33 @@
             <td><span class="keybinding">\</span> <code>x/y</code> (fixed size)</td>
             <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
           </tr>
+	  <tr>
+            <td colspan="3"><span class="keybinding">&#39;</span> <em>conjunction</em> (see below)</td>
+          </tr>
       </tbody></table>
       <p>
-        <strong>NOTE:</strong>
-        The <span class="keybinding">,</span><span class="keybinding">a</span> (apply)
+        <strong>Notes:</strong>
+      </p>
+      <p>
+        <strong><em>apply:</em></strong>
+        The <span class="keybinding">,</span><span class="keybinding">a</span>
         command takes three items from the stack: the first two will be combined into
         an infix expression with the third as the infix operator.  This can be useful
         if the operator you want is not available directly as a subcommand here.
         Example: <code>x\enspace y\enspace \circledast \to x\circledast y</code>
+      </p>
+      <p>
+        <strong><em>conjunction:</em></strong>
+        The <span class="keybinding">,</span><span class="keybinding">'</span>
+        command is for combining two expressions with an English phrase between them,
+        with some extra spacing.
+        Several of these are already available via dedicated commands such as
+        <span class="keybinding">,</span><span class="keybinding">F</span> which
+        creates: <code>x\quad\mathrm{iff}\quad y</code>.
+        This <em>conjunction</em> command starts a special text entry mode where you can
+        type in whatever phrase you want instead.  Using <span class="keybinding">Enter</span>
+        creates an ordinary conjunction, while <span class="keybinding">Shift+Enter</span>
+        will make it bolded.
       </p>
 
       <h2>

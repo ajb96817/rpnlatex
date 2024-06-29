@@ -15,6 +15,8 @@ import {
 //     'math_text_entry': [\] - text entry will become a ExprItem with either normal italic math text
 //         (if Enter is used) or \mathrm roman math text (if Shift+Enter)
 //     'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
+//     'conjunction_entry': [,]['] - text entry will become a "conjuction" like "X  for  Y", same
+//         as commands like [,][r].
 // 'text': The string to be edited (editing is done non-destructively).
 // 'edited_item': If this is set, this is the Item that is currently being edited.
 //      While it's being edited, it doesn't exist on the stack and is temporarily held here.
@@ -882,28 +884,12 @@ class InputContext {
     // Similar to do_infix but joins two expressions with an English phrase
     // with Roman font and extra spacing (\quad).
     do_conjunction(stack, phrase) {
-        const [new_stack, left_item, right_item] = stack.pop(2);
-        const left_type = left_item.item_type(), right_type = right_item.item_type();
-        if(left_type === 'expr' && right_type === 'expr') {
-            // Expr+Expr
-            const operator_expr = new SequenceExpr([
-                new CommandExpr('quad'),
-                new CommandExpr('text', [new TextExpr(phrase.replaceAll('_', ' '))]),
-                new CommandExpr('quad')]);
-            return new_stack.push_expr(
-                InfixExpr.combine_infix(
-                    left_item.expr, right_item.expr, operator_expr));
-        }
-        else if((left_type === 'expr' || left_type === 'text') &&
-                (right_type === 'expr' || right_type === 'text')) {
-            // Expr+Text or Text+Expr or Text+Text
-            const conjunction_item = TextItem.from_string(' ' + phrase + ' ');
-            const new_item = TextItem.concatenate_items(
-                left_item, TextItem.concatenate_items(conjunction_item, right_item));
-            return new_stack.push(new_item);
-        }
-        else
-            return stack.type_error();
+        const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
+        const new_expr = Expr.combine_with_conjunction(
+            left_expr, right_expr,
+            phrase.replaceAll('_', ' '),
+            false);
+        return new_stack.push_expr(new_expr);
     }
 
     do_split_infix(stack) {
@@ -1012,6 +998,11 @@ class InputContext {
     }
 
     do_start_text_entry(stack, text_entry_mode, initial_text) {
+        // Special case: for conjunction_entry mode, make sure there are
+        // two expressions on the stack beforehand.
+        if(text_entry_mode === 'conjunction_entry' &&
+           !stack.check_exprs(2))
+            return this.error_flash_stack();
         this.text_entry = new TextEntryState(text_entry_mode, initial_text);
         this.switch_to_mode(text_entry_mode);
         this.perform_undo_or_redo = 'suppress';
@@ -1086,6 +1077,8 @@ class InputContext {
     //   'latex' - ExprItem with arbitrary latex command
     //   'text' - TextItem
     //   'heading' - TextItem with is_heading flag set
+    //   'conjunction' - "X  iff  Y" style InfixExpr conjunction
+    //   'bold_conjunction' - same but the "iff" is bolded
     do_finish_text_entry(stack, textstyle) {
         if(!this.text_entry)
             return stack;  // shouldn't happen
@@ -1105,17 +1098,18 @@ class InputContext {
         }
         else if(textstyle === 'latex') {
             // NOTE: do_append_text_entry should only allow alphabetic characters through,
-            // so no real need to do sanitization here any more.
-            
-            // const sanitized = this.text_entry.replaceAll(/[^a-zA-Z]/g, '');
-            // if(sanitized.length === 0) {
-            //     this.text_entry = null;
-            //     this.text_entry_mode = null;
-            //     return stack;
-            // }
-            // new_expr = new CommandExpr(sanitized);
-
+            // so no real need to do sanitization here.
             new_expr = new CommandExpr(this.text_entry.current_text);
+        }
+        else if(textstyle === 'conjunction' ||
+                textstyle === 'bold_conjunction') {
+            const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
+            const new_expr = Expr.combine_with_conjunction(
+                left_expr, right_expr,
+                this.text_entry.current_text,
+                textstyle === 'bold_conjunction');
+            this.cancel_text_entry(new_stack);
+            return new_stack.push_expr(new_expr);
         }
         else
             new_expr = new TextExpr(

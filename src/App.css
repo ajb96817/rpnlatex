@@ -1,5 +1,7 @@
 
 :root {
+    /* These are dynamically adjusted in code to be the right size
+       for the current zoom level: */
     --itemtype-bar-width: 5px;
     --heading-bar-height: 3px;
 }
@@ -207,6 +209,7 @@ div.stack_items div.text_entry span.cursored_character {
 div.stack_items div.math_text_entry_mode { background-color: #eee; }
 div.stack_items div.text_entry_mode { background-color: #eef; }
 div.stack_items div.latex_entry_mode { background-color: #ded; }
+div.stack_items div.conjunction_entry_mode { background-color: #fec; }
 
 /* show an initial backslash at the beginning when in latex entry mode */
 div.stack_items div.latex_entry_mode::before {
@@ -317,7 +320,7 @@ table.keybindings td { padding: 0.1em 0.5em; }
 
 /* KaTeX style tweaks: */
 
-/* Adjust spacing and alignment of display math. */
+/* Adjust spacing and alignment of display math to make things more compact. */
 .katex-display {
     margin: 3px 0;
     padding: 2px 0;

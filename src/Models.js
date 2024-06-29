@@ -253,7 +253,7 @@ class LatexEmitter {
     // \latexcommand (something that isn't a single special-character command like \,)
     command(command_name, command_options) {
         if(command_options)
-            command_name = command_name + '[' + command_options + ']';
+            command_name = [command_name, '[', command_options, ']'].join('');
         this.emit_token("\\" + command_name, 'command');
     }
 
@@ -787,7 +787,7 @@ class FileManagerState {
 
 
 // Represents a "path" within an Expr to one of its subexpressions.
-// Each element (selector) along the path is an integer identifying one of the
+// Each element (index) along the path is an integer identifying one of the
 // children of the Expr at that level.  In the current implementation, the
 // path must be at least of length 1; in other words an ExprPath can't refer
 // directly to its base expression.
@@ -1004,6 +1004,19 @@ class Expr {
         return new SequenceExpr([left, right]);
     }
 
+    // Combine two Exprs with the given conjunction phrase between them, with largish spacing.
+    // For example "X  iff  Y" as in the [,][F] command.
+    // is_bold will make the conjunction phrase bolded.
+    static combine_with_conjunction(left, right, phrase, is_bold) {
+        const conjunction_expr = new SequenceExpr([
+            new CommandExpr('quad'),
+            new CommandExpr(
+                is_bold ? 'textbf' : 'text',
+                [new TextExpr(phrase)]),
+            new CommandExpr('quad')]);
+        return InfixExpr.combine_infix(left, right, conjunction_expr);
+    }
+
     // Convert a string into a TextExpr, or a CommandExpr if it begins
     // with \ (i.e. a latex command).
     static text_or_command(s) {
@@ -1055,7 +1068,8 @@ class Expr {
     // to the left-to-right rendering of the expression.
     visit(fn) { fn(this); }
 
-    // Return a list of all subexpressions of this one, in (at least approximate) left-to-right order.
+    // Return a list of all immediate subexpressions of this one, in (at least approximate)
+    // left-to-right order.
     subexpressions() { return []; }
 
     // True if this has any subexpressions to descend into via ExprPath.
@@ -1090,8 +1104,6 @@ class Expr {
 
     // NOTE: CommandExpr overrides this
     as_bold() { return new CommandExpr('boldsymbol', [this]); }
-
-    is_command_with_name(command_name) { return false; }
 }
 
 
@@ -1186,10 +1198,6 @@ class CommandExpr extends Expr {
         }
         else
             return super.as_bold();
-    }
-
-    is_command_with_name(command_name) {
-        return this.command_name === command_name;
     }
 
     is_font_command() {
@@ -1681,10 +1689,6 @@ class SubscriptSuperscriptExpr extends Expr {
             this.base_expr.substitute_expr(old_expr, new_expr),
             this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
             this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
-    }
-
-    is_command_with_name(command_name) {
-        return this.base_expr.is_command_with_name(command_name);
     }
 }
 
