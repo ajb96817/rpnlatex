@@ -18,7 +18,7 @@ class Keymap {
         if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key)) return mode_map['[alnum]'];
         if(mode_map['delegate']) return this.lookup_binding(mode_map['delegate'], key);
         if(mode_map['default']) return mode_map['default'];
-        if(mode === 'base' || mode === 'editor')
+        if(mode === 'base')
             return null;
         else
             return 'cancel';
@@ -884,24 +884,6 @@ class ExprPath {
     extract_selection() {
 	return this.replace_selection(new PlaceholderExpr());
     }
-
-/*    // "Delete" the currently selected subexpression from the expression tree entirely.
-    // This is not always possible; in such cases the expression is instead replaced with
-    // a blank TextExpr.  This returns a version of the original this.expr, except the
-    // indicated subexpression has been removed from the tree, or at least been replaced
-    // by a blank.
-    delete_selection() {
-	const parent_expr = this.last_expr_but(1);
-	const final_index = this.last_index_but(1);
-	let expr = parent_expr.delete_subexpression(final_index);
-	// The rest follows as in extract_selection().
-	for(let i = 2; i <= this.subexpr_indexes.length; i++) {
-	    const local_parent = this.last_expr_but(i);
-	    const subexpr_index = this.last_index_but(i);
-	    expr = local_parent.replace_subexpression(subexpr_index, expr);
-	}
-	return expr;
-    } */
 }
 
 
@@ -1087,17 +1069,6 @@ class Expr {
     // Return a new Expr like this one but with the subexpression at the given index replaced
     // with a new one.  The subexpression indexes here correspond to what is returned by subexpressions().
     replace_subexpression(index, new_expr) { return this; }
-
-/*    // Return a new Expr with the subexpression at the given index "deleted".
-    // If deletion is not structurally possible, the subexpression might instead
-    // be replaced by a blank TextExpr.
-    // Note that the returned Expr may not be the same type as the original; for example,
-    // deleting the last superscript or subscript from a SubscriptSuperscriptExpr leaves
-    // only the base Expr.
-    delete_subexpression(index) {
-	// Default implementation; subclasses can override.
-	return this.replace_subexpression(index, TextExpr.blank());
-    } */
 
     // Find the first PlaceholderExpr that exists in this expression.  Returns null if none.
     find_placeholder() {
@@ -1503,16 +1474,6 @@ class SequenceExpr extends Expr {
 		(subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
     }
 
-/*    // If this SequenceExpr is left with only one item after deletion,
-    // the result is just that item.
-    // (Note that SequenceExprs always must have >= 2 items.)
-    delete_subexpression(index) {
-	const new_exprs = this.exprs.slice(0, index).concat(this.exprs.slice(index+1));
-	if(new_exprs.length === 1)
-	    return new_exprs[0];
-	else return new SequenceExpr(new_exprs);
-    } */
-
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
         return new SequenceExpr(
@@ -1713,20 +1674,6 @@ class SubscriptSuperscriptExpr extends Expr {
 	    (index === 2 || (!this.superscript_expr && index === 1)) ? new_expr : this.subscript_expr,
 	    (index === 1 && this.superscript_expr) ? new_expr : this.superscript_expr);
     }
-
-/*    delete_subexpression(index) {
-	// When deleting the base, we always have to just replace it with a blank.
-	if(index === 0) return super.delete_subexpression(index);
-	// Deleting the last remaining subscript or superscript decays into the base expression.
-	if(index === 1 && (!this.subscript_expr || !this.superscript_expr))
-	    return this.base_expr;
-	// Otherwise, both subscript and superscript exist and we can delete one of them
-	// and still have a SubscriptSuperscriptExpr.
-	return new SubscriptSuperscriptExpr(
-	    this.base_expr,
-	    index === 2 ? null : this.subscript_expr,
-	    index === 1 ? null : this.superscript_expr);
-    }  */
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
