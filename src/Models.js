@@ -900,7 +900,7 @@ class Expr {
             return new InfixExpr(
                 this._list(json.operand_exprs),
 		this._list(json.operator_exprs),
-		json.split_at_index || null,
+		json.split_at_index,
 		json.split_type || null);
         case 'placeholder':
             return new PlaceholderExpr();
@@ -924,8 +924,12 @@ class Expr {
                 this._expr(json.superscript_expr));
         case 'array':
             return new ArrayExpr(
-                json.array_type, json.row_count, json.column_count, this._list2d(json.element_exprs),
-                json.row_separators, json.column_separators);
+                json.array_type,
+                json.row_count,
+                json.column_count,
+                this._list2d(json.element_exprs),
+                json.row_separators,
+                json.column_separators);
         default:
             return new TextExpr('invalid expr type ' + json.expr_type);
         }
@@ -1454,15 +1458,15 @@ class SequenceExpr extends Expr {
 	return json;
     }
 
-    // Special case: Two-element "fused" SequenceExprs of the form
-    // [Expr, DelimiterExpr] automatically wrap the DelimiterExpr in an "empty"
-    // latex command (i.e., set of braces).
-    // For example: f(x) is [TextExpr('f'), DelimiterExpr('(', 'x', ')')]
-    // so this becomes f{(x)} instead of f(x).  This has the effect of tightening
-    // the spacing after f to better match normal function notation.
     emit_latex(emitter) {
         if(this.exprs.length === 2 &&
            this.exprs[1].expr_type() === 'delimiter') {
+            // Special case: Two-element "fused" SequenceExprs of the form
+            // [Expr, DelimiterExpr] automatically wrap the DelimiterExpr in an "empty"
+            // latex command (i.e., set of braces).
+            // For example: f(x) is [TextExpr('f'), DelimiterExpr('(', 'x', ')')]
+            // so this becomes f{(x)} instead of f(x).  This has the effect of tightening
+            // the spacing after f to better match normal function notation.
             emitter.expr(this.exprs[0], 0);
             emitter.grouped_expr(this.exprs[1], 'force', 1);
         }
@@ -1659,6 +1663,7 @@ class SubscriptSuperscriptExpr extends Expr {
             // though single-letter super/subscripts are still OK to leave ungrouped.
             // e.g.: x^{\sum} instead of x^\sum, but x^2 is fine.
             emitter.grouped_expr(this.subscript_expr, 'force_commands', subexpr_index);
+            subexpr_index++;  // not strictly needed
         }
     }
 
