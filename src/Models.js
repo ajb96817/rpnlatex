@@ -1127,8 +1127,6 @@ class Expr {
 class CommandExpr extends Expr {
     // NOTES:
     //   - 'command_name' does not include the initial \ character
-    //   - 'command_name' can be an empty string, in order to surround the operand expression(s)
-    //     with braces.  This is used to fix the spacing in cases like f\left(x\right).
     //   - 'options', if provided, is a plain string that becomes "\command_name[options]{...}"
     //   - 'command_name' itself can include the options in [brackets], in which case it is
     //     automatically split off into 'options' (this is used for keybindings).

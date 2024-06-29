@@ -6,13 +6,27 @@ paper.  It has some limited document-preparation capabilities but for a full mat
 word processor you should use something like LyX instead.
 
 Equations are entered using a Reverse Polish Notation (RPN) input system inspired by
-HP calculators.  This editor is meant to be operated entirely from the keyboard.
-Please see the built-in user manual, available by typing '?', for more information.
+HP calculators.  Please see the built-in user manual, available by typing '?', for more information.
+
+## Features
+
+  * Cross-platform, with a simple and flexible interface suited for mobile or desktop.
+  * Print-quality, instantaneous rendering of math formulas as you edit.
+  * Operates entirely from the keyboard; no mouse actions or menu items to select.
+  * Generates LaTeX-compatible code but does not require knowledge of LaTeX.
+  * Almost everything normally found in mathematical books and papers can be quickly typeset with the built-in keybindings.
+  * Build up formulas piece by piece in an intuitive way using a stack-based method.
+  * Math formulas can be intermixed with normal text, with font styles, section headers, etc., and arranged into a document structure.
+  * Documents can be kept in local browser storage, or saved to files.
+  * Comprehensive user manual included.
+  * Source code is easily modifiable if you want to add your own custom features.
 
 ## Quick start
 
-Download the latest release package from Github and unpack it, then open the 'index.html'
-file in a web browser.
+A pre-built version is available here: https://ajb96817.github.io/rpnlatex
+
+To run your own local copy, download the latest release package from Github and unpack it,
+then open the 'index.html' file in a web browser.
 
 To host this from a webserver, simply copy all files to a location on the server and
 navigate to the URL in your browser.  No server-side dynamic features are needed on the
@@ -39,5 +53,4 @@ To build/run from source (not needed unless you want to change something):
   * Open the displayed server URL in a web browser
   * To build a packaged release, run 'npm run build' and the release will be created in the build/ subdirectory
 
-A pre-built version is available here: https://ajb96817.github.io/rpnlatex
 

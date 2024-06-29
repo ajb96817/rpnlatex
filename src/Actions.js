@@ -1258,7 +1258,7 @@ class InputContext {
 	    // of limited use and inconsistent with the usual UI (where we immediately
 	    // select the first subexpression of the stack top upon starting dissect mode).
 	    if(expr_path.depth() <= 1)
-		return null;
+		return expr_path;
 	    else
 		return expr_path.ascend();
 	});
