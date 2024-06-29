@@ -1248,10 +1248,13 @@ class InfixExpr extends Expr {
     // merged into a larger InfixExpr.  Otherwise, a new binary InfixExpr
     // will be created to contain them.  In either case, the result is
     // joined by 'op_expr' as the infix operator.
+    // NOTE: if either of the existing InfixExprs have split_types specified,
+    // they are not combined, to avoid messing up the linebreak point (since
+    // each InfixExpr can have only one linebreak specified).
     static combine_infix(left_expr, right_expr, op_expr) {
 	let new_operand_exprs = [];
 	let new_operator_exprs = [];
-	if(left_expr.expr_type() === 'infix') {
+	if(left_expr.expr_type() === 'infix' && !left_expr.split_type) {
 	    new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
 	    new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
 	}
@@ -1262,7 +1265,7 @@ class InfixExpr extends Expr {
         // applies at.
         const split_at_index = new_operator_exprs.length;
 	new_operator_exprs.push(op_expr);
-	if(right_expr.expr_type() === 'infix') {
+	if(right_expr.expr_type() === 'infix' && !right_expr.split_type) {
 	    new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
 	    new_operator_exprs = new_operator_exprs.concat(right_expr.operator_exprs);
 	}
