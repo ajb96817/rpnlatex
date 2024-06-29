@@ -2,7 +2,6 @@
     "name": "rpnlatex",
     "version": "1.2.0",
     "description": "RPN-style math scratchpad",
-    "main": "src/electron_main.js",
     "private": true,
     "homepage": ".",
     "dependencies": {
@@ -17,8 +16,7 @@
         "start": "BROWSER=none react-scripts start",
         "build": "react-scripts build",
         "test": "react-scripts test",
-        "eject": "react-scripts eject",
-        "start_electron": "electron ."
+        "eject": "react-scripts eject"
     },
     "eslintConfig": {
         "extends": [
@@ -39,6 +37,5 @@
         ]
     },
     "devDependencies": {
-        "electron": "^24.1.3"
     }
 }

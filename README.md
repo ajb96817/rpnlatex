@@ -6,8 +6,8 @@ paper.  It has some limited document-preparation capabilities but for a full mat
 word processor you should use something like LyX instead.
 
 Equations are entered using a Reverse Polish Notation (RPN) input system inspired by
-HP calculators.  Please see the built-in user manual (available by typing '?') for more
-information.
+HP calculators.  This editor is meant to be operated entirely from the keyboard.
+Please see the built-in user manual, available by typing '?', for more information.
 
 ## Quick start
 
@@ -40,10 +40,4 @@ To build/run from source (not needed unless you want to change something):
   * To build a packaged release, run 'npm run build' and the release will be created in the build/ subdirectory
 
 A pre-built version is available here: https://ajb96817.github.io/rpnlatex
-
-## Running via Electron
-
-There is some initial support for running this as an Electron app.  To try it, follow the above instructions
-for building from source but run 'npm run start_electron' instead of 'npm start'.  Certain things like pop-up
-dialog boxes (e.g. for saving files) are not working yet under Electron.
 
