@@ -177,8 +177,8 @@ const EditorKeymap = {
     _editor_commands: {
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
-        'Backspace': "backspace_text_entry backspace",
-        'Delete': "backspace_text_entry delete",
+        'Backspace': "text_entry_backspace backspace",
+        'Delete': "text_entry_backspace delete",
         'ArrowLeft': "text_entry_move_cursor left",
         'ArrowRight': "text_entry_move_cursor right",
         'Home': "text_entry_move_cursor begin",
@@ -208,8 +208,8 @@ const EditorKeymap = {
     // double \ prefix (latex command)
     latex_entry: {
         'Enter': "finish_text_entry latex",
-        'Delete': "backspace_text_entry delete math_text_entry",
-        'Backspace': "backspace_text_entry backspace math_text_entry",
+        'Delete': "text_entry_backspace delete math_text_entry",
+        'Backspace': "text_entry_backspace backspace math_text_entry",
         'delegate': "_editor_commands"
     },
 

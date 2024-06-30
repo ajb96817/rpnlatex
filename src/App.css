@@ -130,10 +130,10 @@ textarea { font-size: 16px; }
 .rightalign_math .katex-display.fleqn > .katex {
     text-align: right;
     padding-left: 0;
-    padding-right: 1em;
+    padding-right: 0.5em;
 }
 .rightalign_math div.tag_string {
-    left: 0.25em;
+    left: 0.5em;
     right: initial;
 }
 

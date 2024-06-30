@@ -1061,7 +1061,7 @@ class InputContext {
     // backspace was done while the text field is empty.  This is currently
     // used to switch back from latex entry mode to normal math entry mode.
     // backspace_type can be 'backspace' or 'delete'.
-    do_backspace_text_entry(stack, backspace_type, new_mode_when_empty) {
+    do_text_entry_backspace(stack, backspace_type, new_mode_when_empty) {
         if(this.text_entry.is_empty()) {
             // Everything has been deleted; cancel text entry.
 	    // Note that when cancelling via backspace this way, even if
@@ -1107,7 +1107,7 @@ class InputContext {
             return stack.push(item);
         }
         // math or roman_math or latex
-        let new_expr;
+        let new_expr = null;
         if(textstyle === 'roman_math') {
             new_expr = new CommandExpr('mathrm', [
                 new TextExpr(this._latex_escape(text))]);
@@ -1278,8 +1278,6 @@ class InputContext {
     }
 
     // Move the selection left or right within its parent Expr.
-    // If there is currently a multi-selection, it is cancelled and
-    // "left" or "right" is taken relative to the original multi-selection.
     do_dissect_move_selection(stack, direction) {
 	return this._do_dissect_operation(stack, expr_path =>
 	    expr_path.move(direction));
@@ -1478,15 +1476,8 @@ class InputContext {
     }
 
     // Take (left, right, operator) from the stack and create an InfixExpr.
-    // Special case: if 'operator' is \mathrm{...}, it's surrounded with \quad
-    // spacers as in do_conjunction().
     do_apply_infix(stack) {
         let [new_stack, left_expr, right_expr, operator_expr] = stack.pop_exprs(3);
-        if(operator_expr.expr_type() === 'command' &&
-           operator_expr.command_name === 'mathrm' &&
-           operator_expr.operand_count() === 1)
-            operator_expr = new SequenceExpr([
-                new CommandExpr('quad'), operator_expr, new CommandExpr('quad')]);
         const new_expr = InfixExpr.combine_infix(left_expr, right_expr, operator_expr);
         return new_stack.push_expr(new_expr);
     }
@@ -1676,9 +1667,12 @@ class InputContext {
         default: split_mode = 'infix'; break;
         }
         const element_exprs = ArrayExpr.split_elements(exprs, split_mode)
-        const array_expr = new ArrayExpr(
-            align_type, element_exprs.length, element_exprs[0].length, element_exprs);
-        return new_stack.push_expr(array_expr);
+        return new_stack.push_expr(
+            new ArrayExpr(
+                align_type,
+                element_exprs.length,
+                element_exprs[0].length,
+                element_exprs));
     }
 
     // Take [x_1,...,x_n] from the stack (where n is the prefix argument)
