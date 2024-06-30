@@ -53,6 +53,14 @@ class TextEntryState {
         }
     }
 
+    // ('delete' is a Javascript keyword)
+    do_delete() {
+        if(this.cursor_position < this.current_text.length)
+            this.current_text = [
+                this.current_text.slice(0, this.cursor_position),
+                this.current_text.slice(this.cursor_position+1)].join('');
+    }
+
     move(direction) {
         if(direction === 'left' && this.cursor_position > 0)
             this.cursor_position--;
@@ -1052,7 +1060,8 @@ class InputContext {
     // If new_mode_when_empty is provided, switch to that mode if this
     // backspace was done while the text field is empty.  This is currently
     // used to switch back from latex entry mode to normal math entry mode.
-    do_backspace_text_entry(stack, new_mode_when_empty) {
+    // backspace_type can be 'backspace' or 'delete'.
+    do_backspace_text_entry(stack, backspace_type, new_mode_when_empty) {
         if(this.text_entry.is_empty()) {
             // Everything has been deleted; cancel text entry.
 	    // Note that when cancelling via backspace this way, even if
@@ -1065,7 +1074,10 @@ class InputContext {
 	    return stack;
         }
         else {
-            this.text_entry.backspace();
+            if(backspace_type === 'backspace')
+                this.text_entry.backspace();
+            else if(backspace_type === 'delete')
+                this.text_entry.do_delete();
             this.switch_to_mode(this.mode);
         }
         this.perform_undo_or_redo = 'suppress';
