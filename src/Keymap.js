@@ -297,6 +297,7 @@ const EditorKeymap = {
         'k': "delimiters . . \\vert 2;parenthesize;fuse",  // f x y -> f(x|y)
         'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
         'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
+        'M': "parenthesize;push Im;operator mathrm;swap;fuse",  // Im(x)
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
@@ -306,6 +307,7 @@ const EditorKeymap = {
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
         'r': "infix ,;parenthesize;fuse",  // f x y -> f(x,y)
+        'R': "parenthesize;push Re;operator mathrm;swap;fuse",  // Im(x)
         's': "named_function sin",
         'S': "named_function sec",
         't': "named_function tan",

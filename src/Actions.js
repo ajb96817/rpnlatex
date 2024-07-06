@@ -17,6 +17,8 @@ import {
 //     'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
 //     'conjunction_entry': [,]['] - text entry will become a "conjuction" like "X  for  Y", same
 //         as commands like [,][r].
+//     'tag_entry': [/][;] - text entry will become the tag_string of the ExprItem
+//         (or the tag_string is removed if text entry is empty).
 // 'text': The string to be edited (editing is done non-destructively).
 // 'edited_item': If this is set, this is the Item that is currently being edited.
 //      While it's being edited, it doesn't exist on the stack and is temporarily held here.
