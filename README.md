@@ -8,6 +8,9 @@ word processor you should use something like LyX instead.
 Equations are entered using a Reverse Polish Notation (RPN) input system inspired by
 HP calculators.  Please see the built-in user manual, available by typing '?', for more information.
 
+Note that this is not a web service, but a standalone webapp that is downloaded (cached) in your
+browser and runs completely on your local hardware.  There is no server-side storage of documents, etc.
+
 ## Features
 
   * Cross-platform, with a simple and flexible interface suited for mobile or desktop.
@@ -47,7 +50,7 @@ directly in your browser) in order to take advantage of PWA.
 To build/run from source (not needed unless you want to change something):
 
   * Install npm (Node Package Manager)
-  * Clone the source code repository
+  * Clone the source code repository: git clone https://github.com/ajb96817/rpnlatex
   * Run 'npm install'
   * Run 'npm start'
   * Open the displayed server URL in a web browser
