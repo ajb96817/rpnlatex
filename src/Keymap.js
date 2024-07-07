@@ -110,17 +110,21 @@ const EditorKeymap = {
         'ArrowUp': 'scroll popup_panel vertical -25',
         'j': 'scroll popup_panel vertical 25',
         'k': 'scroll popup_panel vertical -25',
-        'ArrowLeft': 'cancel',
+        'ArrowLeft': 'cancel',  // 'cancel' here means don't hide the help text
         'ArrowRight': 'cancel',
-        'PageUp': 'scroll popup_panel vertical -95',
         'PageDown': 'scroll popup_panel vertical 95',
-        'default': "toggle_popup help",
+        'PageUp': 'scroll popup_panel vertical -95',
+        'J': 'scroll popup_panel vertical 95',
+        'K': 'scroll popup_panel vertical -95',
+        'Home': 'scroll popup_panel top',
+        'End': 'scroll popup_panel bottom',
 
         // quick navigation to each section:
         '&': "scroll_to help_insert_script",
         '%': "scroll_to help_insert_blackboard",
         '@': "scroll_to help_insert_calligraphic",
         "\\": "scroll_to help_text_entry",
+        "\"": "scroll_to help_text_entry",
         'Tab': "scroll_to help_stack",
         "'": "scroll_to help_symbols",
         '.': "scroll_to help_decorations",
@@ -141,7 +145,11 @@ const EditorKeymap = {
         ':': "scroll_to help_greek",
         '$': "scroll_to help_configuration",
         'Backspace': "scroll_to help_prefix_keys",
-        'c': "scroll_to help_control_keys"  // undocumented
+        'c': "scroll_to help_control_keys",  // undocumented
+
+        'q': "toggle_popup help",
+        '?': "toggle_popup help",
+        'default': "toggle_popup help"
     },
 
     // Tab prefix: stack/misc operations

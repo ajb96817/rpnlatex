@@ -1757,11 +1757,19 @@ class InputContext {
         container.scrollTop = new_scrolltop;
     }
 
+    // direction_string:
+    //     'vertical' or 'horizontal' for normal scrolling;
+    //     'top' or 'bottom' to go to the beginning or end (vertically)
+    // percentage_string: fraction of the current popup height (or width) to scroll by
     do_scroll(stack, panel_name, direction_string, percentage_string) {
         let panel_elt = document.getElementById(panel_name);
         if(!panel_elt) return;
         const percentage = parseInt(percentage_string || '50') / 100.0;
-        if(direction_string === 'horizontal')
+        if(direction_string === 'top')
+            panel_elt.scrollTop = 0;
+        else if(direction_string === 'bottom')
+            panel_elt.scrollTop = 100000;
+        else if(direction_string === 'horizontal')
             panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage)
         else
             panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
