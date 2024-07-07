@@ -114,7 +114,35 @@ const EditorKeymap = {
         'ArrowRight': 'cancel',
         'PageUp': 'scroll popup_panel vertical -95',
         'PageDown': 'scroll popup_panel vertical 95',
-        'default': "toggle_popup help"
+        'default': "toggle_popup help",
+
+        // quick navigation to each section:
+        '&': "scroll_to help_insert_script",
+        '%': "scroll_to help_insert_blackboard",
+        '@': "scroll_to help_insert_calligraphic",
+        "\\": "scroll_to help_text_entry",
+        'Tab': "scroll_to help_stack",
+        'f': "scroll_to help_files",
+        "'": "scroll_to help_symbols",
+        '.': "scroll_to help_decorations",
+        ',': "scroll_to help_infix",
+        '=': "scroll_to help_relational",
+        '/': "scroll_to help_operators",
+        'd': "scroll_to help_derivatives",
+        'i': "scroll_to help_integrals",
+        'f': "scroll_to help_named_operators",
+        ')': "scroll_to help_delimiters",
+        '(': "scroll_to help_delimiters",
+        '[': "scroll_to help_delimiters",
+        '{': "scroll_to help_delimiters",
+        '}': "scroll_to help_custom_delimiters",
+        '|': "scroll_to help_arrays",
+        '_': "scroll_to help_dissect",
+        ';': "scroll_to help_greek",
+        ':': "scroll_to help_greek",
+        '$': "scroll_to help_configuration",
+        'Backspace': "scroll_to help_prefix_keys",
+        'c': "scroll_to help_control_keys"  // undocumented
     },
 
     // Tab prefix: stack/misc operations

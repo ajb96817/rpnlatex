@@ -112,12 +112,21 @@
         </li>
       </ul>
 
-      <h2>Prefix Keys</h2>
+      <h2>
+        <a name="prefix_keys" id="help_prefix_keys">Prefix Keys</a>
+      </h2>
       <p>
         All other operations require <em>prefix keys</em> to be pressed first.  These keys
         switch into a corresponding <em>mode</em>.  The current mode is displayed in grey in the upper-right
         corner of the stack.  Each mode has its own keymap of operations, which are detailed in the following
         sections.
+      </p>
+      <p>
+        <strong>NOTE:</strong>
+        Pressing the prefix keys below while this help text is being shown
+        will jump directly to the corresponding section.
+        <span class="keybinding">Backspace</span> returns here to this list
+        of prefixes.
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">\</span> Input a longer character string with <a href="#text_entry">math entry</a> mode.</li>
@@ -137,15 +146,15 @@
         <li><span class="keybinding">_</span> Manipulate subexpressions of the stack top with <a href="#dissect">dissect</a> mode.</li>
         <li><span class="keybinding">;</span> Insert <a href="#greek">lowercase Greek</a> letters.</li>
         <li><span class="keybinding">:</span> Insert <a href="#greek">uppercase Greek</a> letters.</li>
-        <li><span class="keybinding">&amp;</span>
+        <li><span class="keybinding" id="help_insert_script">&amp;</span>
           Insert script-style uppercase letters such as: <code>\mathscr{ABCDE}</code>;
           <span class="keybinding">&amp;</span><span class="keybinding">&amp;</span> inserts a literal &amp;.
         </li>
-        <li><span class="keybinding">%</span>
+        <li id="help_insert_blackboard"><span class="keybinding">%</span>
           Insert blackboard-style uppercase letters: <code>\mathbb{ABCDE}</code>;
           <span class="keybinding">%</span><span class="keybinding">%</span> inserts a literal %.
         </li>
-        <li><span class="keybinding">@</span>
+        <li id="help_insert_calligraphic"><span class="keybinding">@</span>
           Insert calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>;
           <span class="keybinding">@</span><span class="keybinding">@</span> inserts a literal @.
         </li>
@@ -157,7 +166,7 @@
       </ul>
 
       <h2>
-        <a name="text_entry">Math and Text Entry</a>
+        <a name="text_entry" id="help_text_entry">Math and Text Entry</a>
         <span class="keybinding">\</span>&nbsp;<span class="keybinding">&quot;</span>
       </h2>
       <p>
@@ -222,7 +231,7 @@
       </p>
 
       <h2>
-        <a name="stack">Stack Manipulation and Utilities</a>
+        <a name="stack" id="help_stack">Stack Manipulation and Utilities</a>
         <span class="keybinding">Tab</span>
       </h2>
       <p>
@@ -328,7 +337,7 @@
       </ul>
 
       <h2>
-        <a name="files">File Management</a>
+        <a name="files" id="help_files">File Management</a>
         <span class="keybinding">Tab</span><span class="keybinding">f</span>
       </h2>
       <p>
@@ -368,7 +377,7 @@
       </p>
 
       <h2>
-        <a name="symbols">Math Symbols</a>
+        <a name="symbols" id="help_symbols">Math Symbols</a>
         <span class="keybinding">&#39;</span>
       </h2>
       <p>
@@ -455,7 +464,7 @@
       </p>
 
       <h2>
-        <a name="decorations">Decorations</a>
+        <a name="decorations" id="help_decorations">Decorations</a>
         <span class="keybinding">.</span>
       </h2>
       <p>
@@ -555,7 +564,7 @@
       </tbody></table>
 
       <h2>
-        <a name="infix">Infix Expressions</a>
+        <a name="infix" id="help_infix">Infix Expressions</a>
         <span class="keybinding">,</span>
       </h2>
       <p>
@@ -672,7 +681,7 @@
       </p>
 
       <h2>
-        <a name="relational">Relational Operators</a>
+        <a name="relational" id="help_relational">Relational Operators</a>
         <span class="keybinding">=</span>
       </h2>
       <p>
@@ -751,7 +760,7 @@
       </tbody></table>
 
       <h2>
-        <a name="operators">Functions and Operators <span class="keybinding">/</span></a>
+        <a name="operators" id="help_operators">Functions and Operators <span class="keybinding">/</span></a>
       </h2>
       <ul class="keybindings">
         <li><span class="keybinding">1</span> Reciprocal: <code>x \to \frac{1}{x}</code></li>
@@ -911,7 +920,7 @@
       </ul>
 
       <h2>
-        <a name="derivatives">Derivative Building <span class="keybinding">/</span><span class="keybinding">d</span></a>
+        <a name="derivatives" id="help_derivatives">Derivative Building <span class="keybinding">/</span><span class="keybinding">d</span></a>
       </h2>
       <p>
         These are some shortcuts for quickly creating common types of expressions involving derivatives and differentials.
@@ -987,7 +996,7 @@
       </ul>
 
       <h2>
-        <a name="integrals">Integral Limits <span class="keybinding">/</span><span class="keybinding">i</span></a>
+        <a name="integrals" id="help_integrals">Integral Limits <span class="keybinding">/</span><span class="keybinding">i</span></a>
       </h2>
       <p>
         These commands are for quickly applying common limits to integral signs.
@@ -1007,7 +1016,7 @@
       </p>
 
       <h2>
-        <a name="named_operators">
+        <a name="named_operators" id="help_named_operators">
           Named Operators
           <span class="keybinding">/</span><span class="keybinding">f</span>
         </a>
@@ -1065,7 +1074,7 @@
       </tbody></table>
 
       <h2>
-        <a name="placeholders">Placeholders</a>
+        <a name="placeholders" id="help_placeholders">Placeholders</a>
       </h2>
       <p>
         Sometimes you may want to fill in part of an expression you are working on later, rather than including
@@ -1088,7 +1097,7 @@
       </ul>
 
       <h2>
-        <a name="delimiters">Delimiters</a>
+        <a name="delimiters" id="help_delimiters">Delimiters</a>
         <span class="keybinding">)</span>
       </h2>
       <p>
@@ -1152,7 +1161,7 @@
       </ul>
 
       <h2>
-        <a name="custom_delimiters">Custom Delimiters</a>
+        <a name="custom_delimiters" id="help_custom_delimiters">Custom Delimiters</a>
         <span class="keybinding">}</span>
       </h2>
       <p>
@@ -1221,7 +1230,7 @@
       </p>
 
       <h2>
-        <a name="arrays">Array Operations</a>
+        <a name="arrays" id="help_arrays">Array Operations</a>
         <span class="keybinding">|</span>
       </h2>
       <p>
@@ -1431,7 +1440,7 @@
       </ul>
 
       <h2>
-        <a name="dissect">Dissect Mode</a>
+        <a name="dissect" id="help_dissect">Dissect Mode</a>
         <span class="keybinding">_</span>
       </h2>
       <p>
@@ -1491,7 +1500,7 @@
       </ul>
 
       <h2>
-        <a name="greek">Greek Letters</a>
+        <a name="greek" id="help_greek">Greek Letters</a>
         <span class="keybinding">;</span>
         <span class="keybinding">:</span>
       </h2>
@@ -1616,7 +1625,7 @@
         or <span class="keybinding">;</span><span class="keybinding">:</span>.
       </p>
       <h2>
-        <a name="configuration">Configuration</a>
+        <a name="configuration" id="help_configuration">Configuration</a>
         <span class="keybinding">$</span>
       </h2>
       <p>
@@ -1695,7 +1704,7 @@
       </ul>
 
       <h2>
-        <a name="control_keys">Control Keys</a>
+        <a name="control_keys" id="help_control_keys">Control Keys</a>
       </h2>
       <p>
         For maximum browser compatibility, Control and Alt keys are not required.

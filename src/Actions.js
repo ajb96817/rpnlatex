@@ -1765,6 +1765,13 @@ class InputContext {
             panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
     }
 
+    // Scroll to the given DOM element (used to jump around in help).
+    do_scroll_to(stack, element_id) {
+        const elt = document.getElementById(element_id);
+        if(elt) elt.scrollIntoView();
+        return stack;
+    }
+
     do_export_document_as_text(stack) {
         const exported_text = this.app_state.document.to_text();
         navigator.clipboard.writeText(exported_text);
