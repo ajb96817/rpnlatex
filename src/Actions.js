@@ -1572,8 +1572,10 @@ class InputContext {
     }
 
     do_fullscreen(stack, on_or_off) {
-        if(on_or_off === 'off')
-            document.exitFullscreen();
+        if(on_or_off === 'off') {
+            if(document.fullscreenElement)
+                document.exitFullscreen();
+        }
         else
             document.getElementsByTagName('html')[0].requestFullscreen();
         this.perform_undo_or_redo = 'suppress';
