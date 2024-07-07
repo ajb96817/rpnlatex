@@ -16,7 +16,7 @@
 
     <!-- The entire user manual is inline here, to be unhidden at runtime when requested. -->
     <div id="helptext" style="display: none;">
-      <div class="version_info">rpnlatex v1.2.0</div>
+      <div class="version_info">rpnlatex v1.2.1</div>
       <h1>User Guide</h1>
       <p>
         This is a mathematical scratchpad meant for quickly entering and manipulating formulas.  It runs as a standalone
@@ -1635,7 +1635,7 @@
           <span class="keybinding">s</span>
           Set the percentage of the window width (or height) that the stack panel will occupy.
           The percentage is given by the prefix argument:
-          <span class="keybinding">$</span><span class="keybinding">0</span><span class="keybinding">s</span> to <span class="keybinding">$</span><span class="keybinding">9</span><span class="keybinding">s</span> for 0% to 90%, or <span class="keybinding">$</span><span class="keybinding">*</span><span class="keybinding">s</span> for 100%.
+          <span class="keybinding">$</span><span class="keybinding">0</span><span class="keybinding">s</span> to <span class="keybinding">$</span><span class="keybinding">9</span><span class="keybinding">s</span> for 0% to 90%, or <span class="keybinding">$</span><span class="keybinding">*</span><span class="keybinding">s</span> for 100%.  Default is 50%.
         </li>
         <li>
           <span class="keybinding">m</span>
@@ -1644,6 +1644,13 @@
         <li>
           <span class="keybinding">M</span>
           Like <span class="keybinding">m</span> but for the document area instead.
+        </li>
+        <li>
+          <span class="keybinding">i</span>
+          Toggle between full-size math display (the default) and compact inline math display modes.
+          <strong>NOTE:</strong> With inline math display mode, equations are always aligned to the left,
+          regardless of the setting chosen by <span class="keybinding">$</span><span class="keybinding">m</span>
+          and <span class="keybinding">$</span><span class="keybinding">M</span>.
         </li>
         <li>
           <span class="keybinding">z</span>
@@ -1657,10 +1664,6 @@
           <span class="keybinding">f</span>
           Enter fullscreen mode if your browser supports it.
           <span class="keybinding">F</span> exits fullscreen.
-        </li>
-        <li>
-          <span class="keybinding">i</span>
-          Toggle between full-size math display (the default) and compact inline math display modes.
         </li>
 	<li>
 	  <span class="keybinding">I</span>

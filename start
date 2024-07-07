@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# workaround for a webpack bug: https://github.com/webpack/webpack/issues/14532
-export NODE_OPTIONS=--openssl-legacy-provider
-
-npm start

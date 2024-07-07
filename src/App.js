@@ -317,7 +317,8 @@ class ModeIndicatorComponent extends React.Component {
 
 class StackItemsComponent extends React.Component {
     render() {
-        let input_context = this.props.input_context;
+        const input_context = this.props.input_context;
+        const layout = this.props.settings.layout;
         const item_components = this.props.stack.items.map((item, index) => {
             // If there's an active prefix argument for stack commands, highlight the stack items that
             // will be affected.
@@ -329,7 +330,7 @@ class StackItemsComponent extends React.Component {
                 ItemComponent, {
                     item: item,
                     selected: selected,
-                    inline_math: this.props.settings.layout.inline_math,
+                    inline_math: layout.inline_math,
                     item_ref: React.createRef(),
                     key: item.react_key(index)
                 });
@@ -345,7 +346,8 @@ class StackItemsComponent extends React.Component {
             item_components.push(component);
         }
         let class_names = ['stack_items'];
-        if(this.props.settings.layout.stack_rightalign_math)
+        // NOTE: can't have inline_math and rightalign_math both at once currently
+        if(layout.stack_rightalign_math && !layout.inline_math)
             class_names.push('rightalign_math');
         return $e('div', {className: class_names.join(' ')}, item_components);
     }
@@ -355,6 +357,7 @@ class StackItemsComponent extends React.Component {
 class DocumentComponent extends React.Component {
     render() {
         const document = this.props.document;
+        const layout = this.props.settings.layout;
         const subcomponents = document.items.map((item, index) => {
             let item_ref = React.createRef();
             const is_selected = document.selection_index === index+1;
@@ -363,7 +366,7 @@ class DocumentComponent extends React.Component {
                 ItemComponent, {
                     item: item,
                     selected: is_selected,
-                    inline_math: this.props.settings.layout.inline_math,
+                    inline_math: layout.inline_math,
                     item_ref: item_ref,
                     key: item.react_key(index)
                 });
@@ -389,7 +392,8 @@ class DocumentComponent extends React.Component {
             });
         
         let class_names = ['document_items'];
-        if(this.props.settings.layout.document_rightalign_math)
+        // NOTE: can't have inline_math and rightalign_math both at once currently
+        if(layout.document_rightalign_math && !layout.inline_math)
             class_names.push('rightalign_math');
         return $e('div', {className: class_names.join(' ')},
                   [top_spacer].concat(subcomponents));
