@@ -122,7 +122,6 @@ const EditorKeymap = {
         '@': "scroll_to help_insert_calligraphic",
         "\\": "scroll_to help_text_entry",
         'Tab': "scroll_to help_stack",
-        'f': "scroll_to help_files",
         "'": "scroll_to help_symbols",
         '.': "scroll_to help_decorations",
         ',': "scroll_to help_infix",
@@ -315,7 +314,6 @@ const EditorKeymap = {
         'c': "named_function cos",
         'C': "named_function csc",
         'd': "mode derivative",
-        'D': "named_function det",
         'e': "push e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
         'f': "mode named_operator",
