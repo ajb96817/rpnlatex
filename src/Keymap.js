@@ -45,7 +45,7 @@ const EditorKeymap = {
         '.': "mode decoration",
         ',': "mode infix",
         ')': "mode delimiters",
-        '}': "custom_delimiter",
+        //'}': "custom_delimiter",
         ';': "mode lowercase_greek",
         ':': "mode uppercase_greek",
         '@': "mode calligraphic",
@@ -268,8 +268,8 @@ const EditorKeymap = {
         'f': "delimiters \\lfloor \\rfloor",
 	'F': "toggle_fixed_size_delimiters",
         'g': "delimiters \\lgroup \\rgroup",
-        'i': "delimiters \\langle \\rangle \\vert 2",  // <x|y>; mnemonic: [i]nner product
-        'I': "delimiters \\langle \\rangle \\vert 3",  // <x|y|z>
+	'i': "infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y>; mnemonic: [i]nner product
+	'I': "infix \\,\\vert\\,;infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y|z>
         'k': "delimiters \\vert \\rangle",  // |x> Dirac ket
         'm': "delimiters \\lmoustache \\rmoustache",
         'n': "delimiters \\lVert \\rVert",  // n = Norm
@@ -282,11 +282,12 @@ const EditorKeymap = {
         '(': "delimiters ( )",
         '[': "delimiters [ ]",
         ']': "push \\llbracket;swap;concat;push \\rrbracket;concat",
-        '{': "delimiters \\{ \\}"
+        '{': "delimiters \\{ \\}",
+	'.': "delimiters . ."
     },
 
     // right-curly-brace prefix: custom delimiter builder mode
-    custom_delimiters: {
+/*    custom_delimiters: {
         '[digit]': "prefix_argument",
         'c': "custom_delimiter \\lceil",
         'C': "custom_delimiter \\rceil",
@@ -310,7 +311,7 @@ const EditorKeymap = {
         '/': "custom_delimiter /",
         "\\": "custom_delimiter \\backslash",
         '|': "custom_delimiter |"
-    },
+    }, */
 
     // forward-slash prefix: assorted functions/operators
     operator: {
@@ -327,7 +328,7 @@ const EditorKeymap = {
         'h': "mode hyperbolic",
         'i': "mode integral_limits",
         'I': "push \\int;swap;superscript;swap;subscript",
-        'k': "delimiters . . \\vert 2;parenthesize;fuse",  // f x y -> f(x|y)
+        'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
         'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
         'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
         'M': "parenthesize;push Im;operator mathrm;swap;fuse",  // Im(x)
@@ -336,7 +337,7 @@ const EditorKeymap = {
         'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
         'O': "swap;operator overset 2",
         'p': "parenthesize;operator Pr",  // Pr(x) (probability)
-        'P': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;parenthesize;operator Pr",  // Pr(y|x)
+        'P': "infix \\,\\vert\\,;parenthesize;operator Pr",  // Pr(y|x)
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
         'r': "infix ,;parenthesize;fuse",  // f x y -> f(x,y)
@@ -349,10 +350,10 @@ const EditorKeymap = {
         'v': "parenthesize;push Var;operator operatorname;swap;concat",
         'V': "swap;push ,;concat;swap;concat;parenthesize;push Cov;operator operatorname;swap;concat",
 	'w': "swap_infix",
-        'x': "push E;operator mathbb;swap;delimiters [ ];fuse",  // E[x] (expectation)
-        'X': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];push E;operator mathbb;swap;fuse",  // E[y|x]
+        'x': "delimiters [ ];push E;operator mathbb;swap;fuse",  // E[x] (expectation)
+	'X': "infix \\,\\vert\\,;delimiters [ ];push E;operator mathbb;swap;fuse",  // E[y|x]
         'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
-        'Y': "unrot;push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];swap;push E;operator mathbb;swap;subscript;swap;fuse",  // E_x[z|y]
+	'Y': "push E;operator mathbb;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];fuse",  // E_x[z|y]
         ';': "start_text_entry tag_entry",
         ',': "infix_linebreak",
         '/': "operator frac 2",
@@ -535,7 +536,8 @@ const EditorKeymap = {
         'f': "conjunction if",
         'F': "conjunction iff",
         'g': "infix \\gets",
-        'k': "push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2",  // x | y  ([k]onditional)
+        'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
+        '|': "infix \\,\\vert\\,",  // (alias for k)
         'l': "infix \\parallel",
         'M': "infix \\mp",
         'n': "conjunction when",
@@ -558,7 +560,6 @@ const EditorKeymap = {
         'X': "infix \\otimes",
         '[': "infix \\llcorner",  // right-contraction
         ']': "infix \\lrcorner",  // left-contraction
-        '|': "delimiters . . \\vert 2",  // "infix |",
         '=': "infix \\Rightarrow",
         '-': "infix \\ominus",
         '+': "infix \\oplus",
@@ -574,7 +575,7 @@ const EditorKeymap = {
 	'(': "infix ,;delimiters ( )",  // (x,y)
         '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
-        '/': "autoparenthesize 2;delimiters . . / 2",  // flex x/y
+        '/': "autoparenthesize 2;infix /;delimiters . .",  // flex x/y
         "\\": "autoparenthesize 2;infix /"  // fixed x/y
     },
 
@@ -729,7 +730,7 @@ const EditorKeymap = {
         '-': "push -;swap;fuse",
         '+': "push +;swap;fuse",
         '`': "push T;superscript",  // transpose
-        '/': "push 1;swap;autoparenthesize;delimiters . . / 2",  // flex 1/x
+        '/': "push 1;swap;autoparenthesize;infix /;delimiters . .",  // flex 1/x
         "\\": "push 1;swap;autoparenthesize;infix /",  // fixed 1/x
         '_': "operator underline"
     },

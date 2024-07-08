@@ -586,7 +586,10 @@
           <tr>
             <td><span class="keybinding">F</span> <code>x\quad\mathrm{iff}\quad y</code></td>
             <td><span class="keybinding">g</span> <code>x\gets y</code></td>
-            <td><span class="keybinding">k</span> <code>\left.x\,\middle\vert\,y\right.</code></td>
+            <td>
+	      <span class="keybinding">k</span> or <span class="keybinding">|</span>
+	      <code>\left.x\,\middle\vert\,y\right.</code>
+	    </td>
           </tr>
           <tr>
             <td><span class="keybinding">l</span> <code>x\parallel y</code></td>
@@ -625,33 +628,33 @@
           </tr>
           <tr>
             <td><span class="keybinding">]</span> <code>x\lrcorner y</code></td>
-            <td><span class="keybinding">|</span> <code>x | y</code></td>
             <td><span class="keybinding">=</span> <code>x\Rightarrow y</code></td>
+            <td><span class="keybinding">-</span> <code>x\ominus y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">-</span> <code>x\ominus y</code></td>
             <td><span class="keybinding">+</span> <code>x\oplus y</code></td>
             <td><span class="keybinding">.</span> <code>x\cdot y</code></td>
+            <td><span class="keybinding">,</span> <code>x,y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">,</span> <code>x,y</code></td>
             <td><span class="keybinding">&nbsp;</span> <code>x,\,y</code></td>
             <td><span class="keybinding">&gt;</span> <code>x\cdots y</code></td>
+            <td><span class="keybinding">&lt;</span> <code>\left\langle x,y\right\rangle</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">&lt;</span> <code>\left\langle x,y\right\rangle</code></td>
             <td><span class="keybinding">(</span> <code>\left(x,y\right)</code></td>
             <td><span class="keybinding">*</span> <code>x*y</code></td>
+            <td><span class="keybinding">:</span> <code>x : y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">:</span> <code>x : y</code></td>
             <td><span class="keybinding">;</span> <code>x;\,y</code></td>
             <td><span class="keybinding">`</span> <code>x^T y</code></td>
+            <td><span class="keybinding">/</span> <code>x/y</code> (flex size)</td>
 	  </tr>
 	  <tr>
-            <td><span class="keybinding">/</span> <code>x/y</code> (flex size)</td>
             <td><span class="keybinding">\</span> <code>x/y</code> (fixed size)</td>
             <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
+	    <td></td>
           </tr>
 	  <tr>
             <td colspan="3"><span class="keybinding">&#39;</span> <em>conjunction</em> (see below)</td>
@@ -777,7 +780,7 @@
         <li><span class="keybinding">f</span> Prefix for creating standalone <a href="#named_operators">named operators</a>.</li>
         <li><span class="keybinding">i</span> Prefix for applying <a href="#integrals">integral</a> limits.</li>
         <li><span class="keybinding">I</span> <code>x\enspace y \to \int_x^y</code></li>
-        <li><span class="keybinding">k</span> <code>f\enspace y\enspace x \to f(y|x)</code></li>
+        <li><span class="keybinding">k</span> <code>f\enspace y\enspace x \to f(y\,|\,x)</code></li>
         <li>
           <span class="keybinding">l</span> <code>x \to \lim\limits_x</code>
           (shortcut for <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">L</span>)
@@ -836,13 +839,13 @@
           <span class="keybinding">x</span> <code>x \to \mathbb{E}{\left[x\right]}</code> (expectation)
         </li>
         <li>
-          <span class="keybinding">X</span> <code>y\enspace x \to \mathbb{E}{\left[y\middle| x\right]}</code> (conditional expectation)
+          <span class="keybinding">X</span> <code>y\enspace x \to \mathbb{E}{\left[y\,\middle\vert\,x\right]}</code> (conditional expectation)
         </li>
         <li>
           <span class="keybinding">y</span> <code>y\enspace x \to \mathbb{E}_x{\left[y\right]}</code> (with subscript)
         </li>
         <li>
-          <span class="keybinding">Y</span> <code>z\enspace y\enspace x \to \mathbb{E}_x{\left[z\middle| y\right]}</code>
+          <span class="keybinding">Y</span> <code>z\enspace y\enspace x \to \mathbb{E}_x{\left[z\,\middle\vert\,y\right]}</code>
         </li>
         <li>
           <span class="keybinding">/</span> <code>y\enspace x \to \displaystyle\frac{y}{x}</code>

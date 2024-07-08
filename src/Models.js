@@ -145,7 +145,7 @@ Settings.saved_keys = [
 class LatexEmitter {
     // selected_expr_path is optional, but if provided it is an ExprPath
     // object that indicates which Expr is to be rendered with a "highlight"
-    // indicating that is currently selected.
+    // indicating that it is currently selected.
     constructor(base_expr, selected_expr_path) {
         this.tokens = [];
         this.last_token_type = null;
@@ -168,7 +168,9 @@ class LatexEmitter {
     // This is used to correlate with this given this.selected_expr_path
     // so that we know when we've hit the right subexpression to highlight.
     // (Expr objects can be aliased so we can't just rely on object identity.)
-    expr(expr, index) {
+    // 'inside_delimiters' will be true if expr is the inner_expr of a DelimiterExpr
+    // (cf. InfixExpr.emit_latex()).
+    expr(expr, index, inside_delimiters) {
 	if(index !== null && this.selected_expr_path)
 	    this.current_path = this.current_path.descend(index);
 	// Check if we're now rendering the 'selected' expression.
@@ -182,10 +184,10 @@ class LatexEmitter {
 		    new CommandExpr('htmlClass', [
 			new TextExpr('dissect_highlight'),
 			expr])])]);	    
-            highlight_expr.emit_latex(this);
+            highlight_expr.emit_latex(this, inside_delimiters);
 	}
 	else
-	    expr.emit_latex(this);
+	    expr.emit_latex(this, inside_delimiters);
 	if(index !== null && this.selected_expr_path)
 	    this.current_path = this.current_path.ascend();
     }
@@ -917,8 +919,7 @@ class Expr {
             return new DelimiterExpr(
                 json.left_type,
 		json.right_type,
-		json.middle_type,
-                this._list(json.inner_exprs),
+		this._expr(json.inner_expr),
 		json.fixed_size);
         case 'subscriptsuperscript':
             return new SubscriptSuperscriptExpr(
@@ -1101,7 +1102,7 @@ class Expr {
         return found;
     }
 
-    // Return a (possibly) new Expr with old_expr substituted for new_expr, if old_expr is present.
+    // Return a (possibly) new Expr with new_expr substituted for old_expr, if old_expr is present.
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr)
             return new_expr;
@@ -1175,7 +1176,8 @@ class CommandExpr extends Expr {
         if(this === old_expr) return new_expr;
         return new CommandExpr(
             this.command_name,
-            this.operand_exprs.map(operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
+            this.operand_exprs.map(
+		operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
             this.options);
     }
 
@@ -1236,7 +1238,7 @@ class InfixExpr extends Expr {
     // merged into a larger InfixExpr.  Otherwise, a new binary InfixExpr
     // will be created to contain them.  In either case, the result is
     // joined by 'op_expr' as the infix operator.
-    // NOTE: if either of the existing InfixExprs have linebreak_types specified,
+    // NOTE: if either of the existing InfixExprs have linebreak_type specified,
     // they are not combined, to avoid messing up the linebreak point (since
     // each InfixExpr can have only one linebreak specified).
     static combine_infix(left_expr, right_expr, op_expr) {
@@ -1249,8 +1251,8 @@ class InfixExpr extends Expr {
 	else
 	    new_operand_exprs.push(left_expr);
         // Determine index of the new op_expr within the new InfixExpr;
-        // this becomes the split_at_index determining where do_split_infix()
-        // applies at.
+        // this becomes the split_at_index determining where things like
+	// do_infix_linebreak() apply at.
         const split_at_index = new_operator_exprs.length;
 	new_operator_exprs.push(op_expr);
 	if(right_expr.expr_type() === 'infix' && !right_expr.linebreak_type) {
@@ -1291,6 +1293,12 @@ class InfixExpr extends Expr {
             return this.operator_text(this.operator_exprs[this.split_at_index]);
     }
 
+    // e.g. operator_text==='/' would match 'x/y'.
+    is_binary_operator_with(operator_text) {
+	return this.operator_exprs.length === 1 &&
+	    this.operator_text(this.operator_exprs[0]) === operator_text;
+    }
+
     // Check if this is a low-precedence infix expression like x+y
     // This is mostly for convenience so it doesn't need to be that precise.
     needs_autoparenthesization() {
@@ -1300,14 +1308,25 @@ class InfixExpr extends Expr {
 	});
     }
 
-    emit_latex(emitter) {
+    // inside_delimiters is set to true when this InfixExpr is rendered
+    // as the inner_expr of a DelimiterExpr.
+    // This gives us a chance to convert things like \parallel into
+    // their flexible \middle counterparts.
+    emit_latex(emitter, inside_delimiters) {
 	for(let i = 0; i < this.operator_exprs.length; i++) {
 	    emitter.expr(this.operand_exprs[i], 2*i);
 	    if(this.split_at_index === i && this.linebreak_type === 'before') {
-		emitter.command("\\");
+		emitter.command("\\");  // outputs two backslashes (LaTeX newline command)
 		emitter.command("qquad");
 	    }
-	    emitter.expr(this.operator_exprs[i], 2*i+1);
+	    let emitted_expr = this.operator_exprs[i];
+	    if(inside_delimiters) {
+		// Try converting to flex delimiter.
+		const converted_expr = this._convert_to_flex_delimiter(emitted_expr);
+		if(converted_expr)
+		    emitted_expr = converted_expr;
+	    }
+	    emitter.expr(emitted_expr, 2*i+1);
 	    if(this.split_at_index === i && this.linebreak_type === 'after') {
 		emitter.command("\\");
 		emitter.command("qquad");
@@ -1316,6 +1335,25 @@ class InfixExpr extends Expr {
 	emitter.expr(
 	    this.operand_exprs[this.operand_exprs.length-1],
 	    2*this.operator_exprs.length);
+    }
+
+    _convert_to_flex_delimiter(expr) {
+	if(expr.expr_type() === 'text') {
+	    let new_text = null;
+	    if(expr.text === "\\,\\vert\\," || expr.text === "\\vert")
+		new_text = "\\middle\\vert ";
+	    else if(expr.text === '/')
+		new_text = "\\middle/";
+	    if(new_text)
+		return new TextExpr(new_text);
+	}
+	else if(expr.expr_type() === 'command' &&
+		expr.operand_count() === 0 &&
+		expr.command_name === 'parallel') {
+	    return new TextExpr("\\,\\middle\\Vert\\,");  // flex-size fraction
+	}
+	else
+	    return null;
     }
 
     visit(fn) {
@@ -1442,7 +1480,7 @@ class TextExpr extends Expr {
 // Represents a sequence of expressions all concatenated together.
 // Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
 // If 'fused' is true, this will not be combined with other adjacent
-// expressions in Expr.combine_pair(), etc.
+// sequences in Expr.combine_pair(), etc.
 // This can be used to group things that functionally belong together
 // like f(x), which matters for 'dissect' mode.
 class SequenceExpr extends Expr {
@@ -1499,12 +1537,17 @@ class SequenceExpr extends Expr {
 
 
 // Represents an expression enclosed in (flexible) left/right delimiters.
-// \left( ... \right)
-// If there is more than one inner_expr, they'll be separated with this.middle_type
-// e.g.: \left( x \middle| y \right)
+// e.g. \left( ... \right)
+// If the enclosed expression is an InfixExpr, this attempts to convert
+// infix operators to their flex-size equivalent if they have one.
 class DelimiterExpr extends Expr {
     static parenthesize(expr) {
-        return new DelimiterExpr('(', ')', null, [expr]);
+	// Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
+	// just replace the blanks with parentheses instead of re-wrapping expr.
+	if(expr.expr_type() === 'delimiter' &&
+	   expr.left_type === '.' && expr.right_type === '.')
+	    return new DelimiterExpr('(', ')', expr.inner_expr);
+        return new DelimiterExpr('(', ')', expr);
     }
 
     // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
@@ -1517,7 +1560,7 @@ class DelimiterExpr extends Expr {
 
     // Parenthesize 'expr' only if it's a "fraction", which could mean one of:
     //   \frac{x}{y}
-    //   x/y
+    //   x/y (infix)
     //   \left.x\middle/\right.  (as created by e.g. [,][\])
     static autoparenthesize_frac(expr) {
         const needs_parenthesization = (
@@ -1527,13 +1570,14 @@ class DelimiterExpr extends Expr {
              expr.operand_count() === 2) ||
 
             // x/y
-            (expr.expr_type() === 'infix' && expr.operator_text() === '/') ||
+	    (expr.expr_type() === 'infix' && expr.is_binary_operator_with('/')) ||
 
-            // \left.x\middle/\right.
+            // \left. x/y \right.
+	    // (x/y is an InfixExpr); this is a "flex size fraction".
             (expr.expr_type() === 'delimiter' &&
-             expr.left_type === '.' &&
-             expr.middle_type === '/' &&
-             expr.right_type === '.')
+             expr.left_type === '.' && expr.right_type === '.' &&
+	     expr.inner_expr.expr_type() === 'infix' &&
+	     expr.inner_expr.is_binary_operator_with('/'))
         );
         if(needs_parenthesization)
             return DelimiterExpr.parenthesize(expr);
@@ -1541,17 +1585,16 @@ class DelimiterExpr extends Expr {
             return expr;
     }
     
-    constructor(left_type, right_type, middle_type, inner_exprs, fixed_size) {
+    constructor(left_type, right_type, inner_expr, fixed_size) {
         super();
         this.left_type = left_type;
         this.right_type = right_type;
-        this.middle_type = middle_type || null;  // to avoid 'undefined's in the JSON
+        this.inner_expr = inner_expr;
 	this.fixed_size = fixed_size || false;
-        this.inner_exprs = inner_exprs || [];
     }
 
     expr_type() { return 'delimiter'; }
-    json_keys() { return ['left_type', 'right_type', 'middle_type', 'inner_exprs']; }
+    json_keys() { return ['left_type', 'right_type', 'inner_expr']; }
 
     emit_latex(emitter) {
 	if(this.fixed_size)
@@ -1563,13 +1606,7 @@ class DelimiterExpr extends Expr {
     emit_latex_flex_size(emitter) {
         emitter.command('left');
         emitter.text_or_command(this.left_type);
-        this.inner_exprs.forEach((expr, index) => {
-            if(index > 0) {
-                emitter.command('middle');
-                emitter.text_or_command(this.middle_type || '|');
-            }
-            emitter.expr(expr, index);
-        });
+	emitter.expr(this.inner_expr, 0, true);  // true: inside_delimiters
         emitter.command('right');
         emitter.text_or_command(this.right_type);
     }
@@ -1577,11 +1614,7 @@ class DelimiterExpr extends Expr {
     emit_latex_fixed_size(emitter) {
 	if(this.left_type !== '.')
 	    emitter.text_or_command(this.left_type);
-	this.inner_exprs.forEach((expr, index) => {
-	    if(index > 0 && this.middle_type !== '.')
-		emitter.text_or_command(this.middle_type || '|');
-	    emitter.expr(expr, index);
-	});
+	emitter.expr(this.inner_expr, 0);
 	if(this.right_type !== '.')
 	    emitter.text_or_command(this.right_type);
     }
@@ -1589,20 +1622,10 @@ class DelimiterExpr extends Expr {
     // Return a copy of this expression but with the given fixed_size flag.
     as_fixed_size(fixed_size) {
 	return new DelimiterExpr(
-	    this.left_type, this.right_type, this.middle_type,
-	    this.inner_exprs, fixed_size);
-    }
-
-    // Return a version of this expression with the delimiters removed.
-    // For simple delimiter expressions, this just returns the wrapped expression.
-    // If there are multiple inner_exprs, this has to be "faked" by replacing the
-    // delimiters with blank ones.
-    without_delimiters() {
-        if(this.inner_exprs.length === 1)
-            return this.inner_exprs[0];
-        else return new DelimiterExpr(
-            '.', '.', this.middle_type,
-            this.inner_exprs, this.fixed_size);
+	    this.left_type,
+	    this.right_type,
+	    this.inner_expr,
+	    fixed_size);
     }
 
     to_json() {
@@ -1613,23 +1636,28 @@ class DelimiterExpr extends Expr {
 
     visit(fn) {
         fn(this);
-        this.inner_exprs.forEach(expr => expr.visit(fn));
+	this.inner_expr.visit(fn);
     }
 
-    subexpressions() { return this.inner_exprs; }
+    has_subexpressions() { return true; }
+
+    subexpressions() { return [this.inner_expr]; }
 
     replace_subexpression(index, new_expr) {
         return new DelimiterExpr(
-            this.left_type, this.right_type, this.middle_type,
-            this.inner_exprs.map(
-		(expr, expr_index) => expr_index === index ? new_expr : expr));
+            this.left_type,
+	    this.right_type,
+	    new_expr,
+	    this.fixed_size);
     }
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
         return new DelimiterExpr(
-            this.left_type, this.right_type, this.middle_type,
-            this.inner_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
+            this.left_type,
+	    this.right_type,
+	    this.inner_expr.substitute_expr(old_expr, new_expr),
+	    this.fixed_size);
     }
 }
 

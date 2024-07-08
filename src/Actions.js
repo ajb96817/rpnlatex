@@ -124,8 +124,9 @@ class InputContext {
         // bottom of the stack panel.  this.text_entry will be a TextEntryState object.
         this.text_entry = null;
 
-        // Tracks multi-part custom_delimiters commands.
+/*        // Tracks multi-part custom_delimiters commands.
         this.custom_delimiters = {};
+*/
 
         // When in "dissect" mode, this is a specialized DissectUndoStack
         // that only tracks modifications to the stack top item being edited.
@@ -812,6 +813,7 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
+/*
     do_custom_delimiter(stack, delimiter_type) {
         this.switch_to_mode('custom_delimiters');
         if(!delimiter_type) {
@@ -852,6 +854,7 @@ class InputContext {
         this.custom_delimiters = {};
         return new_stack.push_expr(new_expr);
     }
+*/
 
     do_toggle_fixed_size_delimiters(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
@@ -864,7 +867,7 @@ class InputContext {
     do_remove_delimiters(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
 	if(expr.expr_type() === 'delimiter')
-            return new_stack.push_expr(expr.without_delimiters());
+            return new_stack.push_expr(expr.inner_expr);
         else
             return stack;  // not considered an error
     }
@@ -919,25 +922,15 @@ class InputContext {
         return new_stack.push_expr(new_infix_expr);
     }
 
-    // Swap left and right sides of an "infix" expression, which can be an
-    // actual InfixExpr or else a DelimiterExpr that has 2 inner expressions,
-    // e.g. <x | y> or \left. x \middle/ y \right.
-    // For InfixExpr, the "pivot" operator for the swap is taken from split_at_index,
-    // which is generally the most recently-used operator in the creation of the
-    // infix expression.
+    // Swap left and right sides of an infix expression.  
+    // The "pivot" operator for the swap is taken from split_at_index, which is
+    // generally the most recently-used operator in the creation of the infix expression.
     do_swap_infix(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
-	let new_expr = null;
-	if(expr.expr_type() === 'infix')
-            new_expr = expr.swap_sides_at(expr.split_at_index);
-	else if(expr.expr_type() === 'delimiter' &&
-		expr.inner_exprs.length === 2)
-	    new_expr = new DelimiterExpr(
-		expr.left_type, expr.right_type, expr.middle_type,
-		[expr.inner_exprs[1], expr.inner_exprs[0]],
-		expr.fixed_size);
-	if(new_expr)
+	if(expr.expr_type() === 'infix') {
+            const new_expr = expr.swap_sides_at(expr.split_at_index);
 	    return new_stack.push_expr(new_expr);
+	}
 	else
 	    return this.error_flash_stack();
     }
@@ -994,16 +987,12 @@ class InputContext {
 
     // Extract either the left or right side of an expression.
     //   - InfixExpr yields the part to the left or right of the split_at_infix point.
-    //   - DelimiterExpr with 2 inner expressions yields one of the two expressions; cf. do_swap_infix).
     //   - CommandExpr \frac yields the numerator or denominator of the fraction.
     do_extract_infix_side(stack, which_side) {
         const [new_stack, expr] = stack.pop_exprs(1);
 	let extracted_expr = null;
 	if(expr.expr_type() === 'infix')
 	    extracted_expr = expr.extract_side_at(expr.split_at_index, which_side);
-	else if(expr.expr_type() === 'delimiter' &&
-		expr.inner_exprs.length === 2)
-	    extracted_expr = (which_side === 'right') ? expr.inner_exprs[1] : expr.inner_exprs[0];
         else if(expr.expr_type() === 'command' &&
                 expr.operand_count() === 2 &&
                 expr.command_name === 'frac')
@@ -1420,40 +1409,28 @@ class InputContext {
 	return stack.push(code_item);
     }
 
-    // expr_count is the number of items to pop from the stack to put inside the delimiters.
-    // It defaults to 1, but if it's 2 or more, 'middle' is used to separate each item within
-    // the delimiters.
-    do_delimiters(stack, left, right, middle, expr_count_string) {
-        const expr_count = (expr_count_string === undefined) ? 1 : parseInt(expr_count_string);
-        const [new_stack, ...inner_exprs] = stack.pop_exprs(expr_count);
-        let new_expr = null;
+    do_delimiters(stack, left, right) {
+	const [new_stack, inner_expr] = stack.pop_exprs(1);
         // Special case: if the stack top is already a DelimiterExpr with "blank" delimiters
         // we can just rebuild a new DelimiterExpr with the specified delimiters instead,
         // without wrapping it in another DelimiterExpr.
-        if(expr_count === 1 && inner_exprs[0].expr_type() === 'delimiter' &&
-           inner_exprs[0].left_type === '.' && inner_exprs[0].right_type === '.') {
-            new_expr = new DelimiterExpr(
-                left, right, inner_exprs[0].middle_type,
-                inner_exprs[0].inner_exprs);
-        }
+        if(inner_expr.expr_type() === 'delimiter' &&
+           inner_expr.left_type === '.' && inner_expr.right_type === '.')
+	    return new_stack.push_expr(new DelimiterExpr(
+                left, right, inner_expr.inner_expr));
         else {
             // The usual case.
-            new_expr = new DelimiterExpr(
-                left, right, middle, inner_exprs);
+	    return new_stack.push_expr(
+		new DelimiterExpr(left, right, inner_expr));
         }
-        return new_stack.push_expr(new_expr);
     }
 
     // Wrap stack top in parentheses if it's not already in delimiters.
     do_parenthesize(stack) {
         let [new_stack, expr] = stack.pop_exprs(1);
-        // Special case: \left. X \middle| \right. style delimiters
-        // are treated as a kind of pseudo-infix expression here.
-        // This is to make things like Pr(x | y) work better when | is a
-        // flex-size delimiter.
-        if(expr.expr_type() === 'delimiter' && expr.left_type === '.' &&
-           expr.right_type === '.' && expr.inner_exprs.length > 1)
-            expr = new DelimiterExpr('(', ')', expr.middle_type, expr.inner_exprs);
+        if(expr.expr_type() === 'delimiter' &&
+	   expr.left_type === '.' && expr.right_type === '.')
+	    expr = new DelimiterExpr('(', ')', expr.inner_expr);
         else if(expr.expr_type() !== 'delimiter')
             expr = DelimiterExpr.parenthesize(expr);
         return new_stack.push_expr(expr);
