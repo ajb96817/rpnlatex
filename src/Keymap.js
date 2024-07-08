@@ -316,8 +316,7 @@ const EditorKeymap = {
     operator: {
         '1': "push 1;swap;operator frac 2",
         '2': "mode squared",
-        'a': "apply_operator 1",
-        'A': "apply_operator 2",
+        //'a': "apply_operator 1",  // disabled for now, too much can go wrong
         'b': "operator binom 2",
         'c': "named_function cos",
         'C': "named_function csc",
