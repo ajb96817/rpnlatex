@@ -45,7 +45,6 @@ const EditorKeymap = {
         '.': "mode decoration",
         ',': "mode infix",
         ')': "mode delimiters",
-        //'}': "custom_delimiter",
         ';': "mode lowercase_greek",
         ':': "mode uppercase_greek",
         '@': "mode calligraphic",
@@ -138,7 +137,6 @@ const EditorKeymap = {
         '(': "scroll_to help_delimiters",
         '[': "scroll_to help_delimiters",
         '{': "scroll_to help_delimiters",
-        '}': "scroll_to help_custom_delimiters",
         '|': "scroll_to help_arrays",
         '_': "scroll_to help_dissect",
         ';': "scroll_to help_greek",
@@ -271,47 +269,78 @@ const EditorKeymap = {
 	'i': "infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y>; mnemonic: [i]nner product
 	'I': "infix \\,\\vert\\,;infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y|z>
         'k': "delimiters \\vert \\rangle",  // |x> Dirac ket
+	'l': "mode modify_left",
+	'L': "mode modify_left",
         'm': "delimiters \\lmoustache \\rmoustache",
         'n': "delimiters \\lVert \\rVert",  // n = Norm
+	'o': "delimiters ( ]",  // half-closed interval
+	'O': "delimiters [ )",
         'N': "delimiters \\lVert \\rVert",  // alias for n
+	'r': "mode modify_right",
+	'R': "mode modify_right",
         'w': "delimiters . \\vert",  // "where"
         'W': "delimiters . \\vert",  // alias for w
         'x': "remove_delimiters",
+        'X': "remove_delimiters",
         '|': "delimiters \\vert \\vert",
         '<': "delimiters \\langle \\rangle",
         '(': "delimiters ( )",
         '[': "delimiters [ ]",
         ']': "push \\llbracket;swap;concat;push \\rrbracket;concat",
         '{': "delimiters \\{ \\}",
-	'.': "delimiters . ."
+	'.': "delimiters . .",  // undocumented
+	' ': "delimiters . ." // undocumented
     },
 
-    // right-curly-brace prefix: custom delimiter builder mode
-/*    custom_delimiters: {
-        '[digit]': "prefix_argument",
-        'c': "custom_delimiter \\lceil",
-        'C': "custom_delimiter \\rceil",
-        'f': "custom_delimiter \\lfloor",
-        'F': "custom_delimiter \\rfloor",
-        'g': "custom_delimiter \\lgroup",
-        'G': "custom_delimiter \\rgroup",
-        'm': "custom_delimiter \\lmoustache",
-        'M': "custom_delimiter \\rmoustache",
-        'v': "custom_delimiter \\Vert",
-        '<': "custom_delimiter \\langle",
-        '>': "custom_delimiter \\rangle",
-        '(': "custom_delimiter (",
-        ')': "custom_delimiter )",
-        '[': "custom_delimiter [",
-        ']': "custom_delimiter ]",
-        '{': "custom_delimiter \\{",
-        '}': "custom_delimiter \\}",
-        '.': "custom_delimiter .",
-        ' ': "custom_delimiter .",
-        '/': "custom_delimiter /",
-        "\\": "custom_delimiter \\backslash",
-        '|': "custom_delimiter |"
-    }, */
+    modify_left: {
+        'c': "modify_delimiter \\lceil left",
+        'C': "modify_delimiter \\rceil left",
+        'f': "modify_delimiter \\lfloor left",
+        'F': "modify_delimiter \\rfloor left",
+        'g': "modify_delimiter \\lgroup left",
+        'G': "modify_delimiter \\rgroup left",
+        'm': "modify_delimiter \\lmoustache left",
+        'M': "modify_delimiter \\rmoustache left",
+        'n': "modify_delimiter \\Vert left",
+        '<': "modify_delimiter \\langle left",
+        '>': "modify_delimiter \\rangle left",
+        '(': "modify_delimiter ( left",
+        ')': "modify_delimiter ) left",
+        '[': "modify_delimiter [ left",
+        ']': "modify_delimiter ] left",
+        '{': "modify_delimiter \\{ left",
+        '}': "modify_delimiter \\} left",
+        '.': "modify_delimiter . left",
+        ' ': "modify_delimiter . left",
+        '/': "modify_delimiter / left",
+        "\\": "modify_delimiter \\backslash left",
+        '|': "modify_delimiter \\vert left"
+    },
+
+    modify_right: {
+        'c': "modify_delimiter \\lceil right",
+        'C': "modify_delimiter \\rceil right",
+        'f': "modify_delimiter \\lfloor right",
+        'F': "modify_delimiter \\rfloor right",
+        'g': "modify_delimiter \\lgroup right",
+        'G': "modify_delimiter \\rgroup right",
+        'm': "modify_delimiter \\lmoustache right",
+        'M': "modify_delimiter \\rmoustache right",
+        'n': "modify_delimiter \\Vert right",
+        '<': "modify_delimiter \\langle right",
+        '>': "modify_delimiter \\rangle right",
+        '(': "modify_delimiter ( right",
+        ')': "modify_delimiter ) right",
+        '[': "modify_delimiter [ right",
+        ']': "modify_delimiter ] right",
+        '{': "modify_delimiter \\{ right",
+        '}': "modify_delimiter \\} right",
+        '.': "modify_delimiter . right",
+        ' ': "modify_delimiter . right",
+        '/': "modify_delimiter / right",
+        "\\": "modify_delimiter \\backslash right",
+        '|': "modify_delimiter \\vert right"
+    },
 
     // forward-slash prefix: assorted functions/operators
     operator: {
@@ -366,6 +395,7 @@ const EditorKeymap = {
         '-': "mode inverse",
         '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
         '+': "infix \\ge;push \\sum;swap;subscript",
+	'|': "swap;delimiters . \\vert;swap;subscript",  // y|_{x} ('where')
         "'": "substitute_placeholder",
         "\"": "toggle_is_heading",
         'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once

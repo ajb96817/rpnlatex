@@ -1347,13 +1347,14 @@ class InfixExpr extends Expr {
 	    if(new_text)
 		return new TextExpr(new_text);
 	}
-	else if(expr.expr_type() === 'command' &&
-		expr.operand_count() === 0 &&
-		expr.command_name === 'parallel') {
-	    return new TextExpr("\\,\\middle\\Vert\\,");  // flex-size fraction
+	else if(expr.expr_type() === 'command' && expr.operand_count() === 0) {
+	    const command = expr.command_name;
+	    if(command === 'parallel')
+		return new TextExpr("\\,\\middle\\Vert\\,");  // flex-size fraction
+	    else if(command === 'setminus' || command === 'backslash')
+		return new TextExpr("\\middle\\backslash ");
 	}
-	else
-	    return null;
+	return null;
     }
 
     visit(fn) {

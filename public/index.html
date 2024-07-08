@@ -143,7 +143,6 @@
         <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#integrals">integral limits</a>.</li>
         <li><span class="keybinding">/</span><span class="keybinding">f</span> Create <a href="#named_operators">named operators</a>.</li>
         <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
-        <li><span class="keybinding">}</span> Build <a href="#custom_delimiters">custom delimiter</a> structures.</li>
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="keybinding">_</span> Manipulate subexpressions of the stack top with <a href="#dissect">dissect</a> mode.</li>
         <li><span class="keybinding">;</span> Insert <a href="#greek">lowercase Greek</a> letters.</li>
@@ -865,6 +864,11 @@
           &nbsp;&nbsp;
           <span class="keybinding">}</span> <code>y\enspace x \to \underbrace{y}_x</code>
         </li>
+	<li>
+	  <span class="keybinding">|</span> <code>y\enspace x \to \left.y\right\vert_{x}</code>
+	  &quot;where&quot; notation, for example:
+	  <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
+	</li>
         <li>
           <span class="keybinding">&lt;</span> or <span class="keybinding">&gt;</span>
           Extract the left or right side of an infix or relational expression.
@@ -1015,7 +1019,7 @@
       </ul>
       <p>
         These can apply to objects other than integral signs as well, for example:
-        <code>\left.\frac{x^2}{2}\right| \to \left.\frac{x^2}{2}\right|_0^1</code>
+        <code>\left[\frac{x^2}{2}\right]_0^1</code>
       </p>
 
       <h2>
@@ -1128,24 +1132,26 @@
             <td><span class="keybinding">m</span> <code>\left\lmoustache x\right\rmoustache</code></td>
             <td>
               <span class="keybinding">n</span> or <span class="keybinding">N</span>
-              <code>\left\lVert x\right\rVert</code></td>
+              <code>\left\lVert x\right\rVert</code> (norm)
+	    </td>
           </tr>
           <tr>
+            <td><span class="keybinding">o</span> <code>\left(x\right]</code> (half-open)</td>
+            <td><span class="keybinding">O</span> <code>\left[x\right)</code></td>
             <td>
               <span class="keybinding">w</span> or <span class="keybinding">W</span>
-              <code>\left. x\right\vert</code> ("where")
+              <code>\left. x\right\vert</code> (where)
             </td>
+	  </tr>
+          <tr>
             <td><span class="keybinding">|</span> <code>\left\vert x\right\vert</code></td>
             <td><span class="keybinding">&lt;</span> <code>\left\langle x\right\rangle</code></td>
+            <td><span class="keybinding">(</span> <code>\left( x\right)</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">(</span> <code>\left( x\right)</code></td>
             <td><span class="keybinding">[</span> <code>\left[ x\right]</code></td>
             <td><span class="keybinding">]</span> <code>\llbracket x\rrbracket</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">{</span> <code>\left\{ x\right\}</code></td>
-            <td colspan="2"></td>
           </tr>
       </tbody></table>
       <p>
@@ -1158,23 +1164,23 @@
           than expanding to fit their contents.
         </li>
         <li>
-          <span class="keybinding">x</span>
+          <span class="keybinding">x</span> or <span class="keybinding">X</span>
           Remove delimiters from the stack top if it has any.
         </li>
+        <li>
+          <span class="keybinding">l</span> or <span class="keybinding">L</span>
+	  Alter the left delimiter of the stack top.
+        </li>
+        <li>
+          <span class="keybinding">r</span> or <span class="keybinding">R</span>
+	  Alter the right delimiter of the stack top.
+        </li>
       </ul>
-
-      <h2>
-        <a name="custom_delimiters" id="help_custom_delimiters">Custom Delimiters</a>
-        <span class="keybinding">}</span>
-      </h2>
       <p>
-        If the particular delimiter pair you want is not available via the <span class="keybinding">)</span>
-        prefix commands above, you can use <span class="keybinding">}</span> to create custom delimiter
-        structures.
-      </p>
-      <p>
-        Pressing <span class="keybinding">}</span> enters <em>custom delimiter</em> mode.  You can then
-        enter two of the following keys, which will become the left and right delimiters around the stack top:
+	These last two commands <span class="keybinding">l</span> and <span class="keybinding">r</span>
+	change an existing delimiter, or add a new one if none is present.
+	After entering one of these commands, select the delimiter type from
+	one of the following:
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -1196,41 +1202,24 @@
             <td><span class="keybinding">M</span> <code>\left.\right\rmoustache</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">n</span> <code>\left.\right\Vert</code></td>
             <td><span class="keybinding">c</span> <code>\left\lceil\right.</code></td>
             <td><span class="keybinding">C</span> <code>\left.\right\rceil</code></td>
             <td><span class="keybinding">f</span> <code>\left\lfloor\right.</code></td>
-            <td><span class="keybinding">F</span> <code>\left.\right\rfloor</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">v</span> <code>\left.\right\Vert</code></td>
+            <td><span class="keybinding">F</span> <code>\left.\right\rfloor</code></td>
             <td><span class="keybinding">|</span> <code>\left.\right|</code></td>
             <td><span class="keybinding">/</span> <code>\left.\right/</code></td>
             <td><span class="keybinding">\</span> <code>\left.\right\backslash</code></td>
           </tr>
           <tr>
-            <td colspan="2">
+            <td colspan="4">
               <span class="keybinding">.</span> or <span class="keybinding">&nbsp;</span>
               <code>\left.\right.</code> (empty)
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
           </tr>
       </tbody></table>
-      <p>
-        The "empty" delimiter can be used to create unbalanced expressions such as
-        <code>\left.x+1\right)</code>.
-      </p>
-      <p>
-        You can also create create grouped objects such as <code>\left\langle x \middle\vert y \middle\vert z \right\rangle</code>
-        with &quot;middle&quot; separators that expand to fit their contents.  To do this, after pressing
-        <span class="keybinding">}</span>, press a number key indicating how many items from the stack are to be grouped
-        (e.g. 3 in the case of <code>\left\langle x \middle\vert y \middle\vert z \right\rangle</code>).
-        Then press three of the delimiter keys above, which will become the left, right, and middle delimiters
-        for the group.  Example:
-        <span class="keybinding">x</span><span class="keybinding">y</span><span class="keybinding">z</span><span class="keybinding">w</span><span class="keybinding">}</span><span class="keybinding">4</span><span class="keybinding">c</span><span class="keybinding">F</span><span class="keybinding">v</span>
-        <code>\to \left\lceil x\middle\Vert y\middle\Vert z\middle\Vert w\right\rfloor</code>
-      </p>
 
       <h2>
         <a name="arrays" id="help_arrays">Array Operations</a>

@@ -124,10 +124,6 @@ class InputContext {
         // bottom of the stack panel.  this.text_entry will be a TextEntryState object.
         this.text_entry = null;
 
-/*        // Tracks multi-part custom_delimiters commands.
-        this.custom_delimiters = {};
-*/
-
         // When in "dissect" mode, this is a specialized DissectUndoStack
         // that only tracks modifications to the stack top item being edited.
         this.dissect_undo_stack = null;
@@ -813,48 +809,33 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
-/*
-    do_custom_delimiter(stack, delimiter_type) {
-        this.switch_to_mode('custom_delimiters');
-        if(!delimiter_type) {
-            // Start new sequence
-            this.custom_delimiters = {};
-            this.preserve_prefix_argument = true;
-            return;
-        }
-        if(!this.custom_delimiters.left) {
-            // First delimiter (left side)
-            this.custom_delimiters.left = delimiter_type;
-            this.preserve_prefix_argument = true;
-            return;
-        }
-        if(!this.custom_delimiters.right) {
-            // Second delimiter (right side)
-            this.custom_delimiters.right = delimiter_type;
-            if(this.prefix_argument === null || this.prefix_argument <= 1)
-                return this._finish_custom_delimiters(stack);
-            else {
-                // Prefix argument of 2 or more has been entered; wait for 3rd delimiter.
-                this.preserve_prefix_argument = true;
-                return;
-            }
-        }
-        // Third delimiter (middle)
-        this.custom_delimiters.middle = delimiter_type;
-        return this._finish_custom_delimiters(stack);
+    // side: 'left' or 'right'
+    // If there is a DelimiterExpr on the stack, the corresponding delimiter side
+    // is adjusted to be 'delimiter_type'.  Other expression types are wrapped in
+    // a DelimiterExpr with a 'blank' on the opposite side.
+    do_modify_delimiter(stack, delimiter_type, side) {
+        const [new_stack, expr] = stack.pop_exprs(1);
+	let new_expr = expr;
+	if(expr.expr_type() === 'delimiter') {
+	    new_expr = new DelimiterExpr(
+		side === 'left' ? delimiter_type : expr.left_type,
+		side === 'right' ? delimiter_type : expr.right_type,
+		expr.inner_expr,
+		expr.fixed_size);
+	    // If both delimiters are now blanks, decay into the inner_expr.
+	    if(new_expr.left_type === '.' && new_expr.right_type === '.')
+		new_expr = new_expr.inner_expr;
+	}
+	else {
+	    // Wrap in a new DelimiterExpr.
+	    if(delimiter_type !== '.')
+		new_expr = new DelimiterExpr(
+		    side === 'left' ? delimiter_type : '.',
+		    side === 'right' ? delimiter_type : '.',
+		    expr);
+	}
+	return new_stack.push_expr(new_expr);
     }
-
-    _finish_custom_delimiters(stack) {
-        this.switch_to_mode('base');
-        const d = this.custom_delimiters;
-        let arity = this.prefix_argument || 1;
-        if(arity < 1) arity = 1;
-        const [new_stack, ...exprs] = stack.pop_exprs(arity);
-        const new_expr = new DelimiterExpr(d.left, d.right, d.middle, exprs);
-        this.custom_delimiters = {};
-        return new_stack.push_expr(new_expr);
-    }
-*/
 
     do_toggle_fixed_size_delimiters(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
