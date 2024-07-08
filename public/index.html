@@ -35,9 +35,9 @@
       </p>
       <p>
         Expressions are entered using <em>reverse Polish notation</em> (RPN) which means
-        that operands come before their operators.  For example, to enter the expression <code>x+y</code> you would
+        that operands come before their operators.  For example, to enter the expression <code>a+b</code> you would
         first type
-        <span class="keybinding">x</span>, then <span class="keybinding">y</span>,
+        <span class="keybinding">a</span> then <span class="keybinding">b</span>
         followed by <span class="keybinding">+</span> to apply the addition operation.
       </p>
       <p>
@@ -56,7 +56,7 @@
         either single keystrokes or pairs of keystrokes (a <em>prefix</em> key followed by a <em>subcommand</em> key).
       </p>
       <p>
-	<strong>NOTE:</strong> Invalid or unassigned key inputs are silently ignored.
+	Invalid or unassigned key inputs are silently ignored.
 	Other errors are signaled by a brief flash of the screen.
       </p>
 
@@ -485,13 +485,13 @@
           </tr>
           <tr>
             <td><span class="keybinding">A</span> <code>\acute x</code></td>
+            <td><span class="keybinding">b</span> <code>\bold{x}</code> (bold roman)</td>
             <td><span class="keybinding">c</span> <code>1-x</code> (complement)</td>
-            <td><span class="keybinding">C</span> <code>\htmlClass{emphasized}{x}</code> (emphasize)</td>
           </tr>
           <tr>
             <td><span class="keybinding">d</span> <code>x^\dagger</code></td>
             <td><span class="keybinding">D</span> <code>x^\ddagger</code></td>
-            <td><span class="keybinding">e</span> <code>\bold{x}</code> (bold roman)</td>
+            <td><span class="keybinding">e</span> <code>\htmlClass{emphasized}{x}</code> (emphasize)</td>
           </tr>
           <tr>
             <td><span class="keybinding">g</span> <code>\mathring x</code></td>
@@ -866,7 +866,7 @@
         <li>
           <span class="keybinding">&lt;</span> or <span class="keybinding">&gt;</span>
           Extract the left or right side of an infix or relational expression.
-          For example: <code>x^2 = 1 \to x^2</code>
+          If the expression is a fraction, extract the numerator or denominator instead.
         </li>
         <li><span class="keybinding">,</span> <em>(comma)</em> Split equation (see below)</li>
         <li><span class="keybinding">;</span> Apply tag (see below)</li>
@@ -1345,29 +1345,33 @@
 
       <p>
         <strong>Alignment Building:</strong>
-        These commands build LaTeX alignment environments.
+        These commands group multiple expressions into "aligned" structures of various types.
         Like the matrix row building operations, these also take a required prefix argument
         indicating how many items to combine.
       </p>
       <ul class="keybindings">
         <li>
           <span class="keybinding">a</span>
-          Stack N equations together into a LaTeX <kbd>align</kbd> environment, aligned by their infix operator, if any.
+          Stack N equations together aligned by their infix operator, if any.
         </li>
         <li>
           <span class="keybinding">g</span>
-          Stack N equations together into a <kbd>gathered</kbd> environment,
-          similar to <span class="keybinding">a</span> but each equation is centered on its own.
+          Stack N equations together where each equation is centered on its own.
         </li>
         <li>
           <span class="keybinding">c</span>
           Build a list of N cases for a piecewise function definition.
-          If the component items are infix expressions joined with a colon (:), they will be split up and
-          placed as the left and right parts of the case structure.  For example:
-          <code>x^2 : x \ge 0; \enspace 0 : x &lt; 0</code>
+          If the component items are infix expressions joined with a colon
+          (via <span class="keybinding">,</span><span class="keybinding">:</span>),
+          they will be split up and placed as the left and right parts of the case structure.
+          For example:
           <br />
-          becomes
           <code>
+            \begin{gathered}
+              x^2 : x \ge 0 \\
+              x &lt; 0
+            \end{gathered}
+            \longrightarrow
             \begin{cases}
               x^2 & x \ge 0 \\
               0 & x &lt; 0
@@ -1382,11 +1386,16 @@
           <span class="keybinding">f</span> and <span class="keybinding">F</span>
           Same as <span class="keybinding">c</span> and <span class="keybinding">C</span>,
           but prepend the word "if" to the right-hand side of expressions joined with a colon.
-          If there is no colon, the right-hand side becomes the word "otherwise" instead.  Example:
-          <code>x^2 : x \ge 1; x^3 : 0 \le x \le 1; x^4</code>
+          If there is no colon, the right-hand side becomes the word "otherwise" instead.
+          For example:
           <br />
-          becomes:
           <code>
+            \begin{gathered}
+              x^2 : x \ge 1 \\
+              x^3 : 0 \le x \le 1 \\
+              x^4
+            \end{gathered}
+            \longrightarrow
             \begin{cases}
               x^2 & \mathrm{if}\enspace x \ge 1 \\
               x^3 & \mathrm{if}\enspace 0 \le x \le 1 \\

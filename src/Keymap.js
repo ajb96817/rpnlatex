@@ -685,11 +685,11 @@ const EditorKeymap = {
         '4': "push 4;superscript",
         '8': "push \\infty;infix \\to",
         'A': "operator acute",
+        'b': "operator bold",  // bold roman (sort of)
         'c': "autoparenthesize;push 1;swap;infix -",
-        'C': "html_class emphasized emphasized2",
         'd': "push \\dagger;superscript",
         'D': "push \\ddagger;superscript",
-        'e': "operator bold",  // bold roman (sort of)
+        'e': "html_class emphasized emphasized2",
         'g': "operator mathring",
         'G': "operator grave",
         'h': "apply_hat hat",

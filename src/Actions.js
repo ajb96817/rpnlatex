@@ -992,8 +992,10 @@ class InputContext {
         return stack.type_error();
     }
 
-    // Extract either the left or right side of an InfixExpr
-    // (or a DelimiterExpr with 2 inner expressions; cf. do_swap_infix).
+    // Extract either the left or right side of an expression.
+    //   - InfixExpr yields the part to the left or right of the split_at_infix point.
+    //   - DelimiterExpr with 2 inner expressions yields one of the two expressions; cf. do_swap_infix).
+    //   - CommandExpr \frac yields the numerator or denominator of the fraction.
     do_extract_infix_side(stack, which_side) {
         const [new_stack, expr] = stack.pop_exprs(1);
 	let extracted_expr = null;
@@ -1002,6 +1004,10 @@ class InputContext {
 	else if(expr.expr_type() === 'delimiter' &&
 		expr.inner_exprs.length === 2)
 	    extracted_expr = (which_side === 'right') ? expr.inner_exprs[1] : expr.inner_exprs[0];
+        else if(expr.expr_type() === 'command' &&
+                expr.operand_count() === 2 &&
+                expr.command_name === 'frac')
+            extracted_expr = (which_side === 'right') ? expr.operand_exprs[1] : expr.operand_exprs[0];
         else
             return stack.type_error();
         return new_stack.push_expr(extracted_expr);
