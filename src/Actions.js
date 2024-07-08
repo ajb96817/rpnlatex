@@ -902,20 +902,20 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
-    do_split_infix(stack) {
+    do_infix_linebreak(stack) {
         const [new_stack, infix_expr] = stack.pop_exprs(1);
         if(infix_expr.expr_type() !== 'infix') {
             this.error_flash_stack();
             return;
         }
-        const split_type = infix_expr.split_type;
-        let new_split_type = null;
-        if(split_type === 'after') new_split_type = 'before';
-        else if(split_type === 'before') new_split_type = null;
-        else new_split_type = 'after';
+        const linebreak_type = infix_expr.linebreak_type;
+        let new_linebreak_type = null;
+        if(linebreak_type === 'after') new_linebreak_type = 'before';
+        else if(linebreak_type === 'before') new_linebreak_type = null;
+        else new_linebreak_type = 'after';
         const new_infix_expr = infix_expr.with_split_at(
             infix_expr.split_at_index,
-	    new_split_type);
+	    new_linebreak_type);
         return new_stack.push_expr(new_infix_expr);
     }
 

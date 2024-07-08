@@ -354,7 +354,7 @@ const EditorKeymap = {
         'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
         'Y': "unrot;push \\,;swap;concat;swap;push \\,;concat;swap;delimiters . . \\vert 2;delimiters [ ];swap;push E;operator mathbb;swap;subscript;swap;fuse",  // E_x[z|y]
         ';': "start_text_entry tag_entry",
-        ',': "split_infix",
+        ',': "infix_linebreak",
         '/': "operator frac 2",
         '[': "delimiters [ ];fuse",  // f x -> f[x]
         ']': "delimiters \\{ \\};fuse",  // f x -> f{x}
