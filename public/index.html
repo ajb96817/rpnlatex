@@ -257,7 +257,7 @@
       </ul>
       <p>
         <strong>NOTE:</strong>
-        <span class="keybinding">Backspace</span> can also be used to drop single items from the stack
+        <span class="keybinding">Backspace</span> can also be used by itself to drop single items from the stack
         instead of <span class="keybinding">Tab</span><span class="keybinding">d</span>.
       </p>
       <p>
@@ -450,12 +450,12 @@
           </tr>
           <tr>
             <td colspan="2">
-              <span class="keybinding">&nbsp;</span> (Blank)
+              <span class="keybinding">&nbsp;</span> (blank)
             </td>
             <td colspan="3">
               <span class="keybinding">&#39;</span>
               <code>\htmlClass{placeholder_expr}{\blacksquare}</code>
-              (<a href="#placeholders">Placeholder</a>)
+              (<a href="#placeholders">placeholder</a>)
             </td>
           </tr>
       </tbody></table>
@@ -689,7 +689,7 @@
         <span class="keybinding">=</span>
       </h2>
       <p>
-        Similar to <span class="keybinding">,</span>, these commands combine two items
+        Similar to <span class="keybinding">,</span> these commands combine two items
         into an "equation" by placing a relational operator between them.
 	<strong>NOTE:</strong> There is no real distinction between relational and infix
 	operators internally, so this <span class="keybinding">=</span> prefix is just a way to
@@ -776,7 +776,7 @@
           &nbsp;&nbsp;
           <span class="keybinding">E</span> <code>\exp x</code>
         </li>
-        <li><span class="keybinding">f</span> Prefix for creating standalone <a href="#named_operators">named operators</a>.</li>
+        <li><span class="keybinding">f</span> Prefix for applying <a href="#named_operators">named operators</a>.</li>
         <li><span class="keybinding">i</span> Prefix for applying <a href="#integrals">integral</a> limits.</li>
         <li><span class="keybinding">I</span> <code>x\enspace y \to \int_x^y</code></li>
         <li><span class="keybinding">k</span> <code>f\enspace y\enspace x \to f(y\,|\,x)</code></li>
@@ -805,7 +805,7 @@
         <li>
           <span class="keybinding">p</span> <code>\Pr{(x)}</code> (probability)
           &nbsp;&nbsp;
-          <span class="keybinding">P</span> <code>\Pr{(y|x)}</code> (conditional probability)
+          <span class="keybinding">P</span> <code>\Pr{(y\,\vert\,x)}</code> (conditional probability)
         </li>
         <li>
           <span class="keybinding">q</span> <code>\sqrt{x}</code>
@@ -831,8 +831,8 @@
         </li>
 	<li>
 	  <span class="keybinding">w</span>
-	  Swap the left and right sides of an infix or relational expression.
-	  For example: <code>x \ge y \to y \ge x</code>
+	  Swap the left and right sides of an infix or relational expression,
+	  or the numerator and denominator of a fraction.
 	</li>
         <li>
           <span class="keybinding">x</span> <code>x \to \mathbb{E}{\left[x\right]}</code> (expectation)
@@ -870,18 +870,18 @@
 	  <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
 	</li>
         <li>
-          <span class="keybinding">&lt;</span> or <span class="keybinding">&gt;</span>
-          Extract the left or right side of an infix or relational expression.
-          If the expression is a fraction, extract the numerator or denominator instead.
-        </li>
-        <li><span class="keybinding">,</span> <em>(comma)</em> Split equation (see below)</li>
-        <li><span class="keybinding">;</span> Apply tag (see below)</li>
-        <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Resolve placeholder (see <a href="#placeholders">Placeholders</a>)</li>
-        <li><span class="keybinding">&quot;</span> Toggle whether the stack top is displayed as a section header</li>
-        <li>
           <span class="keybinding">Enter</span> <code>z\enspace y\enspace x \to z_y^x</code>
           (shortcut for adding a subscript and superscript at once)
         </li>
+        <li>
+          <span class="keybinding">&lt;</span> or <span class="keybinding">&gt;</span>
+          Extract the left or right side of an infix or relational expression,
+	  or the numerator/denominator of a fraction.
+        </li>
+        <li><span class="keybinding">,</span> <em>(comma)</em> Split equation (see below).</li>
+        <li><span class="keybinding">;</span> Apply tag (see below)</li>
+        <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Resolve a <a href="#placeholders">placeholder</a>.</li>
+        <li><span class="keybinding">&quot;</span> Toggle whether the stack top is displayed as a section header.</li>
       </ul>
       <p>
         <strong>Equation splitting:</strong>
@@ -891,7 +891,8 @@
         This command inserts a line break after the operator.  A second application of this command to the
         same expression will change it to break before the operator instead, and a third will put it back to not
         having a line break.  Further line breaks can be inserted after adding more terms and operators
-        to the expression.
+        to the expression.  Line breaks only affect the "top level" terms in an expression; expressions will not
+	be broken inside of delimiters, etc.
       </p>
       <p>
         <strong>Tags:</strong>
@@ -985,7 +986,7 @@
         are meant for attaching a differential to an existing integral expression with appropriate spacing.
         The difference between the three is where the spacing goes:
       </p>
-      <ul>
+      <ul class="keybindings">
         <li>
           <span class="keybinding">i</span> Space goes before the differential.  This is the usual
           "textbook" case, e.g.
@@ -1711,7 +1712,7 @@
 	</li>
         <li>
           <span class="keybinding">v</span>
-          Toggle inverse video mode or "dark" mode (by inverting all colors).
+          Toggle inverse video or "dark" mode (by inverting all colors).
         </li>
         <li>
           <span class="keybinding">r</span>

@@ -912,12 +912,33 @@ class InputContext {
     // Swap left and right sides of an infix expression.  
     // The "pivot" operator for the swap is taken from split_at_index, which is
     // generally the most recently-used operator in the creation of the infix expression.
+    // This will also swap the numerator and denominator of a fraction.
     do_swap_infix(stack) {
 	const [new_stack, expr] = stack.pop_exprs(1);
-	if(expr.expr_type() === 'infix') {
-            const new_expr = expr.swap_sides_at(expr.split_at_index);
-	    return new_stack.push_expr(new_expr);
+	let new_expr = null;
+	if(expr.expr_type() === 'infix')
+            new_expr = expr.swap_sides_at(expr.split_at_index);
+	else if(expr.expr_type() === 'command' &&
+                expr.operand_count() === 2 &&
+                expr.command_name === 'frac') {
+	    // "Normal" fraction.
+	    new_expr = new CommandExpr(
+		'frac', [expr.operand_exprs[1], expr.operand_exprs[0]]);
 	}
+	else if(expr.expr_type() === 'delimiter' &&
+		expr.left_type === '.' && expr.right_type === '.' &&
+		expr.inner_expr.expr_type() === 'infix' &&
+		expr.inner_expr.is_binary_operator_with('/')) {
+	    // Flex-mode inline fraction.
+	    new_expr = new DelimiterExpr(
+		'.', '.',
+		new InfixExpr(
+		    [expr.inner_expr.operand_exprs[1], expr.inner_expr.operand_exprs[0]],
+		    expr.inner_expr.operator_exprs),
+		expr.is_fixed_size);
+	}
+	if(new_expr)
+	    return new_stack.push_expr(new_expr);
 	else
 	    return this.error_flash_stack();
     }
@@ -983,7 +1004,16 @@ class InputContext {
         else if(expr.expr_type() === 'command' &&
                 expr.operand_count() === 2 &&
                 expr.command_name === 'frac')
-            extracted_expr = (which_side === 'right') ? expr.operand_exprs[1] : expr.operand_exprs[0];
+            extracted_expr = ((which_side === 'right') ?
+			      expr.operand_exprs[1] :
+			      expr.operand_exprs[0]);
+	else if(expr.expr_type() === 'delimiter' &&
+		expr.left_type === '.' && expr.right_type === '.' &&
+		expr.inner_expr.expr_type() === 'infix' &&
+		expr.inner_expr.is_binary_operator_with('/'))
+	    extracted_expr = ((which_side === 'right') ?
+			      expr.inner_expr.operand_exprs[1] :
+			      expr.inner_expr.operand_exprs[0]);
         else
             return stack.type_error();
         return new_stack.push_expr(extracted_expr);

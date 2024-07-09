@@ -1611,6 +1611,8 @@ class DelimiterExpr extends Expr {
 
             // \left. x/y \right.
 	    // (x/y is an InfixExpr); this is a "flex size fraction".
+	    // TODO: add is_flex_inline_fraction() or something; this
+	    // logic is duplicated elsewhere.
             (expr.expr_type() === 'delimiter' &&
              expr.left_type === '.' && expr.right_type === '.' &&
 	     expr.inner_expr.expr_type() === 'infix' &&
