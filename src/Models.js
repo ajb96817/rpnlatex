@@ -1227,7 +1227,7 @@ class CommandExpr extends Expr {
 //   - operator_exprs: The +,- in 'x + y - z'.  Length must be 1 less than operand_exprs.
 //   - split_at_index: Index of the operator_expr that is considered the 'split point'
 //     for this InfixExpr.  Generally this is the last operator used to create the
-//     infix expression.  For binary expressions this is 0; for something like x+y = z+w
+//     infix expression.  For binary expressions this is 0; for something like 'x+y = z+w'
 //     it would be 1 if the '=' was used to join the existing x+y and z+w.
 //   - 'linebreaks_at' is an array of integers specifying where (if any) the linebreaks
 //     occur in this expression.  Currently linebreaks are only shown if the top-level
@@ -1236,11 +1236,10 @@ class CommandExpr extends Expr {
 //     For example, in 'x + y - z',
 //     index=0 breaks after the 'x', index=1 breaks after the '+', etc.
 class InfixExpr extends Expr {
-    // Combine two existing expressions into an InfixExpr.
+    // Combine two existing expressions into an InfixExpr, joined by
+    // 'op_expr' as the infix operator.
     // If one or both of the expressions are already InfixExprs, they are
-    // merged into a larger InfixExpr.  Otherwise, a new binary InfixExpr
-    // will be created to contain them.  In either case, the result is
-    // joined by 'op_expr' as the infix operator.
+    // flattened into a larger InfixExpr.
     static combine_infix(left_expr, right_expr, op_expr) {
 	let new_operand_exprs = [];
 	let new_operator_exprs = [];
@@ -1336,7 +1335,7 @@ class InfixExpr extends Expr {
 	for(let i = 0; i < this.operator_exprs.length; i++) {
 	    emitter.expr(this.operand_exprs[i], 2*i);
 	    if(is_top_level && this.linebreaks_at.includes(2*i)) {
-		// break before ith operator
+		// Break before ith operator.
 		emitter.command("\\");  // outputs two backslashes (LaTeX newline command)
 		emitter.command("qquad");
 	    }
@@ -1349,7 +1348,7 @@ class InfixExpr extends Expr {
 	    }
 	    emitter.expr(emitted_expr, 2*i+1);
 	    if(is_top_level && this.linebreaks_at.includes(2*i+1)) {
-		// break after ith operator
+		// Break after ith operator.
 		emitter.command("\\");
 		emitter.command("qquad");
 	    }

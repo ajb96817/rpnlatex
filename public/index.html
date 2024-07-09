@@ -767,9 +767,18 @@
         <a name="operators" id="help_operators">Functions and Operators <span class="keybinding">/</span></a>
       </h2>
       <ul class="keybindings">
-        <li><span class="keybinding">1</span> Reciprocal: <code>x \to \frac{1}{x}</code></li>
-        <!-- <li><span class="keybinding">a</span> Apply a LaTeX operator to an argument on the stack: <code>\backslash\textrm{sqrt}\enspace x \to \sqrt{x}</code></li> -->
-        <li><span class="keybinding">b</span> Binomial coefficient notation: <code>y\enspace x \to \binom{y}{x}</code></li>
+        <li>
+	  <span class="keybinding">1</span>
+	  <code>x \to \displaystyle\frac{1}{x}</code> (reciprocal)
+	</li>
+        <li>
+	  <span class="keybinding">a</span> or <span class="keybinding">/</span>
+	  <code>y\enspace x \to \displaystyle\frac{y}{x}</code> (fraction)
+        </li>
+        <li>
+	  <span class="keybinding">b</span>
+	  <code>y\enspace x \to \displaystyle\binom{y}{x}</code> (binomial coefficient)
+	</li>
         <li><span class="keybinding">d</span> Prefix for building <a href="#derivatives">derivative</a> expressions.</li>
         <li>
           <span class="keybinding">e</span> <code>\mathrm{e}^x</code>
@@ -845,9 +854,6 @@
         </li>
         <li>
           <span class="keybinding">Y</span> <code>z\enspace y\enspace x \to \mathbb{E}_x{\left[z\,\middle\vert\,y\right]}</code>
-        </li>
-        <li>
-          <span class="keybinding">/</span> <code>y\enspace x \to \displaystyle\frac{y}{x}</code>
         </li>
         <li>
           <span class="keybinding">=</span> <code>z\enspace y\enspace x \to \displaystyle\sum_{z=y}^x</code>
