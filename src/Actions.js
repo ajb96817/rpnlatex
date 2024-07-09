@@ -886,21 +886,27 @@ class InputContext {
         return new_stack.push_expr(new_expr);
     }
 
+    // Make a line break at the current split_at_index of the stack top InfixExpr.
+    // Cycles between:
+    //    - No line break at split_at_index
+    //    - Line break after the split_at_index operator
+    //    - Line break before the operator
     do_infix_linebreak(stack) {
         const [new_stack, infix_expr] = stack.pop_exprs(1);
         if(infix_expr.expr_type() !== 'infix') {
             this.error_flash_stack();
             return;
         }
-        const linebreak_type = infix_expr.linebreak_type;
-        let new_linebreak_type = null;
-        if(linebreak_type === 'after') new_linebreak_type = 'before';
-        else if(linebreak_type === 'before') new_linebreak_type = null;
-        else new_linebreak_type = 'after';
-        const new_infix_expr = infix_expr.with_split_at(
-            infix_expr.split_at_index,
-	    new_linebreak_type);
-        return new_stack.push_expr(new_infix_expr);
+	const index_before = 2*infix_expr.split_at_index;
+	const index_after = index_before+1;
+	let new_expr;
+	if(infix_expr.has_linebreak_at(index_after))
+	    new_expr = infix_expr.without_linebreak_at(index_after).with_linebreak_at(index_before);
+	else if(infix_expr.has_linebreak_at(index_before))
+	    new_expr = infix_expr.without_linebreak_at(index_before);
+	else
+	    new_expr = infix_expr.with_linebreak_at(index_after);
+	return new_stack.push_expr(new_expr);
     }
 
     // Swap left and right sides of an infix expression.  

@@ -147,10 +147,10 @@ class LatexEmitter {
     // object that indicates which Expr is to be rendered with a "highlight"
     // indicating that it is currently selected.
     constructor(base_expr, selected_expr_path) {
+	this.base_expr = base_expr;
         this.tokens = [];
         this.last_token_type = null;
 	this.selected_expr_path = selected_expr_path;
-
 	// Initialize a "blank" ExprPath that tracks the rendering.
 	// When this current_path matches up with selected_expr_path,
 	// that's when it's pointing at the selected expr.
@@ -906,7 +906,7 @@ class Expr {
                 this._list(json.operand_exprs),
 		this._list(json.operator_exprs),
 		json.split_at_index,
-		json.linebreak_type || null);
+		json.linebreaks_at || []);
         case 'placeholder':
             return new PlaceholderExpr();
         case 'text':
@@ -1229,52 +1229,71 @@ class CommandExpr extends Expr {
 //     for this InfixExpr.  Generally this is the last operator used to create the
 //     infix expression.  For binary expressions this is 0; for something like x+y = z+w
 //     it would be 1 if the '=' was used to join the existing x+y and z+w.
-//   - linebreak_type: null, 'before', or 'after'; if not null, the equation is split
-//     via \\ and \qquad at the split_at_index (i.e. split_at_index === 0 breaks
-//     at the first operator).
+//   - 'linebreaks_at' is an array of integers specifying where (if any) the linebreaks
+//     occur in this expression.  Currently linebreaks are only shown if the top-level
+//     Expr in an ExprItem is an InfixExpr.  In that case, each integer index in
+//     linebreaks_at indicates a line break *after* the given subexpression index.
+//     For example, in 'x + y - z',
+//     index=0 breaks after the 'x', index=1 breaks after the '+', etc.
 class InfixExpr extends Expr {
     // Combine two existing expressions into an InfixExpr.
     // If one or both of the expressions are already InfixExprs, they are
     // merged into a larger InfixExpr.  Otherwise, a new binary InfixExpr
     // will be created to contain them.  In either case, the result is
     // joined by 'op_expr' as the infix operator.
-    // NOTE: if either of the existing InfixExprs have linebreak_type specified,
-    // they are not combined, to avoid messing up the linebreak point (since
-    // each InfixExpr can have only one linebreak specified).
     static combine_infix(left_expr, right_expr, op_expr) {
 	let new_operand_exprs = [];
 	let new_operator_exprs = [];
-	if(left_expr.expr_type() === 'infix' && !left_expr.linebreak_type) {
+	let new_linebreaks_at = [];
+	let linebreaks_midpoint = null;
+	if(left_expr.expr_type() === 'infix') {
 	    new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
 	    new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
+	    new_linebreaks_at = new_linebreaks_at.concat(left_expr.linebreaks_at);
+	    linebreaks_midpoint = 2*left_expr.operand_exprs.length;
 	}
-	else
+	else {
 	    new_operand_exprs.push(left_expr);
+	    linebreaks_midpoint = 2;
+	}
         // Determine index of the new op_expr within the new InfixExpr;
         // this becomes the split_at_index determining where things like
 	// do_infix_linebreak() apply at.
         const split_at_index = new_operator_exprs.length;
 	new_operator_exprs.push(op_expr);
-	if(right_expr.expr_type() === 'infix' && !right_expr.linebreak_type) {
+	if(right_expr.expr_type() === 'infix') {
 	    new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
 	    new_operator_exprs = new_operator_exprs.concat(right_expr.operator_exprs);
+	    new_linebreaks_at = new_linebreaks_at.concat(
+		right_expr.linebreaks_at.map(index => linebreaks_midpoint+index));
 	}
 	else
 	    new_operand_exprs.push(right_expr);
-	return new InfixExpr(new_operand_exprs, new_operator_exprs, split_at_index);
+	return new InfixExpr(
+	    new_operand_exprs,
+	    new_operator_exprs,
+	    split_at_index,
+	    new_linebreaks_at);
     }
     
-    constructor(operand_exprs, operator_exprs, split_at_index, linebreak_type) {
+    constructor(operand_exprs, operator_exprs, split_at_index, linebreaks_at) {
 	super();
 	this.operand_exprs = operand_exprs;
 	this.operator_exprs = operator_exprs;
 	this.split_at_index = split_at_index || 0;
-	this.linebreak_type = linebreak_type;
+	this.linebreaks_at = linebreaks_at || [];
     }
 
     expr_type() { return 'infix'; }
 
-    json_keys() { return ['operand_exprs', 'operator_exprs', 'split_at_index', 'linebreak_type']; }
+    json_keys() { return ['operand_exprs', 'operator_exprs', 'split_at_index']; }
+
+    to_json() {
+	let json = super.to_json();
+	if(this.linebreaks_at.length > 0)
+	    json.linebreaks_at = this.linebreaks_at;
+	return json;
+    }
 
     // If the given infix operator is a simple command like '+' or '\cap',
     // return the command name (without the initial \ if it has one).
@@ -1308,14 +1327,16 @@ class InfixExpr extends Expr {
 	});
     }
 
-    // inside_delimiters is set to true when this InfixExpr is rendered
-    // as the inner_expr of a DelimiterExpr.
-    // This gives us a chance to convert things like \parallel into
-    // their flexible \middle counterparts.
+    // 'inside_delimiters' is set to true when this InfixExpr is rendered
+    //   as the inner_expr of a DelimiterExpr.
+    //   This gives us a chance to convert things like \parallel into
+    //   their flexible \middle counterparts.
     emit_latex(emitter, inside_delimiters) {
+	const is_top_level = (this === emitter.base_expr);
 	for(let i = 0; i < this.operator_exprs.length; i++) {
 	    emitter.expr(this.operand_exprs[i], 2*i);
-	    if(this.split_at_index === i && this.linebreak_type === 'before') {
+	    if(is_top_level && this.linebreaks_at.includes(2*i)) {
+		// break before ith operator
 		emitter.command("\\");  // outputs two backslashes (LaTeX newline command)
 		emitter.command("qquad");
 	    }
@@ -1327,7 +1348,8 @@ class InfixExpr extends Expr {
 		    emitted_expr = converted_expr;
 	    }
 	    emitter.expr(emitted_expr, 2*i+1);
-	    if(this.split_at_index === i && this.linebreak_type === 'after') {
+	    if(is_top_level && this.linebreaks_at.includes(2*i+1)) {
+		// break after ith operator
 		emitter.command("\\");
 		emitter.command("qquad");
 	    }
@@ -1385,7 +1407,7 @@ class InfixExpr extends Expr {
 	    this.operator_exprs.map((operator_expr, expr_index) =>
 		expr_index*2 + 1 === index ? new_expr : operator_expr),
 	    this.split_at_index,
-	    this.linebreak_type);
+	    this.linebreaks_at);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1394,14 +1416,27 @@ class InfixExpr extends Expr {
 	    this.operand_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
 	    this.operator_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
 	    this.split_at_index,
-	    this.linebreak_type);
+	    this.linebreaks_at);
     }
 
-    // Returns an InfixExpr like this one, but with the specified split mode set.
-    with_split_at(new_split_at_index, new_linebreak_type) {
-        return new InfixExpr(
-	    this.operand_exprs, this.operator_exprs,
-	    new_split_at_index, new_linebreak_type);
+    has_linebreak_at(index) {
+	return this.linebreaks_at.includes(index);
+    }
+
+    without_linebreak_at(old_index) {
+	return new InfixExpr(
+	    this.operand_exprs,
+	    this.operator_exprs,
+	    this.split_at_index,
+	    this.linebreaks_at.filter(index => index !== old_index));
+    }
+
+    with_linebreak_at(new_index) {
+	return new InfixExpr(
+	    this.operand_exprs,
+	    this.operator_exprs,
+	    this.split_at_index,
+	    this.linebreaks_at.concat([new_index]));
     }
 
     // Swap everything to the left of operator_index with everything to the right of operator_index.
@@ -1413,11 +1448,12 @@ class InfixExpr extends Expr {
               this.operator_exprs.slice(operator_index+1).concat(
                   [this.operator_exprs[operator_index]]).concat(
                       this.operator_exprs.slice(0, operator_index));
+	// NOTE: linebreaks_at is discarded here, otherwise the result
+	// isn't very intuitive.
         return new InfixExpr(
             new_operand_exprs,
             new_operator_exprs,
-            new_operator_exprs.length - this.split_at_index - 1,
-            this.linebreak_type);
+            new_operator_exprs.length - this.split_at_index - 1);
     }
 
     // Extract everything to one side of the given operator index.
@@ -2132,8 +2168,8 @@ Item.serial_number = 1;
 
 // Represents a math expression (Expr instance) in the stack or document.
 class ExprItem extends Item {
-    // tag_string is an optional tag shown to the right of the item.
-    // selected_expr_path is an optional ExprPath object; the indicated subexpression(s)
+    // 'tag_string' is an optional tag shown to the right of the item.
+    // 'selected_expr_path' is an optional ExprPath object; the indicated subexpression(s)
     //     will be highlighted in a "selected" style by the renderer.
     constructor(expr, tag_string, selected_expr_path) {
         super()
