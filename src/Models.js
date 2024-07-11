@@ -1359,23 +1359,24 @@ class InfixExpr extends Expr {
     }
 
     _convert_to_flex_delimiter(expr) {
+	let new_text = null;
 	if(expr.expr_type() === 'text') {
-	    let new_text = null;
-	    if(expr.text === "\\,\\vert\\," || expr.text === "\\vert")
-		new_text = "\\middle\\vert ";
-	    else if(expr.text === '/')
+	    if(expr.text === '/')
 		new_text = "\\middle/";
-	    if(new_text)
-		return new TextExpr(new_text);
 	}
 	else if(expr.expr_type() === 'command' && expr.operand_count() === 0) {
 	    const command = expr.command_name;
-	    if(command === 'parallel')
-		return new TextExpr("\\,\\middle\\Vert\\,");  // flex-size fraction
-	    else if(command === 'setminus' || command === 'backslash')
-		return new TextExpr("\\middle\\backslash ");
+	    if(command === ",\\vert\\," || command === 'vert')
+		new_text = "\\,\\middle\\vert\\,";
+	    else if(command === 'parallel')
+		new_text ="\\,\\middle\\Vert\\,";
+	    else if(/*command === 'setminus' ||*/ command === 'backslash')
+		new_text = "\\middle\\backslash ";
 	}
-	return null;
+	if(new_text)
+	    return new TextExpr(new_text);
+	else
+	    return null;
     }
 
     visit(fn) {

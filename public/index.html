@@ -567,9 +567,9 @@
             <td><span class="keybinding">~</span> <code>\tilde x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">/</span> <code>1/x</code> (flex size)</td>
-            <td><span class="keybinding">\</span> <code>1/x</code> (fixed size)</td>
+            <td><span class="keybinding">/</span> <code>1/x</code></td>
             <td><span class="keybinding">_</span> <code>\underline x</code></td>
+            <td><span class="keybinding">\</span> <code>\bcancel x</code></td>
           </tr>
       </tbody></table>
 
@@ -657,10 +657,10 @@
           <tr>
             <td><span class="keybinding">;</span> <code>x;\,y</code></td>
             <td><span class="keybinding">`</span> <code>x^T y</code></td>
-            <td><span class="keybinding">/</span> <code>x/y</code> (flex size)</td>
+            <td><span class="keybinding">/</span> <code>x/y</code></td>
 	  </tr>
 	  <tr>
-            <td><span class="keybinding">\</span> <code>x/y</code> (fixed size)</td>
+            <td><span class="keybinding">\</span> <code>x\backslash y</code></td>
             <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
 	    <td></td>
           </tr>
@@ -1140,8 +1140,8 @@
           </tr>
           <tr>
             <td><span class="keybinding">g</span> <code>\left\lgroup x\right\rgroup</code> (grouped)</td>
-            <td><span class="keybinding">i</span> <code>\left\langle x\middle\vert y\right\rangle</code> (bra-ket)</td>
-            <td><span class="keybinding">I</span> <code>\left\langle x\middle\vert y\middle\vert z\right\rangle</code></td>
+            <td><span class="keybinding">i</span> <code>\left\langle x\,\middle\vert\,y\right\rangle</code> (bra-ket)</td>
+            <td><span class="keybinding">I</span> <code>\left\langle x\,\middle\vert\,y\,\middle\vert\,z\right\rangle</code></td>
           </tr>
           <tr>
             <td><span class="keybinding">k</span> <code>\left\vert x\right\rangle</code> (Dirac ket)</td>
@@ -1169,6 +1169,13 @@
             <td><span class="keybinding">]</span> <code>\llbracket x\rrbracket</code></td>
             <td><span class="keybinding">{</span> <code>\left\{ x\right\}</code></td>
           </tr>
+          <tr>
+            <td colspan="3">
+	      <span class="keybinding">.</span> or
+	      <span class="keybinding">&nbsp;</span>
+	      <em>blank</em> (see below)
+	    </td>
+          </tr>
       </tbody></table>
       <p>
 	Certain infix operators, when enclosed in delimiters, will also adjust to fit
@@ -1190,14 +1197,21 @@
 	    <tr>
 	      <td><code>x/y</code></td>
 	      <td>created by</td>
-	      <td><span class="keybinding">,</span><span class="keybinding">\</span></td>
+	      <td><span class="keybinding">,</span><span class="keybinding">/</span></td>
 	    </tr>
 	    <tr>
-	      <td><code>x\setminus y</code></td>
+	      <td><code>x\backslash y</code></td>
 	      <td>created by</td>
-	      <td><span class="keybinding">,</span><span class="keybinding">d</span></td>
+	      <td><span class="keybinding">,</span><span class="keybinding">\</span></td>
 	    </tr>
 	</tbody></table>
+      </p>
+      <p>
+	Because of this, you can give these operators a flexible size anywhere by using
+	<em>blank</em> delimiters via <span class="keybinding">)</span><span class="keybinding">.</span> or
+	<span class="keybinding">)</span><span class="keybinding">&nbsp;</span>.
+	For example:
+	<code>\displaystyle x/\frac{1}{\sqrt x} \to \left.x\middle/\frac{1}{\sqrt x}\right.</code>
       </p>
       <p>
         Other commands in this mode:

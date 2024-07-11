@@ -288,8 +288,8 @@ const EditorKeymap = {
         '[': "delimiters [ ]",
         ']': "push \\llbracket;swap;concat;push \\rrbracket;concat",
         '{': "delimiters \\{ \\}",
-	'.': "delimiters . .",  // undocumented
-	' ': "delimiters . ." // undocumented
+	'.': "delimiters . .",
+	' ': "delimiters . ."
     },
 
     modify_left: {
@@ -605,8 +605,8 @@ const EditorKeymap = {
 	'(': "infix ,;delimiters ( )",  // (x,y)
         '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
         '>': "infix \\cdots",
-        '/': "autoparenthesize 2;infix /;delimiters . .",  // flex x/y
-        "\\": "autoparenthesize 2;infix /"  // fixed x/y
+        '/': "autoparenthesize 2;infix /",
+        "\\": "autoparenthesize 2;infix \\backslash"
     },
 
     // = prefix: relational operators
@@ -760,9 +760,9 @@ const EditorKeymap = {
         '-': "push -;swap;fuse",
         '+': "push +;swap;fuse",
         '`': "push T;superscript",  // transpose
-        '/': "push 1;swap;autoparenthesize;infix /;delimiters . .",  // flex 1/x
-        "\\": "push 1;swap;autoparenthesize;infix /",  // fixed 1/x
-        '_': "operator underline"
+        '/': "push 1;swap;autoparenthesize;infix /",  // 1/x
+        '_': "operator underline",
+	"\\": "operator bcancel",
     },
 
     // | prefix: array/matrix operations
