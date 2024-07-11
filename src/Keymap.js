@@ -146,7 +146,7 @@ const EditorKeymap = {
         'c': "scroll_to help_control_keys",  // undocumented
 
         'q': "toggle_popup help",
-        '?': "toggle_popup help",
+        '?': "toggle_popup help;config dock_helptext on",
         'default': "toggle_popup help"
     },
 

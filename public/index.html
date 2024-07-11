@@ -25,7 +25,7 @@
       </p>
       <p>
         Close the user guide and return to the editor with
-        <span class="keybinding">q</span> or <span class="keybinding">?</span> or <span class="keybinding">Esc</span>.
+        <span class="keybinding">q</span> or <span class="keybinding">Esc</span>.
       </p>
       <p>
         The screen is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
@@ -62,7 +62,15 @@
 
       <h2>Single-Key Commands</h2>
       <ul class="keybindings">
-        <li><span class="keybinding">?</span> Show this user guide.</li>
+        <li>
+	  <span class="keybinding">?</span>
+	  Show this user guide.
+	  Pressing <span class="keybinding">?</span> a second time will "dock" the user guide
+	  into the document section for easier reference.  While docked, the user guide can be
+	  scrolled with the <span class="keybinding">&uarr;</span><span class="keybinding">&darr;</span> arrow keys.
+	  Pressing <span class="keybinding">?</span> a third time will then close the user guide and
+	  reveal the document section again.
+	</li>
         <li>
           <span class="keybinding">a-z</span> <span class="keybinding">A-Z</span> <span class="keybinding">0-9</span>
           Letters and numbers place single-character strings onto the stack.
@@ -126,9 +134,10 @@
       <p>
         <strong>NOTE:</strong>
         Pressing the prefix keys below while this user guide is being shown
-        will jump directly to the corresponding section.
+	will jump directly to the corresponding section.
         <span class="keybinding">Backspace</span> returns here to this list
-        of prefixes.
+        of prefixes.  (This does not apply if the user guide is "docked" into the
+	documents section.)
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">\</span> Input a longer character string with <a href="#text_entry">math entry</a> mode.</li>

@@ -449,8 +449,19 @@ class InputContext {
 
     do_change_document_selection(stack, amount_string) {
         const amount = parseInt(amount_string);
-        this.new_document = this.app_state.document.move_selection_by(amount);
-        // this.perform_undo_or_redo = 'suppress';
+	if(this.settings.dock_helptext) {
+	    // When the helptext is docked, treat 'change document selection' commands as
+	    // scrolling the helptext instead.  Do an ad-hoc conversion from number
+	    // of items scrolled to percentage of panel height scrolled.
+	    let percentage = 0;
+	    if(Math.abs(amount) > 3) percentage = 75;
+	    else if(Math.abs(amount) > 0) percentage = 25;
+	    if(amount < 0) percentage = -percentage;
+            this.perform_undo_or_redo = 'suppress';
+	    return this.do_scroll(stack, 'document_container', 'vertical', percentage.toString());
+	}
+	else
+            this.new_document = this.app_state.document.move_selection_by(amount);
     }
 
     do_shift_document_selection(stack, amount_string) {
@@ -1485,6 +1496,12 @@ class InputContext {
     }
 
     do_toggle_popup(stack, mode_string) {
+	// Special case: "toggling" the help while helptext is docked will undock it
+	// but not put it back as a popup.
+	if(!this.settings.popup_mode && this.settings.dock_helptext) {
+	    this.settings.dock_helptext = false;
+	    mode_string = null;
+	}
         // Hack: Save help panel scroll position so we can restore it next
         // time the help is displayed.  This isn't very good because browser
         // window/font resizings will throw it off.  Needs revisiting.
@@ -1498,6 +1515,7 @@ class InputContext {
             (this.settings.popup_mode === mode_string) ? null : mode_string;
         this.settings.save();
         this.app_component.apply_layout_to_dom();
+        this.perform_undo_or_redo = 'suppress';
     }
 
     // Set various configuration options.
@@ -1536,7 +1554,7 @@ class InputContext {
             break;
         case 'stack_split':
             // prefix argument:
-            //   none:    50% (undocumented)
+            //   none:    50%
             //   0..9:    0% to 90%
             //   *:       100%
             //   11..99:  11% to 99% (undocumented)
@@ -1548,6 +1566,9 @@ class InputContext {
         case 'inverse_video':
             settings.inverse_video = !settings.inverse_video;
             break;
+	case 'dock_helptext':
+	    settings.dock_helptext = (value === 'on');
+	    break;
         case 'reset_layout':
             settings.layout = settings.default_layout();
             settings.inverse_video = false;

@@ -254,6 +254,7 @@ div.stack_items div.tag_entry_mode::before {
     height: 100%;
     z-index: 1;
 }
+#document_container #helptext { padding: 0 1em; }
 
 div.document_items div.top_spacer { min-height: 0.5em; }
 div.document_items div.bottom_spacer { min-height: 8em; }
@@ -287,7 +288,6 @@ span.keybinding {
 #files_panel h2, div.help h1 {
     border-bottom: 2px solid #ddf;
     margin: 0.5em 0;
-    padding: 0;
 }
 #files_panel div.current_file span.filename {
     padding-left: 0.5em;
@@ -308,6 +308,7 @@ table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: lef
 
 
 div.help { padding: 0.5em 1em; }
+#document_container.help { padding: 0; }  /* when the helptext is 'docked' */
 div.help h2 {
     font-size: 120%;
     border-bottom: 2px solid #ddd;

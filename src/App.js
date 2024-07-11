@@ -140,6 +140,18 @@ class App extends React.Component {
                 this.stack_panel_ref.current, this.document_panel_ref.current,
                 this.popup_panel_ref.current);
         }
+	this.dock_helptext(this.state.settings.dock_helptext);
+    }
+
+    dock_helptext(is_docked) {
+	const helptext_elt = document.getElementById('helptext');
+	const help_dest_elt = is_docked ?
+	      document.getElementById('document_container') :
+	      document.getElementById('help_content');
+	if(helptext_elt && helptext_elt.parentNode !== help_dest_elt) {
+	    helptext_elt.parentNode.removeChild(helptext_elt);
+	    help_dest_elt.appendChild(helptext_elt);
+	}
     }
 
     componentDidUpdate() {
@@ -180,18 +192,28 @@ class App extends React.Component {
 		    input_context: input_context
 		}));
 
+	let document_component = null;
+	if(settings.dock_helptext) {
+	    document_component = $e('div', {id: '...', className: 'help'});
+	}
+	else {
+            document_component = $e(DocumentComponent, {
+                settings: settings,
+                document: app_state.document,
+                filename: this.state.file_manager_state.current_filename,
+                is_dirty: app_state.is_dirty  /* TODO: revisit, maybe remove this */
+            });
+	}
+
         return $e(
             'div', {id: 'panel_layout'},
             $e('div', {className: 'panel stack_panel', id: 'stack_panel', ref: this.stack_panel_ref},
 	       ...stack_panel_components),
             $e('div', {className: 'panel document_panel', id: 'document_panel', ref: this.document_panel_ref},
-               $e('div', {id: 'document_container'},
-                  $e(DocumentComponent, {
-                      settings: settings,
-                      document: app_state.document,
-                      filename: this.state.file_manager_state.current_filename,
-                      is_dirty: app_state.is_dirty  /* TODO: revisit, maybe remove this */
-                  }))),
+               $e('div', {
+		   id: 'document_container',
+		   className: settings.dock_helptext ? 'help' : null
+	       }, document_component)),
             $e(PopupPanelComponent, {
                 settings: settings,
                 popup_panel_ref: this.popup_panel_ref,
@@ -704,7 +726,7 @@ class PopupPanelComponent extends React.Component {
             'div', {id: 'popup_panel', ref: this.props.popup_panel_ref},
             subcomponent,
             $e('div', {id: 'help_container', ref: this.refs.help},
-               $e('div', {className: 'help', ref: this.refs.help_content})));
+               $e('div', {id: 'help_content', className: 'help', ref: this.refs.help_content})));
     }
 
     componentDidMount() {
@@ -730,7 +752,7 @@ class PopupPanelComponent extends React.Component {
             this.props.settings.help_scroll_top = undefined;
         }
     }
-
+ 
     // Render any <code>...</code> spans in the help text with KaTeX.
     _render_help_latex(help_elt) {
         const children = help_elt.getElementsByTagName('code');
