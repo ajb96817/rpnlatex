@@ -193,17 +193,13 @@ class App extends React.Component {
 		}));
 
 	let document_component = null;
-	if(settings.dock_helptext) {
-	    document_component = $e('div', {id: '...', className: 'help'});
-	}
-	else {
+	if(!settings.dock_helptext)
             document_component = $e(DocumentComponent, {
                 settings: settings,
                 document: app_state.document,
                 filename: this.state.file_manager_state.current_filename,
                 is_dirty: app_state.is_dirty  /* TODO: revisit, maybe remove this */
             });
-	}
 
         return $e(
             'div', {id: 'panel_layout'},
