@@ -558,7 +558,6 @@ const EditorKeymap = {
 
     // comma prefix: combine two objects with an infix operation
     infix: {
-        'a': "apply_infix",
         'b': "infix \\bullet",
         'c': "infix \\cap",
         'd': "infix \\setminus",  // (set [d]ifference)

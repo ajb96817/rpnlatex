@@ -6,7 +6,9 @@
     --heading-bar-height: 3px;
 }
 
-html { height: 100%; }
+html {
+    height: 100%;
+}
 body {
     margin: 0;
     padding: 0;
@@ -28,16 +30,6 @@ body.inverse_video {
    -moz-user-select: none;
    -ms-user-select: none;
 }
-
-
-div.help .version_info {
-    float: right;
-    color: #888;
-    font-family: monospace;
-    text-align: right;
-    font-size: 80%;
-}
-
 
 
 /* div.expr_item {}
@@ -121,9 +113,6 @@ div.tag_string {
     font-weight: bold;
     color: #666;
 }
-
-/* for iphone */
-textarea { font-size: 16px; }
 
 
 /* These are to support settings.layout.rightalign_math options. */
@@ -309,6 +298,13 @@ table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: lef
 
 div.help { padding: 0.5em 1em; }
 #document_container.help { padding: 0; }  /* when the helptext is 'docked' */
+div.help .version_info {
+    float: right;
+    color: #888;
+    font-family: monospace;
+    text-align: right;
+    font-size: 80%;
+}
 div.help h2 {
     font-size: 120%;
     border-bottom: 2px solid #ddd;
