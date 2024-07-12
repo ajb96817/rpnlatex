@@ -1731,6 +1731,17 @@ class InputContext {
             new ArrayExpr('substack', expr_count, 1, rows));
     }
 
+    do_evaluate_numerically(stack) {
+        const [new_stack, expr] = stack.pop_exprs(1);
+        const result = expr.evaluate_to_expr(true);
+        if(result) {
+            return new_stack.push_expr(result[0]);
+        }
+        else
+            return this.error_flash_stack();
+    }
+        
+
     // Copy stack top to an internal clipboard slot.
     // A prefix argument may be given to access other slots but this is currently undocumented
     // because prefix arguments with stack commands highlight items on the stack which is bad UI.

@@ -1110,6 +1110,136 @@ class Expr {
             return this;
     }
 
+    // Attempt to evaluate this Expr numerically.
+    // Only constant values and combinations of constants
+    // are allowed (including e.g. sin(3) etc).
+    // Return null if evaluation is not possible.
+    // The evaluation might raise errors, so the caller should use
+    // an exception handler.
+    evaluate() { return null; }
+
+    // Attempt to evaluate this Expr numerically.
+    // Returns: [expr, exact_flag] or null on failure,
+    // where 'expr' is an Expr representing the result, and 'exact_flag'
+    // is true if the result can be considered "exact".
+    evaluate_to_expr(rationalize) {
+        const value = this.evaluate();
+        if(value === null) return null;
+        if(rationalize) {
+            // Try to find a close rational approximation to value
+            // or up to a factor of some common constants like sqrt(2) or pi.
+            let result = null;
+            const make_text = n => new TextExpr(n.toString());
+            const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
+            const pi_expr = new CommandExpr('pi', []);
+            const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
+            result = this._try_rationalize_with_factor(  // pi^2
+                value, Math.PI*Math.PI,
+                new SubscriptSuperscriptExpr(
+                    pi_expr, null, new TextExpr('2')),
+                null);
+            result ||= this._try_rationalize_with_factor(  // pi
+                value, Math.PI, pi_expr, null);
+            result ||= this._try_rationalize_with_factor(  // 1/pi
+                value, 1/Math.PI, null, pi_expr);
+            result ||= this._try_rationalize_with_factor(  // sqrt(pi)
+                value, Math.sqrt(Math.PI), make_sqrt(pi_expr), null);
+            result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(pi)
+                value, 1/Math.sqrt(Math.PI), null, make_sqrt(pi_expr));
+            result ||= this._try_rationalize_with_factor(  // \sqrt(2pi)
+                value, Math.sqrt(2*Math.PI), make_sqrt(two_pi_expr), null);
+            result ||= this._try_rationalize_with_factor(  // 1 / \sqrt{2pi}
+                value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
+            // sqrt(n) for small prime n
+            const small_primes = [2, 3, 5, 7, 11, 13];
+            for(let i = 0; i < small_primes.length; i++)
+                result ||= this._try_rationalize_with_factor(
+                    value, Math.sqrt(small_primes[i]), make_sqrt(make_text(small_primes[i])), null);
+            // rationalize the number itself with no factors
+            result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
+            if(result) return result;
+        }
+
+        // Return an approximate floating-point value instead.
+        const decimal_part = value % 1.0;
+        return [
+            new TextExpr(value.toString()),
+            Math.abs(decimal_part) <= 0.00001];
+    }
+
+    _try_rationalize_with_factor(value, factor, numer_factor_expr, denom_factor_expr) {
+        const x = value / factor;
+        const max_denom = 500;  // maximum denominator tolerated
+        const epsilon = 0.00000001;  // maximum deviation from true value tolerated
+        const sign = Math.sign(value);
+        const x_abs = Math.abs(x);
+        const [integer_part, fractional_part] = [Math.floor(x_abs), x_abs % 1.0];
+        const [numer, denom] = this._rationalize(fractional_part, max_denom);
+        const rationalized_value = numer/denom;
+        if(Math.abs(rationalized_value - fractional_part) < epsilon) {
+            // "close enough" rational approximation
+            const final_numer = integer_part*denom + numer;
+            const final_denom = denom;
+            let final_expr = null;
+            if(final_denom === 1) {
+                const base_expr = new TextExpr((final_numer*sign).toString());
+                if(numer_factor_expr) {
+                    if(final_numer === 1)
+                        final_expr = numer_factor_expr;
+                    else
+                        final_expr = Expr.combine_pair(base_expr, numer_factor_expr);
+                }
+                else if(denom_factor_expr)
+                    final_expr = new CommandExpr('frac', [base_expr, denom_factor_expr]);
+                else
+                    final_expr = base_expr;
+            }
+            else {
+                let numer_expr = new TextExpr(final_numer.toString());
+                if(numer_factor_expr) {
+                    if(final_numer === 1)
+                        numer_expr = numer_factor_expr;
+                    else
+                        numer_expr = Expr.combine_pair(numer_expr, numer_factor_expr);
+                }
+                let denom_expr = new TextExpr(final_denom.toString());
+                if(denom_factor_expr)
+                    denom_expr = Expr.combine_pair(denom_expr, denom_factor_expr);
+                let frac_expr = new CommandExpr('frac', [numer_expr, denom_expr]);
+                if(sign < 0)
+                    final_expr = Expr.combine_pair(new TextExpr('-'), frac_expr);
+                else final_expr = frac_expr;
+            }
+            return [final_expr, true];
+        }
+        else
+            return null;  // not close enough to a rational multiple of factor
+    }
+
+    // 0 <= x <= 1
+    _rationalize(x, max_denom) {
+        let [a, b, c, d] = [0, 1, 1, 1];
+        while(b <= max_denom && d <= max_denom) {
+            const mediant = (a+c) / (b+d);
+            if(x === mediant) {
+                if(b + d <= max_denom)
+                    return [a+c, b+d];
+                else if(d > b)
+                    return [c, d];
+                else
+                    return [a, b];
+            }
+            else if(x > mediant)
+                [a, b] = [a+c, b+d];
+            else
+                [c, d] = [a+c, b+d];
+        }
+        if(b > max_denom)
+            return [c, d];
+        else
+            return [a, b];
+    }
+
     // NOTE: CommandExpr overrides this
     as_bold() { return new CommandExpr('boldsymbol', [this]); }
 }
@@ -1179,6 +1309,28 @@ class CommandExpr extends Expr {
             this.operand_exprs.map(
 		operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
             this.options);
+    }
+
+    evaluate() {
+        const c = this.command_name;
+        if(this.operand_count() === 0) {
+            if(c === 'pi') return Math.PI;
+        }
+        if(this.operand_count() === 1) {
+            // Unary functions
+            const x = this.operand_exprs[0].evaluate();
+            if(x === null) return null;
+            if(c === 'sin') return Math.sin(x);
+            if(c === 'sqrt') return Math.sqrt(x);
+        }
+        if(this.operand_count() === 2) {
+            // Binary functions
+            const x = this.operand_exprs[0].evaluate();
+            const y = this.operand_exprs[1].evaluate();
+            if(x === null || y === null) return null;
+            if(c === 'frac') return x/y;
+        }
+        return null;
     }
 
     // Wrap this expression in a \boldsymbol{...} command if it's not already.
@@ -1482,6 +1634,28 @@ class InfixExpr extends Expr {
                     0, null);
         }
     }
+
+    evaluate() {
+        let value = this.operand_exprs[0].evaluate();
+        if(value === null) return null;
+        for(let i = 0; i < this.operator_exprs.length; i++) {
+            const rhs = this.operand_exprs[i+1].evaluate();
+            if(rhs === null) return null;
+            value = this._evaluate_with_operator(
+                this.operator_text(this.operator_exprs[i]),
+                value, rhs);
+            if(value === null) return null;
+        }
+        return value;
+    }
+
+    _evaluate_with_operator(op, left, right) {
+        switch(op) {
+        case '+': return left+right;
+        case '-': return left-right;
+        default: return null;
+        }
+    }
 }
 
 
@@ -1511,6 +1685,18 @@ class TextExpr extends Expr {
     json_keys() { return ['text']; }
 
     emit_latex(emitter) { emitter.text(this.text, null); }
+
+    // TODO: check for cases like '3/4' (that's about it I think)
+    evaluate() {
+        const s = this.text;
+        // check for constant \pi
+        if(s === "\\pi") return Math.PI;
+        const val = parseFloat(s);
+        if(isNaN(val))
+            return null;
+        else
+            return val;
+    }
 }
 
 
@@ -1569,6 +1755,28 @@ class SequenceExpr extends Expr {
         if(this === old_expr) return new_expr;
         return new SequenceExpr(
             this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
+    }
+
+    evaluate() {
+        // Check for ['-', Expr] and ['+', Expr]
+        if(this.exprs.length >= 2 &&
+           this.exprs[0].expr_type() === 'text') {
+            let factor = null;
+            if(this.exprs[0].text === '+') factor = 1;
+            else if(this.exprs[0].text === '-') factor = -1;
+            if(factor !== null)
+                return factor*(new SequenceExpr(this.exprs.slice(1), this.fused).evaluate());
+        }
+        // Consider anything else as implicit multiplications.
+        let value = this.exprs[0].evaluate();
+        if(value === null) return null;
+        for(let i = 1; i < this.exprs.length; i++) {
+            const rhs = this.exprs[i].evaluate();
+            if(rhs === null) return null;
+            value *= rhs;
+            if(isNaN(value)) return null;
+        }
+        return value;
     }
 }
 
@@ -1697,6 +1905,10 @@ class DelimiterExpr extends Expr {
 	    this.inner_expr.substitute_expr(old_expr, new_expr),
 	    this.fixed_size);
     }
+
+    evaluate() {
+        return this.inner_expr.evaluate();
+    }
 }
 
 
@@ -1764,6 +1976,18 @@ class SubscriptSuperscriptExpr extends Expr {
             this.base_expr.substitute_expr(old_expr, new_expr),
             this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
             this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
+    }
+
+    evaluate() {
+        // Anything with a subscript can't be evaluated.
+        if(this.subscript_expr || !this.superscript_expr) return null;
+        const base_value = this.base_expr.evaluate();
+        const exponent_value = this.superscript_expr.evaluate();
+        const value = Math.pow(base_value, exponent_value);
+        if(isNaN(value))
+            return null;
+        else
+            return value;
     }
 }
 

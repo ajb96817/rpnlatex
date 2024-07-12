@@ -3,7 +3,12 @@ const EditorKeymap = {
     base: {
         // Letters/numbers and some symbols immediately push onto the stack
         '[alnum]': "self_push",
-        '#': "push \\#",
+
+
+        // '#': "push \\#",
+        '#': "evaluate_numerically",
+
+
         '*': "push *",
         '~': "push \\sim",
 
