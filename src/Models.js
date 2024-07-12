@@ -1595,20 +1595,19 @@ class DelimiterExpr extends Expr {
             return expr;
     }
 
-    // Parenthesize 'expr' only if it's a "fraction", which could mean one of:
-    //   \frac{x}{y}
-    //   x/y (infix)
-    //   \left.x\middle/\right.  (as created by e.g. [,][\])
-    static autoparenthesize_frac(expr) {
+    // Parenthesize 'expr' if it's any kind of InfixExpr,
+    // or a fraction (a full \frac{}-style fraction or a
+    // "flex size" one like \left. x/y \right.).
+    static parenthesize_infix_or_frac(expr) {
         const needs_parenthesization = (
             // \frac{x}{y}
             (expr.expr_type() === 'command' &&
              expr.command_name === 'frac' &&
              expr.operand_count() === 2) ||
 
-            // x/y
-	    (expr.expr_type() === 'infix' && expr.is_binary_operator_with('/')) ||
-
+            // any infix expression
+            (expr.expr_type() === 'infix') ||
+            
             // \left. x/y \right.
 	    // (x/y is an InfixExpr); this is a "flex size fraction".
 	    // TODO: add is_flex_inline_fraction() or something; this
