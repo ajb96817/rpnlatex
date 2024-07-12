@@ -634,8 +634,7 @@ class InputContext {
     }
 
     do_push_separator(stack) {
-	// See TextItem.is_empty() comment
-	return stack.push(TextItem.empty_item());
+	return stack.push(TextItem.separator_item());
     }
 
     do_push(stack, text) {
@@ -1033,9 +1032,11 @@ class InputContext {
     do_start_text_entry(stack, text_entry_mode, initial_text) {
         // Special cases:
         //   conjunction_entry mode: make sure there are two expressions on the stack beforehand.
-        //   tag: make sure there is one expression
+        //   tag_entry: make sure there is one expression or text item
         if((text_entry_mode === 'conjunction_entry' && !stack.check_exprs(2)) ||
-           (text_entry_mode === 'tag_entry' && !stack.check_exprs(1)))
+           (text_entry_mode === 'tag_entry' && !(
+               stack.check(1) &&
+                   ['expr', 'text'].includes(stack.peek(1).item_type()))))
             return this.error_flash_stack();
         this.text_entry = new TextEntryState(text_entry_mode, initial_text);
         this.switch_to_mode(text_entry_mode);

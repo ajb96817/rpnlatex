@@ -2138,6 +2138,7 @@ class Item {
         case 'text':
             return new TextItem(
                 json.elements.map(element_json => TextItemElement.from_json(element_json)),
+                json.tag_string || null,
                 !!json.is_heading);
 	case 'code':
 	    return new CodeItem(json.language, json.source);
@@ -2146,8 +2147,10 @@ class Item {
         }
     }
 
-    constructor() {
+    // 'tag_string' is an optional tag shown to the right of the item.
+    constructor(tag_string) {
         this.serial = Item.next_serial();
+        this.tag_string = tag_string;
     }
 
     react_key(prefix) { return prefix + '_' + this.serial; }
@@ -2170,13 +2173,11 @@ Item.serial_number = 1;
 
 // Represents a math expression (Expr instance) in the stack or document.
 class ExprItem extends Item {
-    // 'tag_string' is an optional tag shown to the right of the item.
     // 'selected_expr_path' is an optional ExprPath object; the indicated subexpression(s)
     //     will be highlighted in a "selected" style by the renderer.
     constructor(expr, tag_string, selected_expr_path) {
-        super()
+        super(tag_string)
         this.expr = expr;
-        this.tag_string = tag_string;
 	this.selected_expr_path = selected_expr_path;
     }
 
@@ -2324,7 +2325,10 @@ class TextItemRawElement extends TextItemElement {
 class TextItem extends Item {
     static from_expr(expr) { return new TextItem([new TextItemExprElement(expr)]); }
     static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
-    static empty_item() { return new TextItem([], true); }
+
+    // "Separators" are currently implemented as empty TextItems with is_heading=true.
+    // cf. TextItem.is_empty()
+    static separator_item() { return new TextItem([], null, true); }
 
     // "Parse" a string which may or may not contain certain escape sequences:
     //    [] - converts into a TextItemExprElement wrapping a PlaceholderExpr
@@ -2412,8 +2416,8 @@ class TextItem extends Item {
         return new TextItem(merged_elements, item1.is_heading || item2.is_heading);
     }
 
-    constructor(elements, is_heading) {
-        super();
+    constructor(elements, tag_string, is_heading) {
+        super(tag_string);
         this.elements = elements;
         this.is_heading = !!is_heading;
     }
@@ -2427,6 +2431,7 @@ class TextItem extends Item {
         };
         // avoid lots of useless is_heading: false in the JSON
         if(this.is_heading) json.is_heading = true;
+        if(this.tag_string) json.tag_string = this.tag_string;
         return json;
     }
 
@@ -2483,6 +2488,10 @@ class TextItem extends Item {
         return new TextItem(
             this.elements.map(element => element.as_bold()),
             this.is_heading);
+    }
+
+    with_tag(new_tag_string) {
+        return new TextItem(this.elements, new_tag_string, this.is_heading);
     }
 
     // If there is any PlaceholderExpr among the elements in this TextItem, substitute

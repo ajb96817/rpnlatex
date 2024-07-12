@@ -623,29 +623,30 @@ class ItemComponent extends React.Component {
         let className = this.props.selected ? 'selected ' : '';
         if(item.item_type() === 'text' && item.is_heading)
             className = 'heading_style ' + className;
+        let tag_element = null;
+        if(item.tag_string)
+            tag_element = $e(
+                'div', {className: 'tag_string'},
+                '(' + item.tag_string + ')');
         switch(item.item_type()) {
         case 'expr':
-            if(item.tag_string) {
-                return $e(
-                    'div', {className: 'expr_item'},
-                    $e('div', {className: 'tag_string'}, '(' + item.tag_string + ')'),
-                    $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
-            }
-            else 
-                return $e(
-                    'div', {className: 'expr_item'},
-                    $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
+            return $e(
+                'div', {className: 'expr_item'},
+                tag_element,
+                $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
         case 'text':
 	    if(item.is_empty()) {
 		// Empty TextItems are rendered as separator lines as a special case.
 		return $e(
                     'div', {className: className + 'separator_item'},
+                    tag_element,
                     $e('hr'));
 	    }
 	    else {
 		// TODO: The CSS/markup for heading texts is a little hacky
 		return $e(
                     'div', {className: 'text_item'},
+                    tag_element,
                     $e('div', {className: className + 'latex_fragment'},
                        $e('div', {className: 'latex_fragment_inner', ref: ref}, '')));
 	    }
@@ -653,6 +654,7 @@ class ItemComponent extends React.Component {
 	    // NOTE: only LaTeX source code snippets currently implemented.
 	    return $e(
 		'div', {className: 'latex_source_item'},
+                tag_element,  // not currently allowed
 		$e('div', {className: 'latex_source'}, item.source));
         default:
             return $e('div', {}, '????');

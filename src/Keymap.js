@@ -273,9 +273,9 @@ const EditorKeymap = {
 	'L': "mode modify_left",
         'm': "delimiters \\lmoustache \\rmoustache",
         'n': "delimiters \\lVert \\rVert",  // n = Norm
+        'N': "delimiters \\lVert \\rVert",  // alias for n
 	'o': "delimiters ( ]",  // half-closed interval
 	'O': "delimiters [ )",
-        'N': "delimiters \\lVert \\rVert",  // alias for n
 	'r': "mode modify_right",
 	'R': "mode modify_right",
         'w': "delimiters . \\vert",  // "where"
