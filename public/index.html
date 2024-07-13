@@ -76,8 +76,8 @@
           Letters and numbers place single-character strings onto the stack.
         </li>
         <li>
-          <span class="keybinding">#</span> <span class="keybinding">*</span> <span class="keybinding">~</span>
-          These keys also place the corresponding symbol onto the stack.
+          <span class="keybinding">*</span> <span class="keybinding">~</span>
+          These also place the corresponding symbol onto the stack.
         </li>
         <li>
           <span class="keybinding">&nbsp;</span> <em>(space)</em> Concatenate the top two stack entries.
@@ -154,6 +154,7 @@
         <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="keybinding">_</span> Manipulate subexpressions of the stack top with <a href="#dissect">dissect</a> mode.</li>
+	<li><span class="keybinding">#</span> Numerically <a href="#evaluate">evaluate</a> expressions.</li>
         <li><span class="keybinding">;</span> Insert <a href="#greek">lowercase Greek</a> letters.</li>
         <li><span class="keybinding">:</span> Insert <a href="#greek">uppercase Greek</a> letters.</li>
         <li><span class="keybinding" id="help_insert_script">&amp;</span>
@@ -176,8 +177,8 @@
       </ul>
 
       <h2>
+        <span class="keybinding">\</span>&nbsp;<span class="keybinding">&quot;</span> -
         <a name="text_entry" id="help_text_entry">Math and Text Entry</a>
-        <span class="keybinding">\</span>&nbsp;<span class="keybinding">&quot;</span>
       </h2>
       <p>
         The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
@@ -241,8 +242,8 @@
       </p>
 
       <h2>
+        <span class="keybinding">Tab</span> -
         <a name="stack" id="help_stack">Stack Manipulation and Utilities</a>
-        <span class="keybinding">Tab</span>
       </h2>
       <p>
         The following commands manipulate the stack with traditional RPN operations.
@@ -347,8 +348,8 @@
       </ul>
 
       <h2>
+        <span class="keybinding">Tab</span><span class="keybinding">f</span> -
         <a name="files" id="help_files">File Management</a>
-        <span class="keybinding">Tab</span><span class="keybinding">f</span>
       </h2>
       <p>
         <span class="keybinding">Tab</span><span class="keybinding">f</span>
@@ -387,8 +388,8 @@
       </p>
 
       <h2>
+        <span class="keybinding">&#39;</span> -
         <a name="symbols" id="help_symbols">Math Symbols</a>
-        <span class="keybinding">&#39;</span>
       </h2>
       <p>
         Assorted standalone math symbols.  These all put exactly one object onto the stack.
@@ -474,8 +475,8 @@
       </p>
 
       <h2>
+        <span class="keybinding">.</span> -
         <a name="decorations" id="help_decorations">Decorations</a>
-        <span class="keybinding">.</span>
       </h2>
       <p>
         These all modify a single item on the stack.
@@ -574,8 +575,8 @@
       </tbody></table>
 
       <h2>
+        <span class="keybinding">,</span> -
         <a name="infix" id="help_infix">Infix Expressions</a>
-        <span class="keybinding">,</span>
       </h2>
       <p>
         These commands combine the top two stack items by placing a mathematical operator between them.
@@ -679,8 +680,8 @@
       </p>
 
       <h2>
+        <span class="keybinding">=</span> -
         <a name="relational" id="help_relational">Relational Operators</a>
-        <span class="keybinding">=</span>
       </h2>
       <p>
         Similar to <span class="keybinding">,</span> these commands combine two items
@@ -758,7 +759,8 @@
       </tbody></table>
 
       <h2>
-        <a name="operators" id="help_operators">Functions and Operators <span class="keybinding">/</span></a>
+	<span class="keybinding">/</span> -
+        <a name="operators" id="help_operators">Functions and Operators</a>
       </h2>
       <ul class="keybindings">
         <li>
@@ -928,7 +930,8 @@
       </ul>
 
       <h2>
-        <a name="derivatives" id="help_derivatives">Derivative Building <span class="keybinding">/</span><span class="keybinding">d</span></a>
+	<span class="keybinding">/</span><span class="keybinding">d</span> -
+        <a name="derivatives" id="help_derivatives">Derivative Building</a>
       </h2>
       <p>
         These are some shortcuts for quickly creating common types of expressions involving derivatives and differentials.
@@ -1004,7 +1007,8 @@
       </ul>
 
       <h2>
-        <a name="integrals" id="help_integrals">Integral Limits <span class="keybinding">/</span><span class="keybinding">i</span></a>
+	<span class="keybinding">/</span><span class="keybinding">i</span> -
+        <a name="integrals" id="help_integrals">Integral Limits</a>
       </h2>
       <p>
         These commands are for quickly applying common limits to integral signs.
@@ -1024,10 +1028,8 @@
       </p>
 
       <h2>
-        <a name="named_operators" id="help_named_operators">
-          Named Operators
-          <span class="keybinding">/</span><span class="keybinding">f</span>
-        </a>
+        <span class="keybinding">/</span><span class="keybinding">f</span> -
+	<a name="named_operators" id="help_named_operators">Named Operators</a>
       </h2>
       <p>
         These commands attach named operators like <code>\max</code> to an expression from
@@ -1105,8 +1107,8 @@
       </ul>
 
       <h2>
+        <span class="keybinding">)</span> -
         <a name="delimiters" id="help_delimiters">Delimiters</a>
-        <span class="keybinding">)</span>
       </h2>
       <p>
         These commands enclose the stack top in various kinds of delimiter pairs.
@@ -1266,8 +1268,8 @@
       </tbody></table>
 
       <h2>
+        <span class="keybinding">|</span> -
         <a name="arrays" id="help_arrays">Array Operations</a>
-        <span class="keybinding">|</span>
       </h2>
       <p>
         These commands are for building and manipulating arrayed structures like
@@ -1485,8 +1487,8 @@
       </ul>
 
       <h2>
-        <a name="dissect" id="help_dissect">Dissect Mode</a>
-        <span class="keybinding">_</span>
+        <span class="keybinding">_</span> -
+        <a name="dissect" id="help_dissect">Dissect</a>
       </h2>
       <p>
         Entering <em>dissect</em> mode with <span class="keybinding">_</span> (underscore)
@@ -1545,7 +1547,56 @@
       </ul>
 
       <h2>
-        <a name="greek" id="help_greek">Greek Letters</a>
+        <span class="keybinding">#</span> -
+        <a name="evaluate" id="help_evaluate">Evaluate</a>
+      </h2>
+      <p>
+	Attempt to numerically evaluate the expression on the stack top,
+	allowing the editor to operate as a simple calculator.
+      </p>
+      <p>
+	Evaluation requires the expression to be composed only
+	of constant values and operations involving them.  For example,
+	<code>\sin(\pi/6)</code> can be evaluated but not <code>\sin(2\pi x)</code>.
+      </p>
+      <p>
+	The result of the evaluation will be a floating-point number.
+	However, if that result can be closely approximated by a fraction, or
+	a factor of something like <code>\sqrt{2}</code>, the result will instead
+	be represented that way.
+      </p>
+      <ul class="keybindings">
+	<li>
+	  <span class="keybinding">=</span>
+	  Evaluate the expression on the stack top.
+	  This will result in fractional result if possible, otherwise a decimal
+	  approximation will be given.  For example:
+	  <ul>
+	    <li><code>\sin\frac{\pi}{3} = \frac{\sqrt{3}}{2}</code></li>
+	    <li><code>\sin(3) \approx 0.141120</code></li>
+	  </ul>
+	  A second application of <span class="keybinding">#</span><span class="keybinding">=</span>
+	  will force a decimal approximation.
+	</li>
+	<li>
+	  <span class="keybinding">Enter</span>
+	  Like <span class="keybinding">=</span> but forces the decimal approximation right away.
+	</li>
+        <li><span class="keybinding">#</span> Put a literal # on the stack.</li>
+      </ul>
+      <p>
+	<strong>NOTE:</strong> Trigonometric functions use radians by default, but degrees
+	can be specified by a "degree marker" superscript using
+	<span class="keybinding">'</span><span class="keybinding">o</span><span class="keybinding">`</span>.
+	For example: <span class="keybinding">4</span><span class="keybinding">5</span><span class="keybinding">&nbsp;</span><span class="keybinding">'</span><span class="keybinding">o</span><span class="keybinding">`</span>
+	yields <code>{45}^\circ</code> and the sine of this can be calculated via:
+	<span class="keybinding">/</span><span class="keybinding">s</span><span class="keybinding">#</span><span class="keybinding">=</span>
+	<code>\to\sin{{45}^\circ} = \frac{\sqrt{2}}{2}</code>.
+	Also, <code>{45}^\circ\,\,</code><span class="keybinding">#</span><span class="keybinding">=</span><code>\to \frac{\pi}{4}</code>.
+      </p>
+      
+      <h2>
+        <a name="greek" id="help_greek">Greek Letters</a> -
         <span class="keybinding">;</span>
         <span class="keybinding">:</span>
       </h2>
@@ -1670,7 +1721,7 @@
         or <span class="keybinding">;</span><span class="keybinding">:</span>.
       </p>
       <h2>
-        <a name="configuration" id="help_configuration">Configuration</a>
+        <a name="configuration" id="help_configuration">Configuration</a> -
         <span class="keybinding">$</span>
       </h2>
       <p>

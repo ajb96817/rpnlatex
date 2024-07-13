@@ -1731,16 +1731,58 @@ class InputContext {
             new ArrayExpr('substack', expr_count, 1, rows));
     }
 
-    do_evaluate_numerically(stack) {
-        const [new_stack, expr] = stack.pop_exprs(1);
-        const result = expr.evaluate_to_expr(true);
-        if(result) {
-            return new_stack.push_expr(result[0]);
-        }
-        else
-            return this.error_flash_stack();
+    // Evaluate stack top x and try to rationalize it to an "exact" value,
+    // otherwise give it a floating-point approximation.
+    // x ->
+    //    x = exact_value
+    //    x ~= approx_value (~=: \approx)
+    // If x is already in the form 'x = exact_value'
+    // then "force" it into the form 'x ~= approx_value'.
+    // If x is in the form 'x ~= approx_value', leave it unchanged.
+    // If 'force_approx' is specified, the approximation is applied regardless.
+    do_evaluate_to_equation(stack, force_approx) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	if(expr.expr_type() === 'infix' && expr.operator_text() === 'approx') {
+	    // Re-evaluate the left side, hoping for an "exact" value.
+	    // If an exact value cannot be found, leave it as it was before.
+	    const lhs = expr.extract_side_at(expr.split_at_index, 'left');
+	    const result = lhs.evaluate_to_expr(true);
+	    if(!result || !result[1])
+		return stack;  // either an error or a non-exact result
+	    else return new_stack.push_expr(
+		InfixExpr.combine_infix(
+		    lhs, result[0], new TextExpr('=')));
+	}
+	if(expr.expr_type() === 'infix' && expr.operator_text() === '=') {
+	    // Force a floating-point approximation of the left hand side
+	    // if possible.  (There might be any arbitrary 'x=y' equation
+	    // at this point.)
+	    const lhs = expr.extract_side_at(expr.split_at_index, 'left');
+	    const result = lhs.evaluate_to_expr(false);
+	    if(!result)
+		return this.error_flash_stack();
+	    const result_expr = result[0];
+	    return new_stack.push_expr(
+		InfixExpr.combine_infix(
+		    lhs, result_expr, new CommandExpr('approx', [])));
+	}
+	else {
+	    // Try to evaluate expr, rationalizing if possible.
+	    const try_rationalize = force_approx !== 'true';
+	    const result = expr.evaluate_to_expr(try_rationalize);
+	    if(!result)
+		return this.error_flash_stack();  // not evaluatable
+	    const [result_expr, is_exact] = result;
+	    if(is_exact)
+		return new_stack.push_expr(
+		    InfixExpr.combine_infix(
+			expr, result_expr, new TextExpr('=')));
+	    else
+		return new_stack.push_expr(
+		    InfixExpr.combine_infix(
+			expr, result_expr, new CommandExpr('approx', [])));
+	}
     }
-        
 
     // Copy stack top to an internal clipboard slot.
     // A prefix argument may be given to access other slots but this is currently undocumented

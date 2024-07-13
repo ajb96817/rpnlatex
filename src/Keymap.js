@@ -4,11 +4,6 @@ const EditorKeymap = {
         // Letters/numbers and some symbols immediately push onto the stack
         '[alnum]': "self_push",
 
-
-        // '#': "push \\#",
-        '#': "evaluate_numerically",
-
-
         '*': "push *",
         '~': "push \\sim",
 
@@ -60,6 +55,7 @@ const EditorKeymap = {
         "\"": "start_text_entry text_entry",
         '|': "mode array",
         '_': "start_dissect_mode",
+        '#': "mode evaluate",
         '$': "mode config",
         '?': "toggle_popup help",
 
@@ -144,6 +140,7 @@ const EditorKeymap = {
         '{': "scroll_to help_delimiters",
         '|': "scroll_to help_arrays",
         '_': "scroll_to help_dissect",
+        '#': "scroll_to help_evaluate",
         ';': "scroll_to help_greek",
         ':': "scroll_to help_greek",
         '$': "scroll_to help_configuration",
@@ -818,6 +815,7 @@ const EditorKeymap = {
         '{': "change_matrix_type Bmatrix"
     },
 
+    // _ prefix: dissect mode
     // NOTE: The duplicate keybindings here are for the user's convenience
     // (e.g., capitals so they don't have to release the Shift key).
     dissect: {
@@ -849,6 +847,13 @@ const EditorKeymap = {
         'C': "dissect_copy_selection",
         't': "dissect_copy_selection trim",
         'T': "dissect_copy_selection trim"
+    },
+
+    // # prefix: evaluate mode
+    evaluate: {
+	'#': "push \\#",
+	'=': "evaluate_to_equation false",
+	'Enter': "evaluate_to_equation true"
     },
 
     // & prefix

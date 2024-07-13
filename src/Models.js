@@ -1116,57 +1116,88 @@ class Expr {
     // Return null if evaluation is not possible.
     // The evaluation might raise errors, so the caller should use
     // an exception handler.
+    // Subclasses should override.
     evaluate() { return null; }
 
     // Attempt to evaluate this Expr numerically.
     // Returns: [expr, exact_flag] or null on failure,
     // where 'expr' is an Expr representing the result, and 'exact_flag'
     // is true if the result can be considered "exact".
+    // rationalize=true here attempts to pull out factors of common
+    // values like sqrt(2) or pi.  These will be multiplied into the output
+    // if found.  Rationalize=false always returns a decimal TextExpr.
+    // TODO: exception handler around evaluate()
     evaluate_to_expr(rationalize) {
         const value = this.evaluate();
         if(value === null) return null;
         if(rationalize) {
-            // Try to find a close rational approximation to value
-            // or up to a factor of some common constants like sqrt(2) or pi.
-            let result = null;
-            const make_text = n => new TextExpr(n.toString());
-            const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
-            const pi_expr = new CommandExpr('pi', []);
-            const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
-            result = this._try_rationalize_with_factor(  // pi^2
-                value, Math.PI*Math.PI,
-                new SubscriptSuperscriptExpr(
-                    pi_expr, null, new TextExpr('2')),
-                null);
-            result ||= this._try_rationalize_with_factor(  // pi
-                value, Math.PI, pi_expr, null);
-            result ||= this._try_rationalize_with_factor(  // 1/pi
-                value, 1/Math.PI, null, pi_expr);
-            result ||= this._try_rationalize_with_factor(  // sqrt(pi)
-                value, Math.sqrt(Math.PI), make_sqrt(pi_expr), null);
-            result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(pi)
-                value, 1/Math.sqrt(Math.PI), null, make_sqrt(pi_expr));
-            result ||= this._try_rationalize_with_factor(  // \sqrt(2pi)
-                value, Math.sqrt(2*Math.PI), make_sqrt(two_pi_expr), null);
-            result ||= this._try_rationalize_with_factor(  // 1 / \sqrt{2pi}
-                value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
-            // sqrt(n) for small prime n
-            const small_primes = [2, 3, 5, 7, 11, 13];
-            for(let i = 0; i < small_primes.length; i++)
-                result ||= this._try_rationalize_with_factor(
-                    value, Math.sqrt(small_primes[i]), make_sqrt(make_text(small_primes[i])), null);
-            // rationalize the number itself with no factors
-            result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
-            if(result) return result;
+	    const result = this.rationalize_to_expr(value);
+	    if(result)
+		return [result, true];
         }
-
         // Return an approximate floating-point value instead.
         const decimal_part = value % 1.0;
         return [
-            new TextExpr(value.toString()),
+	    this._float_to_expr(value),
             Math.abs(decimal_part) <= 0.00001];
     }
 
+    // Try to find a close rational approximation to value
+    // or up to a factor of some common constants like sqrt(2) or pi.
+    // Return an Expr if successful, otherwise null.
+    rationalize_to_expr(value) {
+        let result = null;
+        const make_text = n => this._int_to_expr(n);
+        const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
+        const pi_expr = new CommandExpr('pi', []);
+        const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
+	// Check for very small fractional part; could be either an integer
+	// or a float with large magnitude and thus decayed fractional precision.
+	if(Math.abs(value % 1.0) < 0.000001)
+	    return this._int_to_expr(value);
+	// Try different variations on \pi
+	// NOTE: pi is a little weird because a close rational approximation 
+	// (335/113) both has small denominator and is very close to the actual
+	// value of pi.  So the epsilon value in _try_rationalize_with_factor()
+	// needs to be chosen carefully.
+        result = this._try_rationalize_with_factor(  // pi^2
+            value, Math.PI*Math.PI,
+            new SubscriptSuperscriptExpr(
+                pi_expr, null, new TextExpr('2')),
+            null);
+        result ||= this._try_rationalize_with_factor(  // pi
+            value, Math.PI, pi_expr, null);
+        result ||= this._try_rationalize_with_factor(  // 1/pi
+            value, 1/Math.PI, null, pi_expr);
+        result ||= this._try_rationalize_with_factor(  // sqrt(pi)
+            value, Math.sqrt(Math.PI), make_sqrt(pi_expr), null);
+        result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(pi)
+            value, 1/Math.sqrt(Math.PI), null, make_sqrt(pi_expr));
+        result ||= this._try_rationalize_with_factor(  // \sqrt(2pi)
+            value, Math.sqrt(2*Math.PI), make_sqrt(two_pi_expr), null);
+        result ||= this._try_rationalize_with_factor(  // 1 / \sqrt{2pi}
+            value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
+        // Try sqrt(n) in the numerator for small square-free n.
+	// No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
+        const small_squarefree = [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19];
+        for(let i = 0; i < small_squarefree.length; i++)
+            result ||= this._try_rationalize_with_factor(
+                value, Math.sqrt(small_squarefree[i]),
+		make_sqrt(make_text(small_squarefree[i])), null);
+	// TODO: check factors of 1+sqrt(5), 1-sqrt(5) (golden ratio-ish)
+	// NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
+
+        // Finally, rationalize the number itself with no factors
+        result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
+	return result;
+    }
+
+    // Helper for rationalize_to_expr().
+    // Try to pull out rational multiples of 'factor' using Farey fractions.
+    // If successful, return the factored rational expression,
+    // multiplied by 'numer_factor_expr' in the numerator or
+    // 'denom_factor_expr' in the denominator if they are given.
+    // If no rationalization close enough can be found, return null.
     _try_rationalize_with_factor(value, factor, numer_factor_expr, denom_factor_expr) {
         const x = value / factor;
         const max_denom = 500;  // maximum denominator tolerated
@@ -1176,13 +1207,17 @@ class Expr {
         const [integer_part, fractional_part] = [Math.floor(x_abs), x_abs % 1.0];
         const [numer, denom] = this._rationalize(fractional_part, max_denom);
         const rationalized_value = numer/denom;
+	// Special case of zero (so x is an integer); shouldn't normally happen.
+	if(numer === 0 && denom === 1)  
+	    return this._int_to_expr(x);
         if(Math.abs(rationalized_value - fractional_part) < epsilon) {
-            // "close enough" rational approximation
+            // This is a close enough rational approximation
+	    // that it can be considered exact.
             const final_numer = integer_part*denom + numer;
             const final_denom = denom;
             let final_expr = null;
             if(final_denom === 1) {
-                const base_expr = new TextExpr((final_numer*sign).toString());
+                const base_expr = this._int_to_expr(final_numer*sign);
                 if(numer_factor_expr) {
                     if(final_numer === 1)
                         final_expr = numer_factor_expr;
@@ -1195,14 +1230,14 @@ class Expr {
                     final_expr = base_expr;
             }
             else {
-                let numer_expr = new TextExpr(final_numer.toString());
+                let numer_expr = this._int_to_expr(final_numer);
                 if(numer_factor_expr) {
                     if(final_numer === 1)
                         numer_expr = numer_factor_expr;
                     else
                         numer_expr = Expr.combine_pair(numer_expr, numer_factor_expr);
                 }
-                let denom_expr = new TextExpr(final_denom.toString());
+                let denom_expr = this._int_to_expr(final_denom);
                 if(denom_factor_expr)
                     denom_expr = Expr.combine_pair(denom_expr, denom_factor_expr);
                 let frac_expr = new CommandExpr('frac', [numer_expr, denom_expr]);
@@ -1210,13 +1245,14 @@ class Expr {
                     final_expr = Expr.combine_pair(new TextExpr('-'), frac_expr);
                 else final_expr = frac_expr;
             }
-            return [final_expr, true];
+            return final_expr;
         }
         else
             return null;  // not close enough to a rational multiple of factor
     }
 
-    // 0 <= x <= 1
+    // Farey fraction algorithm.  Find closest rational approximation to
+    // 0 <= x <= 1, with maximum denominator max_denom.
     _rationalize(x, max_denom) {
         let [a, b, c, d] = [0, 1, 1, 1];
         while(b <= max_denom && d <= max_denom) {
@@ -1238,6 +1274,25 @@ class Expr {
             return [c, d];
         else
             return [a, b];
+    }
+
+    _int_to_expr(x) {
+	if(Math.abs(x) > 1e10)
+	    return this._too_large_to_expr(x);
+	else
+	    return new TextExpr(Math.floor(x).toString());
+    }
+
+    _float_to_expr(x) {
+	if(Math.abs(x) > 1e10)
+	    return this._too_large_to_expr(x);
+	else
+	    return new TextExpr(x.toFixed(6));
+    }
+
+    _too_large_to_expr(x) {
+	const text = x < 0 ? '[too large (negative)]' : '[too large]';
+	return new CommandExpr('textbf', [new TextExpr(text)]);
     }
 
     // NOTE: CommandExpr overrides this
@@ -1321,7 +1376,15 @@ class CommandExpr extends Expr {
             const x = this.operand_exprs[0].evaluate();
             if(x === null) return null;
             if(c === 'sin') return Math.sin(x);
+	    if(c === 'cos') return Math.cos(x);
+	    if(c === 'tan') return Math.tan(x);
+	    if(c === 'sinh') return Math.sinh(x);
+	    if(c === 'cosh') return Math.cosh(x);
+	    if(c === 'tanh') return Math.tanh(x);
             if(c === 'sqrt') return Math.sqrt(x);
+	    // TODO: log ln2 etc...
+	    // TODO: inverse trig...
+	    // TODO: cube root
         }
         if(this.operand_count() === 2) {
             // Binary functions
@@ -1982,6 +2045,14 @@ class SubscriptSuperscriptExpr extends Expr {
         // Anything with a subscript can't be evaluated.
         if(this.subscript_expr || !this.superscript_expr) return null;
         const base_value = this.base_expr.evaluate();
+	// Check for "degrees" notation.
+	if(base_value !== null &&
+	   this.superscript_expr.expr_type() === 'command' &&
+	   this.superscript_expr.operand_count() === 0 &&
+	   this.superscript_expr.command_name === 'circ') {
+	    const radians = base_value * Math.PI / 180.0;
+	    return radians;
+	}
         const exponent_value = this.superscript_expr.evaluate();
         const value = Math.pow(base_value, exponent_value);
         if(isNaN(value))
