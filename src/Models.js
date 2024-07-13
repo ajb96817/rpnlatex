@@ -1346,10 +1346,30 @@ class CommandExpr extends Expr {
 	    if(c === 'sinh') return Math.sinh(x);
 	    if(c === 'cosh') return Math.cosh(x);
 	    if(c === 'tanh') return Math.tanh(x);
-            if(c === 'sqrt') return Math.sqrt(x);
-	    // TODO: log ln2 etc...
-	    // TODO: inverse trig...
-	    // TODO: cube root
+            if(c === 'sqrt') {
+		if(this.options === '3')
+		    return Math.cbrt(x);
+		else
+		    return Math.sqrt(x);
+	    }
+
+	    // Hacky inverse and squared trig functions.  See Actions.js do_named_function().
+	    if(c === 'sin^{-1}') return Math.asin(x);
+	    if(c === 'cos^{-1}') return Math.acos(x);
+	    if(c === 'tan^{-1}') return Math.atan(x);
+	    if(c === 'sinh^{-1}') return Math.asinh(x);
+	    if(c === 'cosh^{-1}') return Math.acosh(x);
+	    if(c === 'tanh^{-1}') return Math.atanh(x);
+	    if(c === 'sin^2') return Math.pow(Math.sin(x), 2);
+	    if(c === 'cos^2') return Math.pow(Math.cos(x), 2);
+	    if(c === 'tan^2') return Math.pow(Math.tan(x), 2);
+	    if(c === 'sinh^2') return Math.pow(Math.sinh(x), 2);
+	    if(c === 'cosh^2') return Math.pow(Math.cosh(x), 2);
+	    if(c === 'tanh^2') return Math.pow(Math.tanh(x), 2);
+
+	    if(c === 'log_2' || c === 'lg') return Math.log2(x);
+	    if(c === 'ln' || c === 'log') return Math.log(x);
+	    if(c === 'exp') return Math.exp(x);
         }
         if(this.operand_count() === 2) {
             // Binary functions
@@ -2009,16 +2029,37 @@ class SubscriptSuperscriptExpr extends Expr {
     evaluate() {
         // Anything with a subscript can't be evaluated.
         if(this.subscript_expr || !this.superscript_expr) return null;
-        const base_value = this.base_expr.evaluate();
+	const base_expr = this.base_expr;
+	const s_expr = this.superscript_expr;
+
+	// Check for e^x notation created by [/][e].
+	if(base_expr.expr_type() === 'command' &&
+	   base_expr.command_name === 'mathrm' &&
+	   base_expr.operand_count() === 1 &&
+	   base_expr.operand_exprs[0].expr_type() === 'text' &&
+	   base_expr.operand_exprs[0].text === 'e') {
+	    const exponent_value = s_expr.evaluate();
+	    if(!exponent_value) return null;
+	    const value = Math.exp(exponent_value);
+	    if(isNaN(value))
+		return null;
+	    else
+		return value;
+	}
+
+        const base_value = base_expr.evaluate();
+
 	// Check for "degrees" notation.
 	if(base_value !== null &&
-	   this.superscript_expr.expr_type() === 'command' &&
-	   this.superscript_expr.operand_count() === 0 &&
-	   this.superscript_expr.command_name === 'circ') {
+	   s_expr.expr_type() === 'command' &&
+	   s_expr.operand_count() === 0 &&
+	   s_expr.command_name === 'circ') {
 	    const radians = base_value * Math.PI / 180.0;
 	    return radians;
 	}
-        const exponent_value = this.superscript_expr.evaluate();
+
+        // Assume it's a regular x^y power expression.
+        const exponent_value = s_expr.evaluate();
         const value = Math.pow(base_value, exponent_value);
         if(isNaN(value))
             return null;
