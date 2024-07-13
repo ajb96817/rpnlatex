@@ -73,9 +73,9 @@ const EditorKeymap = {
         'Ctrl+j': "extract_from_document",
         'Ctrl+k': "infix \\,",
         'Ctrl+l': "recenter_document 50",
-        'Ctrl+m': "push -;swap;fuse",
+        'Ctrl+m': "push -;swap;fuse",  // same as [.][-]
         'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
-        'Ctrl+p': "delimiters ( )",
+        'Ctrl+p': "delimiters ( )",  // same as [(]
         'Ctrl+r': "infix ,;parenthesize;fuse",  // -> f(x,y): same as [/][r]
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",

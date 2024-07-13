@@ -1,6 +1,6 @@
 
 import {
-    AppState, Document, Stack, DissectUndoStack,
+    AppState, Document, Stack,
     ExprPath, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem, CodeItem
@@ -123,10 +123,6 @@ class InputContext {
         // If non-null, text-entry mode is active and the entry line will appear at the
         // bottom of the stack panel.  this.text_entry will be a TextEntryState object.
         this.text_entry = null;
-
-        // When in "dissect" mode, this is a specialized DissectUndoStack
-        // that only tracks modifications to the stack top item being edited.
-        this.dissect_undo_stack = null;
     }
 
     // Returns [was_handled, new_app_state]
@@ -1223,7 +1219,7 @@ class InputContext {
 	if(expr.has_subexpressions()) {
 	    this.switch_to_mode('dissect');
             this.perform_undo_or_redo = 'suppress';
-            this.dissect_undo_stack = new DissectUndoStack(expr);
+	    this.dissect_mode_initial_expr = expr;
 	    // Build a new ExprItem with a default initial selection.
 	    return new_stack.push(new ExprItem(expr, null, new ExprPath(expr, [0])));
 	}
@@ -1231,14 +1227,12 @@ class InputContext {
 	    return this.error_flash_stack();
     }
 
-    // Cancel any changes that have been done while in dissect mode
-    // (i.e., undo as far as possible) and exit the mode.
     do_cancel_dissect_mode(stack) {
         // eslint-disable-next-line no-unused-vars
 	const [new_stack, expr] = stack.pop_exprs(1);  // expr will be discarded
 	this.perform_undo_or_redo = 'suppress';
-        const original_expr = this.dissect_undo_stack.initial_expr;
-        this.dissect_undo_stack = null;
+	const original_expr = this.dissect_mode_initial_expr;
+	this.dissect_mode_initial_expr = null;
 	return new_stack.push(new ExprItem(original_expr, null, null));
     }
 
@@ -1255,23 +1249,6 @@ class InputContext {
         // the existing ExprPath selection.
 	return new_stack.push(new ExprItem(expr, null, null));
       }     */
-
-    // Undo last action while in dissect mode, if possible.
-    // Cancel dissect mode if there are no undo states.
-    do_dissect_undo(stack) {
-        this.perform_undo_or_redo = 'suppress';
-        let undo_stack = this.dissect_undo_stack;
-        const new_expr_path = undo_stack.pop();
-        if(new_expr_path) {
-            // eslint-disable-next-line no-unused-vars
-            const [new_stack, old_expr] = stack.pop_exprs(1);
-            this.switch_to_mode('dissect');
-            return new_stack.push(
-                new ExprItem(new_expr_path.expr, null, new_expr_path));
-        }
-        else
-            return this.do_cancel_dissect_mode(stack);
-    }
 
     // Descend into a subexpression, if possible.
     // The new selection will point at the first (index=0) subexpression
@@ -1318,7 +1295,6 @@ class InputContext {
 	const expr_path = item.selected_expr_path;
 	const expr_with_placeholder = expr_path.extract_selection();
 	const extracted_expr = expr_path.selected_expr();
-        this.dissect_undo_stack = null;  // exiting dissect mode
         if(trim === 'trim')
             return new_stack.push_expr(expr_with_placeholder);
         else
@@ -1335,7 +1311,6 @@ class InputContext {
             stack.type_error();
 	const expr_path = item.selected_expr_path;
 	const extracted_expr = expr_path.selected_expr();
-        this.dissect_undo_stack = null;  // exiting dissect mode
         if(trim === 'trim')
             return new_stack.push_expr(extracted_expr);
         else
@@ -1353,9 +1328,7 @@ class InputContext {
 	const expr_path = item.selected_expr_path;
 	const new_expr_path = fn(expr_path);
 	if(new_expr_path) {
-            // This mode has its own undo stack; normal undo is suppressed.
 	    this.perform_undo_or_redo = 'suppress';
-            this.dissect_undo_stack.push(expr_path);
 	    const new_expr_item = new ExprItem(new_expr_path.expr, null, new_expr_path);
 	    return new_stack.push(new_expr_item);
 	}

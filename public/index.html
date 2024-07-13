@@ -48,8 +48,8 @@
         these first few items.
       </p>
       <p>
-        Note that items on the stack have a small colored bar shown to the left of them.  This indicates the item's "type",
-        which can be either a symbolic expression (grey) or a piece of text (blue).
+        Note that items on the stack have a small colored bar shown to the left of them.  This indicates the item's
+	size as well as its "type", which can be either a symbolic expression (grey) or a piece of text (blue).
       </p>
       <p>
         This editor is designed to be operated entirely from the keyboard.  All operations can be performed using
@@ -65,26 +65,27 @@
         <li>
 	  <span class="keybinding">?</span>
 	  Show this user guide.
-	  Pressing <span class="keybinding">?</span> a second time will "dock" the user guide
+	  Typing <span class="keybinding">?</span> a second time will "dock" the user guide
 	  into the document section for easier reference.  While docked, the user guide can be
 	  scrolled with the <span class="keybinding">&uarr;</span><span class="keybinding">&darr;</span> arrow keys.
-	  Pressing <span class="keybinding">?</span> a third time will then close the user guide and
+	  Typing <span class="keybinding">?</span> a third time will then close the user guide and
 	  reveal the document section again.
 	</li>
         <li>
-          <span class="keybinding">a-z</span> <span class="keybinding">A-Z</span> <span class="keybinding">0-9</span>
-          Letters and numbers place single-character strings onto the stack.
+          <span class="keybinding">a-z</span><span class="keybinding">A-Z</span><span class="keybinding">0-9</span><span class="keybinding">*</span><span class="keybinding">~</span>
+	  Place the corresponding character onto the stack.
         </li>
         <li>
-          <span class="keybinding">*</span> <span class="keybinding">~</span>
-          These also place the corresponding symbol onto the stack.
+          <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">&lt;</span><span class="keybinding">&gt;</span>
+          Join two expressions with the corresponding operator between them.
         </li>
         <li>
           <span class="keybinding">&nbsp;</span> <em>(space)</em> Concatenate the top two stack entries.
         </li>
         <li>
-          <span class="keybinding">`</span> <em>(backtick)</em> or <span class="keybinding">^</span> 
+          <span class="keybinding">^</span> or <span class="keybinding">`</span> <em>(backtick)</em>
           Make superscript: <code>y\enspace x \to y^x</code>
+	  (also <span class="keybinding">Ctrl+u</span>).
         </li>
         <li><span class="keybinding">Enter</span>
           Make subscript: <code>y\enspace x \to y_x</code>
@@ -94,19 +95,14 @@
         </li>
         <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
         <li>
-          <span class="keybinding">!</span>
-          Append a <kbd>!</kbd> to the stack top (factorial notation).
-        </li>
-        <li>
           <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span>
           Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
           These delimiters automatically adjust to fit their contents.
         </li>
         <li><span class="keybinding">]</span> Apply a <strong>bold font</strong> to the stack top.</li>
         <li>
-          <span class="keybinding">+</span> <span class="keybinding">-</span>
-          <span class="keybinding">&lt;</span> <span class="keybinding">&gt;</span>
-          Join two expressions with the corresponding operator between them.
+          <span class="keybinding">!</span>
+          Append a <kbd>!</kbd> to the stack top (factorial notation).
         </li>
         <li>
           <span class="keybinding">&uarr;</span> <span class="keybinding">&darr;</span>
@@ -126,18 +122,18 @@
         <a name="prefix_keys" id="help_prefix_keys">Prefix Keys</a>
       </h2>
       <p>
-        All other operations require <em>prefix keys</em> to be pressed first.  These keys
+        All other operations require <em>prefix keys</em> to be typed first.  These keys
         switch into a corresponding <em>mode</em>.  The current mode is displayed in grey in the upper-right
         corner of the stack.  Each mode has its own keymap of operations, which are detailed in the following
         sections.
       </p>
       <p>
         <strong>NOTE:</strong>
-        Pressing the prefix keys below while this user guide is being shown
+        Typing the prefix keys below while this user guide is being shown
 	will jump directly to the corresponding section.
         <span class="keybinding">Backspace</span> returns here to this list
         of prefixes.  (This does not apply if the user guide is "docked" into the
-	documents section.)
+	documents section via <span class="keybinding">?</span><span class="keybinding">?</span>.)
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">\</span> Input a longer character string with <a href="#text_entry">math entry</a> mode.</li>
@@ -153,7 +149,7 @@
         <li><span class="keybinding">/</span><span class="keybinding">f</span> Create <a href="#named_operators">named operators</a>.</li>
         <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
-        <li><span class="keybinding">_</span> Manipulate subexpressions of the stack top with <a href="#dissect">dissect</a> mode.</li>
+        <li><span class="keybinding">_</span> Manipulate subexpressions with <a href="#dissect">dissect</a> mode.</li>
 	<li><span class="keybinding">#</span> Numerically <a href="#evaluate">evaluate</a> expressions.</li>
         <li><span class="keybinding">;</span> Insert <a href="#greek">lowercase Greek</a> letters.</li>
         <li><span class="keybinding">:</span> Insert <a href="#greek">uppercase Greek</a> letters.</li>
@@ -177,7 +173,7 @@
       </ul>
 
       <h2>
-        <span class="keybinding">\</span>&nbsp;<span class="keybinding">&quot;</span> -
+        <span class="keybinding">\</span>&nbsp;<span class="keybinding">&quot;</span>
         <a name="text_entry" id="help_text_entry">Math and Text Entry</a>
       </h2>
       <p>
@@ -202,7 +198,7 @@
       <p>
         The <span class="keybinding">&quot;</span> prefix starts <em>text entry</em> mode which
         is similar to math entry mode but creates <em>text objects</em>.  Text objects are shown with
-        a blue bar to the left (instead of grey) and differ from normal math objects in a few important ways:
+        a blue bar to the left (instead of grey) and differ from normal math objects in some important ways:
         <ul>
           <li>They are meant for explanatory text, comments, etc., rather than being standalone math formulas.</li>
           <li>They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.</li>
@@ -242,7 +238,7 @@
       </p>
 
       <h2>
-        <span class="keybinding">Tab</span> -
+        <span class="keybinding">Tab</span>
         <a name="stack" id="help_stack">Stack Manipulation and Utilities</a>
       </h2>
       <p>
@@ -348,7 +344,7 @@
       </ul>
 
       <h2>
-        <span class="keybinding">Tab</span><span class="keybinding">f</span> -
+        <span class="keybinding">Tab</span><span class="keybinding">f</span>
         <a name="files" id="help_files">File Management</a>
       </h2>
       <p>
@@ -388,7 +384,7 @@
       </p>
 
       <h2>
-        <span class="keybinding">&#39;</span> -
+        <span class="keybinding">&#39;</span>
         <a name="symbols" id="help_symbols">Math Symbols</a>
       </h2>
       <p>
@@ -475,7 +471,7 @@
       </p>
 
       <h2>
-        <span class="keybinding">.</span> -
+        <span class="keybinding">.</span>
         <a name="decorations" id="help_decorations">Decorations</a>
       </h2>
       <p>
@@ -575,7 +571,7 @@
       </tbody></table>
 
       <h2>
-        <span class="keybinding">,</span> -
+        <span class="keybinding">,</span>
         <a name="infix" id="help_infix">Infix Expressions</a>
       </h2>
       <p>
@@ -680,7 +676,7 @@
       </p>
 
       <h2>
-        <span class="keybinding">=</span> -
+        <span class="keybinding">=</span>
         <a name="relational" id="help_relational">Relational Operators</a>
       </h2>
       <p>
@@ -759,7 +755,7 @@
       </tbody></table>
 
       <h2>
-	<span class="keybinding">/</span> -
+	<span class="keybinding">/</span>
         <a name="operators" id="help_operators">Functions and Operators</a>
       </h2>
       <ul class="keybindings">
@@ -930,7 +926,7 @@
       </ul>
 
       <h2>
-	<span class="keybinding">/</span><span class="keybinding">d</span> -
+	<span class="keybinding">/</span><span class="keybinding">d</span>
         <a name="derivatives" id="help_derivatives">Derivative Building</a>
       </h2>
       <p>
@@ -1007,7 +1003,7 @@
       </ul>
 
       <h2>
-	<span class="keybinding">/</span><span class="keybinding">i</span> -
+	<span class="keybinding">/</span><span class="keybinding">i</span>
         <a name="integrals" id="help_integrals">Integral Limits</a>
       </h2>
       <p>
@@ -1028,7 +1024,7 @@
       </p>
 
       <h2>
-        <span class="keybinding">/</span><span class="keybinding">f</span> -
+        <span class="keybinding">/</span><span class="keybinding">f</span>
 	<a name="named_operators" id="help_named_operators">Named Operators</a>
       </h2>
       <p>
@@ -1107,7 +1103,7 @@
       </ul>
 
       <h2>
-        <span class="keybinding">)</span> -
+        <span class="keybinding">)</span>
         <a name="delimiters" id="help_delimiters">Delimiters</a>
       </h2>
       <p>
@@ -1268,7 +1264,7 @@
       </tbody></table>
 
       <h2>
-        <span class="keybinding">|</span> -
+        <span class="keybinding">|</span>
         <a name="arrays" id="help_arrays">Array Operations</a>
       </h2>
       <p>
@@ -1487,7 +1483,7 @@
       </ul>
 
       <h2>
-        <span class="keybinding">_</span> -
+        <span class="keybinding">_</span>
         <a name="dissect" id="help_dissect">Dissect</a>
       </h2>
       <p>
@@ -1547,7 +1543,7 @@
       </ul>
 
       <h2>
-        <span class="keybinding">#</span> -
+        <span class="keybinding">#</span>
         <a name="evaluate" id="help_evaluate">Evaluate</a>
       </h2>
       <p>
@@ -1561,16 +1557,15 @@
       </p>
       <p>
 	The result of the evaluation will be a floating-point number.
-	However, if that result can be closely approximated by a fraction, or
+	However, if it can be closely approximated by a fraction, or
 	a factor of something like <code>\sqrt{2}</code>, the result will instead
 	be represented that way.
       </p>
       <ul class="keybindings">
 	<li>
 	  <span class="keybinding">=</span>
-	  Evaluate the expression on the stack top.
-	  This will result in fractional result if possible, otherwise a decimal
-	  approximation will be given.  For example:
+	  Try to evaluate the expression on the stack top.
+	  For example:
 	  <ul>
 	    <li><code>\sin\frac{\pi}{3} = \frac{\sqrt{3}}{2}</code></li>
 	    <li><code>\sin(3) \approx 0.141120</code></li>

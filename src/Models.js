@@ -312,7 +312,7 @@ class AppState {
 
     _default_stack() {
         const item = TextItem.parse_string(
-            "Welcome to the editor.  Press **[?]** to view the User Guide.");
+            "Welcome to the editor.  Type **[?]** to view the User Guide.");
         return new Stack([item]);
     }
 
@@ -382,37 +382,6 @@ class UndoStack {
             this.undo_count--;
             return this.state_stack[this.state_stack.length - this.undo_count - 1];
         }
-        else
-            return null;
-    }
-}
-
-
-// Like UndoStack but specialized to 'dissect' mode.
-// With DissectUndoStack, there is no need to keep track of the entire stack,
-// only the changes to the item being edited on the stack top.
-// Also, 'redo' in not supported by this currently (though it could be added).
-class DissectUndoStack {
-    // Unlike UndoStack, this.expr_path_stack stores ExprPath instances rather than
-    // entire Stacks.
-    // 'initial_expr' is the original Expr as it was before dissect mode was entered.
-    constructor(initial_expr) {
-        this.initial_expr = initial_expr;
-        this.expr_path_stack = [];
-        this.max_stack_depth = 100;
-    }
-    
-    push(expr_path) {
-        this.expr_path_stack.push(expr_path);
-        if(this.expr_path_stack.length > this.max_stack_depth)
-            this.expr_path_stack = this.expr_path_stack.slice(
-                this.expr_path_stack.length - this.max_stack_depth);
-        return expr_path;
-    }
-
-    pop() {
-        if(this.expr_path_stack.length > 0)
-            return this.expr_path_stack.pop();
         else
             return null;
     }
@@ -1207,12 +1176,8 @@ class Expr {
         const [integer_part, fractional_part] = [Math.floor(x_abs), x_abs % 1.0];
         const [numer, denom] = this._rationalize(fractional_part, max_denom);
         const rationalized_value = numer/denom;
-	// Special case of zero (so x is an integer); shouldn't normally happen.
-	if(numer === 0 && denom === 1)  
-	    return this._int_to_expr(x);
         if(Math.abs(rationalized_value - fractional_part) < epsilon) {
-            // This is a close enough rational approximation
-	    // that it can be considered exact.
+            // This is a close enough rational approximation that it can be considered exact.
             const final_numer = integer_part*denom + numer;
             const final_denom = denom;
             let final_expr = null;
@@ -3007,7 +2972,7 @@ class Document {
 
 
 export {
-    Keymap, Settings, AppState, UndoStack, DissectUndoStack,
+    Keymap, Settings, AppState, UndoStack,
     DocumentStorage, ImportExportState, FileManagerState,
     ExprPath, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,

@@ -685,7 +685,7 @@ class ItemComponent extends React.Component {
         try {
             // NOTE: trust: true here allows the use of \htmlClass etc.
             katex.render(latex_code, node, {
-		throwOnError: false,
+		throwOnError: true, //false,
 		displayMode: display_mode,
 		fleqn: true,
 		trust: true,
@@ -694,10 +694,17 @@ class ItemComponent extends React.Component {
 	    });
         }
         catch(e) {
-            // KaTeX throws actual errors for some inputs, even if throwOnError is false.
-            // Example: \texttt{\textbf{test}}
-            const msg = e.toString();
-            node.innerHTML = '<div style="color:red;">' + msg + '</div>';
+	    if(e instanceof katex.ParseError) {
+		// NOTE: KaTeX throws actual errors for some inputs, even if throwOnError is false.
+		// Example: \texttt{\textbf{test}}
+		// Generally though, these errors result from [\][\] latex text entry
+		// with invalid latex commands.
+		const msg = e.rawMessage;
+		node.innerHTML = '<div style="color:red;">' + msg + '</div>';
+	    } else {
+		const msg = e.toString();
+		node.innerHTML = '<div style="color:red;">' + msg + '</div>';
+	    }
         }
     }
 }
@@ -750,7 +757,7 @@ class PopupPanelComponent extends React.Component {
             this.props.settings.help_scroll_top = undefined;
         }
     }
- 
+
     // Render any <code>...</code> spans in the help text with KaTeX.
     _render_help_latex(help_elt) {
         const children = help_elt.getElementsByTagName('code');
