@@ -1108,7 +1108,7 @@ class Expr {
         const decimal_part = value % 1.0;
         return [
 	    this._float_to_expr(value),
-            Math.abs(decimal_part) <= 0.00001];
+            Math.abs(decimal_part) <= 0.000001];
     }
 
     // Try to find a close rational approximation to value
@@ -1120,7 +1120,7 @@ class Expr {
         const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
         const pi_expr = new CommandExpr('pi', []);
         const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
-	// Check for very small fractional part; could be either an integer
+	// Check for very small fractional part; could be either an integer,
 	// or a float with large magnitude and thus decayed fractional precision.
 	if(Math.abs(value % 1.0) < 0.000001)
 	    return this._int_to_expr(value);
@@ -1132,8 +1132,7 @@ class Expr {
         result = this._try_rationalize_with_factor(  // pi^2
             value, Math.PI*Math.PI,
             new SubscriptSuperscriptExpr(
-                pi_expr, null, new TextExpr('2')),
-            null);
+		pi_expr, null, make_text(2)), null);
         result ||= this._try_rationalize_with_factor(  // pi
             value, Math.PI, pi_expr, null);
         result ||= this._try_rationalize_with_factor(  // 1/pi
@@ -1155,7 +1154,6 @@ class Expr {
 		make_sqrt(make_text(small_squarefree[i])), null);
 	// TODO: check factors of 1+sqrt(5), 1-sqrt(5) (golden ratio-ish)
 	// NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
-
         // Finally, rationalize the number itself with no factors
         result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
 	return result;
@@ -1182,6 +1180,7 @@ class Expr {
             const final_denom = denom;
             let final_expr = null;
             if(final_denom === 1) {
+		// Integer multiple of the factor.
                 const base_expr = this._int_to_expr(final_numer*sign);
                 if(numer_factor_expr) {
                     if(final_numer === 1)
@@ -1190,11 +1189,12 @@ class Expr {
                         final_expr = Expr.combine_pair(base_expr, numer_factor_expr);
                 }
                 else if(denom_factor_expr)
-                    final_expr = new CommandExpr('frac', [base_expr, denom_factor_expr]);
+                    final_expr = CommandExpr.frac(base_expr, denom_factor_expr);
                 else
                     final_expr = base_expr;
             }
             else {
+		// Rational (but not integer) multiple of the factor.
                 let numer_expr = this._int_to_expr(final_numer);
                 if(numer_factor_expr) {
                     if(final_numer === 1)
@@ -1205,7 +1205,7 @@ class Expr {
                 let denom_expr = this._int_to_expr(final_denom);
                 if(denom_factor_expr)
                     denom_expr = Expr.combine_pair(denom_expr, denom_factor_expr);
-                let frac_expr = new CommandExpr('frac', [numer_expr, denom_expr]);
+                let frac_expr = CommandExpr.frac(numer_expr, denom_expr);
                 if(sign < 0)
                     final_expr = Expr.combine_pair(new TextExpr('-'), frac_expr);
                 else final_expr = frac_expr;
@@ -1218,6 +1218,7 @@ class Expr {
 
     // Farey fraction algorithm.  Find closest rational approximation to
     // 0 <= x <= 1, with maximum denominator max_denom.
+    // Returns [numerator, denominator].
     _rationalize(x, max_denom) {
         let [a, b, c, d] = [0, 1, 1, 1];
         while(b <= max_denom && d <= max_denom) {
@@ -1241,15 +1242,23 @@ class Expr {
             return [a, b];
     }
 
+    // Number formatting routines.
+    // Javascript doesn't give many good options for this.
+    // Mostly we want to avoid things like '3.14e28'.
+
     _int_to_expr(x) {
-	if(Math.abs(x) > 1e10)
+	if(isNaN(x))
+	    return new CommandExpr('mathrm', [new TextExpr('NaN')]);
+	else if(Math.abs(x) > 1e10)
 	    return this._too_large_to_expr(x);
 	else
 	    return new TextExpr(Math.floor(x).toString());
     }
 
     _float_to_expr(x) {
-	if(Math.abs(x) > 1e10)
+	if(isNaN(x))
+	    return new CommandExpr('mathrm', [new TextExpr('NaN')]);
+	else if(Math.abs(x) > 1e10)
 	    return this._too_large_to_expr(x);
 	else
 	    return new TextExpr(x.toFixed(6));
@@ -1267,6 +1276,12 @@ class Expr {
 
 // Represents a "raw" LaTeX command such as \sqrt plus optional operand expressions.
 class CommandExpr extends Expr {
+    static frac(numer_expr, denom_expr) {
+	return new CommandExpr(
+	    'frac',
+	    [numer_expr, denom_expr]);
+    }
+    
     // NOTES:
     //   - 'command_name' does not include the initial \ character
     //   - 'options', if provided, is a plain string that becomes "\command_name[options]{...}"
