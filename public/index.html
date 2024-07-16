@@ -28,7 +28,7 @@
         <span class="keybinding">q</span> or <span class="keybinding">Esc</span>.
       </p>
       <p>
-        The screen is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
+        The editor is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
         text and math expressions are built up; once you have built an expression on the stack that you want to keep,
         you can transfer it to the document for storage.  The stack is for temporary use while you are
         working on something to place into the document.
@@ -178,17 +178,31 @@
       </h2>
       <p>
         The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
-        will be shown where you can type letters and numbers.  <span class="keybinding">Enter</span> will place
-        what you have typed onto the stack as math text.  This gives the same result as entering individual
-        characters and concatenating them with <span class="keybinding">&nbsp;</span> (space).  For example,
-        these are two equivalent ways of entering the number 123:
-        <ul>
-          <li><span class="keybinding">1</span><span class="keybinding">2</span><span class="keybinding">3</span><span class="keybinding">&nbsp;</span><span class="keybinding">&nbsp;</span></li>
-          <li><span class="keybinding">\</span><span class="keybinding">1</span><span class="keybinding">2</span><span class="keybinding">3</span><span class="keybinding">Enter</span></li>
-        </ul>
+        will be shown where you can type a math expression in infix notation.
+	<span class="keybinding">Enter</span> will parse what you have typed and put it on the stack as a math object.
+	A malformed expression will signal an error; allowed expressions include:
+	<ul>
+	  <li>Numbers such as 3, -10, 5.12 (scientific notation not supported).</li>
+	  <li>Single-letter variables such as <code>x</code>.</li>
+	  <li>
+	    Implicit multiplication such as <code>5x</code> or <code>xy</code>
+	    (interpreted as multiplying <code>x</code> and <code>y</code>).
+	  <li>
+	    Infix operators such as <code>x+2y</code>.
+	    Allowed operators are: <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">/</span><span class="keybinding">*</span>
+	    (but not <span class="keybinding">^</span>).
+	  </li>
+	  <li><code>x!</code> factorial notation is allowed.</li>
+	  <li>Expressions can be parenthesized, e.g. <code>(x+y)</code>.  Brackets and curly braces may also
+	    be used, but they have to be properly matched.
+	  </li>
+	</ul>
+      </p>
+      <p>
         <span class="keybinding">Esc</span> (or <span class="keybinding">Ctrl+z</span>) will cancel math entry mode.
         If you use <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
-        to finish your entry, it will be typeset in a roman (non-italic) font instead of the normal italic math font.
+        to finish your entry, it will be typeset in a roman (non-italic) font instead of the normal italic math font,
+	and it will not be parsed as a math expression, so you can use any text you want.
       </p>
       <p>If you type another <span class="keybinding">\</span>
         after the first one, you will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary

@@ -46,7 +46,7 @@ class Settings {
         this.inverse_video = false;
         this.last_opened_filename = null;
         this.popup_mode = null;  // null, 'help', 'files'
-	this.show_mode_indicator = true;
+        this.show_mode_indicator = true;
         this.layout = this.default_layout();
     }
 
@@ -72,13 +72,13 @@ class Settings {
         const percentage = Math.round(100*Math.pow(1.05, layout.zoom_factor || 0));
         root_elt.style.fontSize = percentage + '%';
 
-	// Set some specific scale factors for other UI elements
-	// by manipulating the corresponding CSS variables.
-	const root_vars = document.querySelector(':root');
-	const itembar_pixels = Math.min(10, Math.max(2, Math.round(4 * percentage/100)));
-	root_vars.style.setProperty('--itemtype-bar-width', itembar_pixels + 'px');
-	const headingbar_pixels = Math.max(1, Math.round(3 * percentage/100));
-	root_vars.style.setProperty('--heading-bar-height', headingbar_pixels + 'px');
+        // Set some specific scale factors for other UI elements
+        // by manipulating the corresponding CSS variables.
+        const root_vars = document.querySelector(':root');
+        const itembar_pixels = Math.min(10, Math.max(2, Math.round(4 * percentage/100)));
+        root_vars.style.setProperty('--itemtype-bar-width', itembar_pixels + 'px');
+        const headingbar_pixels = Math.max(1, Math.round(3 * percentage/100));
+        root_vars.style.setProperty('--heading-bar-height', headingbar_pixels + 'px');
 
         // Set up panel layout.
         let [stack_bounds, document_bounds] = this._split_rectangle(
@@ -147,15 +147,15 @@ class LatexEmitter {
     // object that indicates which Expr is to be rendered with a "highlight"
     // indicating that it is currently selected.
     constructor(base_expr, selected_expr_path) {
-	this.base_expr = base_expr;
+        this.base_expr = base_expr;
         this.tokens = [];
         this.last_token_type = null;
-	this.selected_expr_path = selected_expr_path;
-	// Initialize a "blank" ExprPath that tracks the rendering.
-	// When this current_path matches up with selected_expr_path,
-	// that's when it's pointing at the selected expr.
-	if(this.selected_expr_path)
-	    this.current_path = new ExprPath(base_expr, []);
+        this.selected_expr_path = selected_expr_path;
+        // Initialize a "blank" ExprPath that tracks the rendering.
+        // When this current_path matches up with selected_expr_path,
+        // that's when it's pointing at the selected expr.
+        if(this.selected_expr_path)
+            this.current_path = new ExprPath(base_expr, []);
     }
 
     emit_token(text, token_type) {
@@ -171,29 +171,29 @@ class LatexEmitter {
     // 'inside_delimiters' will be true if expr is the inner_expr of a DelimiterExpr
     // (cf. InfixExpr.emit_latex()).
     expr(expr, index, inside_delimiters) {
-	if(index !== null && this.selected_expr_path)
-	    this.current_path = this.current_path.descend(index);
-	// Check if we're now rendering the 'selected' expression.
-	if(this.selected_expr_path &&
-	   this.selected_expr_path.equals(this.current_path)) {
-	    // Wrap the selected expression in something to "highlight" it
-	    // and render that instead.
-	    const highlight_expr = new CommandExpr('htmlClass', [
-		new TextExpr('dissect_highlight_brace'),
-		new CommandExpr('overbrace', [
-		    new CommandExpr('htmlClass', [
-			new TextExpr('dissect_highlight'),
-			expr])])]);	    
+        if(index !== null && this.selected_expr_path)
+            this.current_path = this.current_path.descend(index);
+        // Check if we're now rendering the 'selected' expression.
+        if(this.selected_expr_path &&
+           this.selected_expr_path.equals(this.current_path)) {
+            // Wrap the selected expression in something to "highlight" it
+            // and render that instead.
+            const highlight_expr = new CommandExpr('htmlClass', [
+                new TextExpr('dissect_highlight_brace'),
+                new CommandExpr('overbrace', [
+                    new CommandExpr('htmlClass', [
+                        new TextExpr('dissect_highlight'),
+                        expr])])]);         
             highlight_expr.emit_latex(this, inside_delimiters);
-	}
-	else
-	    expr.emit_latex(this, inside_delimiters);
-	if(index !== null && this.selected_expr_path)
-	    this.current_path = this.current_path.ascend();
+        }
+        else
+            expr.emit_latex(this, inside_delimiters);
+        if(index !== null && this.selected_expr_path)
+            this.current_path = this.current_path.ascend();
     }
 
     grouped_expr(expr, force_braces, index) {
-	this.grouped(() => this.expr(expr, index), force_braces);
+        this.grouped(() => this.expr(expr, index), force_braces);
     }
 
     grouped(fn, force_braces) {
@@ -767,8 +767,8 @@ class FileManagerState {
 // directly to its base expression.
 class ExprPath {
     constructor(expr, subexpr_indexes) {
-	this.expr = expr;
-	this.subexpr_indexes = subexpr_indexes;
+        this.expr = expr;
+        this.subexpr_indexes = subexpr_indexes;
     }
 
     depth() { return this.subexpr_indexes.length; }
@@ -776,46 +776,46 @@ class ExprPath {
     // This comparison is needed by the LatexEmitter to determine when the
     // rendering path matches up with the selected expression path.
     equals(other_path) {
-	if(this.expr !== other_path.expr)
+        if(this.expr !== other_path.expr)
             return false;
-	if(this.subexpr_indexes.length !== other_path.subexpr_indexes.length)
+        if(this.subexpr_indexes.length !== other_path.subexpr_indexes.length)
             return false;
-	for(let i = 0; i < this.subexpr_indexes.length; i++)
-	    if(this.subexpr_indexes[i] !== other_path.subexpr_indexes[i])
-		return false;
-	return true;
+        for(let i = 0; i < this.subexpr_indexes.length; i++)
+            if(this.subexpr_indexes[i] !== other_path.subexpr_indexes[i])
+                return false;
+        return true;
     }
 
     // Return the 'n'th parent of the selected subexpression.
     // n === 0 returns the actual selected subexpression;
     // n === 1 is its first parent, etc.
     last_expr_but(n) {
-	let expr = this.expr;
-	for(let i = 0; i < this.subexpr_indexes.length-n; i++)
-	    expr = expr.subexpressions()[this.subexpr_indexes[i]];
-	return expr;
+        let expr = this.expr;
+        for(let i = 0; i < this.subexpr_indexes.length-n; i++)
+            expr = expr.subexpressions()[this.subexpr_indexes[i]];
+        return expr;
     }
 
     selected_expr() { return this.last_expr_but(0); }
 
     last_index_but(n) {
-	return this.subexpr_indexes[this.subexpr_indexes.length-n];
+        return this.subexpr_indexes[this.subexpr_indexes.length-n];
     }
 
     // Return a new ExprPath descended into the subexpression of the
     // selected expression indicated by 'index'.
     descend(index) {
-	return new ExprPath(
-	    this.expr,
-	    this.subexpr_indexes.concat([index]));
+        return new ExprPath(
+            this.expr,
+            this.subexpr_indexes.concat([index]));
     }
 
     // Return a new ExprPath that selects the parent Expr of the current
     // subexpression(s).
     ascend() {
-	return new ExprPath(
-	    this.expr,
-	    this.subexpr_indexes.slice(0, -1));
+        return new ExprPath(
+            this.expr,
+            this.subexpr_indexes.slice(0, -1));
     }
 
     // Return a new Expr that is like this one but with the "sibling" subexpression
@@ -823,15 +823,15 @@ class ExprPath {
     // 'direction' can be 'left' or 'right'.  The selection wraps around when going
     // past the ends of the expression.
     move(direction) {
-	const parent_expr = this.last_expr_but(1);
-	const final_index = this.last_index_but(1);
-	const subexpr_count = parent_expr.subexpressions().length;
-	let new_index = final_index + (direction === 'right' ? +1 : -1);
-	// NOTE: could use % but Javascript returns negative when new_index goes negative.
-	// We need it between 0 and subexpr_count-1.
-	if(new_index < 0) new_index = subexpr_count-1;
-	if(new_index >= subexpr_count) new_index = 0;
-	return this.ascend().descend(new_index);
+        const parent_expr = this.last_expr_but(1);
+        const final_index = this.last_index_but(1);
+        const subexpr_count = parent_expr.subexpressions().length;
+        let new_index = final_index + (direction === 'right' ? +1 : -1);
+        // NOTE: could use % but Javascript returns negative when new_index goes negative.
+        // We need it between 0 and subexpr_count-1.
+        if(new_index < 0) new_index = subexpr_count-1;
+        if(new_index >= subexpr_count) new_index = 0;
+        return this.ascend().descend(new_index);
     }
 
     // Replace the currently selected subexpression with new_expr.
@@ -839,25 +839,224 @@ class ExprPath {
     // indicated subexpression has been replaced by the given expression.
     // The subexpression that has been replaced is still available via this.selected_expr().
     replace_selection(new_expr) {
-	const parent_expr = this.last_expr_but(1);
-	const final_index = this.last_index_but(1);
-	let expr = parent_expr.replace_subexpression(final_index, new_expr);
-	// Unwind back up the ExprPath "stack" backwards, replacing subexpressions along the way.
-	// This is O(n^2) in the depth of the tree structure.  This could be optimized to O(n)
-	// by streamlining the repetitive last_*_but() calls.
-	for(let i = 2; i <= this.subexpr_indexes.length; i++) {
-	    const local_parent = this.last_expr_but(i);
-	    const subexpr_index = this.last_index_but(i);
-	    expr = local_parent.replace_subexpression(subexpr_index, expr);
-	}
-	return expr;
+        const parent_expr = this.last_expr_but(1);
+        const final_index = this.last_index_but(1);
+        let expr = parent_expr.replace_subexpression(final_index, new_expr);
+        // Unwind back up the ExprPath "stack" backwards, replacing subexpressions along the way.
+        // This is O(n^2) in the depth of the tree structure.  This could be optimized to O(n)
+        // by streamlining the repetitive last_*_but() calls.
+        for(let i = 2; i <= this.subexpr_indexes.length; i++) {
+            const local_parent = this.last_expr_but(i);
+            const subexpr_index = this.last_index_but(i);
+            expr = local_parent.replace_subexpression(subexpr_index, expr);
+        }
+        return expr;
     }
 
     // "Extract" the currently selected subexpression, replacing it with a placeholder
     // where it previously was.
     extract_selection() {
-	return this.replace_selection(new PlaceholderExpr());
+        return this.replace_selection(new PlaceholderExpr());
     }
+}
+
+
+// Parse simple "algebraic" snippets, for use in math_entry mode.
+//
+// Rules:
+//   - Spaces are completely ignored.
+//   - "Symbols" are one-letter substrings like 'x'.
+//   - Adjacent factors are combined with implicit multiplication.
+//   - 'xyz' is considered implicit multiplication of x,y,z.
+//   - '*' is multiplication, but gets converted to \cdot.
+//   - '/' and '*' bind tighter than '+' and '-'.
+//   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
+//   - Postfix factorial notation is allowed.
+//
+// Mini-grammar:
+//   expr:
+//       '-' term |
+//           term |
+//       '-' term [+ | -] term |
+//           term [+ | -] term
+//   term:
+//       factor |
+//       factor '!' |
+//       factor [* | /] term
+//       factor term    (implicit multiplication)
+//   factor:
+//       number |
+//       symbol |
+//       '(' expr ')'     (delimiter types must match)
+//
+// TODO: -> ExprTextParser?  
+class TextExprParser {
+    static parse_string(string) {
+        const tokens = this.tokenize(string);
+        if(!tokens) return null;
+        let parser = new TextExprParser(tokens);
+        let expr = null;
+        try {
+            expr = parser.parse_expr();
+        } catch(e) {
+            if(e.message === 'parse_error')
+                ;  // leave expr as null
+            throw e;
+        }
+        if(!expr) return null;
+        if(!parser.at_end()) return null;  // extraneous tokens at end
+        return expr;
+    }
+    
+    // Break string into to tokens; token types are:
+    //   number: 3, -5, 3.1, -5.1, etc. (no scientific notation or anything)
+    //   symbol: x (xyz becomes 3 separate symbols)
+    //   operator: +, -, *, /, !
+    //   open_delimiter: ( or [ or {
+    //   close_delimiter: ) or ] or }
+    static tokenize(s) {
+        let pos = 0;
+        let number_regex = /-?\d*\.?\d+/g;
+        let tokens = [];
+        while(pos < s.length) {
+            // Check for number:
+            number_regex.lastIndex = pos;
+            const result = number_regex.exec(s);
+            if(result && result.index === pos) {
+                tokens.push({type: 'number', text: result[0]});
+                pos += result[0].length;
+            }
+            else {
+                // All other tokens are always 1 character.
+                const token = s[pos];
+                let token_type = null;
+                if(/\s/.test(token)) token_type = 'whitespace';
+                if(/\w/.test(token)) token_type = 'symbol';
+                if(/[-+!/*]/.test(token)) token_type = 'operator';
+                if(/[([{]/.test(token)) token_type = 'open_delimiter';
+                if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
+                if(token_type === null)
+                    return null;  // invalid token found (something like ^, or unicode)
+                if(token_type !== 'whitespace')  // skip whitespace
+                    tokens.push({type: token_type, text: token});
+                pos++;
+            }
+        }
+        return tokens;
+    }
+
+    constructor(tokens) {
+        this.tokens = tokens;
+        this.token_index = 0;
+    }
+
+    parse_expr() {
+        const prefix_token = this.peek_for('operator');
+        let negate = false;
+        if(prefix_token && prefix_token.text === '-') {
+            negate = true;
+            this.next_token();
+        }
+        const lhs = this.parse_term() || this.parse_error();
+        const binary_token = this.peek_for('operator');
+        let result_expr = lhs;
+        if(binary_token &&
+           (binary_token.text === '+' || binary_token.text === '-')) {
+            this.next_token();
+            const rhs = this.parse_term() || this.parse_error();
+            result_expr = InfixExpr.combine_infix(
+                lhs, rhs, Expr.text_or_command(binary_token.text));
+        }
+        if(negate)  // prepend unary -
+            result_expr = Expr.combine_pair(
+                Expr.text_or_command('-'), result_expr);
+        return result_expr;
+    }
+
+    parse_term() {
+        const lhs = this.parse_factor();
+        if(!lhs) return null;
+        const op_token = this.peek_for('operator');
+        if(op_token && op_token.text === '!') {
+            // postfix factorial
+            this.next_token();
+            return Expr.combine_pair(lhs, Expr.text_or_command('!'));
+        }
+        if(op_token && (op_token.text === '*' || op_token.text === '/')) {
+            // explicit multiplication converts to \cdot
+            const op_text = (op_token.text === '*' ? "\\cdot" : '/');
+            this.next_token();
+            const rhs = this.parse_term() || this.parse_error();
+            return InfixExpr.combine_infix(
+                lhs, rhs, Expr.text_or_command(op_text));
+        }
+        const rhs = this.parse_term();  // NOTE: not an error if null
+        if(rhs) {
+            // factor factor (implicit multiplication)
+            // Special case: if both factors are literal numbers, an explicit \cdot will
+            // be inserted between them to indicate the multiplication.  The same applies
+            // if the right hand side is already such a \cdot form.
+            if(lhs.expr_type() === 'text' && lhs.looks_like_number() &&
+               ((rhs.expr_type() === 'text' && rhs.looks_like_number()) ||
+                (rhs.expr_type() === 'infix' &&
+                 rhs.operand_exprs.every(expr => expr.expr_type() === 'text' && expr.looks_like_number()) &&
+                 rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))))
+                return InfixExpr.combine_infix(lhs, rhs, Expr.text_or_command("\\cdot"));
+            else
+                return Expr.combine_pair(lhs, rhs);
+        }
+        else
+            return lhs;  // factor by itself
+    }
+
+    parse_factor() {
+        if(this.peek_for('number') || this.peek_for('symbol'))
+            return new TextExpr(this.next_token().text);
+        if(this.peek_for('open_delimiter')) {
+            const open_delim_type = this.next_token().text;
+            const expr = this.parse_expr() || this.parse_error();
+            if(!this.peek_for('close_delimiter'))
+                return this.parse_error();
+            const close_delim_type = this.next_token().text;
+            if(this.matching_closing_delimiter(open_delim_type) !== close_delim_type)
+                return this.parse_error();  // mismatched delimiters
+            let [left, right] = [open_delim_type, close_delim_type];
+            if(open_delim_type === '{')
+                [left, right] = ["\\{", "\\}"];  // latex-compatible form
+            return new DelimiterExpr(left, right, expr);
+        }
+        return null;
+    }
+
+    matching_closing_delimiter(open_delim) {
+        if(open_delim === '(') return ')';
+        else if(open_delim === '[') return ']';
+        else if(open_delim === '{') return '}';
+        else return null;
+    }
+
+    peek_for(token_type) {
+        if(this.at_end())
+            return null;
+        if(this.tokens[this.token_index].type === token_type)
+            return this.tokens[this.token_index];
+        else return null;
+    }
+    
+    next_token() {
+        if(this.at_end())
+            return this.parse_error();
+        else {
+            this.token_index++;
+            return this.tokens[this.token_index-1];
+        }
+    }
+
+    at_end() {
+        return this.token_index >= this.tokens.length;
+    }
+
+    parse_error() { throw new Error('parse_error'); }
 }
 
 
@@ -867,29 +1066,29 @@ class Expr {
         switch(json.expr_type) {
         case 'command':
             return new CommandExpr(
-		json.command_name,
-		this._list(json.operand_exprs),
-		json.options);
+                json.command_name,
+                this._list(json.operand_exprs),
+                json.options);
         case 'infix':
             return new InfixExpr(
                 this._list(json.operand_exprs),
-		this._list(json.operator_exprs),
-		json.split_at_index,
-		json.linebreaks_at || []);
+                this._list(json.operator_exprs),
+                json.split_at_index,
+                json.linebreaks_at || []);
         case 'placeholder':
             return new PlaceholderExpr();
         case 'text':
             return new TextExpr(json.text);
         case 'sequence':
             return new SequenceExpr(
-		this._list(json.exprs),
-		!!json.fused);
+                this._list(json.exprs),
+                !!json.fused);
         case 'delimiter':
             return new DelimiterExpr(
                 json.left_type,
-		json.right_type,
-		this._expr(json.inner_expr),
-		json.fixed_size);
+                json.right_type,
+                this._expr(json.inner_expr),
+                json.fixed_size);
         case 'subscriptsuperscript':
             return new SubscriptSuperscriptExpr(
                 this._expr(json.base_expr),
@@ -913,60 +1112,59 @@ class Expr {
     static _list(json_array) { return json_array.map(expr_json => Expr.from_json(expr_json)); }
     static _list2d(json_array) { return json_array.map(row_exprs => Expr._list(row_exprs)); }
     
-    // Concatenate two Exprs into one.  This will merge Sequence and Text
-    // nodes when possible, instead of creating nested SequenceExprs.
+    // Concatenate two Exprs into one.  This will merge Exprs into adjacent SequenceExprs
+    // when possible, instead of creating nested SequenceExprs.
+    // The 'fused' flag of SequenceExprs can be used to prohibit combining this way.
+    // InfixExprs are always parenthesized before being combined here.
     static combine_pair(left, right) {
         const left_type = left.expr_type(), right_type = right.expr_type();
         if(left_type === 'sequence' && !left.fused &&
-	   right_type === 'sequence' && !right.fused)
+           right_type === 'sequence' && !right.fused) {
+            // Sequence + Sequence
             return new SequenceExpr(left.exprs.concat(right.exprs));
-        else if(left_type === 'text' && right_type === 'text')
-            return new TextExpr(left.text + right.text);
+        }
         else if(left_type === 'sequence' && !left.fused &&
-		right_type === 'text' &&
-		left.exprs[left.exprs.length-1].expr_type() === 'text') {
-            // Left sequence ends in a Text; merge it with the new Text.
-            return new SequenceExpr(
-                left.exprs.slice(0, -1).concat([
-                    new TextExpr(left.exprs[left.exprs.length-1].text + right.text)
-                ]));
-        }
-        else if(left_type === 'text' &&
-		right_type === 'sequence' && !right.fused &&
-                right.exprs[0].expr_type() === 'text') {
-            // Right sequence starts with a Text; merge it with the new Text.
-            return new SequenceExpr(
-                [new TextExpr(left.text + right.exprs[0].text)
-                ].concat(right.exprs.slice(1)));
-        }
-        else if(left_type === 'sequence' && !left.fused) {
-            // Sequence + anything => longer Sequence
+                right_type !== 'sequence') {
+            // Sequence + NonSequence
             return new SequenceExpr(left.exprs.concat([right]));
         }
-        else if(right_type === 'sequence' && !right.fused) {
-            // Anything + Sequence => longer Sequence
+        else if(right_type === 'sequence' && !right.fused &&
+                left_type !== 'sequence') {
+            // NonSequence + Sequence
             return new SequenceExpr([left].concat(right.exprs));
         }
-        else if(left_type === 'command' && right_type === 'command')
+        else if(left_type === 'command' && right_type === 'command') {
+            // Some types of Command can be combined in special ways
             return Expr.combine_command_pair(left, right);
-        else
-            return new SequenceExpr([left, right]);
+        }
+        else if(left_type === 'text' && left.looks_like_number() &&
+                right_type === 'text' && right.looks_like_number()) {
+            // Special case: combine 123 456 => 123456 if both sides are numeric
+            return new TextExpr(left.text + right.text);
+        }
+        else {
+            // NonSequence + NonSequence => Sequence
+            // Always parenthesize InfixExprs before combining.
+            let left_expr = (left_type === 'infix' ? DelimiterExpr.parenthesize(left) : left);
+            let right_expr = (right_type === 'infix' ? DelimiterExpr.parenthesize(right) : right);
+            return new SequenceExpr([left_expr, right_expr]);
+        }
     }
 
     // Combine two CommandExprs with some special-casing for some particular command pairs.
     static combine_command_pair(left, right) {
         const left_name = left.command_name, right_name = right.command_name;
 
-	// Try combining \boldsymbol{X...} + \boldsymbol{Y...} -> \boldsymbol{X...Y...}
-	// Combining in this way fixes (or at least improves) some edge-case spacing problems with KaTeX.
-	// Compare: \boldsymbol{W}\boldsymbol{A} vs. \boldsymbol{WA}
-	if(left_name === 'boldsymbol' && right_name === 'boldsymbol' &&
-	   left.operand_count() === 1 && right.operand_count() === 1)
-	    return new SequenceExpr(
-		[left.operand_exprs[0], right.operand_exprs[0]]
-	    ).as_bold();
+        // Try combining \boldsymbol{X...} + \boldsymbol{Y...} -> \boldsymbol{X...Y...}
+        // Combining in this way fixes (or at least improves) some edge-case spacing problems with KaTeX.
+        // Compare: \boldsymbol{W}\boldsymbol{A} vs. \boldsymbol{WA}
+        if(left_name === 'boldsymbol' && right_name === 'boldsymbol' &&
+           left.operand_count() === 1 && right.operand_count() === 1)
+            return new SequenceExpr(
+                [left.operand_exprs[0], right.operand_exprs[0]]
+            ).as_bold();
 
-	// Try combining adjacent integral symbols into multiple-integral commands.
+        // Try combining adjacent integral symbols into multiple-integral commands.
         let new_command_name = null;
         if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
         if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
@@ -977,7 +1175,7 @@ class Expr {
         if(new_command_name)
             return new CommandExpr(new_command_name);
 
-	// Everything else just becomes a SequenceExpr.
+        // Everything else just becomes a SequenceExpr.
         return new SequenceExpr([left, right]);
     }
 
@@ -1007,7 +1205,7 @@ class Expr {
 
     to_latex(selected_expr_path) {
         let emitter = new LatexEmitter(this, selected_expr_path);
-	emitter.expr(this, null);
+        emitter.expr(this, null);
         return emitter.finished_string();
     }
 
@@ -1039,6 +1237,11 @@ class Expr {
     }
 
     to_text() { return "$$\n" + this.to_latex() + "\n$$"; }
+
+    // If this expression can be 'unparsed' for editing in the minieditor, return
+    // the editable string.  Return null if not possible.
+    // This is the 'inverse' of TextExprParser.parse_string().
+    as_editable_string() { return null; }
 
     // Invoke fn once for each subexpression in this expression tree (including 'this').
     // The visiting is performed depth-first, left-to-right, so should correspond visually
@@ -1100,14 +1303,14 @@ class Expr {
         const value = this.evaluate();
         if(value === null) return null;
         if(rationalize) {
-	    const result = this.rationalize_to_expr(value);
-	    if(result)
-		return [result, true];
+            const result = this.rationalize_to_expr(value);
+            if(result)
+                return [result, true];
         }
         // Return an approximate floating-point value instead.
         const decimal_part = value % 1.0;
         return [
-	    this._float_to_expr(value),
+            this._float_to_expr(value),
             Math.abs(decimal_part) <= 0.000001];
     }
 
@@ -1120,19 +1323,19 @@ class Expr {
         const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
         const pi_expr = new CommandExpr('pi', []);
         const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
-	// Check for very small fractional part; could be either an integer,
-	// or a float with large magnitude and thus decayed fractional precision.
-	if(Math.abs(value % 1.0) < 0.000001)
-	    return this._int_to_expr(value);
-	// Try different variations on \pi
-	// NOTE: pi is a little weird because a close rational approximation 
-	// (335/113) both has small denominator and is very close to the actual
-	// value of pi.  So the epsilon value in _try_rationalize_with_factor()
-	// needs to be chosen carefully.
+        // Check for very small fractional part; could be either an integer,
+        // or a float with large magnitude and thus decayed fractional precision.
+        if(Math.abs(value % 1.0) < 0.000001)
+            return this._int_to_expr(value);
+        // Try different variations on \pi
+        // NOTE: pi is a little weird because a close rational approximation 
+        // (335/113) both has small denominator and is very close to the actual
+        // value of pi.  So the epsilon value in _try_rationalize_with_factor()
+        // needs to be chosen carefully.
         result = this._try_rationalize_with_factor(  // pi^2
             value, Math.PI*Math.PI,
             new SubscriptSuperscriptExpr(
-		pi_expr, null, make_text(2)), null);
+                pi_expr, null, make_text(2)), null);
         result ||= this._try_rationalize_with_factor(  // pi
             value, Math.PI, pi_expr, null);
         result ||= this._try_rationalize_with_factor(  // 1/pi
@@ -1146,17 +1349,17 @@ class Expr {
         result ||= this._try_rationalize_with_factor(  // 1 / \sqrt{2pi}
             value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
         // Try sqrt(n) in the numerator for small square-free n.
-	// No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
+        // No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
         const small_squarefree = [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19];
         for(let i = 0; i < small_squarefree.length; i++)
             result ||= this._try_rationalize_with_factor(
                 value, Math.sqrt(small_squarefree[i]),
-		make_sqrt(make_text(small_squarefree[i])), null);
-	// TODO: check factors of 1+sqrt(5), 1-sqrt(5) (golden ratio-ish)
-	// NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
+                make_sqrt(make_text(small_squarefree[i])), null);
+        // TODO: check factors of 1+sqrt(5), 1-sqrt(5) (golden ratio-ish)
+        // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
         // Finally, rationalize the number itself with no factors
         result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
-	return result;
+        return result;
     }
 
     // Helper for rationalize_to_expr().
@@ -1180,7 +1383,7 @@ class Expr {
             const final_denom = denom;
             let final_expr = null;
             if(final_denom === 1) {
-		// Integer multiple of the factor.
+                // Integer multiple of the factor.
                 const base_expr = this._int_to_expr(final_numer*sign);
                 if(numer_factor_expr) {
                     if(final_numer === 1)
@@ -1194,7 +1397,7 @@ class Expr {
                     final_expr = base_expr;
             }
             else {
-		// Rational (but not integer) multiple of the factor.
+                // Rational (but not integer) multiple of the factor.
                 let numer_expr = this._int_to_expr(final_numer);
                 if(numer_factor_expr) {
                     if(final_numer === 1)
@@ -1247,26 +1450,26 @@ class Expr {
     // Mostly we want to avoid things like '3.14e28'.
 
     _int_to_expr(x) {
-	if(isNaN(x))
-	    return new CommandExpr('mathrm', [new TextExpr('NaN')]);
-	else if(Math.abs(x) > 1e10)
-	    return this._too_large_to_expr(x);
-	else
-	    return new TextExpr(Math.floor(x).toString());
+        if(isNaN(x))
+            return new CommandExpr('mathrm', [new TextExpr('NaN')]);
+        else if(Math.abs(x) > 1e10)
+            return this._too_large_to_expr(x);
+        else
+            return new TextExpr(Math.floor(x).toString());
     }
 
     _float_to_expr(x) {
-	if(isNaN(x))
-	    return new CommandExpr('mathrm', [new TextExpr('NaN')]);
-	else if(Math.abs(x) > 1e10)
-	    return this._too_large_to_expr(x);
-	else
-	    return new TextExpr(x.toFixed(6));
+        if(isNaN(x))
+            return new CommandExpr('mathrm', [new TextExpr('NaN')]);
+        else if(Math.abs(x) > 1e10)
+            return this._too_large_to_expr(x);
+        else
+            return new TextExpr(x.toFixed(6));
     }
 
     _too_large_to_expr(x) {
-	const text = x < 0 ? '[too large (negative)]' : '[too large]';
-	return new CommandExpr('textbf', [new TextExpr(text)]);
+        const text = x < 0 ? '[too large (negative)]' : '[too large]';
+        return new CommandExpr('textbf', [new TextExpr(text)]);
     }
 
     // NOTE: CommandExpr overrides this
@@ -1277,9 +1480,9 @@ class Expr {
 // Represents a "raw" LaTeX command such as \sqrt plus optional operand expressions.
 class CommandExpr extends Expr {
     static frac(numer_expr, denom_expr) {
-	return new CommandExpr(
-	    'frac',
-	    [numer_expr, denom_expr]);
+        return new CommandExpr(
+            'frac',
+            [numer_expr, denom_expr]);
     }
     
     // NOTES:
@@ -1323,18 +1526,18 @@ class CommandExpr extends Expr {
 
     // See comment in Expr.has_subexpressions().
     has_subexpressions() {
-	if(this.is_font_command())
-	    return this.operand_exprs[0].has_subexpressions();
-	else
-	    return super.has_subexpressions();
+        if(this.is_font_command())
+            return this.operand_exprs[0].has_subexpressions();
+        else
+            return super.has_subexpressions();
     }
 
     replace_subexpression(index, new_expr) {
-	return new CommandExpr(
-	    this.command_name,
-	    this.operand_exprs.map(
-		(operand_expr, op_index) => op_index === index ? new_expr : operand_expr),
-	    this.options);
+        return new CommandExpr(
+            this.command_name,
+            this.operand_exprs.map(
+                (operand_expr, op_index) => op_index === index ? new_expr : operand_expr),
+            this.options);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -1342,7 +1545,7 @@ class CommandExpr extends Expr {
         return new CommandExpr(
             this.command_name,
             this.operand_exprs.map(
-		operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
+                operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
             this.options);
     }
 
@@ -1356,35 +1559,35 @@ class CommandExpr extends Expr {
             const x = this.operand_exprs[0].evaluate();
             if(x === null) return null;
             if(c === 'sin') return Math.sin(x);
-	    if(c === 'cos') return Math.cos(x);
-	    if(c === 'tan') return Math.tan(x);
-	    if(c === 'sinh') return Math.sinh(x);
-	    if(c === 'cosh') return Math.cosh(x);
-	    if(c === 'tanh') return Math.tanh(x);
+            if(c === 'cos') return Math.cos(x);
+            if(c === 'tan') return Math.tan(x);
+            if(c === 'sinh') return Math.sinh(x);
+            if(c === 'cosh') return Math.cosh(x);
+            if(c === 'tanh') return Math.tanh(x);
             if(c === 'sqrt') {
-		if(this.options === '3')
-		    return Math.cbrt(x);
-		else
-		    return Math.sqrt(x);
-	    }
+                if(this.options === '3')
+                    return Math.cbrt(x);
+                else
+                    return Math.sqrt(x);
+            }
 
-	    // Hacky inverse and squared trig functions.  See Actions.js do_named_function().
-	    if(c === 'sin^{-1}') return Math.asin(x);
-	    if(c === 'cos^{-1}') return Math.acos(x);
-	    if(c === 'tan^{-1}') return Math.atan(x);
-	    if(c === 'sinh^{-1}') return Math.asinh(x);
-	    if(c === 'cosh^{-1}') return Math.acosh(x);
-	    if(c === 'tanh^{-1}') return Math.atanh(x);
-	    if(c === 'sin^2') return Math.pow(Math.sin(x), 2);
-	    if(c === 'cos^2') return Math.pow(Math.cos(x), 2);
-	    if(c === 'tan^2') return Math.pow(Math.tan(x), 2);
-	    if(c === 'sinh^2') return Math.pow(Math.sinh(x), 2);
-	    if(c === 'cosh^2') return Math.pow(Math.cosh(x), 2);
-	    if(c === 'tanh^2') return Math.pow(Math.tanh(x), 2);
+            // Hacky inverse and squared trig functions.  See Actions.js do_named_function().
+            if(c === 'sin^{-1}') return Math.asin(x);
+            if(c === 'cos^{-1}') return Math.acos(x);
+            if(c === 'tan^{-1}') return Math.atan(x);
+            if(c === 'sinh^{-1}') return Math.asinh(x);
+            if(c === 'cosh^{-1}') return Math.acosh(x);
+            if(c === 'tanh^{-1}') return Math.atanh(x);
+            if(c === 'sin^2') return Math.pow(Math.sin(x), 2);
+            if(c === 'cos^2') return Math.pow(Math.cos(x), 2);
+            if(c === 'tan^2') return Math.pow(Math.tan(x), 2);
+            if(c === 'sinh^2') return Math.pow(Math.sinh(x), 2);
+            if(c === 'cosh^2') return Math.pow(Math.cosh(x), 2);
+            if(c === 'tanh^2') return Math.pow(Math.tanh(x), 2);
 
-	    if(c === 'log_2' || c === 'lg') return Math.log2(x);
-	    if(c === 'ln' || c === 'log') return Math.log(x);
-	    if(c === 'exp') return Math.exp(x);
+            if(c === 'log_2' || c === 'lg') return Math.log2(x);
+            if(c === 'ln' || c === 'log') return Math.log(x);
+            if(c === 'exp') return Math.exp(x);
         }
         if(this.operand_count() === 2) {
             // Binary functions
@@ -1395,6 +1598,8 @@ class CommandExpr extends Expr {
         }
         return null;
     }
+
+    as_editable_string() { return null; }
 
     // Wrap this expression in a \boldsymbol{...} command if it's not already.
     // LaTeX has different ways of expressing 'bold' so this is not quite trivial.
@@ -1425,12 +1630,12 @@ class CommandExpr extends Expr {
     }
 
     is_font_command() {
-	if(this.operand_count() !== 1)
-	    return false;
-	const c = this.command_name;
-	return c === 'boldsymbol' || c === 'bold' || c === 'pmb' ||
-	    c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
-	    c === 'mathfrak' || c === 'mathscr' || c === 'mathcal' ||
+        if(this.operand_count() !== 1)
+            return false;
+        const c = this.command_name;
+        return c === 'boldsymbol' || c === 'bold' || c === 'pmb' ||
+            c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
+            c === 'mathfrak' || c === 'mathscr' || c === 'mathcal' ||
             c === 'text' || c === 'textbf' || c === 'textit';
     }
 }
@@ -1456,46 +1661,46 @@ class InfixExpr extends Expr {
     // If one or both of the expressions are already InfixExprs, they are
     // flattened into a larger InfixExpr.
     static combine_infix(left_expr, right_expr, op_expr) {
-	let new_operand_exprs = [];
-	let new_operator_exprs = [];
-	let new_linebreaks_at = [];
-	let linebreaks_midpoint = null;
-	if(left_expr.expr_type() === 'infix') {
-	    new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
-	    new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
-	    new_linebreaks_at = new_linebreaks_at.concat(left_expr.linebreaks_at);
-	    linebreaks_midpoint = 2*left_expr.operand_exprs.length;
-	}
-	else {
-	    new_operand_exprs.push(left_expr);
-	    linebreaks_midpoint = 2;
-	}
+        let new_operand_exprs = [];
+        let new_operator_exprs = [];
+        let new_linebreaks_at = [];
+        let linebreaks_midpoint = null;
+        if(left_expr.expr_type() === 'infix') {
+            new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
+            new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
+            new_linebreaks_at = new_linebreaks_at.concat(left_expr.linebreaks_at);
+            linebreaks_midpoint = 2*left_expr.operand_exprs.length;
+        }
+        else {
+            new_operand_exprs.push(left_expr);
+            linebreaks_midpoint = 2;
+        }
         // Determine index of the new op_expr within the new InfixExpr;
         // this becomes the split_at_index determining where things like
-	// do_infix_linebreak() apply at.
+        // do_infix_linebreak() apply at.
         const split_at_index = new_operator_exprs.length;
-	new_operator_exprs.push(op_expr);
-	if(right_expr.expr_type() === 'infix') {
-	    new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
-	    new_operator_exprs = new_operator_exprs.concat(right_expr.operator_exprs);
-	    new_linebreaks_at = new_linebreaks_at.concat(
-		right_expr.linebreaks_at.map(index => linebreaks_midpoint+index));
-	}
-	else
-	    new_operand_exprs.push(right_expr);
-	return new InfixExpr(
-	    new_operand_exprs,
-	    new_operator_exprs,
-	    split_at_index,
-	    new_linebreaks_at);
+        new_operator_exprs.push(op_expr);
+        if(right_expr.expr_type() === 'infix') {
+            new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
+            new_operator_exprs = new_operator_exprs.concat(right_expr.operator_exprs);
+            new_linebreaks_at = new_linebreaks_at.concat(
+                right_expr.linebreaks_at.map(index => linebreaks_midpoint+index));
+        }
+        else
+            new_operand_exprs.push(right_expr);
+        return new InfixExpr(
+            new_operand_exprs,
+            new_operator_exprs,
+            split_at_index,
+            new_linebreaks_at);
     }
     
     constructor(operand_exprs, operator_exprs, split_at_index, linebreaks_at) {
-	super();
-	this.operand_exprs = operand_exprs;
-	this.operator_exprs = operator_exprs;
-	this.split_at_index = split_at_index || 0;
-	this.linebreaks_at = linebreaks_at || [];
+        super();
+        this.operand_exprs = operand_exprs;
+        this.operator_exprs = operator_exprs;
+        this.split_at_index = split_at_index || 0;
+        this.linebreaks_at = linebreaks_at || [];
     }
 
     expr_type() { return 'infix'; }
@@ -1503,10 +1708,10 @@ class InfixExpr extends Expr {
     json_keys() { return ['operand_exprs', 'operator_exprs', 'split_at_index']; }
 
     to_json() {
-	let json = super.to_json();
-	if(this.linebreaks_at.length > 0)
-	    json.linebreaks_at = this.linebreaks_at;
-	return json;
+        let json = super.to_json();
+        if(this.linebreaks_at.length > 0)
+            json.linebreaks_at = this.linebreaks_at;
+        return json;
     }
 
     // If the given infix operator is a simple command like '+' or '\cap',
@@ -1514,31 +1719,47 @@ class InfixExpr extends Expr {
     // If it's anything more complex, return null.
     // If 'op_expr' is omitted, check only the operator at the split_at point.
     operator_text(op_expr) {
-	if(op_expr) {
+        if(op_expr) {
             if(op_expr.expr_type() === 'command' && op_expr.operand_count() === 0)
-		return op_expr.command_name;
+                return op_expr.command_name;
             else if(op_expr.expr_type() === 'text')
-		return op_expr.text;
+                return op_expr.text;
             else
-		return null;
-	}
-	else
+                return null;
+        }
+        else
             return this.operator_text(this.operator_exprs[this.split_at_index]);
     }
 
+    operator_text_at(index) {
+        return this.operator_text(this.operator_exprs[index]);
+    }
+
+    // 'Editable' version of the operator (for use in math entry mode).
+    editable_operator_text_at(index) {
+        const s = this.operator_text_at(index);
+        if(s === '+' || s === '-' || s === '/')
+            return s;
+        else if(s === 'cdot')
+            return '*';
+        else
+            return null;
+    }
+   
+
     // e.g. operator_text==='/' would match 'x/y'.
     is_binary_operator_with(operator_text) {
-	return this.operator_exprs.length === 1 &&
-	    this.operator_text(this.operator_exprs[0]) === operator_text;
+        return this.operator_exprs.length === 1 &&
+            this.operator_text(this.operator_exprs[0]) === operator_text;
     }
 
     // Check if this is a low-precedence infix expression like x+y
     // This is mostly for convenience so it doesn't need to be that precise.
     needs_autoparenthesization() {
-	return this.operator_exprs.every(op_expr => {
-	    const op = this.operator_text(op_expr);
+        return this.operator_exprs.every(op_expr => {
+            const op = this.operator_text(op_expr);
             return op && (op === '+' || op === '-');
-	});
+        });
     }
 
     // 'inside_delimiters' is set to true when this InfixExpr is rendered
@@ -1546,112 +1767,112 @@ class InfixExpr extends Expr {
     //   This gives us a chance to convert things like \parallel into
     //   their flexible \middle counterparts.
     emit_latex(emitter, inside_delimiters) {
-	const is_top_level = (this === emitter.base_expr);
-	for(let i = 0; i < this.operator_exprs.length; i++) {
-	    emitter.expr(this.operand_exprs[i], 2*i);
-	    if(is_top_level && this.linebreaks_at.includes(2*i)) {
-		// Break before ith operator.
-		emitter.command("\\");  // outputs two backslashes (LaTeX newline command)
-		emitter.command("qquad");
-	    }
-	    let emitted_expr = this.operator_exprs[i];
-	    if(inside_delimiters) {
-		// Try converting to flex delimiter.
-		const converted_expr = this._convert_to_flex_delimiter(emitted_expr);
-		if(converted_expr)
-		    emitted_expr = converted_expr;
-	    }
-	    emitter.expr(emitted_expr, 2*i+1);
-	    if(is_top_level && this.linebreaks_at.includes(2*i+1)) {
-		// Break after ith operator.
-		emitter.command("\\");
-		emitter.command("qquad");
-	    }
-	}
-	emitter.expr(
-	    this.operand_exprs[this.operand_exprs.length-1],
-	    2*this.operator_exprs.length);
+        const is_top_level = (this === emitter.base_expr);
+        for(let i = 0; i < this.operator_exprs.length; i++) {
+            emitter.expr(this.operand_exprs[i], 2*i);
+            if(is_top_level && this.linebreaks_at.includes(2*i)) {
+                // Break before ith operator.
+                emitter.command("\\");  // outputs two backslashes (LaTeX newline command)
+                emitter.command("qquad");
+            }
+            let emitted_expr = this.operator_exprs[i];
+            if(inside_delimiters) {
+                // Try converting to flex delimiter.
+                const converted_expr = this._convert_to_flex_delimiter(emitted_expr);
+                if(converted_expr)
+                    emitted_expr = converted_expr;
+            }
+            emitter.expr(emitted_expr, 2*i+1);
+            if(is_top_level && this.linebreaks_at.includes(2*i+1)) {
+                // Break after ith operator.
+                emitter.command("\\");
+                emitter.command("qquad");
+            }
+        }
+        emitter.expr(
+            this.operand_exprs[this.operand_exprs.length-1],
+            2*this.operator_exprs.length);
     }
 
     _convert_to_flex_delimiter(expr) {
-	let new_text = null;
-	if(expr.expr_type() === 'text') {
-	    if(expr.text === '/')
-		new_text = "\\middle/";
-	}
-	else if(expr.expr_type() === 'command' && expr.operand_count() === 0) {
-	    const command = expr.command_name;
-	    if(command === ",\\vert\\," || command === 'vert')
-		new_text = "\\,\\middle\\vert\\,";
-	    else if(command === 'parallel')
-		new_text ="\\,\\middle\\Vert\\,";
-	    else if(/*command === 'setminus' ||*/ command === 'backslash')
-		new_text = "\\middle\\backslash ";
-	}
-	if(new_text)
-	    return new TextExpr(new_text);
-	else
-	    return null;
+        let new_text = null;
+        if(expr.expr_type() === 'text') {
+            if(expr.text === '/')
+                new_text = "\\middle/";
+        }
+        else if(expr.expr_type() === 'command' && expr.operand_count() === 0) {
+            const command = expr.command_name;
+            if(command === ",\\vert\\," || command === 'vert')
+                new_text = "\\,\\middle\\vert\\,";
+            else if(command === 'parallel')
+                new_text ="\\,\\middle\\Vert\\,";
+            else if(/*command === 'setminus' ||*/ command === 'backslash')
+                new_text = "\\middle\\backslash ";
+        }
+        if(new_text)
+            return new TextExpr(new_text);
+        else
+            return null;
     }
 
     visit(fn) {
-	fn(this);
-	for(let i = 0; i < this.operator_exprs.length; i++) {
-	    this.operand_exprs[i].visit(fn);
-	    this.operator_exprs[i].visit(fn);
-	}
-	this.operand_exprs[this.operand_exprs.length-1].visit(fn);
+        fn(this);
+        for(let i = 0; i < this.operator_exprs.length; i++) {
+            this.operand_exprs[i].visit(fn);
+            this.operator_exprs[i].visit(fn);
+        }
+        this.operand_exprs[this.operand_exprs.length-1].visit(fn);
     }
 
     subexpressions() {
-	// Interleave operators and operands.
-	let exprs = [];
-	for(let i = 0; i < this.operator_exprs.length; i++) {
-	    exprs.push(this.operand_exprs[i]);
-	    exprs.push(this.operator_exprs[i]);
-	}
-	exprs.push(this.operand_exprs[this.operand_exprs.length-1]);
-	return exprs;
+        // Interleave operators and operands.
+        let exprs = [];
+        for(let i = 0; i < this.operator_exprs.length; i++) {
+            exprs.push(this.operand_exprs[i]);
+            exprs.push(this.operator_exprs[i]);
+        }
+        exprs.push(this.operand_exprs[this.operand_exprs.length-1]);
+        return exprs;
     }
 
     // Even indices reference operands; odd indices reference operators.
     replace_subexpression(index, new_expr) {
-	return new InfixExpr(
-	    this.operand_exprs.map((operand_expr, expr_index) =>
-		expr_index*2 === index ? new_expr : operand_expr),
-	    this.operator_exprs.map((operator_expr, expr_index) =>
-		expr_index*2 + 1 === index ? new_expr : operator_expr),
-	    this.split_at_index,
-	    this.linebreaks_at);
+        return new InfixExpr(
+            this.operand_exprs.map((operand_expr, expr_index) =>
+                expr_index*2 === index ? new_expr : operand_expr),
+            this.operator_exprs.map((operator_expr, expr_index) =>
+                expr_index*2 + 1 === index ? new_expr : operator_expr),
+            this.split_at_index,
+            this.linebreaks_at);
     }
 
     substitute_expr(old_expr, new_expr) {
-	if(this === old_expr) return new_expr;
-	return new InfixExpr(
-	    this.operand_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
-	    this.operator_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
-	    this.split_at_index,
-	    this.linebreaks_at);
+        if(this === old_expr) return new_expr;
+        return new InfixExpr(
+            this.operand_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
+            this.operator_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
+            this.split_at_index,
+            this.linebreaks_at);
     }
 
     has_linebreak_at(index) {
-	return this.linebreaks_at.includes(index);
+        return this.linebreaks_at.includes(index);
     }
 
     without_linebreak_at(old_index) {
-	return new InfixExpr(
-	    this.operand_exprs,
-	    this.operator_exprs,
-	    this.split_at_index,
-	    this.linebreaks_at.filter(index => index !== old_index));
+        return new InfixExpr(
+            this.operand_exprs,
+            this.operator_exprs,
+            this.split_at_index,
+            this.linebreaks_at.filter(index => index !== old_index));
     }
 
     with_linebreak_at(new_index) {
-	return new InfixExpr(
-	    this.operand_exprs,
-	    this.operator_exprs,
-	    this.split_at_index,
-	    this.linebreaks_at.concat([new_index]));
+        return new InfixExpr(
+            this.operand_exprs,
+            this.operator_exprs,
+            this.split_at_index,
+            this.linebreaks_at.concat([new_index]));
     }
 
     // Swap everything to the left of operator_index with everything to the right of operator_index.
@@ -1663,8 +1884,8 @@ class InfixExpr extends Expr {
               this.operator_exprs.slice(operator_index+1).concat(
                   [this.operator_exprs[operator_index]]).concat(
                       this.operator_exprs.slice(0, operator_index));
-	// NOTE: linebreaks_at is discarded here, otherwise the result
-	// isn't very intuitive.
+        // NOTE: linebreaks_at is discarded here, otherwise the result
+        // isn't very intuitive.
         return new InfixExpr(
             new_operand_exprs,
             new_operator_exprs,
@@ -1698,6 +1919,23 @@ class InfixExpr extends Expr {
         }
     }
 
+    as_editable_string() {
+        const operator_strings = this.operator_exprs.map(
+            (expr, index) => this.editable_operator_text_at(index));
+        const operand_strings = this.operand_exprs.map(
+            expr => expr.as_editable_string());
+        if(operator_strings.some(s => s === null) ||
+           operand_strings.some(s => s === null))
+            return null;
+        // Interleave the operand and operator pieces.
+        let pieces = [operand_strings[0]];
+        for(let i = 0; i < operator_strings.length; i++) {
+            pieces.push(operator_strings[i]);
+            pieces.push(operand_strings[i+1]);
+        }
+        return pieces.join('');   
+    }
+
     evaluate() {
         let value = this.operand_exprs[0].evaluate();
         if(value === null) return null;
@@ -1716,6 +1954,9 @@ class InfixExpr extends Expr {
         switch(op) {
         case '+': return left+right;
         case '-': return left-right;
+        case 'cdot': return left*right;
+        case 'times': return left*right;
+        case '/': return left/right;
         default: return null;
         }
     }
@@ -1749,6 +1990,20 @@ class TextExpr extends Expr {
 
     emit_latex(emitter) { emitter.text(this.text, null); }
 
+    looks_like_number() {
+        // cf. TextExprParser.tokenize()
+        return /^-?\d*\.?\d+$/.test(this.text);
+    }
+
+    as_editable_string() {
+        if(this.looks_like_number() ||
+           /^\w+$/.test(this.text) ||
+           this.text === '!')
+            return this.text;
+        else
+            return null;
+    }
+
     // TODO: check for cases like '3/4' (that's about it I think)
     evaluate() {
         const s = this.text;
@@ -1773,16 +2028,16 @@ class SequenceExpr extends Expr {
     constructor(exprs, fused) {
         super();
         this.exprs = exprs;
-	this.fused = !!fused;
+        this.fused = !!fused;
     }
 
     expr_type() { return 'sequence'; }
     json_keys() { return ['exprs']; }
 
     to_json() {
-	let json = super.to_json();
-	if(this.fused) json.fused = true;
-	return json;
+        let json = super.to_json();
+        if(this.fused) json.fused = true;
+        return json;
     }
 
     emit_latex(emitter) {
@@ -1809,15 +2064,27 @@ class SequenceExpr extends Expr {
     subexpressions() { return this.exprs; }
 
     replace_subexpression(index, new_expr) {
-	return new SequenceExpr(
-	    this.exprs.map(
-		(subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
+        return new SequenceExpr(
+            this.exprs.map(
+                (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
     }
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
         return new SequenceExpr(
             this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
+    }
+
+    as_editable_string() {
+        let pieces = this.exprs.map(expr => expr.as_editable_string());
+        // Special case: ['-', Expr]
+        if(pieces.length === 2 &&
+           this.exprs[0].expr_type() === 'text' && this.exprs[0].text === '-')
+            pieces[0] = '-';  // just hack it into the list
+        if(pieces.every(s => s !== null))
+            return pieces.join('');
+        else
+            return null;
     }
 
     evaluate() {
@@ -1830,15 +2097,30 @@ class SequenceExpr extends Expr {
             if(factor !== null)
                 return factor*(new SequenceExpr(this.exprs.slice(1), this.fused).evaluate());
         }
-        // Consider anything else as implicit multiplications.
+        // Consider anything else as implicit multiplications,
+        // with special-casing for '!' factorial notation.
         let value = this.exprs[0].evaluate();
         if(value === null) return null;
         for(let i = 1; i < this.exprs.length; i++) {
-            const rhs = this.exprs[i].evaluate();
-            if(rhs === null) return null;
-            value *= rhs;
+            // Check for factorial
+            if(this.exprs[i].expr_type() === 'text' && this.exprs[i].text === '!')
+                value = this._factorial(value);
+            else {
+                const rhs = this.exprs[i].evaluate();
+                if(rhs === null) return null;
+                value *= rhs;
+            }
             if(isNaN(value)) return null;
         }
+        return value;
+    }
+
+    _factorial(n) {
+        if(n <= 1) return 1;
+        if(n > 20) return NaN;
+        let value = 1;
+        for(let i = 2; i <= n; i++)
+            value *= i;
         return value;
     }
 }
@@ -1850,11 +2132,11 @@ class SequenceExpr extends Expr {
 // infix operators to their flex-size equivalent if they have one.
 class DelimiterExpr extends Expr {
     static parenthesize(expr) {
-	// Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
-	// just replace the blanks with parentheses instead of re-wrapping expr.
-	if(expr.expr_type() === 'delimiter' &&
-	   expr.left_type === '.' && expr.right_type === '.')
-	    return new DelimiterExpr('(', ')', expr.inner_expr);
+        // Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
+        // just replace the blanks with parentheses instead of re-wrapping expr.
+        if(expr.expr_type() === 'delimiter' &&
+           expr.left_type === '.' && expr.right_type === '.')
+            return new DelimiterExpr('(', ')', expr.inner_expr);
         return new DelimiterExpr('(', ')', expr);
     }
 
@@ -1880,13 +2162,13 @@ class DelimiterExpr extends Expr {
             (expr.expr_type() === 'infix') ||
             
             // \left. x/y \right.
-	    // (x/y is an InfixExpr); this is a "flex size fraction".
-	    // TODO: add is_flex_inline_fraction() or something; this
-	    // logic is duplicated elsewhere.
+            // (x/y is an InfixExpr); this is a "flex size fraction".
+            // TODO: add is_flex_inline_fraction() or something; this
+            // logic is duplicated elsewhere.
             (expr.expr_type() === 'delimiter' &&
              expr.left_type === '.' && expr.right_type === '.' &&
-	     expr.inner_expr.expr_type() === 'infix' &&
-	     expr.inner_expr.is_binary_operator_with('/'))
+             expr.inner_expr.expr_type() === 'infix' &&
+             expr.inner_expr.is_binary_operator_with('/'))
         );
         if(needs_parenthesization)
             return DelimiterExpr.parenthesize(expr);
@@ -1899,53 +2181,53 @@ class DelimiterExpr extends Expr {
         this.left_type = left_type;
         this.right_type = right_type;
         this.inner_expr = inner_expr;
-	this.fixed_size = fixed_size || false;
+        this.fixed_size = fixed_size || false;
     }
 
     expr_type() { return 'delimiter'; }
     json_keys() { return ['left_type', 'right_type', 'inner_expr']; }
 
     emit_latex(emitter) {
-	if(this.fixed_size)
-	    this.emit_latex_fixed_size(emitter);
-	else
-	    this.emit_latex_flex_size(emitter);
+        if(this.fixed_size)
+            this.emit_latex_fixed_size(emitter);
+        else
+            this.emit_latex_flex_size(emitter);
     }
 
     emit_latex_flex_size(emitter) {
         emitter.command('left');
         emitter.text_or_command(this.left_type);
-	emitter.expr(this.inner_expr, 0, true);  // true: inside_delimiters
+        emitter.expr(this.inner_expr, 0, true);  // true: inside_delimiters
         emitter.command('right');
         emitter.text_or_command(this.right_type);
     }
 
     emit_latex_fixed_size(emitter) {
-	if(this.left_type !== '.')
-	    emitter.text_or_command(this.left_type);
-	emitter.expr(this.inner_expr, 0);
-	if(this.right_type !== '.')
-	    emitter.text_or_command(this.right_type);
+        if(this.left_type !== '.')
+            emitter.text_or_command(this.left_type);
+        emitter.expr(this.inner_expr, 0);
+        if(this.right_type !== '.')
+            emitter.text_or_command(this.right_type);
     }
 
     // Return a copy of this expression but with the given fixed_size flag.
     as_fixed_size(fixed_size) {
-	return new DelimiterExpr(
-	    this.left_type,
-	    this.right_type,
-	    this.inner_expr,
-	    fixed_size);
+        return new DelimiterExpr(
+            this.left_type,
+            this.right_type,
+            this.inner_expr,
+            fixed_size);
     }
 
     to_json() {
-	let json = super.to_json();
-	if(this.fixed_size) json.fixed_size = true;
-	return json;
+        let json = super.to_json();
+        if(this.fixed_size) json.fixed_size = true;
+        return json;
     }
 
     visit(fn) {
         fn(this);
-	this.inner_expr.visit(fn);
+        this.inner_expr.visit(fn);
     }
 
     has_subexpressions() { return true; }
@@ -1955,18 +2237,34 @@ class DelimiterExpr extends Expr {
     replace_subexpression(index, new_expr) {
         return new DelimiterExpr(
             this.left_type,
-	    this.right_type,
-	    new_expr,
-	    this.fixed_size);
+            this.right_type,
+            new_expr,
+            this.fixed_size);
     }
 
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr) return new_expr;
         return new DelimiterExpr(
             this.left_type,
-	    this.right_type,
-	    this.inner_expr.substitute_expr(old_expr, new_expr),
-	    this.fixed_size);
+            this.right_type,
+            this.inner_expr.substitute_expr(old_expr, new_expr),
+            this.fixed_size);
+    }
+
+    as_editable_string() {
+        const inner_string = this.inner_expr.as_editable_string();
+        if(!inner_string) return null;
+        let [left, right] = [null, null];
+        if(this.left_type === "\\{" && this.right_type === "\\}")
+            [left, right] = ['{', '}'];
+        else if(this.left_type === "[" && this.right_type === "]")
+            [left, right] = ['[', ']'];
+        else if(this.left_type === "(" && this.right_type === ")")
+            [left, right] = ['(', ')'];
+        if(left && right)
+            return [left, inner_string, right].join('');
+        else
+            return null;
     }
 
     evaluate() {
@@ -1995,11 +2293,11 @@ class SubscriptSuperscriptExpr extends Expr {
             emitter.expr(this.base_expr, 0);
         else
             emitter.grouped_expr(this.base_expr, false, 0);
-	let subexpr_index = 1;
+        let subexpr_index = 1;
         if(this.superscript_expr) {
             emitter.text('^');
             emitter.grouped_expr(this.superscript_expr, 'force_commands', subexpr_index);
-	    subexpr_index++;
+            subexpr_index++;
         }
         if(this.subscript_expr) {
             emitter.text('_');
@@ -2019,18 +2317,18 @@ class SubscriptSuperscriptExpr extends Expr {
     }
 
     subexpressions() {
-	let exprs = [this.base_expr];
-	if(this.superscript_expr) exprs.push(this.superscript_expr);
-	if(this.subscript_expr) exprs.push(this.subscript_expr);
-	return exprs;
+        let exprs = [this.base_expr];
+        if(this.superscript_expr) exprs.push(this.superscript_expr);
+        if(this.subscript_expr) exprs.push(this.subscript_expr);
+        return exprs;
     }
 
     // NOTE: the meaning of 'index' may vary depending on whether sub/superscript is populated.
     replace_subexpression(index, new_expr) {
-	return new SubscriptSuperscriptExpr(
-	    index === 0 ? new_expr : this.base_expr,
-	    (index === 2 || (!this.superscript_expr && index === 1)) ? new_expr : this.subscript_expr,
-	    (index === 1 && this.superscript_expr) ? new_expr : this.superscript_expr);
+        return new SubscriptSuperscriptExpr(
+            index === 0 ? new_expr : this.base_expr,
+            (index === 2 || (!this.superscript_expr && index === 1)) ? new_expr : this.subscript_expr,
+            (index === 1 && this.superscript_expr) ? new_expr : this.superscript_expr);
     }
 
     substitute_expr(old_expr, new_expr) {
@@ -2044,34 +2342,34 @@ class SubscriptSuperscriptExpr extends Expr {
     evaluate() {
         // Anything with a subscript can't be evaluated.
         if(this.subscript_expr || !this.superscript_expr) return null;
-	const base_expr = this.base_expr;
-	const s_expr = this.superscript_expr;
+        const base_expr = this.base_expr;
+        const s_expr = this.superscript_expr;
 
-	// Check for e^x notation created by [/][e].
-	if(base_expr.expr_type() === 'command' &&
-	   base_expr.command_name === 'mathrm' &&
-	   base_expr.operand_count() === 1 &&
-	   base_expr.operand_exprs[0].expr_type() === 'text' &&
-	   base_expr.operand_exprs[0].text === 'e') {
-	    const exponent_value = s_expr.evaluate();
-	    if(!exponent_value) return null;
-	    const value = Math.exp(exponent_value);
-	    if(isNaN(value))
-		return null;
-	    else
-		return value;
-	}
+        // Check for e^x notation created by [/][e].
+        if(base_expr.expr_type() === 'command' &&
+           base_expr.command_name === 'mathrm' &&
+           base_expr.operand_count() === 1 &&
+           base_expr.operand_exprs[0].expr_type() === 'text' &&
+           base_expr.operand_exprs[0].text === 'e') {
+            const exponent_value = s_expr.evaluate();
+            if(!exponent_value) return null;
+            const value = Math.exp(exponent_value);
+            if(isNaN(value))
+                return null;
+            else
+                return value;
+        }
 
         const base_value = base_expr.evaluate();
 
-	// Check for "degrees" notation.
-	if(base_value !== null &&
-	   s_expr.expr_type() === 'command' &&
-	   s_expr.operand_count() === 0 &&
-	   s_expr.command_name === 'circ') {
-	    const radians = base_value * Math.PI / 180.0;
-	    return radians;
-	}
+        // Check for "degrees" notation.
+        if(base_value !== null &&
+           s_expr.expr_type() === 'command' &&
+           s_expr.operand_count() === 0 &&
+           s_expr.command_name === 'circ') {
+            const radians = base_value * Math.PI / 180.0;
+            return radians;
+        }
 
         // Assume it's a regular x^y power expression.
         const exponent_value = s_expr.evaluate();
@@ -2120,16 +2418,16 @@ class ArrayExpr extends Expr {
             return [expr];
         case 'infix':
             if(expr.expr_type() === 'infix') {
-		// Left side will be the left "side" of the infix at its split_at_index point.
+                // Left side will be the left "side" of the infix at its split_at_index point.
                 // Right side will be the right "side", but we have to insert a new initial "fake"
                 // blank operand to give it the right structure.
-		return [
+                return [
                     expr.extract_side_at(expr.split_at_index, 'left'),
                     InfixExpr.combine_infix(
                         TextExpr.blank(),
                         expr.extract_side_at(expr.split_at_index, 'right'),
                         expr.operator_exprs[expr.split_at_index])];
-	    }
+            }
             else
                 return [expr, null];
         case 'colon':
@@ -2313,7 +2611,7 @@ class ArrayExpr extends Expr {
            !(this.column_separators.every(s => s === null) &&
              this.row_separators.every(s => s === null)))
             return this._emit_array_with_separators(emitter);
-	let subexpr_index = 0;
+        let subexpr_index = 0;
         if(this.array_type === 'substack')  // substack is a special case here
             emitter.text("\\substack{\n");
         else
@@ -2324,7 +2622,7 @@ class ArrayExpr extends Expr {
             row_exprs.forEach((expr, col_index) => {
                 if(col_index > 0) emitter.align_separator();
                 if(expr) emitter.expr(expr, subexpr_index);  // should always be true
-		subexpr_index++;
+                subexpr_index++;
             });
         });
         if(this.array_type === 'substack')
@@ -2375,7 +2673,7 @@ class ArrayExpr extends Expr {
         if(!has_row_separators)
             emitter.text_or_command("\\kern-5pt");
         emitter.begin_environment('array', column_layout_string);
-	let subexpr_index = 0;
+        let subexpr_index = 0;
         this.element_exprs.forEach((row_exprs, row_index) => {
             if(row_index > 0) {
                 emitter.row_separator();
@@ -2389,7 +2687,7 @@ class ArrayExpr extends Expr {
             row_exprs.forEach((expr, col_index) => {
                 if(col_index > 0) emitter.align_separator();
                 if(expr) emitter.expr(expr, subexpr_index);  // should always be true
-		subexpr_index++;
+                subexpr_index++;
             });
         });
         emitter.end_environment('array');
@@ -2408,16 +2706,16 @@ class ArrayExpr extends Expr {
     }
 
     subexpressions() {
-	// Flatten element expressions in row-major order.
-	return [].concat(...this.element_exprs);
+        // Flatten element expressions in row-major order.
+        return [].concat(...this.element_exprs);
     }
 
     replace_subexpression(index, new_expr) {
-	const column = index % this.column_count;
-	const row = Math.floor((index - column) / this.column_count);  // floor() is not strictly needed
-	const new_element_exprs = this.element_exprs.map(
-	    (row_exprs, row_index) => row_exprs.map(
-		(expr, col_index) => (row_index === row && col_index === column) ? new_expr : expr));
+        const column = index % this.column_count;
+        const row = Math.floor((index - column) / this.column_count);  // floor() is not strictly needed
+        const new_element_exprs = this.element_exprs.map(
+            (row_exprs, row_index) => row_exprs.map(
+                (expr, col_index) => (row_index === row && col_index === column) ? new_expr : expr));
         return new ArrayExpr(
             this.array_type, this.row_count, this.column_count, new_element_exprs,
             this.row_separators, this.column_separators);
@@ -2455,8 +2753,8 @@ class Item {
                 json.elements.map(element_json => TextItemElement.from_json(element_json)),
                 json.tag_string || null,
                 !!json.is_heading);
-	case 'code':
-	    return new CodeItem(json.language, json.source);
+        case 'code':
+            return new CodeItem(json.language, json.source);
         default:
             return TextItem.from_string('invalid item type ' + json.item_type);
         }
@@ -2493,13 +2791,13 @@ class ExprItem extends Item {
     constructor(expr, tag_string, selected_expr_path) {
         super(tag_string)
         this.expr = expr;
-	this.selected_expr_path = selected_expr_path;
+        this.selected_expr_path = selected_expr_path;
     }
 
     item_type() { return 'expr'; }
 
     to_latex() {
-	return this.expr.to_latex(this.selected_expr_path);
+        return this.expr.to_latex(this.selected_expr_path);
     }
     
     to_json() {
@@ -2759,10 +3057,10 @@ class TextItem extends Item {
     is_empty() { return this.elements.length === 0; }
 
     to_text() {
-	if(this.is_empty())
-	    return "\\rule";
-	else
-	    return this.elements.map(element => element.to_text()).join('');
+        if(this.is_empty())
+            return "\\rule";
+        else
+            return this.elements.map(element => element.to_text()).join('');
     }
     
     to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
@@ -2776,26 +3074,26 @@ class TextItem extends Item {
     // If this TextItem is not simple, null is returned indicating that it's
     // "uneditable" with the minieditor.
     as_editable_string() {
-	let pieces = [];
-	for(let i = 0; i < this.elements.length; i++) {
-	    const elt = this.elements[i];
-	    if(elt.is_text())
-		pieces.push(elt.to_text());
-	    else if(elt.is_raw()) {
-		// Only basic "explicit spaces" are allowed; otherwise it's
-		// probably a LaTeX command.
-		if(elt.is_explicit_space())
-		    pieces.push(' ');
-		else return null;
-	    }
-	    else if(elt.is_expr()) {
-		// Only top-level PlaceholderExprs are allowed.
-		if(elt.expr.expr_type() === 'placeholder')
-		    pieces.push('[]');
-		else return null;
-	    }
-	}
-	return pieces.join('');
+        let pieces = [];
+        for(let i = 0; i < this.elements.length; i++) {
+            const elt = this.elements[i];
+            if(elt.is_text())
+                pieces.push(elt.to_text());
+            else if(elt.is_raw()) {
+                // Only basic "explicit spaces" are allowed; otherwise it's
+                // probably a LaTeX command.
+                if(elt.is_explicit_space())
+                    pieces.push(' ');
+                else return null;
+            }
+            else if(elt.is_expr()) {
+                // Only top-level PlaceholderExprs are allowed.
+                if(elt.expr.expr_type() === 'placeholder')
+                    pieces.push('[]');
+                else return null;
+            }
+        }
+        return pieces.join('');
     }
 
     // Return a clone of this with all elements bolded.
@@ -2833,19 +3131,19 @@ class CodeItem extends Item {
     static from_latex_string(s) { return new CodeItem('latex', s); }
 
     constructor(language, source) {
-	super();
-	this.language = language;
-	this.source = source;
+        super();
+        this.language = language;
+        this.source = source;
     }
 
     item_type() { return 'code'; }
 
     to_json() {
-	return {
-	    item_type: 'code',
-	    language: this.language,
-	    source: this.source
-	};
+        return {
+            item_type: 'code',
+            language: this.language,
+            source: this.source
+        };
     }
 
     to_latex() { return '???'; }
@@ -3030,7 +3328,7 @@ class Document {
 export {
     Keymap, Settings, AppState, UndoStack,
     DocumentStorage, ImportExportState, FileManagerState,
-    ExprPath, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, TextExprParser, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     Item, ExprItem, TextItem, CodeItem,
     Stack, Document

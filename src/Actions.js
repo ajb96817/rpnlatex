@@ -1,7 +1,7 @@
 
 import {
     AppState, Document, Stack,
-    ExprPath, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, TextExprParser, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem, CodeItem
 } from './Models';
@@ -212,7 +212,8 @@ class InputContext {
                 if(!this.preserve_prefix_argument)
                     this.prefix_argument = null;
             } catch(e) {
-                if(e.message === 'stack_underflow' || e.message === 'stack_type_error' ||
+                if(e.message === 'stack_underflow' ||
+		   e.message === 'stack_type_error' ||
                    e.message === 'prefix_argument_required') {
                     this.error_flash_stack();
                     this.perform_undo_or_redo = null;
@@ -1104,8 +1105,8 @@ class InputContext {
     }
 
     // textstyle determines what the entered text becomes:
-    //   'math' - ExprItem with plain italic math text
-    //   'roman_math' - ExprItem with \mathrm{...} text
+    //   'math' - ExprItem with "parsed" italic math text (see TextExprParser).
+    //   'roman_math' - Expr with \mathrm{...}, where ... is always a TextExpr
     //   'latex' - ExprItem with arbitrary latex command
     //   'text' - TextItem
     //   'heading' - TextItem with is_heading flag set
@@ -1152,8 +1153,15 @@ class InputContext {
             this.cancel_text_entry(new_stack);
             return new_stack.push(new_item);
         }
-        else
-            new_expr = new TextExpr(this._latex_escape(text));
+        else {
+	    new_expr = TextExprParser.parse_string(text);
+	    if(!new_expr) {
+		this.perform_undo_or_redo = 'suppress';
+		this.switch_to_mode(this.mode);
+		this.error_flash_stack();
+		return;
+	    }
+	}
         this.cancel_text_entry(stack);
         return stack.push_expr(new_expr);
     }
@@ -1189,14 +1197,12 @@ class InputContext {
 	    if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
 	       expr.command_name === 'mathrm')
 		expr = expr.operand_exprs[0];
-	    // It's editable only if it's a basic TextExpr that doesn't start with a
-	    // backslash (so generally, only something that was directly created by
-	    // the minieditor to begin with).
-	    if(expr.expr_type() === 'text' && !expr.text.startsWith("\\")) {
+	    const editable_string = expr.as_editable_string();
+	    if(editable_string) {
 		this.do_start_text_entry(
 		    new_stack,
 		    'math_text_entry',
-		    this._latex_unescape(expr.text));
+		    editable_string);
                 this.text_entry.edited_item = item;
 		return new_stack;
 	    }

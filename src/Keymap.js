@@ -14,7 +14,7 @@ const EditorKeymap = {
         '^': "superscript",
         'Backspace': "pop",
         "`": "superscript",
-        ' ': "autoparenthesize 2;concat",
+        ' ': "concat",
         '=': "mode relational",
         '<': "infix <",
         '>': "infix >",
