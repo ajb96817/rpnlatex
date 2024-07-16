@@ -1763,6 +1763,34 @@ class InputContext {
 	}
     }
 
+    do_evaluate_with_variable_substitution(stack) {
+	const [new_stack, expr, value_expr] = stack.pop_exprs(2);
+	let value = null;
+	let variable_name = null;
+	// Examine the value_expr to decide what to substitute.
+	if(value_expr.expr_type() === 'infix' &&
+	   value_expr.is_binary_operator_with('=') &&
+	   value_expr.operand_exprs[0].expr_type() === 'text' &&
+	   value_expr.operand_exprs[0].looks_like_variable_name()) {
+	    // Expression of the form 'x=123'.  Evaluate the right-hand
+	    // side and substitute the given variable name.
+	    value = value_expr.operand_exprs[1].evaluate();
+	    variable_name = value_expr.operand_exprs[0].text;
+	}
+	else {
+	    // Assume the variable is 'x'.
+	    value = value_expr.evaluate();
+	    variable_name = 'x';
+	}
+	if(value === null)
+	    return this.error_flash_stack();
+	const result_expr = expr.evaluate_with_variable_substitution(
+	    variable_name, value);
+	if(result_expr === null)
+	    return this.error_flash_stack();
+	return new_stack.push_expr(result_expr);
+    }
+
     // Copy stack top to an internal clipboard slot.
     // A prefix argument may be given to access other slots but this is currently undocumented
     // because prefix arguments with stack commands highlight items on the stack which is bad UI.

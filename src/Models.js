@@ -1274,6 +1274,18 @@ class Expr {
         return found;
     }
 
+    // Find the first variable with the given name (such as 'x') in this
+    // expression.  Returns null if none.
+    find_variable(variable_name) {
+        let found = null;
+        this.visit(expr => {
+            if(expr.expr_type() === 'text' &&
+	       expr.text === variable_name && !found)
+                found = expr;
+        });
+        return found;
+    }
+
     // Return a (possibly) new Expr with new_expr substituted for old_expr, if old_expr is present.
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr)
@@ -1290,6 +1302,22 @@ class Expr {
     // an exception handler.
     // Subclasses should override.
     evaluate() { return null; }
+
+    // Replace all occurrences of the given variable with 'value' (a number)
+    // and then try to evaluate the substituted expression numerically.
+    evaluate_with_variable_substitution(variable_name, value) {
+	let new_expr = this;
+	const value_expr = new TextExpr(value.toString());
+	while(true) {
+	    let variable_expr = new_expr.find_variable(variable_name);
+	    if(variable_expr)
+		new_expr = new_expr.substitute_expr(variable_expr, value_expr);
+	    else
+		break;
+	}
+	const [result_expr, _exact_flag] = new_expr.evaluate_to_expr(true);
+	return result_expr;
+    }
 
     // Attempt to evaluate this Expr numerically.
     // Returns: [expr, exact_flag] or null on failure,
@@ -1993,6 +2021,13 @@ class TextExpr extends Expr {
     looks_like_number() {
         // cf. TextExprParser.tokenize()
         return /^-?\d*\.?\d+$/.test(this.text);
+    }
+
+    // Check for single-letter variable names.
+    // TODO: allow \alpha etc.
+    // Used by do_evaluate_with_variable_substitution()
+    looks_like_variable_name() {
+	return /^\w$/.test(this.text);
     }
 
     as_editable_string() {

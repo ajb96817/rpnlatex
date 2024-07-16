@@ -853,7 +853,8 @@ const EditorKeymap = {
     evaluate: {
 	'#': "push \\#",
 	'=': "evaluate_to_equation false",
-	'Enter': "evaluate_to_equation true"
+	'Enter': "evaluate_to_equation true",
+	'x': "evaluate_with_variable_substitution"
     },
 
     // & prefix
