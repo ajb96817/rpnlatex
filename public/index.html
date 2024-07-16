@@ -178,8 +178,8 @@
       </h2>
       <p>
         The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
-        will be shown where you can type a math expression in infix notation.
-	<span class="keybinding">Enter</span> will parse what you have typed and put it on the stack as a math object.
+        will be shown where you can type a number or a math expression in infix notation.
+	<span class="keybinding">Enter</span> will parse what you have typed and put it on the stack.
 	A malformed expression will signal an error; allowed expressions include:
 	<ul>
 	  <li>Numbers such as 3, -10, 5.12 (scientific notation not supported).</li>
@@ -237,10 +237,11 @@
         </ul>
       </p>
       <p>
-	<span class="keybinding">Shift+Enter</span> may be used to edit objects created this way.
-	Only simple objects created by text entry are editable as text; once further manipulations
+	Once a math or text object has been entered like this and placed on the stack,
+	<span class="keybinding">Shift+Enter</span> may be used to edit it again.
+	Only simple objects created by math or text entry are editable as text; once further manipulations
 	are performed they may no longer be editable.  If editing is possible, the object will be
-	brought back into the text entry field.
+	brought back into the input field.
       </p>
       <p>
 	<strong>NOTE:</strong>

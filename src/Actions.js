@@ -1193,10 +1193,6 @@ class InputContext {
                 this.text_entry.edited_item = item;
 		return new_stack;
 	    }
-	    // Try stripping off a single level of \mathrm{...} if there is one.
-	    if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
-	       expr.command_name === 'mathrm')
-		expr = expr.operand_exprs[0];
 	    const editable_string = expr.as_editable_string();
 	    if(editable_string) {
 		this.do_start_text_entry(

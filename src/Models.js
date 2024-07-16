@@ -1601,7 +1601,16 @@ class CommandExpr extends Expr {
         return null;
     }
 
-    as_editable_string() { return null; }
+    as_editable_string() {
+	// A single level of \mathrm{...} with only a TextExpr inside is assumed to
+	// have been made by Shift+Enter from math text entry mode.
+	if(this.command_name === 'mathrm' &&
+	   this.operand_count() === 1 &&
+	   this.operand_exprs[0].expr_type() === 'text')
+	    return this.operand_exprs[0].text;
+	// Other commands are not considered 'editable' (yet).
+	return null;
+    }
 
     // Wrap this expression in a \boldsymbol{...} command if it's not already.
     // LaTeX has different ways of expressing 'bold' so this is not quite trivial.
