@@ -1274,18 +1274,6 @@ class Expr {
         return found;
     }
 
-    // Find the first variable with the given name (such as 'x') in this
-    // expression.  Returns null if none.
-    find_variable(variable_name) {
-        let found = null;
-        this.visit(expr => {
-            if(expr.expr_type() === 'text' &&
-	       expr.text === variable_name && !found)
-                found = expr;
-        });
-        return found;
-    }
-
     // Return a (possibly) new Expr with new_expr substituted for old_expr, if old_expr is present.
     substitute_expr(old_expr, new_expr) {
         if(this === old_expr)
@@ -1295,29 +1283,13 @@ class Expr {
     }
 
     // Attempt to evaluate this Expr numerically.
-    // Only constant values and combinations of constants
-    // are allowed (including e.g. sin(3) etc).
+    // Only constant values and combinations of constants are allowed (including e.g. sin(3) etc).
     // Return null if evaluation is not possible.
-    // The evaluation might raise errors, so the caller should use
-    // an exception handler.
+    // 'assignments' is a key-value table mapping variable names to (floating-point) values to
+    // substitute in this expression.  Using this can allow things like sin(x) to be evaluated.
+    // The evaluation might raise errors, so the caller should use an exception handler.
     // Subclasses should override.
-    evaluate() { return null; }
-
-    // Replace all occurrences of the given variable with 'value' (a number)
-    // and then try to evaluate the substituted expression numerically.
-    evaluate_with_variable_substitution(variable_name, value) {
-	let new_expr = this;
-	const value_expr = new TextExpr(value.toString());
-	while(true) {
-	    let variable_expr = new_expr.find_variable(variable_name);
-	    if(variable_expr)
-		new_expr = new_expr.substitute_expr(variable_expr, value_expr);
-	    else
-		break;
-	}
-	const [result_expr, _exact_flag] = new_expr.evaluate_to_expr(true);
-	return result_expr;
-    }
+    evaluate(assignments) { return null; }
 
     // Attempt to evaluate this Expr numerically.
     // Returns: [expr, exact_flag] or null on failure,
@@ -1327,8 +1299,8 @@ class Expr {
     // values like sqrt(2) or pi.  These will be multiplied into the output
     // if found.  Rationalize=false always returns a decimal TextExpr.
     // TODO: exception handler around evaluate()
-    evaluate_to_expr(rationalize) {
-        const value = this.evaluate();
+    evaluate_to_expr(assignments, rationalize) {
+        const value = this.evaluate(assignments);
         if(value === null) return null;
         if(rationalize) {
             const result = this.rationalize_to_expr(value);
@@ -1577,14 +1549,14 @@ class CommandExpr extends Expr {
             this.options);
     }
 
-    evaluate() {
+    evaluate(assignments) {
         const c = this.command_name;
         if(this.operand_count() === 0) {
             if(c === 'pi') return Math.PI;
         }
         if(this.operand_count() === 1) {
             // Unary functions
-            const x = this.operand_exprs[0].evaluate();
+            const x = this.operand_exprs[0].evaluate(assignments);
             if(x === null) return null;
             if(c === 'sin') return Math.sin(x);
             if(c === 'cos') return Math.cos(x);
@@ -1598,7 +1570,6 @@ class CommandExpr extends Expr {
                 else
                     return Math.sqrt(x);
             }
-
             // Hacky inverse and squared trig functions.  See Actions.js do_named_function().
             if(c === 'sin^{-1}') return Math.asin(x);
             if(c === 'cos^{-1}') return Math.acos(x);
@@ -1612,15 +1583,14 @@ class CommandExpr extends Expr {
             if(c === 'sinh^2') return Math.pow(Math.sinh(x), 2);
             if(c === 'cosh^2') return Math.pow(Math.cosh(x), 2);
             if(c === 'tanh^2') return Math.pow(Math.tanh(x), 2);
-
             if(c === 'log_2' || c === 'lg') return Math.log2(x);
             if(c === 'ln' || c === 'log') return Math.log(x);
             if(c === 'exp') return Math.exp(x);
         }
         if(this.operand_count() === 2) {
             // Binary functions
-            const x = this.operand_exprs[0].evaluate();
-            const y = this.operand_exprs[1].evaluate();
+            const x = this.operand_exprs[0].evaluate(assignments);
+            const y = this.operand_exprs[1].evaluate(assignments);
             if(x === null || y === null) return null;
             if(c === 'frac') return x/y;
         }
@@ -1964,11 +1934,11 @@ class InfixExpr extends Expr {
         return pieces.join('');   
     }
 
-    evaluate() {
-        let value = this.operand_exprs[0].evaluate();
+    evaluate(assignments) {
+        let value = this.operand_exprs[0].evaluate(assignments);
         if(value === null) return null;
         for(let i = 0; i < this.operator_exprs.length; i++) {
-            const rhs = this.operand_exprs[i+1].evaluate();
+            const rhs = this.operand_exprs[i+1].evaluate(assignments);
             if(rhs === null) return null;
             value = this._evaluate_with_operator(
                 this.operator_text(this.operator_exprs[i]),
@@ -2039,9 +2009,11 @@ class TextExpr extends Expr {
             return null;
     }
 
-    // TODO: check for cases like '3/4' (that's about it I think)
-    evaluate() {
+    evaluate(assignments) {
         const s = this.text;
+	const assigned_val = assignments[s];
+	if(assigned_val !== undefined && assigned_val !== null)
+	    return assigned_val;
         // check for constant \pi
         if(s === "\\pi") return Math.PI;
         const val = parseFloat(s);
@@ -2122,7 +2094,7 @@ class SequenceExpr extends Expr {
             return null;
     }
 
-    evaluate() {
+    evaluate(assignments) {
         // Check for ['-', Expr] and ['+', Expr]
         if(this.exprs.length >= 2 &&
            this.exprs[0].expr_type() === 'text') {
@@ -2130,7 +2102,8 @@ class SequenceExpr extends Expr {
             if(this.exprs[0].text === '+') factor = 1;
             else if(this.exprs[0].text === '-') factor = -1;
             if(factor !== null)
-                return factor*(new SequenceExpr(this.exprs.slice(1), this.fused).evaluate());
+                return factor * (new SequenceExpr(
+		    this.exprs.slice(1), this.fused).evaluate(assignments));
         }
         // Consider anything else as implicit multiplications,
         // with special-casing for '!' factorial notation.
@@ -2141,7 +2114,7 @@ class SequenceExpr extends Expr {
             if(this.exprs[i].expr_type() === 'text' && this.exprs[i].text === '!')
                 value = this._factorial(value);
             else {
-                const rhs = this.exprs[i].evaluate();
+                const rhs = this.exprs[i].evaluate(assignments);
                 if(rhs === null) return null;
                 value *= rhs;
             }
@@ -2302,8 +2275,8 @@ class DelimiterExpr extends Expr {
             return null;
     }
 
-    evaluate() {
-        return this.inner_expr.evaluate();
+    evaluate(assignments) {
+        return this.inner_expr.evaluate(assignments);
     }
 }
 
@@ -2374,7 +2347,7 @@ class SubscriptSuperscriptExpr extends Expr {
             this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
     }
 
-    evaluate() {
+    evaluate(assignments) {
         // Anything with a subscript can't be evaluated.
         if(this.subscript_expr || !this.superscript_expr) return null;
         const base_expr = this.base_expr;
@@ -2386,7 +2359,7 @@ class SubscriptSuperscriptExpr extends Expr {
            base_expr.operand_count() === 1 &&
            base_expr.operand_exprs[0].expr_type() === 'text' &&
            base_expr.operand_exprs[0].text === 'e') {
-            const exponent_value = s_expr.evaluate();
+            const exponent_value = s_expr.evaluate(assignments);
             if(!exponent_value) return null;
             const value = Math.exp(exponent_value);
             if(isNaN(value))
@@ -2395,7 +2368,7 @@ class SubscriptSuperscriptExpr extends Expr {
                 return value;
         }
 
-        const base_value = base_expr.evaluate();
+        const base_value = base_expr.evaluate(assignments);
 
         // Check for "degrees" notation.
         if(base_value !== null &&
@@ -2407,7 +2380,7 @@ class SubscriptSuperscriptExpr extends Expr {
         }
 
         // Assume it's a regular x^y power expression.
-        const exponent_value = s_expr.evaluate();
+        const exponent_value = s_expr.evaluate(assignments);
         const value = Math.pow(base_value, exponent_value);
         if(isNaN(value))
             return null;

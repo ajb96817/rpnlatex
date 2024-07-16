@@ -1721,11 +1721,12 @@ class InputContext {
     // If 'force_approx' is specified, the approximation is applied regardless.
     do_evaluate_to_equation(stack, force_approx) {
 	const [new_stack, expr] = stack.pop_exprs(1);
+	const assignments = {};
 	if(expr.expr_type() === 'infix' && expr.operator_text() === 'approx') {
 	    // Re-evaluate the left side, hoping for an "exact" value.
 	    // If an exact value cannot be found, leave it as it was before.
 	    const lhs = expr.extract_side_at(expr.split_at_index, 'left');
-	    const result = lhs.evaluate_to_expr(true);
+	    const result = lhs.evaluate_to_expr(assignments, true);
 	    if(!result || !result[1])
 		return stack;  // either an error or a non-exact result
 	    else return new_stack.push_expr(
@@ -1737,7 +1738,7 @@ class InputContext {
 	    // if possible.  (There might be any arbitrary 'x=y' equation
 	    // at this point.)
 	    const lhs = expr.extract_side_at(expr.split_at_index, 'left');
-	    const result = lhs.evaluate_to_expr(false);
+	    const result = lhs.evaluate_to_expr(assignments, false);
 	    if(!result)
 		return this.error_flash_stack();
 	    const result_expr = result[0];
@@ -1748,7 +1749,7 @@ class InputContext {
 	else {
 	    // Try to evaluate expr, rationalizing if possible.
 	    const try_rationalize = force_approx !== 'true';
-	    const result = expr.evaluate_to_expr(try_rationalize);
+	    const result = expr.evaluate_to_expr(assignments, try_rationalize);
 	    if(!result)
 		return this.error_flash_stack();  // not evaluatable
 	    const [result_expr, is_exact] = result;
@@ -1765,29 +1766,32 @@ class InputContext {
 
     do_evaluate_with_variable_substitution(stack) {
 	const [new_stack, expr, value_expr] = stack.pop_exprs(2);
+	let assignments = {};
 	let value = null;
 	let variable_name = null;
 	// Examine the value_expr to decide what to substitute.
 	if(value_expr.expr_type() === 'infix' &&
-	   value_expr.is_binary_operator_with('=') &&
+	   value_expr.operator_text_at(0) === '=' &&
 	   value_expr.operand_exprs[0].expr_type() === 'text' &&
 	   value_expr.operand_exprs[0].looks_like_variable_name()) {
-	    // Expression of the form 'x=123'.  Evaluate the right-hand
+	    // Expression of the form 'x=(something)'.  Evaluate the right-hand
 	    // side and substitute the given variable name.
-	    value = value_expr.operand_exprs[1].evaluate();
+	    const rhs = value_expr.extract_side_at(value_expr.split_at_index, 'right');
+	    value = rhs.evaluate({});
 	    variable_name = value_expr.operand_exprs[0].text;
 	}
 	else {
 	    // Assume the variable is 'x'.
-	    value = value_expr.evaluate();
+	    value = value_expr.evaluate({});
 	    variable_name = 'x';
 	}
+	assignments[variable_name] = value;
 	if(value === null)
 	    return this.error_flash_stack();
-	const result_expr = expr.evaluate_with_variable_substitution(
-	    variable_name, value);
-	if(result_expr === null)
+	const result = expr.evaluate_to_expr(assignments, true);
+	if(!result)
 	    return this.error_flash_stack();
+	const [result_expr, is_exact] = result;
 	return new_stack.push_expr(result_expr);
     }
 
