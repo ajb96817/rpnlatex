@@ -1764,27 +1764,37 @@ class InputContext {
 	}
     }
 
+    // TODO: clean this up by first converting the two expressions on
+    // the stack into a "where" clause, then just use expr.evaluate().
     do_evaluate_with_variable_substitution(stack) {
 	let [new_stack, expr, value_expr] = stack.pop_exprs(2);
 	let assignments = {};
 	let value = null;
+	let variable_expr = null;
 	let variable_name = null;
 	// Examine the value_expr to decide what to substitute.
 	if(value_expr.expr_type() === 'infix' &&
 	   value_expr.operator_text_at(0) === '=' &&
-	   value_expr.operand_exprs[0].expr_type() === 'text' &&
-	   value_expr.operand_exprs[0].looks_like_variable_name()) {
+	   ((value_expr.operand_exprs[0].expr_type() === 'text' &&
+	     value_expr.operand_exprs[0].looks_like_variable_name()) ||
+	    (value_expr.operand_exprs[0].expr_type() === 'command' &&
+	     value_expr.operand_exprs[0].operand_count() === 0))) {
 	    // Expression of the form 'x=(something)'.  Evaluate the right-hand
 	    // side and substitute the given variable name.
 	    const rhs = value_expr.extract_side_at(0, 'right');
 	    value = rhs.evaluate({});
-	    variable_name = value_expr.operand_exprs[0].text;
+	    variable_expr = value_expr.operand_exprs[0];
+	    if(variable_expr.expr_type() === 'text')
+		variable_name = variable_expr.text;
+	    else if(variable_expr.expr_type() === 'command')
+		variable_name = variable_expr.command_name;
 	    value_expr = rhs;
 	}
 	else {
 	    // Assume the variable is 'x'.
 	    value = value_expr.evaluate({});
 	    variable_name = 'x';
+	    variable_expr = new TextExpr(variable_name);
 	}
 	assignments[variable_name] = value;
 	if(value === null)
@@ -1798,8 +1808,9 @@ class InputContext {
 	const where_expr = new SubscriptSuperscriptExpr(
 	    new DelimiterExpr('.', '|', expr),
 	    InfixExpr.combine_infix(
-		new TextExpr(variable_name),
-		value_expr, new TextExpr('=')),
+		variable_expr,
+		value_expr,
+		new TextExpr('=')),
 	    null);
 	const final_expr = InfixExpr.combine_infix(
 	    where_expr, result_expr, new TextExpr('='));

@@ -1552,6 +1552,10 @@ class CommandExpr extends Expr {
     evaluate(assignments) {
         const c = this.command_name;
         if(this.operand_count() === 0) {
+	    // Check for "greek" letters in assignments.
+	    const assigned_val = assignments[c];
+	    if(assigned_val !== undefined && assigned_val !== null)
+		return assigned_val;
             if(c === 'pi') return Math.PI;
         }
         if(this.operand_count() === 1) {
@@ -1994,7 +1998,6 @@ class TextExpr extends Expr {
     }
 
     // Check for single-letter variable names.
-    // TODO: allow \alpha etc.
     // Used by do_evaluate_with_variable_substitution()
     looks_like_variable_name() {
 	return /^\w$/.test(this.text);
@@ -2382,14 +2385,20 @@ class SubscriptSuperscriptExpr extends Expr {
 	   sub_expr.expr_type() === 'infix' &&
 	   sub_expr.operator_text_at(0) === '=') {
 	    // Subscript expression should be of the form x=(something).
+	    // Also try to handle \alpha=(something).  In this case the left side
+	    // is a CommandExpr with a 0-argument command.
 	    const lhs = sub_expr.extract_side_at(0, 'left');
 	    const rhs = sub_expr.extract_side_at(0, 'right');
-	    if(lhs.expr_type() === 'text' && lhs.looks_like_variable_name()) {
+	    if((lhs.expr_type() === 'text' && lhs.looks_like_variable_name()) ||
+	       (lhs.expr_type() === 'command' && lhs.operand_count() === 0)) {
 		const subst_value = rhs.evaluate(assignments);
 		if(subst_value !== null) {
 		    let new_assignments = Object.assign({}, assignments);  // shallow copy
-		    new_assignments[lhs.text] = subst_value;
-		    return  base_expr.inner_expr.evaluate(new_assignments);
+		    if(lhs.expr_type() === 'text')
+			new_assignments[lhs.text] = subst_value;
+		    else if(lhs.expr_type() === 'command')
+			new_assignments[lhs.command_name] = subst_value;
+		    return base_expr.inner_expr.evaluate(new_assignments);
 		}
 	    }
 	}
