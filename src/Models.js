@@ -2107,12 +2107,12 @@ class SequenceExpr extends Expr {
         }
         // Consider anything else as implicit multiplications,
         // with special-casing for '!' factorial notation.
-        let value = this.exprs[0].evaluate();
+        let value = this.exprs[0].evaluate(assignments);
         if(value === null) return null;
         for(let i = 1; i < this.exprs.length; i++) {
             // Check for factorial
             if(this.exprs[i].expr_type() === 'text' && this.exprs[i].text === '!')
-                value = this._factorial(value);
+		value = this._factorial(value);
             else {
                 const rhs = this.exprs[i].evaluate(assignments);
                 if(rhs === null) return null;
@@ -2123,13 +2123,35 @@ class SequenceExpr extends Expr {
         return value;
     }
 
-    _factorial(n) {
-        if(n <= 1) return 1;
-        if(n > 20) return NaN;
-        let value = 1;
-        for(let i = 2; i <= n; i++)
-            value *= i;
-        return value;
+    _factorial(x) {
+	if(x >= 0 && x === Math.floor(x)) {
+            if(x <= 1) return 1;
+            if(x > 20) return NaN;
+            let value = 1;
+            for(let i = 2; i <= x; i++)
+		value *= i;
+            return value;
+	}
+	else
+	    return this._gamma(x+1);
+    }
+
+    _gamma(x) {
+	const g = 7;
+	const C = [
+	    0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+	    771.32342877765313, -176.61502916214059, 12.507343278686905,
+	    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+	if(x <= 0)
+	    return NaN;
+	if(x < 0.5)
+	    return Math.PI / (Math.sin(Math.PI*x) * this._gamma(1-x));
+	x -= 1;
+	let y = C[0];
+	for(let i = 1; i < g+2; i++)
+	    y += C[i] / (x + i);
+	const t = x + g + 0.5;
+        return Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
     }
 }
 
