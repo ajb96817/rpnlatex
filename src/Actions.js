@@ -1765,7 +1765,7 @@ class InputContext {
     }
 
     do_evaluate_with_variable_substitution(stack) {
-	const [new_stack, expr, value_expr] = stack.pop_exprs(2);
+	let [new_stack, expr, value_expr] = stack.pop_exprs(2);
 	let assignments = {};
 	let value = null;
 	let variable_name = null;
@@ -1776,9 +1776,10 @@ class InputContext {
 	   value_expr.operand_exprs[0].looks_like_variable_name()) {
 	    // Expression of the form 'x=(something)'.  Evaluate the right-hand
 	    // side and substitute the given variable name.
-	    const rhs = value_expr.extract_side_at(value_expr.split_at_index, 'right');
+	    const rhs = value_expr.extract_side_at(0, 'right');
 	    value = rhs.evaluate({});
 	    variable_name = value_expr.operand_exprs[0].text;
+	    value_expr = rhs;
 	}
 	else {
 	    // Assume the variable is 'x'.
@@ -1792,7 +1793,17 @@ class InputContext {
 	if(!result)
 	    return this.error_flash_stack();
 	const [result_expr, is_exact] = result;
-	return new_stack.push_expr(result_expr);
+
+	// Construct a "where"-style expression like that formed by [/][|].
+	const where_expr = new SubscriptSuperscriptExpr(
+	    new DelimiterExpr('.', '|', expr),
+	    InfixExpr.combine_infix(
+		new TextExpr(variable_name),
+		value_expr, new TextExpr('=')),
+	    null);
+	const final_expr = InfixExpr.combine_infix(
+	    where_expr, result_expr, new TextExpr('='));
+	return new_stack.push_expr(final_expr);
     }
 
     // Copy stack top to an internal clipboard slot.

@@ -2348,18 +2348,39 @@ class SubscriptSuperscriptExpr extends Expr {
     }
 
     evaluate(assignments) {
-        // Anything with a subscript can't be evaluated.
-        if(this.subscript_expr || !this.superscript_expr) return null;
         const base_expr = this.base_expr;
-        const s_expr = this.superscript_expr;
+	const sub_expr = this.subscript_expr;
+        const sup_expr = this.superscript_expr;
 
+	// Check for expressions of the form f(x) |_ {x=val}
+	// i.e., a "where" clause formed by something like [/][|].
+	if(sub_expr !== null && sup_expr === null &&
+	   base_expr.expr_type() === 'delimiter' &&
+	   base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
+	   sub_expr.expr_type() === 'infix' &&
+	   sub_expr.operator_text_at(0) === '=') {
+	    // Subscript expression should be of the form x=(something).
+	    const lhs = sub_expr.extract_side_at(0, 'left');
+	    const rhs = sub_expr.extract_side_at(0, 'right');
+	    if(lhs.expr_type() === 'text' && lhs.looks_like_variable_name()) {
+		const subst_value = rhs.evaluate(assignments);
+		if(subst_value !== null) {
+		    let new_assignments = Object.assign({}, assignments);  // shallow copy
+		    new_assignments[lhs.text] = subst_value;
+		    return  base_expr.inner_expr.evaluate(new_assignments);
+		}
+	    }
+	}
+	
+        // Anything else with a subscript can't be evaluated.
+        if(sub_expr !== null) return null;
         // Check for e^x notation created by [/][e].
         if(base_expr.expr_type() === 'command' &&
            base_expr.command_name === 'mathrm' &&
            base_expr.operand_count() === 1 &&
            base_expr.operand_exprs[0].expr_type() === 'text' &&
            base_expr.operand_exprs[0].text === 'e') {
-            const exponent_value = s_expr.evaluate(assignments);
+            const exponent_value = sup_expr.evaluate(assignments);
             if(!exponent_value) return null;
             const value = Math.exp(exponent_value);
             if(isNaN(value))
@@ -2372,15 +2393,15 @@ class SubscriptSuperscriptExpr extends Expr {
 
         // Check for "degrees" notation.
         if(base_value !== null &&
-           s_expr.expr_type() === 'command' &&
-           s_expr.operand_count() === 0 &&
-           s_expr.command_name === 'circ') {
+           sup_expr.expr_type() === 'command' &&
+           sup_expr.operand_count() === 0 &&
+           sup_expr.command_name === 'circ') {
             const radians = base_value * Math.PI / 180.0;
             return radians;
         }
 
         // Assume it's a regular x^y power expression.
-        const exponent_value = s_expr.evaluate(assignments);
+        const exponent_value = sup_expr.evaluate(assignments);
         const value = Math.pow(base_value, exponent_value);
         if(isNaN(value))
             return null;
