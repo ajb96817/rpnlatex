@@ -1283,12 +1283,13 @@ class Expr {
     }
 
     // Attempt to evaluate this Expr numerically.
-    // Only constant values and combinations of constants are allowed (including e.g. sin(3) etc).
-    // Return null if evaluation is not possible.
+    // Return null if evaluation is not possible; subclasses can override.
+    // The evaluation might raise errors, so the caller should use an exception handler.
+    //
     // 'assignments' is a key-value table mapping variable names to (floating-point) values to
     // substitute in this expression.  Using this can allow things like sin(x) to be evaluated.
-    // The evaluation might raise errors, so the caller should use an exception handler.
-    // Subclasses should override.
+    // Aside from any assignments, everything else in the expression must be constants, or
+    // combinations/functions of constants.
     evaluate(assignments) { return null; }
 
     // Attempt to evaluate this Expr numerically.
@@ -1948,17 +1949,43 @@ class InfixExpr extends Expr {
     }
 
     evaluate(assignments) {
-        let value = this.operand_exprs[0].evaluate(assignments);
-        if(value === null) return null;
-        for(let i = 0; i < this.operator_exprs.length; i++) {
-            const rhs = this.operand_exprs[i+1].evaluate(assignments);
-            if(rhs === null) return null;
-            value = this._evaluate_with_operator(
-                this.operator_text(this.operator_exprs[i]),
-                value, rhs);
-            if(value === null) return null;
-        }
-        return value;
+	// Evaluate taking into account the binary operator precedences.
+	const operand_values = this.operand_exprs.map(
+	    expr => expr.evaluate(assignments));
+	if(operand_values.some(value => value === null))
+	    return null;
+	const operator_texts = this.operator_exprs.map(
+	    expr => this.operator_text(expr));
+	let value_stack = [operand_values[0]];
+	let op_stack = [];
+	for(let i = 0; i < this.operator_exprs.length; i++) {
+	    const op = operator_texts[i];
+	    while(op_stack.length > 0 &&
+		  (this._operator_precedence(op_stack[op_stack.length-1]) >=
+		   this._operator_precedence(op))) {
+		const rhs = value_stack.pop();
+		const lhs = value_stack.pop();
+		value_stack.push(
+		    this._evaluate_with_operator(
+			op_stack.pop(), lhs, rhs));
+	    }
+	    op_stack.push(op);
+	    value_stack.push(operand_values[i+1]);
+	}
+	while(op_stack.length > 0) {
+	    const rhs = value_stack.pop();
+	    const lhs = value_stack.pop();
+	    value_stack.push(
+		this._evaluate_with_operator(
+		    op_stack.pop(), lhs, rhs));
+	}
+	return value_stack.pop();
+    }
+
+    _operator_precedence(op) {
+	if(op === 'cdot' || op === 'times' || op === '/')
+	    return 2;
+	else return 1
     }
 
     _evaluate_with_operator(op, left, right) {
