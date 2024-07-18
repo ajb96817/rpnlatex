@@ -1767,10 +1767,12 @@ class InfixExpr extends Expr {
 
     // Check if this is a low-precedence infix expression like x+y
     // This is mostly for convenience so it doesn't need to be that precise.
+    // TODO: reduce or eliminate the need for this; there is probably a cleaner way
     needs_autoparenthesization() {
         return this.operator_exprs.every(op_expr => {
             const op = this.operator_text(op_expr);
-            return op && (op === '+' || op === '-');
+	    return op && this._operator_info(op) && this._operator_info(op).prec <= 1;
+            // return op && (op === '+' || op === '-');
         });
     }
 
@@ -1952,49 +1954,45 @@ class InfixExpr extends Expr {
 	// Evaluate taking into account the binary operator precedences.
 	const operand_values = this.operand_exprs.map(
 	    expr => expr.evaluate(assignments));
-	if(operand_values.some(value => value === null))
-	    return null;
-	const operator_texts = this.operator_exprs.map(
-	    expr => this.operator_text(expr));
+	const operator_infos = this.operator_exprs.map(
+	    expr => this._operator_info(this.operator_text(expr)));
+	if(operand_values.some(value => value === null) ||
+	   operator_infos.some(info => info === null))
+	    return null;  // give up if anything is non-evaluable
+	// NOTE: There are really only 2 precedences involved here
+	// (+- and /*) so this could be simplified to not need the stack stuff.
 	let value_stack = [operand_values[0]];
-	let op_stack = [];
+	let op_stack = [];  // stores _operator_info structures
 	for(let i = 0; i < this.operator_exprs.length; i++) {
-	    const op = operator_texts[i];
+	    const op_info = operator_infos[i];
 	    while(op_stack.length > 0 &&
-		  (this._operator_precedence(op_stack[op_stack.length-1]) >=
-		   this._operator_precedence(op))) {
+		  op_stack[op_stack.length-1].prec >= op_info.prec) {
+		const stack_op_info = op_stack.pop();
 		const rhs = value_stack.pop();
 		const lhs = value_stack.pop();
-		value_stack.push(
-		    this._evaluate_with_operator(
-			op_stack.pop(), lhs, rhs));
+		value_stack.push(stack_op_info.fn(lhs, rhs));
 	    }
-	    op_stack.push(op);
+	    op_stack.push(op_info);
 	    value_stack.push(operand_values[i+1]);
 	}
 	while(op_stack.length > 0) {
+	    const stack_op_info = op_stack.pop();
 	    const rhs = value_stack.pop();
 	    const lhs = value_stack.pop();
-	    value_stack.push(
-		this._evaluate_with_operator(
-		    op_stack.pop(), lhs, rhs));
+	    value_stack.push(stack_op_info.fn(lhs, rhs));
 	}
 	return value_stack.pop();
     }
 
-    _operator_precedence(op) {
-	if(op === 'cdot' || op === 'times' || op === '/')
-	    return 2;
-	else return 1
-    }
-
-    _evaluate_with_operator(op, left, right) {
+    // Return {precedence, eval_fn}, or null if the operator can't be evaluated.
+    // TODO: also return associativity if ^ (power) is added.
+    _operator_info(op) {
         switch(op) {
-        case '+': return left+right;
-        case '-': return left-right;
-        case 'cdot': return left*right;
-        case 'times': return left*right;
-        case '/': return left/right;
+        case '+':     return {prec:1, fn:(x,y) => x+y};
+        case '-':     return {prec:1, fn:(x,y) => x-y};
+        case 'cdot':  return {prec:2, fn:(x,y) => x*y};
+        case 'times': return {prec:2, fn:(x,y) => x*y};
+        case '/':     return {prec:2, fn:(x,y) => x/y};
         default: return null;
         }
     }
