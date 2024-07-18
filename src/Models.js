@@ -872,22 +872,26 @@ class ExprPath {
 //   - '/' and '*' bind tighter than '+' and '-'.
 //   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
 //   - Postfix factorial notation is allowed.
+//   - Negative constants such as -10 are handled by the "- factor" production
+//     below; that is the reason for the allow_unary_minus flag being passed
+//     around.  The implicit multiplication rule would otherwise make things
+//     like '2-3' be parsed as '2*(-3)'.
 //
 // Mini-grammar:
 //   expr:
-//       '-' term |
-//           term |
-//       '-' term [+ | -] term |
-//           term [+ | -] term
+//       term |
+//       term '+' expr
+//       term '-' expr(!allow_unary_minus)
 //   term:
 //       factor |
 //       factor '!' |
-//       factor [* | /] term
-//       factor term    (implicit multiplication)
+//       factor '*','/' term(allow_unary_minus)
+//       factor term      (implicit multiplication)
 //   factor:
 //       number |
 //       symbol |
 //       '(' expr ')'     (delimiter types must match)
+//       '-' factor       (unary minus, only if factor(allow_unary_minus))
 //
 // TODO: -> ExprTextParser?  
 class TextExprParser {
@@ -897,7 +901,7 @@ class TextExprParser {
         let parser = new TextExprParser(tokens);
         let expr = null;
         try {
-            expr = parser.parse_expr();
+            expr = parser.parse_expr(true);
         } catch(e) {
             if(e.message === 'parse_error')
                 ;  // leave expr as null
@@ -910,14 +914,16 @@ class TextExprParser {
     }
     
     // Break string into to tokens; token types are:
-    //   number: 3, -5, 3.1, -5.1, etc. (no scientific notation or anything)
+    //   number: 3, 3.1, etc.
+    //      NOTE: scientific notation not supported
+    //      NOTE: negative numbers are handled by the "- factor" production in the grammar
     //   symbol: x (xyz becomes 3 separate symbols)
     //   operator: +, -, *, /, !
     //   open_delimiter: ( or [ or {
     //   close_delimiter: ) or ] or }
     static tokenize(s) {
         let pos = 0;
-        let number_regex = /-?\d*\.?\d+/g;
+        let number_regex = /\d*\.?\d+/g;
         let tokens = [];
         while(pos < s.length) {
             // Check for number:
@@ -951,31 +957,23 @@ class TextExprParser {
         this.token_index = 0;
     }
 
-    parse_expr() {
-        const prefix_token = this.peek_for('operator');
-        let negate = false;
-        if(prefix_token && prefix_token.text === '-') {
-            negate = true;
-            this.next_token();
-        }
-        const lhs = this.parse_term() || this.parse_error();
-        const binary_token = this.peek_for('operator');
+    parse_expr(allow_unary_minus) {
+        const lhs = this.parse_term(allow_unary_minus) || this.parse_error();
         let result_expr = lhs;
+        const binary_token = this.peek_for('operator');
         if(binary_token &&
            (binary_token.text === '+' || binary_token.text === '-')) {
             this.next_token();
-            const rhs = this.parse_term() || this.parse_error();
+            const allow_unary_minus = binary_token.text === '+';
+            const rhs = this.parse_expr(allow_unary_minus) || this.parse_error();
             result_expr = InfixExpr.combine_infix(
                 lhs, rhs, Expr.text_or_command(binary_token.text));
         }
-        if(negate)  // prepend unary -
-            result_expr = Expr.combine_pair(
-                Expr.text_or_command('-'), result_expr);
         return result_expr;
     }
 
-    parse_term() {
-        const lhs = this.parse_factor();
+    parse_term(allow_unary_minus) {
+        const lhs = this.parse_factor(allow_unary_minus);
         if(!lhs) return null;
         const op_token = this.peek_for('operator');
         if(op_token && op_token.text === '!') {
@@ -983,39 +981,70 @@ class TextExprParser {
             this.next_token();
             return Expr.combine_pair(lhs, Expr.text_or_command('!'));
         }
-        if(op_token && (op_token.text === '*' || op_token.text === '/')) {
+        else if(op_token && (op_token.text === '*' || op_token.text === '/')) {
             // explicit multiplication converts to \cdot
             const op_text = (op_token.text === '*' ? "\\cdot" : '/');
             this.next_token();
-            const rhs = this.parse_term() || this.parse_error();
+            const rhs = this.parse_term(true) || this.parse_error();
             return InfixExpr.combine_infix(
                 lhs, rhs, Expr.text_or_command(op_text));
         }
-        const rhs = this.parse_term();  // NOTE: not an error if null
+        // Try implicit multiplication: 'factor term' production
+        const rhs = this.parse_term(false);  // NOTE: not an error if null
         if(rhs) {
-            // factor factor (implicit multiplication)
-            // Special case: if both factors are literal numbers, an explicit \cdot will
-            // be inserted between them to indicate the multiplication.  The same applies
-            // if the right hand side is already such a \cdot form.
-            if(lhs.expr_type() === 'text' && lhs.looks_like_number() &&
-               ((rhs.expr_type() === 'text' && rhs.looks_like_number()) ||
-                (rhs.expr_type() === 'infix' &&
-                 rhs.operand_exprs.every(expr => expr.expr_type() === 'text' && expr.looks_like_number()) &&
-                 rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))))
-                return InfixExpr.combine_infix(lhs, rhs, Expr.text_or_command("\\cdot"));
-            else
-                return Expr.combine_pair(lhs, rhs);
+            // Combining rules for implicit multiplication:
+            //   number1 number2      -> number1 \cdot number2
+            //   number1 symbol       -> number1 symbol
+            //   number1 (a \cdot b)  -> number1 \cdot a \cdot b
+            //   number1 y            -> number1 (y)
+            //   x y ->                   (x)(y)
+            // TODO: handle unary minus
+            const cdot = Expr.text_or_command("\\cdot");
+            if(lhs.expr_type() === 'text' && lhs.looks_like_number()) {
+                if(rhs.expr_type() === 'text') {
+                    if(rhs.looks_like_number())
+                        return new InfixExpr(lhs, rhs, cdot);
+                    else
+                        return Expr.combine_pair(lhs, rhs);
+                }
+                else if(rhs.expr_type() === 'infix' &&
+                        rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
+                    return InfixExpr.combine_infix(lhs, rhs, cdot);
+                else
+                    return Expr.combine_pair(lhs, DelimiterExpr.parenthesize(rhs));
+            }
+            else {
+                // x y -> (x)(y)
+                return Expr.combine_pair(
+                    DelimiterExpr.parenthesize(lhs),
+                    DelimiterExpr.parenthesize(rhs));
+            }
         }
         else
             return lhs;  // factor by itself
     }
 
-    parse_factor() {
-        if(this.peek_for('number') || this.peek_for('symbol'))
-            return new TextExpr(this.next_token().text);
-        if(this.peek_for('open_delimiter')) {
+    parse_factor(allow_unary_minus) {
+        let negate = false;
+        if(allow_unary_minus) {
+            const negate_token = this.peek_for('operator');
+            if(negate_token && negate_token.text === '-') {
+                this.next_token();
+                negate = true;
+            }
+        }
+        if(this.peek_for('number'))
+            return new TextExpr((negate ? '-' : '') + this.next_token().text);
+        else if(this.peek_for('symbol')) {
+            const symbol_expr = new TextExpr(this.next_token().text);
+            if(negate)
+                return Expr.combine_pair(new TextExpr('-'), symbol_expr);
+            else
+                return symbol_expr;
+        }
+        else if(this.peek_for('open_delimiter')) {
             const open_delim_type = this.next_token().text;
-            const expr = this.parse_expr() || this.parse_error();
+            const expr = this.parse_expr(true) || this.parse_error();
             if(!this.peek_for('close_delimiter'))
                 return this.parse_error();
             const close_delim_type = this.next_token().text;
@@ -1024,9 +1053,14 @@ class TextExprParser {
             let [left, right] = [open_delim_type, close_delim_type];
             if(open_delim_type === '{')
                 [left, right] = ["\\{", "\\}"];  // latex-compatible form
-            return new DelimiterExpr(left, right, expr);
+            const delim_expr = new DelimiterExpr(left, right, expr);
+            if(negate)
+                return Expr.combine_pair(new TextExpr('-'), delim_expr);
+            else
+                return delim_expr;
         }
-        return null;
+        else
+            return null;
     }
 
     matching_closing_delimiter(open_delim) {
@@ -1041,7 +1075,8 @@ class TextExprParser {
             return null;
         if(this.tokens[this.token_index].type === token_type)
             return this.tokens[this.token_index];
-        else return null;
+        else
+            return null;
     }
     
     next_token() {
@@ -1964,24 +1999,22 @@ class InfixExpr extends Expr {
 	// (+- and /*) so this could be simplified to not need the stack stuff.
 	let value_stack = [operand_values[0]];
 	let op_stack = [];  // stores _operator_info structures
-	for(let i = 0; i < this.operator_exprs.length; i++) {
-	    const op_info = operator_infos[i];
-	    while(op_stack.length > 0 &&
-		  op_stack[op_stack.length-1].prec >= op_info.prec) {
-		const stack_op_info = op_stack.pop();
-		const rhs = value_stack.pop();
-		const lhs = value_stack.pop();
-		value_stack.push(stack_op_info.fn(lhs, rhs));
-	    }
-	    op_stack.push(op_info);
-	    value_stack.push(operand_values[i+1]);
-	}
-	while(op_stack.length > 0) {
+        let eval_stack_op = () => {
 	    const stack_op_info = op_stack.pop();
 	    const rhs = value_stack.pop();
 	    const lhs = value_stack.pop();
 	    value_stack.push(stack_op_info.fn(lhs, rhs));
+        };
+	for(let i = 0; i < this.operator_exprs.length; i++) {
+	    const op_info = operator_infos[i];
+	    while(op_stack.length > 0 &&
+		  op_stack[op_stack.length-1].prec >= op_info.prec)
+                eval_stack_op();
+	    op_stack.push(op_info);
+	    value_stack.push(operand_values[i+1]);
 	}
+	while(op_stack.length > 0)
+            eval_stack_op();
 	return value_stack.pop();
     }
 
