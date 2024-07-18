@@ -1072,7 +1072,13 @@ class InputContext {
                 if(!/^[a-zA-Z]$/.test(key))
                     return this.error_flash_stack();
             }
-            this.text_entry.insert(key);
+	    else if(this.text_entry.mode === 'math_text_entry' &&
+		    key === "\\" && this.text_entry.is_empty()) {
+		// Switch from math_text_entry -> latex_entry
+		// when entering as '\' as the first character.
+		return this.do_start_text_entry(stack, 'latex_entry', '');
+	    }
+	    this.text_entry.insert(key);
         }
         return stack;
     }

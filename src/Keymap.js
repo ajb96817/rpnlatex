@@ -236,7 +236,6 @@ const EditorKeymap = {
     math_text_entry: {
         'Enter': "finish_text_entry math",
         'Shift+Enter': "finish_text_entry roman_math",
-        "\\": "start_text_entry latex_entry",
         'delegate': "_editor_commands"
     },
 

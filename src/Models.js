@@ -901,7 +901,8 @@ class TextExprParser {
         } catch(e) {
             if(e.message === 'parse_error')
                 ;  // leave expr as null
-            throw e;
+	    else
+		throw e;
         }
         if(!expr) return null;
         if(!parser.at_end()) return null;  // extraneous tokens at end
