@@ -236,7 +236,13 @@ class LatexEmitter {
     }
 
     // Emit 'raw' LaTeX code.
-    text(text) {
+    text(text, force_braces) {
+        if(force_braces) {
+            this.text('{');
+            this.text(text);
+            this.text('}');
+            return;
+        }
         if(this.last_token_type === 'command') {
             // Determine if a space is needed after the last command; this depends
             // on whether two non-special characters are adjacent.
@@ -1044,13 +1050,14 @@ class TextExprParser {
             }
         }
         if(this.peek_for('number'))
-            return new TextExpr((negate ? '-' : '') + this.next_token().text);
+            return new TextExpr(
+                (negate ? '-' : '') + this.next_token().text);
         else if(this.peek_for('symbol')) {
-            const symbol_expr = new TextExpr(this.next_token().text);
+            const token_expr = new TextExpr(this.next_token().text);
             if(negate)
-                return Expr.combine_pair(new TextExpr('-'), symbol_expr);
+                return Expr.combine_pair(new TextExpr('-'), token_expr);
             else
-                return symbol_expr;
+                return token_expr;
         }
         else if(this.peek_for('open_delimiter')) {
             const open_delim_type = this.next_token().text;
@@ -2068,7 +2075,15 @@ class TextExpr extends Expr {
     expr_type() { return 'text'; }
     json_keys() { return ['text']; }
 
-    emit_latex(emitter) { emitter.text(this.text, null); }
+    emit_latex(emitter) {
+        // Check explicitly for '-123'.
+        // These need to be enclosed in latex braces to get the proper
+        // spacing in things like x+-3.
+        if(this.looks_like_number() && /^-/.test(this.text))
+            emitter.text(this.text, true);
+        else
+            emitter.text(this.text);
+    }
 
     looks_like_number() {
         // cf. TextExprParser.tokenize()
