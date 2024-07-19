@@ -279,9 +279,8 @@ class InputContext {
                 (is_superscript ? child_expr : base_expr.superscript_expr));
         }
         else {
-            // Create a new expr instead.  The base will be parenthesized if
-            // it's an infix expression or a fraction.
-            base_expr = DelimiterExpr.parenthesize_infix_or_frac(base_expr);
+            // Create a new expr instead, parenthesizing the base if needed.
+            base_expr = DelimiterExpr.parenthesize_for_power(base_expr);
             return new SubscriptSuperscriptExpr(
                 base_expr,
                 (is_superscript ? null : child_expr),

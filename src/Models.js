@@ -2284,29 +2284,30 @@ class DelimiterExpr extends Expr {
         else
             return this.parenthesize(expr);
     }
-    
 
-    // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
-    static autoparenthesize(expr) {
-        if(expr.expr_type() === 'infix' && expr.needs_autoparenthesization())
-            return DelimiterExpr.parenthesize(expr);
-        else
-            return expr;
-    }
-
-    // Parenthesize 'expr' if it's any kind of InfixExpr,
-    // or a fraction (a full \frac{}-style fraction or a
-    // "flex size" one like \left. x/y \right.).
-    static parenthesize_infix_or_frac(expr) {
+    // expr is about to become the base of a SubscriptSuperscriptExpr.
+    // The expression will be parenthesized if it is:
+    //    - any kind of InfixExpr
+    //    - any kind of SequenceExpr that is not a function application
+    //      of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
+    //    - an inline fraction like \frac{x}{y}
+    //    - a "flex style" fraction like \left. x/y \right.
+    static parenthesize_for_power(expr) {
         const needs_parenthesization = (
+            // any infix expression
+            (expr.expr_type() === 'infix') ||
+
+            // any SequenceExpr that is not [anything, DelimiterExpr]
+            // cf. SequenceExpr.emit_latex
+            (expr.expr_type() === 'sequence' &&
+             !(expr.exprs.length === 2 &&
+               expr.exprs[1].expr_type() === 'delimiter')) ||
+            
             // \frac{x}{y}
             (expr.expr_type() === 'command' &&
              expr.command_name === 'frac' &&
              expr.operand_count() === 2) ||
 
-            // any infix expression
-            (expr.expr_type() === 'infix') ||
-            
             // \left. x/y \right.
             // (x/y is an InfixExpr); this is a "flex size fraction".
             // TODO: add is_flex_inline_fraction() or something; this
@@ -2317,6 +2318,14 @@ class DelimiterExpr extends Expr {
              expr.inner_expr.is_binary_operator_with('/'))
         );
         if(needs_parenthesization)
+            return DelimiterExpr.parenthesize(expr);
+        else
+            return expr;
+    }
+
+    // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
+    static autoparenthesize(expr) {
+        if(expr.expr_type() === 'infix' && expr.needs_autoparenthesization())
             return DelimiterExpr.parenthesize(expr);
         else
             return expr;
