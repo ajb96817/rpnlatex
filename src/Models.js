@@ -994,30 +994,40 @@ class TextExprParser {
         if(rhs) {
             // Combining rules for implicit multiplication:
             //   number1 number2      -> number1 \cdot number2
-            //   number1 symbol       -> number1 symbol
-            //   number1 (a \cdot b)  -> number1 \cdot a \cdot b
-            //   number1 y            -> number1 (y)
-            //   x y ->                   (x)(y)
-            // TODO: handle unary minus
+            //   number1 a \cdot b    -> number1 \cdot a \cdot b
+            //   number1 symbol       -> number1 symbol (concatenate)
+            //   number1 sequence     -> number1 sequence (concatenate)
+            //   number1 y            -> number1 (y)  (parenthesize anything but a symbol or sequence)
+            //   x y                  -> xy
             const cdot = Expr.text_or_command("\\cdot");
             if(lhs.expr_type() === 'text' && lhs.looks_like_number()) {
                 if(rhs.expr_type() === 'text') {
                     if(rhs.looks_like_number())
-                        return new InfixExpr(lhs, rhs, cdot);
+                        return InfixExpr.combine_infix(lhs, rhs, cdot);
                     else
                         return Expr.combine_pair(lhs, rhs);
                 }
                 else if(rhs.expr_type() === 'infix' &&
                         rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
                     return InfixExpr.combine_infix(lhs, rhs, cdot);
+                else if(rhs.expr_type() === 'sequence' &&
+                        rhs.exprs.every(expr => expr.expr_type() === 'text' && !expr.looks_like_number()))
+                    return Expr.combine_pair(lhs, rhs);
                 else
-                    return Expr.combine_pair(lhs, DelimiterExpr.parenthesize(rhs));
+                    return Expr.combine_pair(lhs, DelimiterExpr.parenthesize_if_not_already(rhs));
             }
             else {
-                // x y -> (x)(y)
-                return Expr.combine_pair(
-                    DelimiterExpr.parenthesize(lhs),
-                    DelimiterExpr.parenthesize(rhs));
+                if(lhs.expr_type() === 'text' &&
+                   (rhs.expr_type() === 'text' || rhs.expr_type() === 'sequence')) {
+                    // number|symbol symbol|sequence
+                    return Expr.combine_pair(lhs, rhs);
+                }
+                else {
+                    // x y -> (x)(y)
+                    return Expr.combine_pair(
+                        DelimiterExpr.parenthesize_if_not_already(lhs),
+                        DelimiterExpr.parenthesize_if_not_already(rhs));
+                }
             }
         }
         else
@@ -2240,6 +2250,18 @@ class DelimiterExpr extends Expr {
             return new DelimiterExpr('(', ')', expr.inner_expr);
         return new DelimiterExpr('(', ')', expr);
     }
+
+    static parenthesize_if_not_already(expr) {
+        if(expr.expr_type() === 'delimiter') {
+            if(expr.left_type === '.' && expr.right_type === '.')
+                return new DelimiterExpr('(', ')', expr.inner_expr);
+            else
+                return expr;
+        }
+        else
+            return this.parenthesize(expr);
+    }
+    
 
     // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
     static autoparenthesize(expr) {
