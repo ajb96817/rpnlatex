@@ -1,7 +1,7 @@
 
 import {
     AppState, Document, Stack,
-    ExprPath, TextExprParser, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, ExprParser, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     ExprItem, TextItem, CodeItem
 } from './Models';
@@ -1111,7 +1111,7 @@ class InputContext {
     }
 
     // textstyle determines what the entered text becomes:
-    //   'math' - ExprItem with "parsed" italic math text (see TextExprParser).
+    //   'math' - ExprItem with "parsed" italic math text (see ExprParser).
     //   'roman_math' - Expr with \mathrm{...}, where ... is always a TextExpr
     //   'latex' - ExprItem with arbitrary latex command
     //   'text' - TextItem
@@ -1160,7 +1160,7 @@ class InputContext {
             return new_stack.push(new_item);
         }
         else {
-	    new_expr = TextExprParser.parse_string(text);
+	    new_expr = ExprParser.parse_string(text);
 	    if(!new_expr) {
 		this.perform_undo_or_redo = 'suppress';
 		this.switch_to_mode(this.mode);

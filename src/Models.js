@@ -899,12 +899,11 @@ class ExprPath {
 //       '(' expr ')'     (delimiter types must match)
 //       '-' factor       (unary minus, only if factor(allow_unary_minus))
 //
-// TODO: -> ExprTextParser?  
-class TextExprParser {
+class ExprParser {
     static parse_string(string) {
         const tokens = this.tokenize(string);
         if(!tokens) return null;
-        let parser = new TextExprParser(tokens);
+        let parser = new ExprParser(tokens);
         let expr = null;
         try {
             expr = parser.parse_expr(true);
@@ -1293,7 +1292,7 @@ class Expr {
 
     // If this expression can be 'unparsed' for editing in the minieditor, return
     // the editable string.  Return null if not possible.
-    // This is the 'inverse' of TextExprParser.parse_string().
+    // This is the 'inverse' of ExprParser.parse_string().
     as_editable_string() { return null; }
 
     // Invoke fn once for each subexpression in this expression tree (including 'this').
@@ -2079,15 +2078,16 @@ class TextExpr extends Expr {
         // Check explicitly for '-123'.
         // These need to be enclosed in latex braces to get the proper
         // spacing in things like x+-3.
-        if(this.looks_like_number() && /^-/.test(this.text))
-            emitter.text(this.text, true);
-        else
-            emitter.text(this.text);
+        emitter.text(this.text, this.looks_like_negative_number());
     }
 
     looks_like_number() {
-        // cf. TextExprParser.tokenize()
+        // cf. ExprParser.tokenize()
         return /^-?\d*\.?\d+$/.test(this.text);
+    }
+
+    looks_like_negative_number() {
+        return /^-\d*\.?\d+$/.test(this.text);
     }
 
     // Check for single-letter variable names.
@@ -3493,7 +3493,7 @@ class Document {
 export {
     Keymap, Settings, AppState, UndoStack,
     DocumentStorage, ImportExportState, FileManagerState,
-    ExprPath, TextExprParser, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    ExprPath, ExprParser, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
     Item, ExprItem, TextItem, CodeItem,
     Stack, Document
