@@ -896,8 +896,9 @@ class ExprPath {
 //   factor:
 //       number |
 //       symbol |
-//       '(' expr ')'     (delimiter types must match)
-//       '-' factor       (unary minus, only if factor(allow_unary_minus))
+//       '(' expr ')' |   (delimiter types must match)
+//       '-' factor |     (unary minus, only if factor(allow_unary_minus))
+//       []               (placeholder)
 //
 class ExprParser {
     static parse_string(string) {
@@ -938,6 +939,12 @@ class ExprParser {
                 tokens.push({type: 'number', text: result[0]});
                 pos += result[0].length;
             }
+	    // Check for [] placeholder:
+	    else if(pos < s.length-1 &&
+		    s[pos] === '[' && s[pos+1] === ']') {
+		tokens.push({type: 'placeholder', text: '[]'});
+		pos += 2;
+	    }
             else {
                 // All other tokens are always 1 character.
                 const token = s[pos];
@@ -1004,8 +1011,11 @@ class ExprParser {
             //   number1 sequence     -> number1 sequence (concatenate)
             //   number1 y            -> number1 (y)  (parenthesize anything but a symbol or sequence)
             //   x y                  -> xy
+	    // Also, a placeholder combined with anything always concatenates.
             const cdot = Expr.text_or_command("\\cdot");
-            if(lhs.expr_type() === 'text' && lhs.looks_like_number()) {
+	    if(lhs.expr_type() === 'placeholder' || rhs.expr_type() === 'placeholder')
+		return Expr.combine_pair(lhs, rhs);
+            else if(lhs.expr_type() === 'text' && lhs.looks_like_number()) {
                 if(rhs.expr_type() === 'text') {
                     if(rhs.looks_like_number())
                         return InfixExpr.combine_infix(lhs, rhs, cdot);
@@ -1024,7 +1034,7 @@ class ExprParser {
             else {
                 if(lhs.expr_type() === 'text' &&
                    (rhs.expr_type() === 'text' || rhs.expr_type() === 'sequence')) {
-                    // number|symbol symbol|sequence
+                    // number|symbol or symbol|sequence
                     return Expr.combine_pair(lhs, rhs);
                 }
                 else {
@@ -1058,6 +1068,10 @@ class ExprParser {
             else
                 return token_expr;
         }
+	else if(this.peek_for('placeholder')) {
+	    this.next_token();
+	    return new PlaceholderExpr();
+	}
         else if(this.peek_for('open_delimiter')) {
             const open_delim_type = this.next_token().text;
             const expr = this.parse_expr(true) || this.parse_error();
@@ -2115,6 +2129,8 @@ class PlaceholderExpr extends Expr {
             new TextExpr('placeholder_expr'), new TextExpr("\\blacksquare")]);
         emitter.expr(expr, null);
     }
+
+    as_editable_string() { return '[]'; }
 }
 
 
