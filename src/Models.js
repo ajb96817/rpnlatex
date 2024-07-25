@@ -3208,7 +3208,10 @@ class TextItem extends Item {
                 merged_elements.push(elements[i]);
             }
         }
-        return new TextItem(merged_elements, item1.is_heading || item2.is_heading);
+        return new TextItem(
+	    merged_elements,
+	    null,
+	    item1.is_heading || item2.is_heading);
     }
 
     constructor(elements, tag_string, is_heading) {
@@ -3247,7 +3250,12 @@ class TextItem extends Item {
     
     to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
 
-    clone() { return new TextItem(this.elements, this.is_heading); }
+    clone() {
+	return new TextItem(
+	    this.elements,
+	    this.tag_string,
+	    this.is_heading);
+    }
 
     // If this TextItem is simple enough, return a string representation suitable
     // for editing using the minieditor.  "Simple enough" currently means that there
@@ -3282,11 +3290,15 @@ class TextItem extends Item {
     as_bold() {
         return new TextItem(
             this.elements.map(element => element.as_bold()),
+	    this.tag_string,
             this.is_heading);
     }
 
     with_tag(new_tag_string) {
-        return new TextItem(this.elements, new_tag_string, this.is_heading);
+        return new TextItem(
+	    this.elements,
+	    new_tag_string,
+	    this.is_heading);
     }
 
     // If there is any PlaceholderExpr among the elements in this TextItem, substitute
@@ -3300,7 +3312,7 @@ class TextItem extends Item {
                 if(placeholder_expr) {
                     const new_expr = new_elements[i].expr.substitute_expr(placeholder_expr, substitution_expr);
                     new_elements[i] = new TextItemExprElement(new_expr);
-                    return new TextItem(new_elements, this.is_heading);
+                    return new TextItem(new_elements, this.tag_string, this.is_heading);
                 }
             }
         }
