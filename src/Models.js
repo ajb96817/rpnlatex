@@ -1114,7 +1114,7 @@ class ExprParser {
 
 class SpecialFunctions {
     static factorial(x) {
-	if(x >= 0 && x === Math.floor(x)) {
+	if(x >= 0 && this.is_integer(x)) {
             if(x <= 1) return 1;
             if(x > 20) return NaN;
             let value = 1;
@@ -1144,8 +1144,25 @@ class SpecialFunctions {
         return Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
     }
 
+    static is_integer(x) {
+	return x === Math.floor(x);
+    }
+
     static binom(n, k) {
-        return this.factorial(n) / this.factorial(n-k) / this.factorial(k);
+	// k must be a nonnegative integer, but n can be anything
+	if(!this.is_integer(k) || k < 0) return null;
+	// Use falling factorial-based algorithm n_(k) / k!
+	// TODO: could optimize a little via binom(n, k) = binom(n, n-k)
+	let value = 1;
+	for(let i = 1; i <= k; i++)
+	    value *= (n + 1 - i) / i;
+	if(this.is_integer(n)) {
+	    // Resulting quotient is an integer mathematically if n is,
+	    // but round it because of the limited floating point precision.
+	    return Math.round(value);
+	}
+	else
+	    return value;
     }
 }
 
@@ -2183,7 +2200,7 @@ class SequenceExpr extends Expr {
     }
 
     emit_latex(emitter) {
-        if(this.exprs.length === 2 &&
+        if(this.exprs.length === 2 && this.fused &&
            this.exprs[1].expr_type() === 'delimiter') {
             // Special case: Two-element "fused" SequenceExprs of the form
             // [Expr, DelimiterExpr] automatically wrap the DelimiterExpr in an "empty"
