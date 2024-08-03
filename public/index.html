@@ -218,11 +218,16 @@
         is similar to math entry mode but creates <em>text objects</em>.  Text objects are shown with
         a blue bar to the left (instead of grey) and differ from normal math objects in some important ways:
         <ul>
-          <li>They are meant for explanatory text, comments, etc., rather than being standalone math formulas.</li>
-          <li>They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.</li>
           <li>
-            They can be concatenated with other text objects or with math formulas using <span class="keybinding">&nbsp;</span>
-            (space) or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.  Math formulas
+	    They are meant for explanatory text, comments, etc., rather than being standalone math expressions.
+	    Therefore, they are not required to follow any particular math syntax.
+	  </li>
+          <li>
+	    They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.
+	  </li>
+          <li>
+            They can be concatenated with other text objects or with math expressions using <span class="keybinding">&nbsp;</span>
+            (space) or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.  Math expressions
             combined with text objects this way become part of the text and are displayed in a more compact inline format.
           </li>
           <li>

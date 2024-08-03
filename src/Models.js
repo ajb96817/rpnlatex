@@ -1590,8 +1590,12 @@ class Expr {
     }
 
     _too_large_to_expr(x) {
-        const text = x < 0 ? '[too large (negative)]' : '[too large]';
-        return new CommandExpr('textbf', [new TextExpr(text)]);
+	if(isFinite(x)) {
+            const text = x < 0 ? '[too large (negative)]' : '[too large]';
+            return new CommandExpr('textbf', [new TextExpr(text)]);
+	}
+	else
+	    return Expr.text_or_command(x > 0 ? "\\infty" : "-\\infty");
     }
 
     // NOTE: CommandExpr overrides this
@@ -1679,6 +1683,7 @@ class CommandExpr extends Expr {
 	    if(assigned_val !== undefined && assigned_val !== null)
 		return assigned_val;
             if(c === 'pi') return Math.PI;
+	    if(c === 'infty') return Infinity;
         }
         if(this.operand_count() === 1) {
             // Unary functions
@@ -2182,8 +2187,12 @@ class TextExpr extends Expr {
 	const assigned_val = assignments[s];
 	if(assigned_val !== undefined && assigned_val !== null)
 	    return assigned_val;
-        // check for constant \pi
+        // Check for known constants.
+	// Note though that these are typically CommandExprs
+	// (CommandExpr also checks for known constants).
         if(s === "\\pi") return Math.PI;
+	if(s === "\\infty") return Infinity;
+	if(s === "-\\infty") return -Infinity;  // created by some keybindings
         const val = parseFloat(s);
         if(isNaN(val))
             return null;

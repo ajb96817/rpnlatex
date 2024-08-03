@@ -25,7 +25,7 @@ import {
 //      If the editor is cancelled, this item will be placed back on the stack.
 // 'cursor_position':
 //     0: for beginning of string,
-//     text.length: after end of string (the usual case)
+//     current_text.length: after end of string (the usual case)
 class TextEntryState {
     constructor(mode, text, edited_item) {
         this.mode = mode;
@@ -268,7 +268,7 @@ class InputContext {
     // is placed into the existing base.  Otherwise, a new subscript/superscript node
     // is created.  A similar rule applies if is_superscript is false.
     _build_subscript_superscript(base_expr, child_expr, is_superscript) {
-        // Check to see if we can slot the child into an empty sub/superscript "slot".
+        // Check to see if we can put the child into an empty sub/superscript "slot".
         if(base_expr.expr_type() === 'subscriptsuperscript' &&
            ((base_expr.subscript_expr === null && !is_superscript) ||
             (base_expr.superscript_expr === null && is_superscript))) {
@@ -311,7 +311,8 @@ class InputContext {
             const s = base_expr.superscript_expr;
             const is_prime_command = expr =>
                   expr.expr_type() === 'command' &&
-                  expr.operand_count() === 0 && expr.command_name === 'prime';
+                  expr.operand_count() === 0 &&
+		  expr.command_name === 'prime';
             let new_superscript_expr;
             if(is_prime_command(s))
                 new_superscript_expr = new SequenceExpr([s, new_prime_expr]);
