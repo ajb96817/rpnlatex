@@ -1677,6 +1677,17 @@ class CommandExpr extends Expr {
 
     evaluate(assignments) {
         const c = this.command_name;
+	// NOTE: 'sech' and 'csch' are special cases (along with their inverse and squared variants);
+	// see do_named_function().  These are wrapped in \operatorname{sech}{...} commands.
+	// Check for these cases and synthesize a "fake" CommandExpr temporarily for the evaluation.
+	if(c === 'operatorname' &&
+	   this.operand_count() === 2 &&
+	   this.operand_exprs[0].expr_type() === 'text') {
+	    const funcname = this.operand_exprs[0].text;
+	    const arg_expr = this.operand_exprs[1];
+	    const fake_command = new CommandExpr(funcname, [arg_expr]);
+	    return fake_command.evaluate(assignments);
+	}
         if(this.operand_count() === 0) {
 	    // Check for "greek" letters in assignments.
 	    const assigned_val = assignments[c];
@@ -1691,10 +1702,16 @@ class CommandExpr extends Expr {
             if(x === null) return null;
             if(c === 'sin') return Math.sin(x);
             if(c === 'cos') return Math.cos(x);
+	    if(c === 'sec') return 1/Math.cos(x);
+	    if(c === 'csc') return 1/Math.sin(x);
             if(c === 'tan') return Math.tan(x);
+	    if(c === 'cot') return 1/Math.tan(x);
             if(c === 'sinh') return Math.sinh(x);
             if(c === 'cosh') return Math.cosh(x);
+	    if(c === 'sech') return 1/Math.cosh(x);
+	    if(c === 'csch') return 1/Math.sinh(x);
             if(c === 'tanh') return Math.tanh(x);
+	    if(c === 'coth') return 1/Math.tanh(x);
             if(c === 'sqrt') {
                 if(this.options === '3')
                     return Math.cbrt(x);
@@ -1704,16 +1721,28 @@ class CommandExpr extends Expr {
             // Hacky inverse and squared trig functions.  See Actions.js do_named_function().
             if(c === 'sin^{-1}') return Math.asin(x);
             if(c === 'cos^{-1}') return Math.acos(x);
+	    if(c === 'sec^{-1}') return Math.acos(1/x);
+	    if(c === 'csc^{-1}') return Math.asin(1/x);
             if(c === 'tan^{-1}') return Math.atan(x);
+	    if(c === 'cot^{-1}') return Math.atan(1/x);
             if(c === 'sinh^{-1}') return Math.asinh(x);
             if(c === 'cosh^{-1}') return Math.acosh(x);
+	    if(c === 'sech^{-1}') return Math.acosh(1/x);
+	    if(c === 'csch^{-1}') return Math.asinh(1/x);
             if(c === 'tanh^{-1}') return Math.atanh(x);
+	    if(c === 'coth^{-1}') return Math.atanh(1/x);
             if(c === 'sin^2') return Math.pow(Math.sin(x), 2);
             if(c === 'cos^2') return Math.pow(Math.cos(x), 2);
+	    if(c === 'sec^2') return Math.pow(Math.cos(x), -2);
+	    if(c === 'csc^2') return Math.pow(Math.sin(x), -2);
             if(c === 'tan^2') return Math.pow(Math.tan(x), 2);
+	    if(c === 'cot^2') return Math.pow(Math.tan(x), -2);
             if(c === 'sinh^2') return Math.pow(Math.sinh(x), 2);
             if(c === 'cosh^2') return Math.pow(Math.cosh(x), 2);
+	    if(c === 'sech^2') return Math.pow(Math.cosh(x), -2);
+	    if(c === 'csch^2') return Math.pow(Math.sinh(x), -2);
             if(c === 'tanh^2') return Math.pow(Math.tanh(x), 2);
+	    if(c === 'coth^2') return Math.pow(Math.tanh(x), -2);
             if(c === 'log_2' || c === 'lg') return Math.log2(x);
             if(c === 'ln' || c === 'log') return Math.log(x);
             if(c === 'exp') return Math.exp(x);
