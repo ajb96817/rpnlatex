@@ -1,10 +1,13 @@
 
 import {
     AppState, Document, Stack,
-    ExprPath, ExprParser, Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
-    DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr,
-    ExprItem, TextItem, CodeItem
+    ExprPath, ExprParser, ExprItem, TextItem, CodeItem
 } from './Models';
+
+import {
+    Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr
+} from './Exprs';
 
 
 // Holds context for the text entry mode line editor (InputContext.text_entry).
