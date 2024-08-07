@@ -1447,7 +1447,9 @@ class TextItem extends Item {
         //   - A RawElement representing an explicit space character (\,) is absorbed into an
         //     adjacent TextElement as a normal space character (this is to make the spacing
         //     less weird when attaching a text and expression via an infix space).
-        let merged_elements = [elements[0]];
+        let merged_elements = [];
+        if(elements.length > 0)
+            merged_elements.push(elements[0]);
         for(let i = 1; i < elements.length; i++) {
             const last_index = merged_elements.length-1;
             const last_merged_element = merged_elements[last_index];
