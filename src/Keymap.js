@@ -536,9 +536,9 @@ const EditorKeymap = {
         // gradient with respect to x
         'G': "push \\nabla;swap;subscript;swap;concat",
         // divergence
-        '.': "push \\nabla;push \\cdot;concat;swap;concat",
+        '.': "push \\nabla;swap;infix \\cdot",
         // curl
-        'c': "push \\nabla;push \\times;concat;swap;concat",
+        'c': "push \\nabla;swap;infix \\times",
         // Laplacian
         'l': "push \\nabla;push 2;superscript;swap;concat",
         // d'Alembertian
