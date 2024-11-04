@@ -1314,7 +1314,10 @@
           <tr>
             <td><span class="keybinding">v</span><code>\;\begin{vmatrix}a & b & c\end{vmatrix}</code></td>
             <td><span class="keybinding">V</span><code>\;\begin{Vmatrix}a & b & c\end{Vmatrix}</code></td>
-            <td><span class="keybinding">m</span><code>\;\begin{matrix}a & b & c\end{matrix}</code></td>
+            <td>
+              <span class="keybinding">m</span> or <span class="keybinding">&nbsp;</span>
+              <code>\;\begin{matrix}a & b & c\end{matrix}</code>
+            </td>
           </tr>
       </tbody></table>
       <p>
@@ -1422,7 +1425,7 @@
           <code>
             \begin{gathered}
               x^2 : x \ge 0 \\
-              x &lt; 0
+              0 : x &lt; 0
             \end{gathered}
             \longrightarrow
             \begin{cases}
@@ -1573,13 +1576,19 @@
       <p>
 	Evaluation requires the expression to be composed only
 	of constant values and operations involving them.  For example,
-	<code>\sin(\pi/6)</code> can be evaluated but not <code>\sin(2\pi x)</code>.
+	<code>\sin(\pi/6)</code> can be evaluated but not <code>\sin(2\pi x)</code>,
+        although simple variable substitutions can be performed using the
+        <span class="keybinding">|</span> subcommand below.
       </p>
       <p>
 	The result of the evaluation will be a floating-point number.
 	However, if it can be closely approximated by a fraction, or
 	a factor of something like <code>\sqrt{2}</code>, the result will instead
 	be represented that way.
+      </p>
+      <p>
+        <strong>NOTE:</strong> This numerical evaluation feature is experimental and
+        not everything is guaranteed to be supported.
       </p>
       <ul class="keybindings">
 	<li>
@@ -1597,6 +1606,15 @@
 	  <span class="keybinding">Enter</span>
 	  Like <span class="keybinding">=</span> but forces the decimal approximation right away.
 	</li>
+        <li>
+          <span class="keybinding">|</span>
+          Evaluate with a variable substitution.  Like <span class="keybinding">=</span>, but
+          an extra expression on the stack top of the form <code>z=123</code> is used to replace
+          a variable in the expression to be evaluated.
+          <br />
+          <strong>NOTE:</strong> Currently the variable names must be single-letter only (Greek letters allowed),
+          and only one variable substitution per expression is supported.
+        </li>
         <li><span class="keybinding">#</span> Put a literal # on the stack.</li>
       </ul>
       <p>

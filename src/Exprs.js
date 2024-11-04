@@ -1428,7 +1428,7 @@ class SubscriptSuperscriptExpr extends Expr {
            base_expr.operand_exprs[0].expr_type() === 'text' &&
            base_expr.operand_exprs[0].text === 'e') {
             const exponent_value = sup_expr.evaluate(assignments);
-            if(!exponent_value) return null;
+            if(exponent_value === null) return null;
             const value = Math.exp(exponent_value);
             if(isNaN(value))
                 return null;
@@ -1448,7 +1448,9 @@ class SubscriptSuperscriptExpr extends Expr {
         }
 
         // Assume it's a regular x^y power expression.
+        if(base_value === null) return null;
         const exponent_value = sup_expr.evaluate(assignments);
+        if(exponent_value === null) return null;
         const value = Math.pow(base_value, exponent_value);
         if(isNaN(value))
             return null;
@@ -1505,14 +1507,14 @@ class ArrayExpr extends Expr {
                         expr.operator_exprs[expr.split_at_index])];
             }
             else
-                return [expr, null];
+                return [expr, TextExpr.blank()];
         case 'colon':
             if(expr.expr_type() === 'infix' && expr.operator_text() === ':')
                 return [
                     expr.extract_side_at(expr.split_at_index, 'left'),
                     expr.extract_side_at(expr.split_at_index, 'right')];
             else
-                return [expr, null];
+                return [expr, TextExpr.blank()];
         case 'colon_if':
             if(expr.expr_type() === 'infix' && expr.operator_text() === ':')
                 return [

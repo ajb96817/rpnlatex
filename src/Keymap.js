@@ -781,6 +781,7 @@ const EditorKeymap = {
         'h': "transpose_matrix;swap;transpose_matrix;swap;stack_arrays;transpose_matrix",  // i.e., stack horizontally
         'k': "build_substack",
         'm': "build_matrix_row matrix",
+        ' ': "build_matrix_row matrix",
         'p': "build_infix_list +;push \\cdots;push +;apply_infix",
         's': "split_array",
         't': "mode change_matrix_type",
@@ -807,6 +808,7 @@ const EditorKeymap = {
 
     change_matrix_type: {
         'm': "change_matrix_type matrix",
+        ' ': "change_matrix_type matrix",
         'v': "change_matrix_type vmatrix",
         'V': "change_matrix_type Vmatrix",
         '(': "change_matrix_type pmatrix",

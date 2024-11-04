@@ -1811,15 +1811,20 @@ class InputContext {
 
 	// Construct a "where"-style expression like that formed by [/][|].
 	const where_expr = new SubscriptSuperscriptExpr(
-	    new DelimiterExpr('.', '|', expr),
+	    new DelimiterExpr('.', "\\vert", expr),
 	    InfixExpr.combine_infix(
 		variable_expr,
 		value_expr,
 		new TextExpr('=')),
 	    null);
-	const final_expr = InfixExpr.combine_infix(
-	    where_expr, result_expr, new TextExpr('='));
-	return new_stack.push_expr(final_expr);
+        if(is_exact)
+            return new_stack.push_expr(
+	        InfixExpr.combine_infix(
+	            where_expr, result_expr, new TextExpr('=')));
+        else
+            return new_stack.push_expr(
+	        InfixExpr.combine_infix(
+	            where_expr, result_expr, new CommandExpr('approx', [])));
     }
 
     // Copy stack top to an internal clipboard slot.
