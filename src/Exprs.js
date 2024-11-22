@@ -300,7 +300,15 @@ class Expr {
             result ||= this._try_rationalize_with_factor(
                 value, Math.sqrt(small_squarefree[i]),
                 make_sqrt(make_text(small_squarefree[i])), null);
-        // TODO: check factors of 1+sqrt(5), 1-sqrt(5) (golden ratio-ish)
+        // Try golden ratio-like factors
+        result ||= this._try_rationalize_with_factor(
+            value, 1+Math.sqrt(5),
+            new InfixExpr([make_text(1), make_sqrt(make_text(5))], [new TextExpr('+')]),
+            null);
+        result ||= this._try_rationalize_with_factor(
+            value, Math.sqrt(5)-1,  // NOTE: 
+            new InfixExpr([make_sqrt(make_text(5)), make_text(1)], [new TextExpr('-')]),
+            null);
         // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
         // Finally, rationalize the number itself with no factors
         result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
@@ -331,8 +339,12 @@ class Expr {
                 // Integer multiple of the factor.
                 const base_expr = this._int_to_expr(final_numer*sign);
                 if(numer_factor_expr) {
-                    if(final_numer === 1)
-                        final_expr = numer_factor_expr;
+                    if(final_numer === 1) {
+                        if(sign < 0)
+                            final_expr = Expr.combine_pair(new TextExpr('-'), numer_factor_expr);
+                        else
+                            final_expr = numer_factor_expr;
+                    }
                     else
                         final_expr = Expr.combine_pair(base_expr, numer_factor_expr);
                 }
@@ -737,7 +749,6 @@ class InfixExpr extends Expr {
             return null;
     }
    
-
     // e.g. operator_text==='/' would match 'x/y'.
     is_binary_operator_with(operator_text) {
         return this.operator_exprs.length === 1 &&
@@ -1418,7 +1429,7 @@ class SubscriptSuperscriptExpr extends Expr {
 		}
 	    }
 	}
-	
+
         // Anything else with a subscript can't be evaluated.
         if(sub_expr !== null) return null;
         // Check for e^x notation created by [/][e].
