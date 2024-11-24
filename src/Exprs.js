@@ -291,7 +291,7 @@ class Expr {
             value, 1/Math.sqrt(Math.PI), null, make_sqrt(pi_expr));
         result ||= this._try_rationalize_with_factor(  // \sqrt(2pi)
             value, Math.sqrt(2*Math.PI), make_sqrt(two_pi_expr), null);
-        result ||= this._try_rationalize_with_factor(  // 1 / \sqrt{2pi}
+        result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(2pi)
             value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
         // Try sqrt(n) in the numerator for small square-free n.
         // No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
@@ -306,7 +306,7 @@ class Expr {
             new InfixExpr([make_text(1), make_sqrt(make_text(5))], [new TextExpr('+')]),
             null);
         result ||= this._try_rationalize_with_factor(
-            value, Math.sqrt(5)-1,  // NOTE: 
+            value, Math.sqrt(5)-1,  // NOTE: keep positive sign, 1-sqrt(5) is negative
             new InfixExpr([make_sqrt(make_text(5)), make_text(1)], [new TextExpr('-')]),
             null);
         // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
@@ -599,7 +599,7 @@ class CommandExpr extends Expr {
 	if(this.command_name === 'mathrm' &&
 	   this.operand_count() === 1 &&
 	   this.operand_exprs[0].expr_type() === 'text')
-	    return this.operand_exprs[0].text;
+	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text);
 	// Other commands are not considered 'editable' (yet).
 	return null;
     }
@@ -608,18 +608,19 @@ class CommandExpr extends Expr {
     // LaTeX has different ways of expressing 'bold' so this is not quite trivial.
     // TextItem implements as_bold() in yet another way.
     as_bold() {
-        if(this.command_name === 'boldsymbol')
+        const c = this.command_name;
+        if(c === 'boldsymbol')
             return this;
-        else if(this.command_name === 'mathrm') {
+        else if(c === 'mathrm') {
             // Replace \mathrm with \bold (as if it were originally created with [.][e] (operator bold))
             if(this.operand_count() === 1)
                 return new CommandExpr('bold', this.operand_exprs);
             else
                 return this;
         }
-        else if(this.command_name === 'mathtt' || this.command_name === 'mathsf' ||
-                this.command_name === 'mathbb' || this.command_name === 'mathfrak' ||
-                this.command_name === 'mathscr' || this.command_name === 'mathcal') {
+        else if(c === 'mathtt' || c === 'mathsf' ||
+                c === 'mathbb' || c === 'mathfrak' ||
+                c === 'mathscr' || c === 'mathcal') {
             // For font families without bold fonts, wrap it in \pmb{} instead.
             // Since KaTeX v.0.16.2, \pmb is rendered better (via CSS shadows) which
             // makes this feasible.
@@ -767,9 +768,9 @@ class InfixExpr extends Expr {
     }
 
     // 'inside_delimiters' is set to true when this InfixExpr is rendered
-    //   as the inner_expr of a DelimiterExpr.
-    //   This gives us a chance to convert things like \parallel into
-    //   their flexible \middle counterparts.
+    // as the inner_expr of a DelimiterExpr.
+    // This gives us a chance to convert things like \parallel into
+    // their flexible \middle counterparts.
     emit_latex(emitter, inside_delimiters) {
         const is_top_level = (this === emitter.base_expr);
         for(let i = 0; i < this.operator_exprs.length; i++) {
@@ -1195,7 +1196,7 @@ class DelimiterExpr extends Expr {
     //    - any kind of InfixExpr
     //    - any kind of SequenceExpr that is not a function application
     //      of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
-    //    - an inline fraction like \frac{x}{y}
+    //    - a normal fraction like \frac{x}{y}
     //    - a "flex style" fraction like \left. x/y \right.
     static parenthesize_for_power(expr) {
         const needs_parenthesization = (

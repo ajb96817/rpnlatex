@@ -147,6 +147,50 @@ Settings.saved_keys = [
 
 // Helper for generating LaTeX strings from Expr objects.
 class LatexEmitter {
+    static latex_escape(text) {
+        const replacements = {
+            ' ': "\\,",
+            '_': "\\_",
+            '^': "\\wedge ",
+            '%': "\\%",
+            "'": "\\rq ",
+            "`": "\\lq ",
+            '$': "\\$",
+            '&': "\\&",
+            '#': "\\#",
+            '}': "\\}",
+            '{': "\\{",
+            '~': "\\sim ",
+            "\\": "\\backslash "
+        };
+        return text.replaceAll(/[ _^%'`$&#}{~\\]/g, match => replacements[match]);
+    }
+
+    // Inverse of latex_escape.  This is used by do_edit_item to allow simple TextExprs
+    // to be editable again in the minieditor.
+    static latex_unescape(text) {
+	// TODO: figure out a better way of handling this so it doesn't repeat
+	// what's in latex_escape
+        const replacements = {
+            "\\,": ' ',
+            "\\_": '_',
+            "\\wedge ": '^',
+            "\\%": '%',
+            "\\rq ": "'",
+            "\\lq ": "`",
+            "\\$": '$',
+            "\\&": '&',
+            "\\#": '#',
+            "\\}": '}',
+            "\\{": '{',
+            "\\sim ": '~',
+            "\\backslash ": "\\"
+        };
+        return text.replaceAll(
+	    /\\,|\\_|\\wedge |\\%|\\rq |\\lq |\\\$|\\&|\\#|\\\}|\\\{|\\sim |\\backslash /g,
+	    match => replacements[match]);
+    }
+
     // selected_expr_path is optional, but if provided it is an ExprPath
     // object that indicates which Expr is to be rendered with a "highlight"
     // indicating that it is currently selected.
@@ -874,7 +918,7 @@ class ExprPath {
 // Parse simple "algebraic" snippets, for use in math_entry mode.
 //
 // Rules:
-//   - Spaces are completely ignored.
+//   - Spaces are ignored except to separate numbers.
 //   - "Symbols" are one-letter substrings like 'x'.
 //   - Adjacent factors are combined with implicit multiplication.
 //   - 'xyz' is considered implicit multiplication of x,y,z.
@@ -882,6 +926,7 @@ class ExprPath {
 //   - '/' and '*' bind tighter than '+' and '-'.
 //   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
 //   - Postfix factorial notation is allowed.
+//   - Placeholders can be inserted with [].
 //   - Negative constants such as -10 are handled by the "- factor" production
 //     below; that is the reason for the allow_unary_minus flag being passed
 //     around.  The implicit multiplication rule would otherwise make things
@@ -1239,7 +1284,7 @@ Item.serial_number = 1;
 // Represents a math expression (Expr instance) in the stack or document.
 class ExprItem extends Item {
     // 'selected_expr_path' is an optional ExprPath object; the indicated subexpression(s)
-    //     will be highlighted in a "selected" style by the renderer.
+    // will be highlighted in a "selected" style by the renderer.
     constructor(expr, tag_string, selected_expr_path) {
         super(tag_string)
         this.expr = expr;
@@ -1593,6 +1638,8 @@ class TextItem extends Item {
 }
 
 
+// Source code item.  Currently only used and created by [Tab][$] (do_extract_latex_source)
+// and no operations are supported on these items.
 class CodeItem extends Item {
     static from_latex_string(s) { return new CodeItem('latex', s); }
 
@@ -1620,8 +1667,8 @@ class CodeItem extends Item {
 }
 
 
-// NOTE: All stack operations return a new Stack with the modified
-// items, leaving the original untouched.
+// The item stack.  This is never modified in-place; all stack operations
+// return a new Stack with the modified items, leaving the original untouched.
 class Stack {
     static from_json(json) {
         return new Stack(
@@ -1710,8 +1757,8 @@ class Stack {
 }
 
 
-// NOTE: Like Stack, all Document operations are non-destructive and return a new
-// Document reflecting the changes.
+// The document item list.  Like Stack, all Document operations are non-destructive
+// and return a new Document reflecting the changes.
 class Document {
     static from_json(json) {
         return new Document(

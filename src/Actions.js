@@ -1,6 +1,6 @@
 
 import {
-    AppState, Document, Stack,
+    AppState, Document, Stack, LatexEmitter,
     ExprPath, ExprParser, ExprItem, TextItem, CodeItem
 } from './Models';
 
@@ -80,6 +80,7 @@ class TextEntryState {
 
 
 // This acts as a sort of extension to the main App component.
+// Any method starting with do_ can be directly invoked by keybindings.
 // TODO: rename -> EditorActions or something
 class InputContext {
     constructor(app_component, settings) {
@@ -316,13 +317,11 @@ class InputContext {
                   expr.expr_type() === 'command' &&
                   expr.operand_count() === 0 &&
 		  expr.command_name === 'prime';
-            let new_superscript_expr;
+            let new_superscript_expr = null;
             if(is_prime_command(s))
                 new_superscript_expr = new SequenceExpr([s, new_prime_expr]);
             else if(s.expr_type() === 'sequence' && s.exprs.every(is_prime_command))
                 new_superscript_expr = new SequenceExpr(s.exprs.concat([new_prime_expr]));
-            else
-                new_superscript_expr = null;
             if(new_superscript_expr) {
                 const new_expr = new SubscriptSuperscriptExpr(
                     base_expr.base_expr, base_expr.subscript_expr, new_superscript_expr);
@@ -722,14 +721,12 @@ class InputContext {
             funcname = [funcname, sup_or_sub, superscript_text].join('');
         }
         arg_expr = DelimiterExpr.autoparenthesize(arg_expr);
-
         // \sech and \csch are are missing in LaTeX for some reason so they need to be special cased here.
         let expr;
         if(orig_funcname === 'sech' || orig_funcname === 'csch')
             expr = new CommandExpr('operatorname', [new TextExpr(funcname), arg_expr]);
         else
             expr = new CommandExpr(funcname, [arg_expr]);
-
         return new_stack.push_expr(expr);
     }
 
@@ -1139,7 +1136,7 @@ class InputContext {
         let new_expr = null;
         if(textstyle === 'roman_math') {
             new_expr = new CommandExpr('mathrm', [
-                new TextExpr(this._latex_escape(text))]);
+                new TextExpr(LatexEmitter.latex_escape(text))]);
         }
         else if(textstyle === 'latex') {
             // NOTE: do_append_text_entry should only allow alphabetic characters through,
@@ -1345,51 +1342,6 @@ class InputContext {
 	}
 	else
 	    return this.error_flash_stack();
-    }
-
-    // TODO: may want to make this a general utility method, but it's only used here so far.
-    _latex_escape(text) {
-        const replacements = {
-            ' ': "\\,",
-            '_': "\\_",
-            '^': "\\wedge ",
-            '%': "\\%",
-            "'": "\\rq ",
-            "`": "\\lq ",
-            '$': "\\$",
-            '&': "\\&",
-            '#': "\\#",
-            '}': "\\}",
-            '{': "\\{",
-            '~': "\\sim ",
-            "\\": "\\backslash "
-        };
-        return text.replaceAll(/[ _^%'`$&#}{~\\]/g, match => replacements[match]);
-    }
-
-    // Inverse of _latex_escape.  This is used by do_edit_item to allow simple TextExprs
-    // to be editable again in the minieditor.
-    _latex_unescape(text) {
-	// TODO: figure out a better way of handling this so it doesn't repeat
-	// what's in _latex_escape
-        const replacements = {
-            "\\,": ' ',
-            "\\_": '_',
-            "\\wedge ": '^',
-            "\\%": '%',
-            "\\rq ": "'",
-            "\\lq ": "`",
-            "\\$": '$',
-            "\\&": '&',
-            "\\#": '#',
-            "\\}": '}',
-            "\\{": '{',
-            "\\sim ": '~',
-            "\\backslash ": "\\"
-        };
-        return text.replaceAll(
-	    /\\,|\\_|\\wedge |\\%|\\rq |\\lq |\\\$|\\&|\\#|\\\}|\\\{|\\sim |\\backslash /g,
-	    match => replacements[match]);
     }
 
     do_toggle_is_heading(stack) {

@@ -208,7 +208,7 @@ const EditorKeymap = {
         '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int"
     },
 
-    // Delegate (shared) keymap for the 3 text_entry modes' editor commands.
+    // Delegate (shared) keymap for the 5 text_entry modes' editor commands.
     _editor_commands: {
         'Escape': "cancel_text_entry",
         'Ctrl+z': "cancel_text_entry",
