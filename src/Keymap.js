@@ -218,7 +218,9 @@ const EditorKeymap = {
         'ArrowRight': "text_entry_move_cursor right",
         'Home': "text_entry_move_cursor begin",
         'End': "text_entry_move_cursor end",
-        'Ctrl+a': "text_entry_move_cursor begin",  // NOTE: Ctrl editor commands here are undocumented
+        // NOTE: Ctrl editor commands here are undocumented
+        'Ctrl+a': "text_entry_move_cursor begin",
+        'Ctrl+d': "text_entry_backspace delete",
         'Ctrl+e': "text_entry_move_cursor end",
         'Ctrl+f': "text_entry_move_cursor right",
         'Ctrl+b': "text_entry_move_cursor left",

@@ -939,7 +939,6 @@ class ExprPath {
 //       term '-' expr(!allow_unary_minus)
 //   term:
 //       factor |
-//       factor '!' |
 //       factor '*','/' term(allow_unary_minus)
 //       factor term      (implicit multiplication)
 //   factor:
@@ -947,6 +946,7 @@ class ExprPath {
 //       symbol |
 //       '(' expr ')' |   (delimiter types must match)
 //       '-' factor |     (unary minus, only if factor(allow_unary_minus))
+//       factor '!' |     (factorial notation)
 //       []               (placeholder)
 //
 class ExprParser {
@@ -1037,12 +1037,7 @@ class ExprParser {
         const lhs = this.parse_factor(allow_unary_minus);
         if(!lhs) return null;
         const op_token = this.peek_for('operator');
-        if(op_token && op_token.text === '!') {
-            // postfix factorial
-            this.next_token();
-            return Expr.combine_pair(lhs, Expr.text_or_command('!'));
-        }
-        else if(op_token && (op_token.text === '*' || op_token.text === '/')) {
+        if(op_token && (op_token.text === '*' || op_token.text === '/')) {
             // explicit multiplication converts to \cdot
             const op_text = (op_token.text === '*' ? "\\cdot" : '/');
             this.next_token();
@@ -1099,6 +1094,20 @@ class ExprParser {
     }
 
     parse_factor(allow_unary_minus) {
+        let factor = this.parse_factor_(allow_unary_minus);
+        while(factor) {
+            // Process one or more postfix '!' if present.
+            const op_token = this.peek_for('operator');
+            if(op_token && op_token.text === '!') {
+                this.next_token();
+                factor = Expr.combine_pair(factor, Expr.text_or_command('!'));
+            }
+            else break;
+        }
+        return factor;
+    }
+
+    parse_factor_(allow_unary_minus) {
         let negate = false;
         if(allow_unary_minus) {
             const negate_token = this.peek_for('operator');
