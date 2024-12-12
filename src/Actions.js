@@ -1190,6 +1190,7 @@ class InputContext {
     //   - ExprItems that represent a simple text string like '123' or 'xyz'.
     //   - ExprItems that represent \mathrm{x} where x is a simple string like '123' or 'xyz'
     //     (this is to allow expressions created via Shift+Enter in the minieditor to be editable).
+    //   - ExprItems that represent \operatorname{x}.
     do_edit_item(stack) {
 	const [new_stack, item] = stack.pop(1);
 	if(item.item_type() === 'text') {

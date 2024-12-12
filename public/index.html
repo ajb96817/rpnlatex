@@ -91,7 +91,7 @@
           Make subscript: <code>y\enspace x \to y_x</code>
         </li>
         <li><span class="keybinding">Shift+Enter</span>
-	  Start editing the stack top as text (see <a href="#text_entry">math and text entry</a> below).
+	  Start editing the stack top as text (see <a href="#math_entry">math and text entry</a> below).
         </li>
         <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
         <li>
@@ -136,7 +136,7 @@
 	documents section via <span class="keybinding">?</span><span class="keybinding">?</span>.)
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">\</span> Input a longer character string with <a href="#text_entry">math entry</a> mode.</li>
+        <li><span class="keybinding">\</span> Input a longer character string with <a href="#math_entry">math entry</a> mode.</li>
         <li><span class="keybinding">&quot;</span> Create a text object with <a href="#text_entry">text entry</a> mode.</li>
         <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
         <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
@@ -173,8 +173,8 @@
       </ul>
 
       <h2>
-        <span class="keybinding">\</span>&nbsp;<span class="keybinding">&quot;</span>
-        <a name="text_entry" id="help_text_entry">Math and Text Entry</a>
+        <span class="keybinding">\</span>
+        <a name="math_entry" id="help_math_entry">Math Entry</a>
       </h2>
       <p>
         The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
@@ -222,9 +222,23 @@
         For example: <kbd>\\boxdot</kbd> <code>\to\boxdot</code>
       </p>
       <p>
+	<strong>NOTE:</strong>
+	The input field used here is very limited and supports only character entry along with
+        arrow keys to move around, <span class="keybinding">Backspace</span>, and
+        <span class="keybinding">Esc</span> to cancel text entry.
+	It is meant for entering short snippets of text; longer items should be created as pieces
+	and assembled on the stack.
+      </p>
+
+      <h2>
+        <span class="keybinding">&quot;</span>
+        <a name="text_entry" id="help_text_entry">Text Entry</a>
+      </h2>
+      <p>
         The <span class="keybinding">&quot;</span> prefix starts <em>text entry</em> mode which
-        is similar to math entry mode but creates <em>text objects</em>.  Text objects are shown with
-        a blue bar to the left (instead of grey) and differ from normal math objects in some important ways:
+        is similar to <a href="#math_entry">math entry</a> but creates <em>text objects</em>.
+        Text objects are shown with a blue bar to the left (instead of grey) and differ from normal
+        math objects in some important ways:
         <ul>
           <li>
 	    They are meant for explanatory text, comments, etc., rather than being standalone math expressions.
@@ -249,20 +263,21 @@
           </li>
         </ul>
       </p>
+
+      <h2>
+        <span class="keybinding">Shift+Enter</span>
+        <a name="edit_text" id="help_edit_text">Edit Text</a>
+      </h2>
       <p>
-	Once a math or text object has been entered like this and placed on the stack,
-	<span class="keybinding">Shift+Enter</span> may be used to edit it again.
-	Only simple objects created by math or text entry are editable as text; once further manipulations
-	are performed they may no longer be editable.  If editing is possible, the object will be
-	brought back into the input field.
+        Some simple math or text objects, including those entered with
+        <a href="#math_entry">math entry</a> or <a href="#text_entry">text entry</a> modes,
+        may be brought back into the math or text entry editor for further editing
+        with <span class="keybinding">Shift+Enter</span>.
       </p>
       <p>
-	<strong>NOTE:</strong>
-	The input field used here is very limited and supports only character entry along with
-        arrow keys to move around, <span class="keybinding">Backspace</span>, and
-        <span class="keybinding">Esc</span> to cancel text entry.
-	It is meant for entering short snippets of text; longer items should be created as pieces
-	and assembled on the stack.
+	<strong>NOTE:</strong> Only sufficiently simple objects are editable this way; once
+        further manipulations are performed they may no longer be editable.
+        In this case, <a href="#dissect">dissect</a> mode may be helpful instead.
       </p>
 
       <h2>
@@ -1104,7 +1119,7 @@
 
       <p>
         <strong>NOTE:</strong> Arbitrarily-named operators can be created with
-        <a href="#text_entry">math entry</a> mode by finishing the entry with
+        <a href="#math_entry">math entry</a> mode by finishing the entry with
         <span class="keybinding">Tab</span>.
       </p>
 

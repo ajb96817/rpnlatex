@@ -600,6 +600,12 @@ class CommandExpr extends Expr {
 	   this.operand_count() === 1 &&
 	   this.operand_exprs[0].expr_type() === 'text')
 	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text);
+        // \operatorname{...} with a TextExpr inside.
+        // This may have been created with Tab from math entry mode.
+        if(this.command_name === 'operatorname' &&
+           this.operand_count() === 1 &&
+	   this.operand_exprs[0].expr_type() === 'text')
+            return this.operand_exprs[0].text;
 	// Other commands are not considered 'editable' (yet).
 	return null;
     }
