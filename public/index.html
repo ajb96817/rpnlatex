@@ -16,7 +16,7 @@
 
     <!-- The entire user manual is inline here, to be unhidden at runtime when requested. -->
     <div id="helptext" style="display: none;">
-      <div class="version_info">rpnlatex v1.2.1</div>
+      <div class="version_info">rpnlatex v1.2.2</div>
       <h1>User Guide</h1>
       <p>
         Scroll this text up and down with
@@ -204,9 +204,17 @@
       </p>
       <p>
         <span class="keybinding">Esc</span> (or <span class="keybinding">Ctrl+z</span>) will cancel math entry mode.
+      </p>
+      <p>
         If you use <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
         to finish your entry, it will be typeset in a roman (non-italic) font instead of the normal italic math font,
 	and it will not be parsed as a math expression, so you can use any text you want.
+      </p>
+      <p>
+        Also, <span class="keybinding">Tab</span> will typeset your entry as an <em>operator name</em> which behaves
+        the same as built-in operators such as <code>\lim</code> and <code>\sin</code>.  This gives extra spacing
+        between anything concatenated to (or before) the operator name to match normal math notation.  Only letters,
+        numbers, spaces and dashes are allowed in operator names.
       </p>
       <p>If you type another <span class="keybinding">\</span>
         after the first one, you will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
@@ -1083,21 +1091,22 @@
             <td><span class="keybinding">n</span> <code>\argmin</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">o</span> <code>\operatorname{Cov}</code></td>
-            <td><span class="keybinding">p</span> <code>\Pr</code></td>
             <td><span class="keybinding">r</span> <code>\operatorname{tr}</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">s</span> <code>\sup</code></td>
             <td><span class="keybinding">t</span> <code>\det</code></td>
-            <td><span class="keybinding">u</span> <code>\limsup</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">v</span> <code>\operatorname{Var}</code></td>
+            <td><span class="keybinding">u</span> <code>\limsup</code></td>
             <td><span class="keybinding">x</span> <code>\max</code></td>
             <td></td>
           </tr>
       </tbody></table>
+
+      <p>
+        <strong>NOTE:</strong> Arbitrarily-named operators can be created with
+        <a href="#text_entry">math entry</a> mode by finishing the entry with
+        <span class="keybinding">Tab</span>.
+      </p>
 
       <h2>
         <a name="placeholders" id="help_placeholders">Placeholders</a>

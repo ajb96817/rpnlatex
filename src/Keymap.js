@@ -238,6 +238,7 @@ const EditorKeymap = {
     math_text_entry: {
         'Enter': "finish_text_entry math",
         'Shift+Enter': "finish_text_entry roman_math",
+        'Tab': "finish_text_entry operatorname",
         'delegate': "_editor_commands"
     },
 
@@ -417,13 +418,10 @@ const EditorKeymap = {
         'l': "operator lim",
         'm': "operator min",
         'n': "operator argmin",
-        'o': "push Cov;operator operatorname;swap;concat",
-        'p': "operator Pr",
         'r': "push tr;operator operatorname;swap;concat",
         's': "operator sup",
         't': "operator det",
         'u': "operator limsup",
-        'v': "push Var;operator operatorname;swap;concat",
         'x': "operator max",
 
         'A': "underset_operator arg",
@@ -438,13 +436,10 @@ const EditorKeymap = {
         'L': "underset_operator lim",
         'M': "underset_operator min",
         'N': "underset_operator argmin",
-        'O': "underset_operator Cov true",
-        'P': "underset_operator Pr",
         'R': "underset_operator tr true",
         'S': "underset_operator sup",
         'T': "underset_operator det",
         'U': "underset_operator limsup",
-        'V': "underset_operator Var true",
         'X': "underset_operator max"
     },
 

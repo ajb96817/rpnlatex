@@ -1111,8 +1111,9 @@ class InputContext {
     }
 
     // textstyle determines what the entered text becomes:
-    //   'math' - ExprItem with "parsed" italic math text (see ExprParser).
+    //   'math' - ExprItem with "parsed" italic math text (see ExprParser)
     //   'roman_math' - Expr with \mathrm{...}, where ... is always a TextExpr
+    //   'operatorname' - Same as 'roman_math' but use \operatorname instead of \mathrm
     //   'latex' - ExprItem with arbitrary latex command
     //   'text' - TextItem
     //   'heading' - TextItem with is_heading flag set
@@ -1132,11 +1133,19 @@ class InputContext {
             this.cancel_text_entry(stack);
             return stack.push(item);
         }
-        // math or roman_math or latex
         let new_expr = null;
         if(textstyle === 'roman_math') {
             new_expr = new CommandExpr('mathrm', [
                 new TextExpr(LatexEmitter.latex_escape(text))]);
+        }
+        else if(textstyle === 'operatorname') {
+            // Similar to 'roman_math' but filter out anything but alphanumeric characters,
+            // spaces and dashes for use inside \operatorname{...}.
+            // Currently in KaTeX, spaces need to be explicitly converted to \, inside \operatorname.
+            const sanitized_text = text.replaceAll(/[^a-zA-Z0-9- ]/g, '').replaceAll(' ', "\\,");
+            new_expr = new CommandExpr('operatorname', [new TextExpr(sanitized_text)]);
+            // TODO: detect built-in operator names like 'sin' and convert them to \sin instead
+            // of \operatorname{sin}.
         }
         else if(textstyle === 'latex') {
             // NOTE: do_append_text_entry should only allow alphabetic characters through,
