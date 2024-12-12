@@ -46,6 +46,27 @@ div.latex_fragment {
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #88f; }
+
+/* Override item type indicator bar if it contains a KaTeX error */
+div.latex_fragment:has(div.latex_error_message) {
+    border-left: var(--itemtype-bar-width) solid #c44 !important;
+}
+div.latex_fragment div.latex_error_message {
+    font-family: monospace;
+    font-weight: bold;
+    overflow-wrap: break-word;
+    color: #c00;
+    background-color: #fee;
+    padding: 0.2em 0.5em;
+}
+div.latex_fragment div.latex_source_with_error {
+    font-family: monospace;
+    overflow-wrap: break-word;
+    color: black;
+    background-color: #edd;
+    padding: 0.2em 0.5em;
+}
+
 div.heading_style div.latex_fragment_inner {
     border-bottom: var(--heading-bar-height) solid #bbf;
     padding-top: 0.3em;

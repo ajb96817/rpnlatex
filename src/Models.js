@@ -1223,8 +1223,8 @@ class SpecialFunctions {
     static binom(n, k) {
 	// k must be a nonnegative integer, but n can be anything
 	if(!this.is_integer(k) || k < 0) return null;
+        if(k > 1000) return NaN;  // Limit loop length below
 	// Use falling factorial-based algorithm n_(k) / k!
-	// TODO: could optimize a little via binom(n, k) = binom(n, n-k)
 	let value = 1;
 	for(let i = 1; i <= k; i++)
 	    value *= (n + 1 - i) / i;

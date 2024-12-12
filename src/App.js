@@ -694,17 +694,25 @@ class ItemComponent extends React.Component {
 	    });
         }
         catch(e) {
+            // Add KaTeX error message and the offending latex source to the latex_fragment node.
+            // This will override the item bar's color to be red to indicate the error.
+            let msg = null;
 	    if(e instanceof katex.ParseError) {
 		// NOTE: KaTeX throws actual errors for some inputs, even if throwOnError is false.
 		// Example: \texttt{\textbf{test}}
 		// Generally though, these errors result from [\][\] latex text entry
 		// with invalid latex commands.
-		const msg = e.rawMessage;
-		node.innerHTML = '<div style="color:red;">' + msg + '</div>';
-	    } else {
-		const msg = e.toString();
-		node.innerHTML = '<div style="color:red;">' + msg + '</div>';
+		msg = e.rawMessage;
 	    }
+            else msg = e.toString();
+            const latex_source_elt = document.createElement('div');
+            latex_source_elt.className = 'latex_source_with_error';
+            latex_source_elt.appendChild(document.createTextNode(latex_code));
+            node.appendChild(latex_source_elt);
+            const error_message_elt = document.createElement('div');
+            error_message_elt.className = 'latex_error_message';
+            error_message_elt.appendChild(document.createTextNode(msg));
+            node.appendChild(error_message_elt);
         }
     }
 }
