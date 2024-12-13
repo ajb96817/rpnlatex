@@ -1023,6 +1023,12 @@ class InputContext {
         return new_stack.push_expr(extracted_expr);
     }
 
+    // Take apart an Expr and put all its elements on the stack.
+    do_dissolve(stack) {
+        const [new_stack, expr] = stack.pop_exprs(1);
+        return new_stack.push_all_exprs(expr.dissolve());
+    }
+
     do_start_text_entry(stack, text_entry_mode, initial_text) {
         // Special cases:
         //   conjunction_entry mode: make sure there are two expressions on the stack beforehand.
@@ -1583,13 +1589,6 @@ class InputContext {
     do_split_array(stack) {
         const [new_stack, array_expr] = stack.pop_arrays(1);
         return new_stack.push_all_exprs(array_expr.split_rows());
-    }
-
-    // Take apart an ArrayExpr and put all its elements on the stack (in row-major order).
-    do_dissolve_array(stack) {
-        const [new_stack, array_expr] = stack.pop_arrays(1);
-        let dissolved_exprs = [].concat(...array_expr.element_exprs);
-        return new_stack.push_all_exprs(dissolved_exprs);
     }
 
     do_insert_matrix_ellipses(stack) {

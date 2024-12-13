@@ -822,6 +822,12 @@
 	</li>
         <li><span class="keybinding">d</span> Prefix for building <a href="#derivatives">derivative</a> expressions.</li>
         <li>
+          <span class="keybinding">D</span>
+          "Dissolve" an expression, breaking it apart into its component parts if possible.
+          Delimiters will be removed, fractions disassembled, and matrix elements put
+          on the stack in row-major order.
+        </li>
+        <li>
           <span class="keybinding">e</span> <code>\mathrm{e}^x</code>
           &nbsp;&nbsp;
           <span class="keybinding">E</span> <code>\exp x</code>
@@ -1388,10 +1394,6 @@
         <strong>Matrix Manipulation:</strong> These commands operate on existing matrices.
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">d</span>
-          &quot;Dissolve&quot; a matrix, putting all its entries onto the stack
-          in row-major order.
-        </li>
         <li><span class="keybinding">E</span>
           Insert spaces and ellipses before the last row and column in a matrix,
           in order to notate a matrix that is not fully written out.

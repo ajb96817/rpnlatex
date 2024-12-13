@@ -259,6 +259,13 @@ class Expr {
             Math.abs(decimal_part) <= 0.000001];
     }
 
+    // "Dissolve" this expression into its component parts as appropriate.
+    // Returns an array of the Expr components.
+    dissolve() { return [this]; }
+
+    // Subclasses can override.
+    as_bold() { return new CommandExpr('boldsymbol', [this]); }
+
     // Try to find a close rational approximation to value
     // or up to a factor of some common constants like sqrt(2) or pi.
     // Return an Expr if successful, otherwise null.
@@ -432,9 +439,6 @@ class Expr {
 	else
 	    return Expr.text_or_command(x > 0 ? "\\infty" : "-\\infty");
     }
-
-    // NOTE: CommandExpr overrides this
-    as_bold() { return new CommandExpr('boldsymbol', [this]); }
 }
 
 
@@ -647,6 +651,26 @@ class CommandExpr extends Expr {
             c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
             c === 'mathfrak' || c === 'mathscr' || c === 'mathcal' ||
             c === 'text' || c === 'textbf' || c === 'textit';
+    }
+
+    // 0-argument commands are left as-is (\alpha, etc)
+    // 1-argument commands dissolve into their only argument.
+    // 2-argument \frac breaks into numerator and denominator
+    // 2-argument \overset and \underset break into their components in the proper visual order.
+    // Everything else is left as-is.
+    dissolve() {
+        switch(this.operand_count()) {
+        case 1:
+            return this.operand_exprs;
+        case 2:
+            if(this.command_name === 'frac' || this.command_name === 'overset')
+                return this.operand_exprs;
+            else if(this.command_name === 'underset')
+                return [this.operand_exprs[1], this.operand_exprs[0]];
+            else return [this];
+        default:
+            return [this];
+        }
     }
 }
 
@@ -947,6 +971,19 @@ class InfixExpr extends Expr {
         return pieces.join('');   
     }
 
+    // InfixExprs dissolve into their operand expressions.
+    // Operators are discarded.
+    dissolve() { return this.operand_exprs; }
+
+    // Bold each operand, but leave the operators alone.
+    as_bold() {
+        return new InfixExpr(
+            this.operand_exprs.map(expr => expr.as_bold()),
+            this.operator_exprs,
+            this.split_at_index,
+            this.linebreaks_at);
+    }
+
     evaluate(assignments) {
 	// Evaluate taking into account the binary operator precedences.
 	const operand_values = this.operand_exprs.map(
@@ -1141,6 +1178,8 @@ class SequenceExpr extends Expr {
             return null;
     }
 
+    dissolve() { return this.exprs; }    
+
     evaluate(assignments) {
         // Check for ['-', Expr] and ['+', Expr]
         if(this.exprs.length >= 2 &&
@@ -1334,6 +1373,9 @@ class DelimiterExpr extends Expr {
             return null;
     }
 
+    // Dissolving removes the delimiters.
+    dissolve() { return [this.inner_expr]; }        
+
     evaluate(assignments) {
         return this.inner_expr.evaluate(assignments);
     }
@@ -1404,6 +1446,16 @@ class SubscriptSuperscriptExpr extends Expr {
             this.base_expr.substitute_expr(old_expr, new_expr),
             this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
             this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
+    }
+
+    // Components are dissolved in the order: base, subscript, superscript
+    // This matches the order of [/][Enter] so a fully populated SubscriptSuperscriptExpr
+    // can be reassembled with this command.
+    dissolve() {
+        const pieces = [this.base_expr];
+        if(this.subscript_expr) pieces.push(this.subscript_expr);
+        if(this.superscript_expr) pieces.push(this.superscript_expr);
+        return pieces;
     }
 
     evaluate(assignments) {
@@ -1584,6 +1636,11 @@ class ArrayExpr extends Expr {
         return new ArrayExpr(
             new_array_type, this.row_count, this.column_count,
             this.element_exprs, this.row_separators, this.column_separators);
+    }
+
+    // Matrices are dissolved in row-major order.
+    dissolve() {
+        return [].concat(...this.element_exprs);
     }
 
     as_bold() {

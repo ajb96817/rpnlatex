@@ -361,6 +361,7 @@ const EditorKeymap = {
         'c': "named_function cos",
         'C': "named_function csc",
         'd': "mode derivative",
+        'D': "dissolve",
         'e': "push e;operator mathrm;swap;superscript",  // exp(x)
         'E': "named_function exp",
         'f': "mode named_operator",
@@ -775,7 +776,6 @@ const EditorKeymap = {
         'a': "build_align aligned",
         'c': "build_align cases",
         'C': "build_align rcases",
-        'd': "dissolve_array",
         'e': "build_infix_list ,\\,;push \\dots;push ,\\,;apply_infix",
         'E': "insert_matrix_ellipses",
         'f': "build_align cases_if",
