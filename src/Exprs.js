@@ -1099,7 +1099,6 @@ class TextExpr extends Expr {
 	// (CommandExpr also checks for known constants).
         if(s === "\\pi") return Math.PI;
 	if(s === "\\infty") return Infinity;
-	if(s === "-\\infty") return -Infinity;  // created by some keybindings
         const val = parseFloat(s);
         if(isNaN(val))
             return null;

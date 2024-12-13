@@ -504,13 +504,13 @@ const EditorKeymap = {
 
     // /i prefix
     integral_limits: {
-        'r': "push -\\infty;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
-        'n': "push -\\infty;subscript;push 0;superscript",  // -oo..0 : [n]egative 
+        'r': "push -;push \\infty;fuse;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
+        'n': "push -;push \\infty;fuse;subscript;push 0;superscript",  // -oo..0 : [n]egative 
         'p': "push 0;subscript;push \\infty;superscript",  // 0..oo : [p]ositive
         'u': "push 0;subscript;push 1;superscript",  // 0..1 : [u]nit
         'U': "push -1;subscript;push 1;superscript",  // -1..1 : symmetric [U]nit
         't': "push 0;subscript;push 2\\pi;superscript",  // 0..2pi : [t]rigonometric
-        'T': "push -\\pi;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
+        'T': "push -;push \\pi;fuse;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
     },
 
     // /d prefix: derivative operations
@@ -697,7 +697,7 @@ const EditorKeymap = {
         '*': "push \\star",
         '|': "push |",
         '=': "push_separator",
-        '?': "push ?",  // NOTE: no mode-sensitive help shortcut for symbols because of this
+        '?': "push ?",
         '!': "push !",
         ',': "push ,",
         ';': "push semicolon",
