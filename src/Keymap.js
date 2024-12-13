@@ -39,6 +39,10 @@ const EditorKeymap = {
         'ArrowRight': "scroll stack_panel horizontal 75",
         'ArrowLeft': "scroll stack_panel horizontal -75",
 
+        // Document scrolling commands
+        'Shift+ArrowRight': "scroll document_container horizontal 75",
+        'Shift+ArrowLeft': "scroll document_container horizontal -75",
+
         // Prefix keys
         'Tab': "mode stack",
         "'": "mode symbol",
@@ -101,7 +105,7 @@ const EditorKeymap = {
         'ArrowDown': "select_adjacent_file 1",
         // undocumented: j/k for scrolling the panel itself
         'j': 'scroll popup_panel vertical 25',
-        'k': 'scroll popup_panel vertical -25',
+        'k': 'scroll popup_panel vertical -25'
     },
 
     // User Manual mode
@@ -193,6 +197,7 @@ const EditorKeymap = {
         'ArrowRight': "config stack_side right",
         'ArrowUp': "config stack_side top",
         'ArrowDown': "config stack_side bottom",
+        'E': "config eink_mode",
         'f': "fullscreen on",
         'F': "fullscreen off",
         'i': "config toggle_inline_math",

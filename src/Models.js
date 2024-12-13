@@ -48,6 +48,7 @@ class Settings {
     constructor() {
         this.current_keymap = new Keymap();
         this.inverse_video = false;
+        this.eink_mode = false;
         this.last_opened_filename = null;
         this.popup_mode = null;  // null, 'help', 'files'
         this.show_mode_indicator = true;
@@ -138,6 +139,7 @@ class Settings {
 
 Settings.saved_keys = [
     'inverse_video',
+    'eink_mode',
     'last_opened_filename',
     'popup_mode',
     'layout',
@@ -968,7 +970,7 @@ class ExprParser {
         return expr;
     }
     
-    // Break string into to tokens; token types are:
+    // Break string into tokens; token types are:
     //   number: 3, 3.1, etc.
     //      NOTE: scientific notation not supported
     //      NOTE: negative numbers are handled by the "- factor" production in the grammar
@@ -1668,7 +1670,12 @@ class CodeItem extends Item {
         };
     }
 
-    to_latex() { return '???'; }
+    to_text() {
+        if(this.language === 'latex')
+            return this.source;
+        else
+            return '???';
+    }
 
     clone() { return new CodeItem(this.language, this.source); }
 

@@ -132,8 +132,10 @@ class App extends React.Component {
         let body = document.getElementById('body');
         if(this.state.settings.inverse_video)
             body.classList.add('inverse_video');
-        else
-            body.classList.remove('inverse_video');
+        else body.classList.remove('inverse_video');
+        if(this.state.settings.eink_mode)
+            body.classList.add('eink_mode');
+        else body.classList.remove('eink_mode');
         if(this.stack_panel_ref.current && this.document_panel_ref.current &&
            this.popup_panel_ref.current) {
             this.state.settings.apply_layout_to_dom(
@@ -651,11 +653,21 @@ class ItemComponent extends React.Component {
                        $e('div', {className: 'latex_fragment_inner', ref: ref}, '')));
 	    }
 	case 'code':
-	    // NOTE: only LaTeX source code snippets currently implemented.
-	    return $e(
-		'div', {className: 'latex_source_item'},
-                tag_element,  // not currently allowed
-		$e('div', {className: 'latex_source'}, item.source));
+            if(item.language === 'latex') {
+                // Non-rendered raw LaTeX source code.
+	        return $e(
+		    'div', {className: 'latex_source_item'},
+                    tag_element,  // not currently allowed
+		    $e('div', {className: 'latex_source'}, item.source));
+            }
+            else if(item.language === 'rendered_latex') {
+                // Arbitrary LaTeX code rendered with KaTeX.
+                return $e(
+                    'div', {className: 'rendered_latex_source_item'},
+                    tag_element,
+                    $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
+            }
+            else return $e('div', {}, '????');
         default:
             return $e('div', {}, '????');
         }
@@ -675,6 +687,8 @@ class ItemComponent extends React.Component {
             // of the rightalign_math layout settings.
             this._render_with_katex(item.to_latex(), node, false);
         }
+        else if(item.item_type() === 'code' && item.language === 'rendered_latex')
+            this._render_with_katex(item.source, node, !this.props.inline_math);
     }
 
     _render_with_katex(latex_code, node, display_mode) {

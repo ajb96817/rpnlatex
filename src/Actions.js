@@ -1113,7 +1113,7 @@ class InputContext {
     // textstyle determines what the entered text becomes:
     //   'math' - ExprItem with "parsed" italic math text (see ExprParser)
     //   'roman_math' - Expr with \mathrm{...}, where ... is always a TextExpr
-    //   'operatorname' - Same as 'roman_math' but use \operatorname instead of \mathrm
+    //   'operatorname' - Similar to 'roman_math' but use \operatorname instead of \mathrm
     //   'latex' - ExprItem with arbitrary latex command
     //   'text' - TextItem
     //   'heading' - TextItem with is_heading flag set
@@ -1146,6 +1146,7 @@ class InputContext {
             new_expr = new CommandExpr('operatorname', [new TextExpr(sanitized_text)]);
             // TODO: detect built-in operator names like 'sin' and convert them to \sin instead
             // of \operatorname{sin}.
+            // TODO: maybe handle empty sanitized_text specially
         }
         else if(textstyle === 'latex') {
             // NOTE: do_append_text_entry should only allow alphabetic characters through,
@@ -1510,12 +1511,16 @@ class InputContext {
         case 'inverse_video':
             settings.inverse_video = !settings.inverse_video;
             break;
+        case 'eink_mode':
+            settings.eink_mode = !settings.eink_mode;
+            break;
 	case 'dock_helptext':
 	    settings.dock_helptext = (value === 'on');
 	    break;
         case 'reset_layout':
             settings.layout = settings.default_layout();
             settings.inverse_video = false;
+            settings.eink_mode = false;
             settings.show_mode_indicator = true;
             full_refresh_needed = true;
             break;

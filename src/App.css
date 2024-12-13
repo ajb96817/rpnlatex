@@ -124,6 +124,13 @@ div.latex_source_item div.latex_source {
     padding: 0.2em 0.5em;
 }
 
+div.rendered_latex_source_item {
+    background-color: #eee;
+}
+div.rendered_latex_source_item div.latex_fragment {
+    border-left: var(--itemtype-bar-width) solid #bcb;
+}
+
 div.tag_string {
     position: absolute;
     z-index: 10;
@@ -152,7 +159,6 @@ div.tag_string {
 #panel_layout { height: 100%; }
 
 div.panel { background-color: #f8f8f8; }
-#aux_panel { background-color: white; }
 
 #stack_panel.errorflash {
     animation-name: errorflash_stack;
@@ -169,6 +175,11 @@ div.panel { background-color: #f8f8f8; }
     overflow-x: scroll;
     overflow-y: auto;
     box-shadow: inset 0 0 1em 0 #ccc;
+}
+body.eink_mode #stack_panel {
+    /* Remove "tinting" for E-ink displays */
+    box-shadow: none;
+    background-color: white;
 }
 #stack_panel div.indicator {
     position: absolute;

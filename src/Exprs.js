@@ -1439,6 +1439,7 @@ class SubscriptSuperscriptExpr extends Expr {
 
         // Anything else with a subscript can't be evaluated.
         if(sub_expr !== null) return null;
+
         // Check for e^x notation created by [/][e].
         if(base_expr.expr_type() === 'command' &&
            base_expr.command_name === 'mathrm' &&
@@ -1613,13 +1614,13 @@ class ArrayExpr extends Expr {
     // NOTE: this does not preserve column/row separators.  There's not really a
     // consistent way of doing this automatically.
     with_ellipses() {
-        const make_cell = content => new TextExpr(content);
+        const make_cell = content => new CommandExpr(content, []);
         let new_row_count = this.row_count, new_column_count = this.column_count;
         let new_element_exprs;
         if(this.column_count > 1) {
             new_element_exprs = this.element_exprs.map((row_exprs, index) => [
                 ...row_exprs.slice(0, -1),
-                make_cell((index === 0 || index === this.row_count-1) ? "\\cdots" : ''),
+                (index === 0 || index === this.row_count-1) ? make_cell('cdots') : TextExpr.blank(),
                 row_exprs[this.column_count-1]
             ]);
             new_column_count++;
@@ -1627,11 +1628,11 @@ class ArrayExpr extends Expr {
         else
             new_element_exprs = [...this.element_exprs];
         if(this.row_count > 1) {
-            let inserted_row_exprs = [make_cell("\\vdots")];
+            let inserted_row_exprs = [make_cell('vdots')];
             for(let i = 0; i < this.column_count-2; i++)
-                inserted_row_exprs.push(make_cell(''));
+                inserted_row_exprs.push(TextExpr.blank());
             if(this.column_count > 1)
-                inserted_row_exprs.push(make_cell("\\ddots"), make_cell("\\vdots"));
+                inserted_row_exprs.push(make_cell('ddots'), make_cell('vdots'));
             new_element_exprs.splice(this.row_count-1, 0, inserted_row_exprs);
             new_row_count++;
         }
@@ -1654,12 +1655,11 @@ class ArrayExpr extends Expr {
     // When transposing a matrix, we generally want to flip vertical and horizontal ellipses
     // within the cells.
     _transpose_cell(cell_expr) {
-        if(cell_expr.expr_type() === 'text') {
-            switch(cell_expr.text) {
-            case "\\vdots": return new TextExpr("\\cdots");
-            case "\\cdots": return new TextExpr("\\vdots");
-            default: break;
-            }
+        if(cell_expr.expr_type() === 'command' && cell_expr.operand_count() === 0) {
+            if(cell_expr.command_name === 'vdots')
+                return new CommandExpr('cdots', []);
+            if(cell_expr.command_name === 'cdots')
+                return new CommandExpr('vdots', []);
         }
         return cell_expr;
     }
