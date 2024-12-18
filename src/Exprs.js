@@ -300,6 +300,9 @@ class Expr {
             value, Math.sqrt(2*Math.PI), make_sqrt(two_pi_expr), null);
         result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(2pi)
             value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
+	// Check factors of ln(2)
+	result = this._try_rationalize_with_factor(
+	    value, Math.log(2), new CommandExpr('ln', [make_text(2)]), null);
         // Try sqrt(n) in the numerator for small square-free n.
         // No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
         const small_squarefree = [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19];
@@ -1242,6 +1245,8 @@ class DelimiterExpr extends Expr {
     //      of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
     //    - a normal fraction like \frac{x}{y}
     //    - a "flex style" fraction like \left. x/y \right.
+    //    - TODO: parenthesize \ln{x}, etc., unless x is a DelimiterExpr;
+    //      but exclude things like \boldsymbol{x}.
     static parenthesize_for_power(expr) {
         const needs_parenthesization = (
             // any infix expression
