@@ -571,22 +571,31 @@ class FileManagerComponent extends React.Component {
     }
 
     render_shortcuts() {
-        const help_specs = [
-            ['Escape', 'Close file manager'],
-            ['Arrows', 'Select next/previous file'],
-            ['Enter', 'Open selected file'],
-            ['d', 'Delete selected file'],
-            ['n', 'Start a new empty file'],
-            ['s', 'Save current file'], // + (current_filename ? (' (' + current_filename + ')') : '')],
-            ['S', 'Save as...']
+        const keybinding = key => $e('span', {className: 'keybinding'}, key);
+        const helptext = text => $e('span', {}, text);
+        const helpline = items => {
+            // Interleave spaces between each item
+            let pieces = [];
+            let first = true;
+            items.forEach(item => {
+                if(!first) pieces.push($e('span', {}, ' '));
+                first = false;
+                pieces.push(item)
+            });
+            return $e('li', {}, ...pieces);
+        }
+        const current_filename = this.props.file_manager_state.current_filename;
+        const keyhelp_elements = [
+            helpline([keybinding('Esc'), helptext('or'), keybinding('q'), helptext('Close file manager')]),
+            helpline([keybinding("\u2191"), keybinding("\u2193"), helptext('Select next/previous file')]),
+            helpline([keybinding('j'), keybinding('k'), helptext('Scroll this panel down or up')]),
+            helpline([keybinding('Enter'), helptext('Open selected file')]),
+            helpline([keybinding('d'), helptext('Delete selected file')]),
+            helpline([keybinding('n'), helptext('Start a new empty file')]),
+            helpline([keybinding('s'), helptext('Save current file'),
+                      helptext(current_filename ? ('(' + current_filename + ')') : '')]),
+            helpline([keybinding('S'), helptext('Save as...')])
         ];
-        const keyhelp_elements = help_specs.map(spec => {
-            const [keyname, helptext] = spec;
-            return $e(
-                'li', {},
-                $e('span', {className: 'keybinding'}, keyname),
-                $e('span', {}, ' ' + helptext));
-        });
         return $e('ul', {className: 'keybindings'}, ...keyhelp_elements);
     }
 
