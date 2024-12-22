@@ -274,6 +274,7 @@ const EditorKeymap = {
     delimiters: {
         'b': "delimiters \\langle \\vert",  // <x| Dirac bra
         'c': "delimiters \\lceil \\rceil",
+        'd': "push \\llbracket;swap;concat;push \\rrbracket;concat",
         'f': "delimiters \\lfloor \\rfloor",
 	'F': "toggle_fixed_size_delimiters",
         'g': "delimiters \\lgroup \\rgroup",
@@ -295,10 +296,12 @@ const EditorKeymap = {
         'X': "remove_delimiters",
         '|': "delimiters \\vert \\vert",
         '<': "delimiters \\langle \\rangle",
-        '(': "delimiters ( )",
-        '[': "delimiters [ ]",
-        ']': "push \\llbracket;swap;concat;push \\rrbracket;concat",
-        '{': "delimiters \\{ \\}",
+        '(': "delimiters ( .",
+        ')': "delimiters . )",
+        '[': "delimiters [ .",
+        ']': "delimiters . ]",
+        '{': "delimiters \\{ .",
+        '}': "delimiters . \\}",
 	'.': "delimiters . .",
 	' ': "delimiters . ."
     },
