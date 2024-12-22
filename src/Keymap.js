@@ -251,6 +251,7 @@ const EditorKeymap = {
     // double \ prefix (latex command)
     latex_entry: {
         'Enter': "finish_text_entry latex",
+        'Shift+Enter': "finish_text_entry latex_unary",
         'Delete': "text_entry_backspace delete math_text_entry",
         'Backspace': "text_entry_backspace backspace math_text_entry",
         'delegate': "_editor_commands"

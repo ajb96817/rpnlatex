@@ -1120,7 +1120,8 @@ class InputContext {
     //   'math' - ExprItem with "parsed" italic math text (see ExprParser)
     //   'roman_math' - Expr with \mathrm{...}, where ... is always a TextExpr
     //   'operatorname' - Similar to 'roman_math' but use \operatorname instead of \mathrm
-    //   'latex' - ExprItem with arbitrary latex command
+    //   'latex' - ExprItem with arbitrary 0-argument latex command
+    //   'latex_unary' - ExprItem with 1-argument (from stack) latex command
     //   'text' - TextItem
     //   'heading' - TextItem with is_heading flag set
     //   'conjunction' - "X  iff  Y" style InfixExpr conjunction
@@ -1158,6 +1159,26 @@ class InputContext {
             // NOTE: do_append_text_entry should only allow alphabetic characters through,
             // so no real need to do sanitization here.
             new_expr = new CommandExpr(trimmed_text);
+        }
+        else if(textstyle === 'latex_unary') {
+            // Create a LaTeX command with one argument from the stack.
+            // This is invoked by Shift+Enter from latex entry mode, so there
+            // was no opportunity to verify there was one expression on the stack
+            // beforehand.  This is checked for explicitly here instead and the
+            // updated stack with the argument expression removed and the new
+            // command expression pushed is returned directly.
+            if(stack.check_exprs(1)) {
+                const [new_stack, argument_expr] = stack.pop_exprs(1);
+                new_expr = new CommandExpr(trimmed_text, [argument_expr]);
+                this.cancel_text_entry(new_stack);
+                return new_stack.push_expr(new_expr);
+            }
+            else {
+		this.perform_undo_or_redo = 'suppress';
+		this.switch_to_mode(this.mode);
+		this.error_flash_stack();
+                return;
+            }
         }
         else if(textstyle === 'conjunction' ||
                 textstyle === 'bold_conjunction') {
