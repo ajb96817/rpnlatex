@@ -672,6 +672,7 @@ const EditorKeymap = {
         '3': "push 1;push 2;infix /",  // 1/2 (inline)
         '8': "push \\infty",
         'a': "push \\forall",
+        'b': "push \\bullet",
         'c': "push \\cdot",
         'C': "push \\bigcap",
         'd': "push \\partial",
