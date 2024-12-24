@@ -1381,6 +1381,17 @@
         <span class="keybinding">|</span><span class="keybinding">t</span><span class="keybinding">{</span>
         changes the matrix to have curly braces.
       </p>
+      <p>
+        <strong>Full Matrix Building:</strong>
+        An entire matrix may also be assembled at once from the stack with elements in row-major order
+        with the <span class="keybinding">x</span> command.  This takes a prefix argument indicating
+        the number of rows, then switches into a new mode expecting the number of columns, followed by
+        one of the matrix row building keys above to indicate the matrix type.
+      </p>
+      <p>
+        For example, to build a 2x3 matrix from 6 elements on the stack, with square brackets, enter:
+        <span class="keybinding">|</span><span class="keybinding">2</span><span class="keybinding">x</span><span class="keybinding">3</span><span class="keybinding">[</span>.
+      </p>
       <p>There are some shortcuts available for building common matrix and vector types:</p>
       <table class="keybindings"><tbody>
           <tr>

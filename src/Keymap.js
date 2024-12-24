@@ -798,6 +798,7 @@ const EditorKeymap = {
         'T': "transpose_matrix",
         'v': "build_matrix_row vmatrix",
         'V': "build_matrix_row Vmatrix",
+        'x': "build_matrix",
         '|': "stack_arrays",
         ',': "build_infix_list ,\\,",
         '.': "build_infix_list ,\\, \\dots",
@@ -814,6 +815,17 @@ const EditorKeymap = {
         '-': "array_separator row dashed",
         '_': "array_separator row solid",
         'Enter': "stack_arrays"
+    },
+
+    build_matrix: {
+        '[digit]': "prefix_argument",
+        'm': "finish_build_matrix matrix",
+        ' ': "finish_build_matrix matrix",
+        'v': "finish_build_matrix vmatrix",
+        'V': "finish_build_matrix Vmatrix",
+        '(': "finish_build_matrix pmatrix",
+        '[': "finish_build_matrix bmatrix",
+        '{': "finish_build_matrix Bmatrix"
     },
 
     change_matrix_type: {

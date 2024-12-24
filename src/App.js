@@ -305,14 +305,24 @@ class ModeIndicatorComponent extends React.Component {
         let indicator_item = undefined;
         const notification_text = input_context.notification_text;
         let input_mode = input_context.mode;
-        if(input_context.prefix_argument !== null) {
-            // Show current prefix argument in mode indicator
+        // Show current prefix argument (if there is one) in mode indicator.
+        if(input_mode === 'build_matrix') {
+            // Special case: build_matrix mode has already received a prefix
+            // argument with the number of rows.  The current prefix argument
+            // will become the number of columns.
+            input_mode = [
+                input_mode, '(',
+                input_context.matrix_row_count, 'x',
+                input_context.prefix_argument > 0 ? input_context.prefix_argument.toString() : '',
+                ')'
+            ].join('');
+        }
+        else if(input_context.prefix_argument !== null)
             input_mode = [
                 input_mode, '(',
                 (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()),
                 ')'
             ].join('');
-        }
         // if(input_context.text_entry)
         //     input_mode = 'text_entry';
         if(notification_text) {

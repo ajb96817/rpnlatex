@@ -121,6 +121,10 @@ class InputContext {
         // another prefix argument key.
         this.prefix_argument = null;
 
+        // Number of rows specified in do_build_matrix().  This will be used by
+        // a subsequent do_finish_build_matrix() command.
+        this.matrix_row_count = null;
+
         // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
         this.preserve_prefix_argument = false;
 
@@ -1591,6 +1595,31 @@ class InputContext {
         const matrix_expr = new ArrayExpr(
             (matrix_type || 'bmatrix'),
             1, expr_count, [exprs]);
+        return new_stack.push_expr(matrix_expr);
+    }
+
+    // Start building a NxM matrix from the stack.
+    // N must be provided as a prefix argument, e.g.: [|][3][x]
+    // This switches to build_matrix mode which then expects another
+    // prefix argument for the column count (M).  A final matrix-type key like
+    // [ then creates the matrix with N*M items from the stack.
+    do_build_matrix(stack) {
+        const row_count = this._require_prefix_argument(false);
+        this.matrix_row_count = row_count;  // save for do_finish_build_matrix()
+        this.switch_to_mode('build_matrix');
+        return stack;
+    }
+
+    do_finish_build_matrix(stack, matrix_type) {
+        const column_count = this._require_prefix_argument(false);
+        const row_count = this.matrix_row_count;
+        const [new_stack, ...exprs] = stack.pop_exprs(column_count*row_count);
+        // Arrange 'exprs' from the stack into a row*column array of arrays.
+        const element_exprs = [];
+        for(let row = 0; row < row_count; row++)
+            element_exprs.push(exprs.slice(row*column_count, (row+1)*column_count));
+        const matrix_expr = new ArrayExpr(
+            matrix_type, row_count, column_count, element_exprs);
         return new_stack.push_expr(matrix_expr);
     }
 
