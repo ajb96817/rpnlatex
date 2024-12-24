@@ -84,6 +84,7 @@ const EditorKeymap = {
         'Ctrl+s': "save_file",
         'Ctrl+u': "superscript",
         'Ctrl+v': "paste_from_clipboard",
+        'Ctrl+x': "push x;parenthesize;fuse",  // f -> f(x)
         'Ctrl+y': "redo",
         'Ctrl+z': "undo",
         'Ctrl+ ': "infix \\,",
