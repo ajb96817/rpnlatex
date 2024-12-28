@@ -203,8 +203,8 @@ const EditorKeymap = {
         'F': "fullscreen off",
         'i': "config toggle_inline_math",
 	'I': "config toggle_mode_indicator",
-        'm': "config math_align toggle_document",
-        'M': "config math_align toggle_stack",
+        'm': "config math_align toggle_stack",
+        'M': "config math_align toggle_document",
         'r': "config reset_layout",
         'R': "config reload_page",
         's': "config stack_split",
@@ -668,7 +668,7 @@ const EditorKeymap = {
     // apostrophe prefix: assorted standalone math symbols
     symbol: {
         '0': "push \\varnothing",
-        '1': "push -1",
+        '1': "push 1;push -;swap;fuse",  // -1
         '2': "push 1;push 2;operator frac 2",  // 1/2 (display)
         '3': "push 1;push 2;infix /",  // 1/2 (inline)
         '8': "push \\infty",

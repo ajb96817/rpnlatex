@@ -405,10 +405,10 @@
       <p>
         <span class="keybinding">Tab</span><span class="keybinding">f</span>
         opens the File Manager popup panel.
-        If your browser supports it, you can save and manage separate documents in
-        <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank">indexedDB</a> storage.
-        Your data persists between browser sessions.  Each document has a filename but there is only one level
-        of storage - no subfolders.
+        If your browser supports it, you can save and manage separate documents in the
+        internal browser storage (IndexedDB).
+        Your data persists between browser sessions, but this may not work in Private Mode.
+        Each document has a filename but there is only one level of storage - no subfolders.
         There are also some utilities for exporting and importing your data as .zip files.
       </p>
       <ul class="keybindings">
@@ -872,10 +872,7 @@
         <li><span class="keybinding">i</span> Prefix for applying <a href="#integrals">integral</a> limits.</li>
         <li><span class="keybinding">I</span> <code>x\enspace y \to \int_x^y</code></li>
         <li><span class="keybinding">k</span> <code>f\enspace y\enspace x \to f(y\,|\,x)</code></li>
-        <li>
-          <span class="keybinding">l</span> <code>x \to \lim\limits_x</code>
-          (shortcut for <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">L</span>)
-        </li>
+        <li><span class="keybinding">l</span> <code>x \to \lim\limits_x</code></li>
         <li><span class="keybinding">L</span> <code>y\enspace x \to \lim\limits_{y\to x}</code></li>
         <li><span class="keybinding">M</span> <code>x \to \mathrm{Im}(x)</code> (imaginary part)</li>
         <li>
@@ -1357,7 +1354,7 @@
       <p>
         <strong>Matrix Row Building:</strong>
         The following commands assemble N items from the
-        stack into a <code>1\times N</code> row matrix with the indicated bracket type.
+        stack into a 1xN row matrix with the indicated bracket type.
       </p>
       <table class="keybindings"><tbody>
           <tr>

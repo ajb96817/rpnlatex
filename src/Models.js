@@ -215,7 +215,7 @@ class LatexEmitter {
     }
 
     // 'index' is the index of this (sub)expression within its parent.
-    // This is used to correlate with this given this.selected_expr_path
+    // This is used to correlate with the given this.selected_expr_path
     // so that we know when we've hit the right subexpression to highlight.
     // (Expr objects can be aliased so we can't just rely on object identity.)
     // 'inside_delimiters' will be true if expr is the inner_expr of a DelimiterExpr

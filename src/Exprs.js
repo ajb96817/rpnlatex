@@ -155,7 +155,7 @@ class Expr {
 
     emit_latex(emitter) { emitter.text('INVALID'); }
 
-    // Return a list of property names on this object that should be serialized
+    // Return a list of property names on this object that should be serialized.
     json_keys() { return []; }
 
     // Subclasses can extend this if they need special handling.
@@ -557,6 +557,8 @@ class CommandExpr extends Expr {
             if(c === 'sqrt') {
                 if(this.options === '3')
                     return Math.cbrt(x);
+                else if(this.options)
+                    return null;  // anything other than sqrt and cbrt unsupported
                 else
                     return Math.sqrt(x);
             }
