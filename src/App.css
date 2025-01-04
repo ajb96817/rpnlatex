@@ -29,6 +29,10 @@ body.inverse_video {
    -khtml-user-select: none;
    -moz-user-select: none;
    -ms-user-select: none;
+
+   /* Disable "font boosting" on Android Chrome.  This boosting doesn't work well
+      when mixed with KaTeX rendering. */
+   -webkit-text-size-adjust: none;
 }
 
 
