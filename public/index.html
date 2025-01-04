@@ -182,7 +182,7 @@
       </h2>
       <p>
         The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
-        will be shown where you can type a number or a math expression in infix notation.
+        will be shown where you can type a number or a simple math expression in infix notation.
 	<span class="keybinding">Enter</span> will parse what you have typed and put it on the stack.
 	A malformed expression will signal an error; allowed expressions include:
 	<ul>
@@ -191,6 +191,7 @@
 	  <li>
 	    Implicit multiplication such as <code>5x</code> or <code>xy</code>
 	    (interpreted as multiplying <code>x</code> and <code>y</code>).
+	  </li>
 	  <li>
 	    Infix operators such as <code>x+2y</code>.
 	    Allowed operators are: <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">/</span><span class="keybinding">*</span>

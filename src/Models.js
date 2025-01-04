@@ -3,8 +3,8 @@
 import KeybindingTable from './Keymap';
 import JSZip from 'jszip';
 import {
-    Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, DelimiterExpr
-    // , SequenceExpr, SubscriptSuperscriptExpr, ArrayExpr
+    Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, DelimiterExpr,
+    SequenceExpr //, SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs.js';
 
 
@@ -1053,43 +1053,16 @@ class ExprParser {
             // Combining rules for implicit multiplication:
             //   number1 number2      -> number1 \cdot number2
             //   number1 a \cdot b    -> number1 \cdot a \cdot b
-            //   number1 symbol       -> number1 symbol (concatenate)
-            //   number1 sequence     -> number1 sequence (concatenate)
-            //   number1 y            -> number1 (y)  (parenthesize anything but a symbol or sequence)
-            //   x y                  -> xy
-	    // Also, a placeholder combined with anything always concatenates.
+	    // Any other pair just concatenates.
             const cdot = Expr.text_or_command("\\cdot");
-	    if(lhs.expr_type() === 'placeholder' || rhs.expr_type() === 'placeholder')
-		return Expr.combine_pair(lhs, rhs);
-            else if(lhs.expr_type() === 'text' && lhs.looks_like_number()) {
-                if(rhs.expr_type() === 'text') {
-                    if(rhs.looks_like_number())
-                        return InfixExpr.combine_infix(lhs, rhs, cdot);
-                    else
-                        return Expr.combine_pair(lhs, rhs);
-                }
-                else if(rhs.expr_type() === 'infix' &&
-                        rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
-                    return InfixExpr.combine_infix(lhs, rhs, cdot);
-                else if(rhs.expr_type() === 'sequence' &&
-                        rhs.exprs.every(expr => expr.expr_type() === 'text' && !expr.looks_like_number()))
-                    return Expr.combine_pair(lhs, rhs);
-                else
-                    return Expr.combine_pair(lhs, DelimiterExpr.parenthesize_if_not_already(rhs));
-            }
-            else {
-                if(lhs.expr_type() === 'text' &&
-                   (rhs.expr_type() === 'text' || rhs.expr_type() === 'sequence')) {
-                    // number|symbol or symbol|sequence
-                    return Expr.combine_pair(lhs, rhs);
-                }
-                else {
-                    // x y -> (x)(y)
-                    return Expr.combine_pair(
-                        DelimiterExpr.parenthesize_if_not_already(lhs),
-                        DelimiterExpr.parenthesize_if_not_already(rhs));
-                }
-            }
+            if(lhs.expr_type() === 'text' && lhs.looks_like_number() &&
+	       rhs.expr_type() === 'text' && rhs.looks_like_number())
+                return InfixExpr.combine_infix(lhs, rhs, cdot);
+	    else if(rhs.expr_type() === 'infix' &&
+                    rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
+                return InfixExpr.combine_infix(lhs, rhs, cdot);
+            else
+		return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);
         }
         else
             return lhs;  // factor by itself

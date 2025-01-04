@@ -59,8 +59,9 @@ class Expr {
     // Concatenate two Exprs into one.  This will merge Exprs into adjacent SequenceExprs
     // when possible, instead of creating nested SequenceExprs.
     // The 'fused' flag of SequenceExprs can be used to prohibit combining this way.
-    // InfixExprs are always parenthesized before being combined here.
-    static combine_pair(left, right) {
+    // InfixExprs are always parenthesized before being combined here unless
+    // no_parenthesize=true is passed.
+    static combine_pair(left, right, no_parenthesize) {
         const left_type = left.expr_type(), right_type = right.expr_type();
         if(left_type === 'sequence' && !left.fused &&
            right_type === 'sequence' && !right.fused) {
@@ -88,9 +89,11 @@ class Expr {
         }
         else {
             // NonSequence + NonSequence => Sequence
-            // Always parenthesize InfixExprs before combining.
-            let left_expr = (left_type === 'infix' ? DelimiterExpr.parenthesize(left) : left);
-            let right_expr = (right_type === 'infix' ? DelimiterExpr.parenthesize(right) : right);
+            // Parenthesize InfixExprs before combining unless specified not to.
+            const left_expr = (left_type === 'infix' && !no_parenthesize) ?
+		DelimiterExpr.parenthesize(left) : left;
+            const right_expr = (right_type === 'infix' && !no_parenthesize) ?
+		DelimiterExpr.parenthesize(right) : right;
             return new SequenceExpr([left_expr, right_expr]);
         }
     }
