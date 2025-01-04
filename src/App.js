@@ -675,7 +675,7 @@ class ItemComponent extends React.Component {
             if(item.language === 'latex') {
                 // Non-rendered raw LaTeX source code.
 	        return $e(
-		    'div', {className: 'latex_source_item'},
+		    'div', {className: className + 'latex_source_item'},
                     tag_element,  // not currently allowed
 		    $e('div', {className: 'latex_source'}, item.source));
             }
