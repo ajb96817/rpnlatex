@@ -975,7 +975,7 @@ class ExprParser {
     //      NOTE: scientific notation not supported
     //      NOTE: negative numbers are handled by the "- factor" production in the grammar
     //   symbol: x (xyz becomes 3 separate symbols)
-    //   operator: +, -, *, /, !
+    //   operator: +, -, *, /, //, !
     //   open_delimiter: ( or [ or {
     //   close_delimiter: ) or ] or }
     static tokenize(s) {
@@ -991,11 +991,15 @@ class ExprParser {
                 pos += result[0].length;
             }
 	    // Check for [] placeholder:
-	    else if(pos < s.length-1 &&
-		    s[pos] === '[' && s[pos+1] === ']') {
+	    else if(pos < s.length-1 && s[pos] === '[' && s[pos+1] === ']') {
 		tokens.push({type: 'placeholder', text: '[]'});
 		pos += 2;
 	    }
+            // Check for // (full size fraction):
+            else if(pos < s.length-1 && s[pos] === '/' && s[pos+1] === '/') {
+                tokens.push({type: 'operator', text: '//'});
+                pos += 2;
+            }
             else {
                 // All other tokens are always 1 character.
                 const token = s[pos];
@@ -1040,12 +1044,18 @@ class ExprParser {
         if(!lhs) return null;
         const op_token = this.peek_for('operator');
         if(op_token && (op_token.text === '*' || op_token.text === '/')) {
-            // explicit multiplication converts to \cdot
+            // Explicit multiplication converts to \cdot
             const op_text = (op_token.text === '*' ? "\\cdot" : '/');
             this.next_token();
             const rhs = this.parse_term(true) || this.parse_error();
             return InfixExpr.combine_infix(
                 lhs, rhs, Expr.text_or_command(op_text));
+        }
+        if(op_token && op_token.text === '//') {
+            // Full-size fraction
+            this.next_token();
+            const rhs = this.parse_term(true) || this.parse_error();
+            return new CommandExpr('frac', [lhs, rhs]);
         }
         // Try implicit multiplication: 'factor term' production
         const rhs = this.parse_term(false);  // NOTE: not an error if null
