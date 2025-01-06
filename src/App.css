@@ -4,6 +4,7 @@
        for the current zoom level: */
     --itemtype-bar-width: 5px;
     --heading-bar-height: 3px;
+    --item-margin-width: 12px;  /* NOTE: not currently dynamically adjusted */
 }
 
 html {
@@ -25,14 +26,15 @@ body.inverse_video {
 
     /* Disable errant mouse text selection, more trouble than it's worth */
     user-select: none;
-   -webkit-user-select: none;
-   -khtml-user-select: none;
-   -moz-user-select: none;
-   -ms-user-select: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 
-   /* Disable "font boosting" on Android Chrome.  This boosting doesn't work well
-      when mixed with KaTeX rendering. */
-   -webkit-text-size-adjust: none;
+    /* Disable "font boosting" on Android Chrome and other mobile browsers.
+       This boosting doesn't work well when mixed with KaTeX rendering. */
+    text-size-adjust: none;
+    -webkit-text-size-adjust: none;
 }
 
 
@@ -45,7 +47,7 @@ div.latex_fragment {
        math display mode and inline math mode (toggleable with [$][i]). */
     margin: 3px 0;
     margin-left: 0;
-    padding-left: 12px;
+    padding-left: var(--item-margin-width);
 }
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
@@ -54,7 +56,7 @@ div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid 
 /* Override item type indicator bar if it contains a KaTeX error */
 div.latex_fragment:has(div.latex_error_message) {
     border-left: var(--itemtype-bar-width) solid #c44 !important;
-    padding-right: 12px;
+    padding-right: var(--item-margin-width);
     /* Padding to allow the selection indication to be seen better. */
     padding-top: 0.25em;
     padding-bottom: 0.25em;
@@ -78,28 +80,29 @@ div.latex_fragment div.latex_source_with_error {
 div.heading_style div.latex_fragment_inner {
     border-bottom: var(--heading-bar-height) solid #bbf;
     padding-top: 0.3em;
-    margin-right: 12px;
+    margin-right: var(--item-margin-width);
     font-size: 125%;
     font-weight: bold;
 } 
 div.separator_item {
-    /* These paddings seem to be necessary to get the correct left border height.
-       Not sure why this is. */
-    padding-top: 1px;
-    padding-bottom: 1px;
+    display: flex;
+    align-items: center;  /* this will have a single <hr /> inside it to be centered vertically */
+    height: 0.75em;
     border-left: var(--itemtype-bar-width) solid #88f; /* #6a6; */
+    padding: 0.2em 0;
 }
 div.separator_item hr {
     /* These hrules should visually look like the underline of section headings.
        Should match what is in div.heading_style .katex-html. */
     height: var(--heading-bar-height);
-    margin-left: 12px;
-    margin-right: 12px;
+    width: 100%;  /* for display: flex in parent */
+    margin-left: var(--item-margin-width);
+    margin-right: var(--item-margin-width);
     border: none;
     background-color: #bbf; /* #8b8 */
 }
 
-/* "Emphasized" expressions created with [.][C]
+/* "Emphasized" expressions created with [.][e]
    Note that because of how KaTeX layout works, we only really have the foreground color to
    work with here (background and borders won't work right). */
 .emphasized { color: #00f; text-shadow: 0 0 0.08em #88f; }
@@ -118,15 +121,14 @@ div.separator_item hr {
 }
 
 
-
 div.latex_source_item {
     border-left: var(--itemtype-bar-width) solid #bbcfbb;
     overflow-wrap: break-word;
     font-family: monospace;
-    padding: 0.25em 12px;
+    padding: 0.25em var(--item-margin-width);
 }
 div.latex_source_item div.latex_source {
-    padding-left: 12px;
+    padding-left: var(--item-margin-width);
     background-color: #dde8dd;
     padding: 0.2em 0.5em;
 }

@@ -4,7 +4,7 @@ import KeybindingTable from './Keymap';
 import JSZip from 'jszip';
 import {
     Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, DelimiterExpr,
-    SequenceExpr //, SubscriptSuperscriptExpr, ArrayExpr
+    // SequenceExpr, SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs.js';
 
 
