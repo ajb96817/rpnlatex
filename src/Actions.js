@@ -15,7 +15,7 @@ import {
 // 'mode': Type of text entry currently being performed.
 //         (these strings also correspond to the InputContext mode).
 //     'text_entry': ["] - text entry will become a TextItem (a section heading if Shift+Enter is used)
-//     'math_text_entry': [\] - text entry will become a ExprItem with either normal italic math text
+//     'math_entry': [\] - text entry will become a ExprItem with either normal italic math text
 //         (if Enter is used) or \mathrm roman math text (if Shift+Enter)
 //     'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
 //     'conjunction_entry': [,]['] - text entry will become a "conjuction" like "X  for  Y", same
@@ -1082,9 +1082,9 @@ class InputContext {
                 if(!/^[a-zA-Z]$/.test(key))
                     return this.error_flash_stack();
             }
-	    else if(this.text_entry.mode === 'math_text_entry' &&
+	    else if(this.text_entry.mode === 'math_entry' &&
 		    key === "\\" && this.text_entry.is_empty()) {
-		// Switch from math_text_entry -> latex_entry
+		// Switch from math_entry -> latex_entry
 		// when entering as '\' as the first character.
 		return this.do_start_text_entry(stack, 'latex_entry', '');
 	    }
@@ -1243,10 +1243,7 @@ class InputContext {
 	    }
 	    const editable_string = expr.as_editable_string();
 	    if(editable_string) {
-		this.do_start_text_entry(
-		    new_stack,
-		    'math_text_entry',
-		    editable_string);
+		this.do_start_text_entry(new_stack, 'math_entry', editable_string);
                 this.text_entry.edited_item = item;
 		return new_stack;
 	    }

@@ -235,7 +235,7 @@ div.stack_items div.text_entry span.cursored_character {
 }
 
 /* different background colors for text entry depending on the mode */
-div.stack_items div.math_text_entry_mode { background-color: #eee; }
+div.stack_items div.math_entry_mode { background-color: #eee; }
 div.stack_items div.text_entry_mode { background-color: #eef; }
 div.stack_items div.latex_entry_mode { background-color: #ded; }
 div.stack_items div.conjunction_entry_mode { background-color: #fec; }

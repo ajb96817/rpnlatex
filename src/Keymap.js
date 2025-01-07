@@ -55,7 +55,7 @@ const EditorKeymap = {
         '&': "mode script",
         '%': "mode blackboard",
         '/': "mode operator",
-        "\\": "start_text_entry math_text_entry",
+        "\\": "start_text_entry math_entry",
         "\"": "start_text_entry text_entry",
         '|': "mode array",
         '_': "start_dissect_mode",
@@ -243,7 +243,7 @@ const EditorKeymap = {
     },
 
     // \ prefix (math text)
-    math_text_entry: {
+    math_entry: {
         'Enter': "finish_text_entry math",
         'Shift+Enter': "finish_text_entry roman_math",
         'Tab': "finish_text_entry operatorname",
@@ -254,8 +254,8 @@ const EditorKeymap = {
     latex_entry: {
         'Enter': "finish_text_entry latex",
         'Shift+Enter': "finish_text_entry latex_unary",
-        'Delete': "text_entry_backspace delete math_text_entry",
-        'Backspace': "text_entry_backspace backspace math_text_entry",
+        'Delete': "text_entry_backspace delete math_entry",
+        'Backspace': "text_entry_backspace backspace math_entry",
         'delegate': "_editor_commands"
     },
 

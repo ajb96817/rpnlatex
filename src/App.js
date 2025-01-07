@@ -323,8 +323,6 @@ class ModeIndicatorComponent extends React.Component {
                 (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()),
                 ')'
             ].join('');
-        // if(input_context.text_entry)
-        //     input_mode = 'text_entry';
         if(notification_text) {
             // Auto-highlight anything after the colon in the notification message.
             const colon = notification_text.indexOf(':');
@@ -681,6 +679,7 @@ class ItemComponent extends React.Component {
             }
             else if(item.language === 'rendered_latex') {
                 // Arbitrary LaTeX code rendered with KaTeX.
+                // NOTE: Not currently used; maybe remove this (along with CSS rules)
                 return $e(
                     'div', {className: 'rendered_latex_source_item'},
                     tag_element,
@@ -734,7 +733,7 @@ class ItemComponent extends React.Component {
 		// NOTE: KaTeX throws actual errors for some inputs, even if throwOnError is false.
 		// Example: \texttt{\textbf{test}}
 		// Generally though, these errors result from [\][\] latex text entry
-		// with invalid latex commands.
+		// with invalid latex commands (or [Tab][V]).
 		msg = e.rawMessage;
 	    }
             else msg = e.toString();
