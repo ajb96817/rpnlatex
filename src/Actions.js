@@ -1867,6 +1867,13 @@ class InputContext {
             this.error_flash_stack();
     }
 
+    // Prompt for a LaTeX source string and put it on the stack as a TextExpr.
+    do_paste_from_prompt(stack) {
+        const code = window.prompt('Enter LaTeX code');
+        if(!code || code.length === 0) return stack;
+        return stack.push_expr(new TextExpr(code));
+    }
+
     // screen_percentage=0 means try to scroll so that the top of the selection is flush with the top of the document panel.
     // screen_percentage=100 tries to make the bottom of the selection flush with the bottom of the panel.
     // Anything in between is a linear interpolation between the two.

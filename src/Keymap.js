@@ -178,6 +178,7 @@ const EditorKeymap = {
         't': "tuck",
         'u': "unrot",
         'v': "paste_from_clipboard",
+        'V': "paste_from_prompt",
         'X': "reset_all",
         'Enter': "dup",
         'Backspace': "pop",
