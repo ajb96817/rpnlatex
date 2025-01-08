@@ -125,7 +125,8 @@ div.latex_source_item {
     border-left: var(--itemtype-bar-width) solid #bbcfbb;
     overflow-wrap: break-word;
     font-family: monospace;
-    padding: 0.25em var(--item-margin-width);
+    padding: 0.2em var(--item-margin-width);
+    margin: 0.2em 0;
 }
 div.latex_source_item div.latex_source {
     padding-left: var(--item-margin-width);
