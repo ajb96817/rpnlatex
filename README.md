@@ -40,7 +40,9 @@ more screen space.  For example:
 
   * iOS: Open the application in Safari.  Use the "send to" button and from there select "Add to Home Screen" to create a shortcut to use for PWA mode.
   * Android Chrome: From the three-dots menu, use "Add to Home Screen" to create a PWA mode shortcut.
-  * Desktop Chrome: From the menu, select "More tools" then "Create shortcut".  After that, there should be a new menu item "Open in rpnlatex" to start it in PWA mode.
+  * Desktop Chrome: From the menu, select "Cast, save, and share" then "Create shortcut".  After that, there should be a new menu item "Open in rpnlatex" under "Cast, save, and share" to start it in PWA mode.
+
+Desktop Firefox and Safari do not support PWA.
 
 Note that you may need to host from a web server (as opposed to opening the local files
 directly in your browser) in order to take advantage of PWA.
