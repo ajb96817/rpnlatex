@@ -172,7 +172,6 @@ div.tag_string {
 #panel_layout { height: 100%; }
 
 div.panel { background-color: #f8f8f8; }
-body.eink_mode div.panel { border: 1px solid black; }
 
 #stack_panel.errorflash {
     animation-name: errorflash_stack;
@@ -215,6 +214,9 @@ div.stack_items {
     width: 100%;
     bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
     border-bottom: 2px solid #ddd;
+}
+body.eink_mode div.stack_items {
+    border-bottom-color: #666;
 }
 
 /* highlight stack items "selected" by prefix arguments */

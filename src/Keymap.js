@@ -212,8 +212,10 @@ const EditorKeymap = {
         'v': "config inverse_video",
         'z': "config zoom_factor increase",
         'Z': "config zoom_factor decrease",
+        '(': "config autoparenthesize on",
+        ')': "config autoparenthesize off",
         '$': "push \\$",
-        '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int"
+        '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int",
     },
 
     // Delegate (shared) keymap for the 5 text_entry modes' editor commands.

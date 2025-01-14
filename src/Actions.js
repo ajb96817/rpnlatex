@@ -288,7 +288,8 @@ class InputContext {
         }
         else {
             // Create a new expr instead, parenthesizing the base if needed.
-            base_expr = DelimiterExpr.parenthesize_for_power(base_expr);
+            if(this.settings.autoparenthesize)
+                base_expr = DelimiterExpr.parenthesize_for_power(base_expr);
             return new SubscriptSuperscriptExpr(
                 base_expr,
                 (is_superscript ? null : child_expr),
@@ -724,7 +725,8 @@ class InputContext {
                 superscript_text = ['{', superscript_text, '}'].join('');
             funcname = [funcname, sup_or_sub, superscript_text].join('');
         }
-        arg_expr = DelimiterExpr.autoparenthesize(arg_expr);
+        if(this.settings.autoparenthesize)
+            arg_expr = DelimiterExpr.autoparenthesize(arg_expr);
         // \sech and \csch are are missing in LaTeX for some reason so they need to be special cased here.
         let expr;
         if(orig_funcname === 'sech' || orig_funcname === 'csch')
@@ -746,9 +748,10 @@ class InputContext {
             command_expr = new CommandExpr(opname);
         const limits_expr = new SubscriptSuperscriptExpr(
             new CommandExpr('limits'), sub_expr);
+        const no_parenthesize = !this.settings.autoparenthesize;
         const new_expr = Expr.combine_pair(
-            Expr.combine_pair(command_expr, limits_expr),
-            argument_expr);
+            Expr.combine_pair(command_expr, limits_expr, no_parenthesize),
+            argument_expr, no_parenthesize);
         return new_stack.push_expr(new_expr);
     }
 
@@ -958,7 +961,8 @@ class InputContext {
         const left_type = left_item.item_type(), right_type = right_item.item_type();
         if(left_type === 'expr' && right_type === 'expr') {
             let left_expr = left_item.expr, right_expr = right_item.expr;
-            const new_expr = Expr.combine_pair(left_expr, right_expr);
+            const new_expr = Expr.combine_pair(
+                left_expr, right_expr, !this.settings.autoparenthesize);
             return new_stack.push_expr(new_expr);
         }
         else if((left_type === 'expr' || left_type === 'text') &&
@@ -1442,7 +1446,8 @@ class InputContext {
     do_autoparenthesize(stack, expr_count_string) {
         const expr_count = (expr_count_string === undefined) ? 1 : parseInt(expr_count_string);
         const [new_stack, ...items] = stack.pop(expr_count);
-        if(items.every(item => item.item_type() === 'expr'))
+        if(this.settings.autoparenthesize &&
+           items.every(item => item.item_type() === 'expr'))
             return new_stack.push_all_exprs(
                 items.map(item => DelimiterExpr.autoparenthesize(item.expr)));
         else
@@ -1517,6 +1522,7 @@ class InputContext {
         case 'toggle_inline_math':
             layout.inline_math = !layout.inline_math;
             full_refresh_needed = true;
+            this.notify("Inline math display " + (settings.autoparenthesize ? "on" : "off"));
             break;
 	case 'toggle_mode_indicator':
 	    settings.show_mode_indicator = !settings.show_mode_indicator;
@@ -1541,10 +1547,15 @@ class InputContext {
             break;
         case 'eink_mode':
             settings.eink_mode = !settings.eink_mode;
+            this.notify("E-ink mode " + (settings.eink_mode ? "on" : "off"));
             break;
 	case 'dock_helptext':
 	    settings.dock_helptext = (value === 'on');
 	    break;
+        case 'autoparenthesize':
+            settings.autoparenthesize = (value === 'on');
+            this.notify("Autoparenthesize " + (settings.autoparenthesize ? "on" : "off"));
+            break;
         case 'reset_layout':
             settings.layout = settings.default_layout();
             settings.inverse_video = false;

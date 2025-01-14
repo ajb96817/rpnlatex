@@ -52,6 +52,7 @@ class Settings {
         this.last_opened_filename = null;
         this.popup_mode = null;  // null, 'help', 'files'
         this.show_mode_indicator = true;
+        this.autoparenthesize = true;
         this.layout = this.default_layout();
     }
 
@@ -143,7 +144,8 @@ Settings.saved_keys = [
     'last_opened_filename',
     'popup_mode',
     'layout',
-    'show_mode_indicator'
+    'show_mode_indicator',
+    'autoparenthesize'
 ];
 
 
