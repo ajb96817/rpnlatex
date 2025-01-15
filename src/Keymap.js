@@ -791,7 +791,7 @@ const EditorKeymap = {
         'f': "build_align cases_if",
         'F': "build_align rcases_if",
         'g': "build_align gathered",
-        'h': "transpose_matrix;swap;transpose_matrix;swap;stack_arrays;transpose_matrix",  // i.e., stack horizontally
+        'h': "stack_arrays horizontal",
         'k': "build_substack",
         'm': "build_matrix_row matrix",
         ' ': "build_matrix_row matrix",
@@ -802,7 +802,7 @@ const EditorKeymap = {
         'v': "build_matrix_row vmatrix",
         'V': "build_matrix_row Vmatrix",
         'x': "build_matrix",
-        '|': "stack_arrays",
+        '|': "stack_arrays vertical",
         ',': "build_infix_list ,",
         '.': "build_infix_list , \\dots",
         ';': "build_infix_list semicolon\\,",
@@ -812,12 +812,12 @@ const EditorKeymap = {
         '{': "build_matrix_row Bmatrix",
         '@': "build_matrix_row bmatrix 2;transpose_matrix",
         '#': "build_matrix_row bmatrix 3;transpose_matrix",
-        '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_arrays",
+        '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_arrays vertical",
         ':': "array_separator column dashed",
         '!': "array_separator column solid",
         '-': "array_separator row dashed",
         '_': "array_separator row solid",
-        'Enter': "stack_arrays"
+        'Enter': "stack_arrays vertical"
     },
 
     build_matrix: {

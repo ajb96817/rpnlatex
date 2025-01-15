@@ -1546,17 +1546,34 @@ class SubscriptSuperscriptExpr extends Expr {
 //   non-matrices (alignment environments): gathered, gather, cases, rcases, substack
 class ArrayExpr extends Expr {
     // Stack two ArrayExprs on top of each other.
-    // If there is an incompatibility such as mismatched column counts, null is returned.
-    static stack_arrays(expr1, expr2) {
+    // If column counts do not match, null is returned.
+    static vstack_arrays(expr1, expr2) {
         if(expr1.column_count !== expr2.column_count)
             return null;
         return new ArrayExpr(
-            expr2.array_type,
+            expr1.array_type,
             expr1.row_count + expr2.row_count,
             expr1.column_count,
             expr1.element_exprs.concat(expr2.element_exprs),
             expr1.row_separators.concat([null], expr2.row_separators),
-            expr2.column_separators);
+            expr1.column_separators);
+    }
+
+    // Stack two ArrayExprs side by side.
+    // If row counts do not match, null is returned.
+    static hstack_arrays(expr1, expr2) {
+        if(expr1.row_count !== expr2.row_count)
+            return null;
+        let new_element_exprs = [];
+        for(let i = 0; i < expr1.row_count; i++)
+            new_element_exprs.push(expr1.element_exprs[i].concat(expr2.element_exprs[i]));
+        return new ArrayExpr(
+            expr1.array_type,
+            expr1.row_count,
+            expr1.column_count + expr2.column_count,
+            new_element_exprs,
+            expr1.row_separators,
+            expr1.column_separators.concat([null], expr2.column_separators));
     }
     
     // split_mode:  (for placing alignment markers automatically for "\cases" and such)

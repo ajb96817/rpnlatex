@@ -1522,7 +1522,7 @@ class InputContext {
         case 'toggle_inline_math':
             layout.inline_math = !layout.inline_math;
             full_refresh_needed = true;
-            this.notify("Inline math display " + (settings.autoparenthesize ? "on" : "off"));
+            this.notify("Inline math display " + (layout.inline_math ? "on" : "off"));
             break;
 	case 'toggle_mode_indicator':
 	    settings.show_mode_indicator = !settings.show_mode_indicator;
@@ -1631,16 +1631,25 @@ class InputContext {
         return new_stack.push_expr(matrix_expr);
     }
 
-    // Stack two ArrayExprs on top of each other.
-    // The type of the array on the stack-top takes precedence if there's a conflict.
-    // The two arrays/matrices have to have the same number of columns.
-    do_stack_arrays(stack) {
-        const [new_stack, m1, m2] = stack.pop_arrays(2);
-        const new_array = ArrayExpr.stack_arrays(m1, m2);
-        if(new_array)
-            return new_stack.push_expr(new_array);
-        else
-            return new_stack.type_error();
+    // Stack N ArrayExprs together (default=2).
+    // direction:
+    //   'vertical': Stack vertically; arrays must have the same number of columns.
+    //   'horizontal': Stack horizontally; arrays must have the same number of rows.
+    // The result will have the same bracket type as the first array.
+    do_stack_arrays(stack, direction) {
+        const array_count = this._get_prefix_argument(2, stack.depth());
+        if(array_count < 1) return stack;
+        const [new_stack, ...arrays] = stack.pop_arrays(array_count);
+        let new_array = arrays[0];
+        for(let i = 1; i < array_count; i++) {
+            if(direction === 'vertical')
+                new_array = ArrayExpr.vstack_arrays(new_array, arrays[i]);
+            else
+                new_array = ArrayExpr.hstack_arrays(new_array, arrays[i]);
+            if(!new_array)
+                return stack.type_error();
+        }
+        return new_stack.push_expr(new_array);
     }
 
     // Split an ArrayExpr into its component rows and put them on the stack.
