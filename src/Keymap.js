@@ -612,7 +612,7 @@ const EditorKeymap = {
         ':': "infix :",
         ';': "infix semicolon\\:",
         "'": "start_text_entry conjunction_entry",
-        '`': "swap;push T;superscript;swap;concat",  // xTy
+        '`': "swap;push T;operator mathrm;superscript;swap;concat",  // xTy
         '%': "operator pmod;concat",  // y (mod x)
         '*': "infix *",
 	'(': "infix ,;delimiters ( )",  // (x,y)
@@ -773,7 +773,7 @@ const EditorKeymap = {
         '=': "push \\Rightarrow;swap;fuse",
         '-': "push -;swap;fuse",
         '+': "push +;swap;fuse",
-        '`': "push T;superscript",  // transpose
+        '`': "push T;operator mathrm;superscript",  // transpose
         '/': "push 1;swap;autoparenthesize;infix /",  // 1/x
         '_': "operator underline",
 	"\\": "operator bcancel",
