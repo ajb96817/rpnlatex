@@ -778,6 +778,8 @@ const EditorKeymap = {
         '/': "push 1;swap;autoparenthesize;infix /",  // 1/x
         '_': "operator underline",
 	"\\": "operator bcancel",
+        '[': "adjust_size smaller",
+        ']': "adjust_size larger"
     },
 
     // | prefix: array/matrix operations

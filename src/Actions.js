@@ -688,6 +688,18 @@ class InputContext {
 	return new_stack.push_expr(font_expr.unwrap_if_possible());
     }
 
+    // Increase or decrease the size of an expression via commands like \large and \small.
+    // operation:
+    //   'larger' or 'smaller': increase or decrease in steps of +/- 1.
+    //   Max is 5 in either direction.
+    do_adjust_size(stack, operation) {
+        const delta = operation === 'larger' ? +1 : -1;
+        const [new_stack, expr] = stack.pop_exprs(1);
+        const font_expr = FontExpr.wrap(expr);
+        const new_expr = font_expr.with_size_adjustment(font_expr.size_adjustment + delta);
+        return new_stack.push_expr(new_expr.unwrap_if_possible());
+    }
+
 /*    // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,
     // unwrap it and re-wrap the font face command inside \pmb.
     // e.g. \boldsymbol{A} -> \pmb{A}
@@ -815,7 +827,7 @@ class InputContext {
         return new_stack.push(item.as_bold());
     }
 
-    // This is equivalent to 'operator mathrm' except that if the target is already wrapped in a \boldsymbol{}
+/*    // This is equivalent to 'operator mathrm' except that if the target is already wrapped in a \boldsymbol{}
     // (presumably created by do_make_bold()), this converts it into a \bold{} which yields a bold Roman glyph.
     do_make_roman(stack) {
         const [new_stack, expr] = stack.pop_exprs(1);
@@ -827,7 +839,7 @@ class InputContext {
         else
             new_expr = new CommandExpr('mathrm', [expr]);
         return new_stack.push_expr(new_expr);
-    }
+    } */
 
     // side: 'left' or 'right'
     // If there is a DelimiterExpr on the stack, the corresponding delimiter side

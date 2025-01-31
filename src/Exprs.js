@@ -799,6 +799,11 @@ class FontExpr extends Expr {
 	return new FontExpr(this.expr, this.typeface, is_bold, this.size_adjustment);
     }
 
+    with_size_adjustment(size_adjustment) {
+        const new_size = Math.max(-4, Math.min(5, size_adjustment));
+        return new FontExpr(this.expr, this.typeface, this.is_bold, new_size);
+    }
+
     emit_latex(emitter) {
 	// If there is a size adjustment, emit the \large, etc, and then render
 	// without the size adjustment.
@@ -827,11 +832,10 @@ class FontExpr extends Expr {
     }
 
     size_adjustment_command(size_adjustment) {
-	switch(size_adjustment) {
-	case -1: return 'small';
-	case 1: return 'large';
-	default: return null;
-	}
+        // NOTE: -4 <= size_adjustment <= 5
+        return [
+            'tiny', 'scriptsize', 'footnotesize', 'small', null,
+            'large', 'Large', 'LARGE', 'huge', 'Huge'][size_adjustment+4];
     }
 
     // Returns true if the given typeface's bold variant should be rendered using \pmb
