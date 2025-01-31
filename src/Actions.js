@@ -679,19 +679,16 @@ class InputContext {
         return new_stack.push_expr(result_expr);
     }
 
-    do_font_apply_typeface(stack, typeface) {
+    // Set the typeface of the stack top, wrapping it in a FontExpr if it's not already.
+    // If there is already a typeface set on the expr, it's replaced with the new one
+    // (but the bold flag and any size adjustments are kept).
+    do_apply_typeface(stack, typeface) {
 	const [new_stack, expr] = stack.pop_exprs(1);
 	const font_expr = FontExpr.wrap(expr).with_typeface(typeface);
 	return new_stack.push_expr(font_expr.unwrap_if_possible());
     }
 
-    do_font_apply_bold(stack) {
-	const [new_stack, expr] = stack.pop_exprs(1);
-	const font_expr = FontExpr.wrap(expr).with_bold(true);
-	return new_stack.push_expr(font_expr.unwrap_if_possible());
-    }
-
-    // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,
+/*    // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,
     // unwrap it and re-wrap the font face command inside \pmb.
     // e.g. \boldsymbol{A} -> \pmb{A}
     // See also do_make_roman(), which is a special case because \bold{} creates Roman
@@ -714,7 +711,7 @@ class InputContext {
         else
             new_expr = new CommandExpr(facename, [expr]);
         return new_stack.push_expr(new_expr);
-    }
+    } */
 
     // \sin{x} etc.  Works similarly to do_operator except the argument is autoparenthesized.
     // If superscript_text is given, the text is applied as a superscript to the function
@@ -811,7 +808,7 @@ class InputContext {
         return new_stack.push_expr(expr);
     }
 
-    // For ExprItems, this just wraps the expression in \boldsymbol (if it's not already wrapped).
+    // For ExprItems, this just wraps the expression in a bold FontExpr (if it's not already wrapped).
     // For TextItems, the individual components of the text are bolded.
     do_make_bold(stack) {
         const [new_stack, item] = stack.pop(1);

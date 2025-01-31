@@ -99,8 +99,18 @@ class Expr {
             const left_expr = (left_type === 'infix' && !no_parenthesize) ?
 		DelimiterExpr.parenthesize(left) : left;
             const right_expr = (right_type === 'infix' && !no_parenthesize) ?
-		DelimiterExpr.parenthesize(right) : right;
-            return new SequenceExpr([left_expr, right_expr]);
+		  DelimiterExpr.parenthesize(right) : right;
+
+            // Adjacent FontExprs of the same type can be merged into a single
+            // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
+            // (This renders better in some cases.)
+            if(left_expr.expr_type() === 'font' && right_expr.expr_type() === 'font' &&
+               FontExpr.font_exprs_compatible(left_expr, right_expr))
+                return new FontExpr(
+                    new SequenceExpr([left_expr.expr, right_expr.expr]),
+                    left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
+            else
+                return new SequenceExpr([left_expr, right_expr]);
         }
     }
 
@@ -273,7 +283,9 @@ class Expr {
     dissolve() { return [this]; }
 
     // Subclasses can override.
-    as_bold() { return new CommandExpr('boldsymbol', [this]); }
+    as_bold() {
+        return FontExpr.wrap(this).with_bold(true).unwrap_if_possible();
+    }
 
     // Try to find a close rational approximation to value
     // or up to a factor of some common constants like sqrt(2) or pi.
@@ -501,13 +513,13 @@ class CommandExpr extends Expr {
 
     subexpressions() { return this.operand_exprs; }
 
-    // See comment in Expr.has_subexpressions().
+/*    // See comment in Expr.has_subexpressions().
     has_subexpressions() {
         if(this.is_font_command())
             return this.operand_exprs[0].has_subexpressions();
         else
             return super.has_subexpressions();
-    }
+    } */
 
     replace_subexpression(index, new_expr) {
         return new CommandExpr(
@@ -628,7 +640,7 @@ class CommandExpr extends Expr {
 	return null;
     }
 
-    // Wrap this expression in a \boldsymbol{...} command if it's not already.
+/*    // Wrap this expression in a \boldsymbol{...} command if it's not already.
     // LaTeX has different ways of expressing 'bold' so this is not quite trivial.
     // TextItem implements as_bold() in yet another way.
     as_bold() {
@@ -655,9 +667,9 @@ class CommandExpr extends Expr {
         }
         else
             return super.as_bold();
-    }
+    }*/
 
-    is_font_command() {
+/*    is_font_command() {
         if(this.operand_count() !== 1)
             return false;
         const c = this.command_name;
@@ -665,7 +677,7 @@ class CommandExpr extends Expr {
             c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
             c === 'mathfrak' || c === 'mathscr' || c === 'mathcal' ||
             c === 'text' || c === 'textbf' || c === 'textit';
-    }
+    } */
 
     // 0-argument commands are left as-is (\alpha, etc)
     // 1-argument commands dissolve into their only argument.
@@ -697,7 +709,16 @@ class FontExpr extends Expr {
 	    return expr;
 	else return new FontExpr(expr, 'normal', false, 0);
     }
-    
+
+    // Return true when the two expressions are both FontExprs with the same font parameters.
+    static font_exprs_compatible(left_expr, right_expr) {
+        return left_expr.expr_type() === 'font' &&
+            right_expr.expr_type() === 'font' &&
+            left_expr.typeface === right_expr.typeface &&
+            left_expr.is_bold === right_expr.is_bold &&
+            left_expr.size_adjustment === right_expr.size_adjustment;
+    }
+
     // typeface:
     //   'normal': regular italic math font
     //   'roman': \mathrm
@@ -751,13 +772,17 @@ class FontExpr extends Expr {
 
     as_editable_string() {
 	// If there is only a simple TextExpr inside, use that.
-	if(this.expr.expr_type() === 'text')
+	if(this.contains_only_text())
 	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text);
 	else
 	    return this.expr.as_editable_string();
     }
 
     dissolve() { return [this.expr]; }
+
+    contains_only_text() {
+        return this.expr.expr_type() === 'text';
+    }
 
     // If this FontExpr is a "no-op", remove it by returning the wrapped expression directly.
     unwrap_if_possible() {
