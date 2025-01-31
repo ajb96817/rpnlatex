@@ -439,7 +439,7 @@ class Expr {
 
     _int_to_expr(x) {
         if(isNaN(x))
-            return new CommandExpr('mathrm', [new TextExpr('NaN')]);
+            return FontExpr.roman_text('NaN');
         else if(Math.abs(x) > 1e10)
             return this._too_large_to_expr(x);
         else
@@ -448,7 +448,7 @@ class Expr {
 
     _float_to_expr(x) {
         if(isNaN(x))
-            return new CommandExpr('mathrm', [new TextExpr('NaN')]);
+            return FontExpr.roman_text('NaN');
         else if(Math.abs(x) > 1e10)
             return this._too_large_to_expr(x);
         else
@@ -458,7 +458,7 @@ class Expr {
     _too_large_to_expr(x) {
 	if(isFinite(x)) {
             const text = x < 0 ? '[too large (negative)]' : '[too large]';
-            return new CommandExpr('textbf', [new TextExpr(text)]);
+            return FontExpr.roman_text(text).with_bold(true);
 	}
 	else
 	    return Expr.text_or_command(x > 0 ? "\\infty" : "-\\infty");
@@ -512,14 +512,6 @@ class CommandExpr extends Expr {
     }
 
     subexpressions() { return this.operand_exprs; }
-
-/*    // See comment in Expr.has_subexpressions().
-    has_subexpressions() {
-        if(this.is_font_command())
-            return this.operand_exprs[0].has_subexpressions();
-        else
-            return super.has_subexpressions();
-    } */
 
     replace_subexpression(index, new_expr) {
         return new CommandExpr(
@@ -624,12 +616,6 @@ class CommandExpr extends Expr {
     }
 
     as_editable_string() {
-/*	// A single level of \mathrm{...} with only a TextExpr inside is assumed to
-	// have been made by Shift+Enter from math text entry mode.
-	if(this.command_name === 'mathrm' &&
-	   this.operand_count() === 1 &&
-	   this.operand_exprs[0].expr_type() === 'text')
-	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text); */
         // \operatorname{...} with a TextExpr inside.
         // This may have been created with Tab from math entry mode.
         if(this.command_name === 'operatorname' &&
@@ -639,45 +625,6 @@ class CommandExpr extends Expr {
 	// Other commands are not considered 'editable' (yet).
 	return null;
     }
-
-/*    // Wrap this expression in a \boldsymbol{...} command if it's not already.
-    // LaTeX has different ways of expressing 'bold' so this is not quite trivial.
-    // TextItem implements as_bold() in yet another way.
-    as_bold() {
-        const c = this.command_name;
-        if(c === 'boldsymbol')
-            return this;
-        else if(c === 'mathrm') {
-            // Replace \mathrm with \bold (as if it were originally created with [.][e] (operator bold))
-            if(this.operand_count() === 1)
-                return new CommandExpr('bold', this.operand_exprs);
-            else
-                return this;
-        }
-        else if(c === 'mathtt' || c === 'mathsf' ||
-                c === 'mathbb' || c === 'mathfrak' ||
-                c === 'mathscr' || c === 'mathcal') {
-            // For font families without bold fonts, wrap it in \pmb{} instead.
-            // Since KaTeX v.0.16.2, \pmb is rendered better (via CSS shadows) which
-            // makes this feasible.
-            if(this.operand_count() === 1)
-                return new CommandExpr('pmb', [this]);
-            else
-                return this;
-        }
-        else
-            return super.as_bold();
-    }*/
-
-/*    is_font_command() {
-        if(this.operand_count() !== 1)
-            return false;
-        const c = this.command_name;
-        return c === 'boldsymbol' || c === 'bold' || c === 'pmb' ||
-            c === 'mathrm' || c === 'mathtt' || c === 'mathsf' || c === 'mathbb' ||
-            c === 'mathfrak' || c === 'mathscr' || c === 'mathcal' ||
-            c === 'text' || c === 'textbf' || c === 'textit';
-    } */
 
     // 0-argument commands are left as-is (\alpha, etc)
     // 1-argument commands dissolve into their only argument.
@@ -708,6 +655,15 @@ class FontExpr extends Expr {
 	if(expr.expr_type() === 'font')
 	    return expr;
 	else return new FontExpr(expr, 'normal', false, 0);
+    }
+
+    // Wrap 'expr' in a Roman typeface FontExpr.
+    static roman(expr) {
+        return FontExpr.wrap(expr).with_typeface('roman');
+    }
+
+    static roman_text(str) {
+        return FontExpr.roman(new TextExpr(LatexEmitter.latex_escape(str)));
     }
 
     // Return true when the two expressions are both FontExprs with the same font parameters.
@@ -749,7 +705,7 @@ class FontExpr extends Expr {
 
     visit(fn) {
 	fn(this);
-	this.expr.visit(this);
+	this.expr.visit(fn);
     }
 
     // See comment in Expr.has_subexpressions().
@@ -1687,11 +1643,10 @@ class SubscriptSuperscriptExpr extends Expr {
         if(sub_expr !== null) return null;
 
         // Check for e^x notation created by [/][e].
-        if(base_expr.expr_type() === 'command' &&
-           base_expr.command_name === 'mathrm' &&
-           base_expr.operand_count() === 1 &&
-           base_expr.operand_exprs[0].expr_type() === 'text' &&
-           base_expr.operand_exprs[0].text === 'e') {
+        if(base_expr.expr_type() === 'font' &&
+           base_expr.typeface === 'roman' &&
+           base_expr.contains_only_text() &&
+           base_expr.expr.text === 'e') {
             const exponent_value = sup_expr.evaluate(assignments);
             if(exponent_value === null) return null;
             const value = Math.exp(exponent_value);
@@ -1803,12 +1758,11 @@ class ArrayExpr extends Expr {
                     expr.extract_side_at(expr.split_at_index, 'left'),
                     Expr.combine_pair(
                         Expr.combine_pair(
-                            new CommandExpr('mathrm', [new TextExpr('if')]),
+                            FontExpr.roman_text('if'),
                             new CommandExpr('enspace'), []),
                         expr.extract_side_at(expr.split_at_index, 'right'))];
-            else return [
-                expr,
-                new CommandExpr('mathrm', [new TextExpr('otherwise')])];
+            else
+                return [expr, FontExpr.roman_text('otherwise')];
         default:
             return [expr];
         }

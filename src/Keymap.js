@@ -72,7 +72,7 @@ const EditorKeymap = {
         'Ctrl+a': "swap",
         'Ctrl+b': "make_bold",
         'Ctrl+c': "copy_to_clipboard",
-        'Ctrl+e': "push e;apply_typeface roman;swap;superscript",  // exp(x) - same as [/][e]
+        'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x) - same as [/][e]
         'Ctrl+i': "pop_to_document",
         'Ctrl+j': "extract_from_document",
         'Ctrl+k': "infix \\,",
@@ -370,7 +370,7 @@ const EditorKeymap = {
         'C': "named_function csc",
         'd': "mode derivative",
         'D': "dissolve",
-        'e': "push e;apply_typeface roman;swap;superscript",  // exp(x)
+        'e': "push e;typeface roman;swap;superscript",  // exp(x)
         'E': "named_function exp",
         'f': "mode named_operator",
         'h': "mode hyperbolic",
@@ -379,7 +379,7 @@ const EditorKeymap = {
         'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
         'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
         'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
-        'M': "parenthesize;push Im;apply_typeface roman;swap;fuse",  // Im(x)
+        'M': "parenthesize;push Im;typeface roman;swap;fuse",  // Im(x)
         'n': "named_function ln",
         'N': "named_function log",
         'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
@@ -389,7 +389,7 @@ const EditorKeymap = {
         'q': "operator sqrt",
         'Q': "operator sqrt[3]",
         'r': "infix ,;parenthesize;fuse",  // f x y -> f(x,y)
-        'R': "parenthesize;push Re;apply_typeface roman;swap;fuse",  // Im(x)
+        'R': "parenthesize;push Re;typeface roman;swap;fuse",  // Im(x)
         's': "named_function sin",
         'S': "named_function sec",
         't': "named_function tan",
@@ -528,17 +528,17 @@ const EditorKeymap = {
         // \partial^2 y / \partial x^2
         'J': "push 2;superscript;push \\partial;swap;concat;swap;push \\partial;push 2;superscript;swap;concat;swap;operator frac 2",
         // dy/dx
-        'k': "push d;apply_typeface roman;swap;concat;swap;push d;apply_typeface roman;swap;concat;swap;operator frac 2",
+        'k': "push d;typeface roman;swap;concat;swap;push d;typeface roman;swap;concat;swap;operator frac 2",
         // d^2(y) / dx^2
-        'K': "push 2;superscript;push d;apply_typeface roman;swap;concat;swap;push d;apply_typeface roman;push 2;superscript;swap;concat;swap;operator frac 2",
+        'K': "push 2;superscript;push d;typeface roman;swap;concat;swap;push d;typeface roman;push 2;superscript;swap;concat;swap;operator frac 2",
         // \partial / \partial x
         'q': "push \\partial;swap;concat;push \\partial;swap;operator frac 2",
         // \partial^2 / \partial x^2
         'Q': "push 2;superscript;push \\partial;swap;concat;push \\partial;push 2;superscript;swap;operator frac 2",
         // d/dx
-        'x': "push d;apply_typeface roman;swap;concat;push d;apply_typeface roman;swap;operator frac 2",
+        'x': "push d;typeface roman;swap;concat;push d;typeface roman;swap;operator frac 2",
         // d^2 / dx^2
-        'X': "push 2;superscript;push d;apply_typeface roman;swap;concat;push d;apply_typeface roman;push 2;superscript;swap;operator frac 2",
+        'X': "push 2;superscript;push d;typeface roman;swap;concat;push d;typeface roman;push 2;superscript;swap;operator frac 2",
         // \partial^2 / \partial x\,\partial y
         'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;push 2;superscript;swap;operator frac 2",
         // \partial^2 z / \partial x\,\partial y
@@ -556,17 +556,17 @@ const EditorKeymap = {
         // d'Alembertian
         'L': "push \\Box;push 2;superscript;swap;concat",
         // x -> dx
-        'd': "push d;apply_typeface roman;swap;fuse",
+        'd': "push d;typeface roman;swap;fuse",
         // x -> d^2x
-        '2': "push d;apply_typeface roman;push 2;superscript;swap;fuse",
-        '3': "push d;apply_typeface roman;push 3;superscript;swap;fuse",
-        '4': "push d;apply_typeface roman;push 4;superscript;swap;fuse",
+        '2': "push d;typeface roman;push 2;superscript;swap;fuse",
+        '3': "push d;typeface roman;push 3;superscript;swap;fuse",
+        '4': "push d;typeface roman;push 4;superscript;swap;fuse",
         // y x -> y dx
-        'i': "swap;push \\,;concat;swap;push d;apply_typeface roman;swap;fuse;concat",
+        'i': "swap;push \\,;concat;swap;push d;typeface roman;swap;fuse;concat",
         // y x -> ydx (with thinspace after the dx)
-        'I': "push d;apply_typeface roman;swap;fuse;concat;push \\,;concat",
+        'I': "push d;typeface roman;swap;fuse;concat;push \\,;concat",
         // y x -> ydx (no spacing around the dx)
-        ' ': "push d;apply_typeface roman;swap;fuse;concat"
+        ' ': "push d;typeface roman;swap;fuse;concat"
     },
 
     // comma prefix: combine two objects with an infix operation
@@ -612,7 +612,7 @@ const EditorKeymap = {
         ':': "infix :",
         ';': "infix semicolon\\:",
         "'": "start_text_entry conjunction_entry",
-        '`': "swap;push T;apply_typeface roman;superscript;swap;concat",  // xTy
+        '`': "swap;push T;typeface roman;superscript;swap;concat",  // xTy
         '%': "operator pmod;concat",  // y (mod x)
         '*': "infix *",
 	'(': "infix ,;delimiters ( )",  // (x,y)
@@ -729,7 +729,7 @@ const EditorKeymap = {
         '4': "push 4;superscript",
         '8': "push \\infty;infix \\to",
         'A': "operator acute",
-        'b': "apply_typeface roman;make_bold",  // becomes \bold{...}
+        'b': "typeface roman;make_bold",  // becomes \bold{...}
         'c': "autoparenthesize;push 1;swap;infix -",
         'd': "push \\dagger;superscript",
         'D': "push \\ddagger;superscript",
@@ -740,9 +740,9 @@ const EditorKeymap = {
         'H': "apply_hat widehat",
         'i': "push -;superscript",
         'I': "push +;superscript",
-        'k': "apply_typeface fraktur",
+        'k': "typeface fraktur",
         'l': "push \\parallel;subscript",
-        'm': "apply_typeface typewriter",  // [m]onospace
+        'm': "typeface typewriter",  // [m]onospace
         'M': "push \\mp;swap;fuse",
 	'n': "push \\neg;swap;fuse",
         'o': "operator bar",
@@ -750,9 +750,9 @@ const EditorKeymap = {
         'p': "push \\perp;subscript",
         'P': "push \\pm;swap;fuse",
         'q': "push =;swap;fuse",
-        'r': "apply_typeface roman",
-        's': "apply_typeface sans_serif",
-        'S': "apply_typeface sans_serif_italic",
+        'r': "typeface roman",
+        's': "typeface sans_serif",
+        'S': "typeface sans_serif_italic",
         't': "push \\to;swap;fuse",
         'T': "operator widetilde",
         'u': "apply_hat breve",
@@ -774,7 +774,7 @@ const EditorKeymap = {
         '=': "push \\Rightarrow;swap;fuse",
         '-': "push -;swap;fuse",
         '+': "push +;swap;fuse",
-        '`': "push T;apply_typeface roman;superscript",  // transpose
+        '`': "push T;typeface roman;superscript",  // transpose
         '/': "push 1;swap;autoparenthesize;infix /",  // 1/x
         '_': "operator underline",
 	"\\": "operator bcancel",
@@ -888,19 +888,19 @@ const EditorKeymap = {
 
     // & prefix
     script: {
-        '[alpha]': "self_push;to_case uppercase;apply_typeface script",
+        '[alpha]': "self_push;to_case uppercase;typeface script",
         '&': "push \\&"
     },
 
     // @ prefix
     calligraphic: {
-        '[alpha]': "self_push;to_case uppercase;apply_typeface calligraphic",
+        '[alpha]': "self_push;to_case uppercase;typeface calligraphic",
         '@': "push @"
     },
 
     // % prefix
     blackboard: {
-        '[alpha]': "self_push;to_case uppercase;apply_typeface blackboard",
+        '[alpha]': "self_push;to_case uppercase;typeface blackboard",
         '%': "push \\%"
     },
 

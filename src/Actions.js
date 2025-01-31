@@ -1,6 +1,6 @@
 
 import {
-    AppState, Document, Stack, LatexEmitter,
+    AppState, Document, Stack,
     ExprPath, ExprParser, ExprItem, TextItem, CodeItem
 } from './Models';
 
@@ -682,7 +682,7 @@ class InputContext {
     // Set the typeface of the stack top, wrapping it in a FontExpr if it's not already.
     // If there is already a typeface set on the expr, it's replaced with the new one
     // (but the bold flag and any size adjustments are kept).
-    do_apply_typeface(stack, typeface) {
+    do_typeface(stack, typeface) {
 	const [new_stack, expr] = stack.pop_exprs(1);
 	const font_expr = FontExpr.wrap(expr).with_typeface(typeface);
 	return new_stack.push_expr(font_expr.unwrap_if_possible());
@@ -699,31 +699,6 @@ class InputContext {
         const new_expr = font_expr.with_size_adjustment(font_expr.size_adjustment + delta);
         return new_stack.push_expr(new_expr.unwrap_if_possible());
     }
-
-/*    // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,
-    // unwrap it and re-wrap the font face command inside \pmb.
-    // e.g. \boldsymbol{A} -> \pmb{A}
-    // See also do_make_roman(), which is a special case because \bold{} creates Roman
-    // bold text without needing \pmb.
-    do_font_operator(stack, facename) {
-        const [new_stack, expr] = stack.pop_exprs(1);
-        let new_expr = null;
-        if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
-           (expr.command_name === 'boldsymbol' || expr.command_name === 'pmb'))
-            new_expr = new CommandExpr(
-                'pmb', [new CommandExpr(facename, [expr.operand_exprs[0]])]);
-        else if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
-                expr.command_name === facename) {
-            // Special case: don't wrap in the same typeface twice consecutively
-            // (don't create \mathtt{\mathtt{A}}).  This check should probably be
-            // generalized to strip existing typeface commands but there's not a good
-            // way to do this cleanly yet.
-            new_expr = expr;
-        }
-        else
-            new_expr = new CommandExpr(facename, [expr]);
-        return new_stack.push_expr(new_expr);
-    } */
 
     // \sin{x} etc.  Works similarly to do_operator except the argument is autoparenthesized.
     // If superscript_text is given, the text is applied as a superscript to the function
@@ -826,20 +801,6 @@ class InputContext {
         const [new_stack, item] = stack.pop(1);
         return new_stack.push(item.as_bold());
     }
-
-/*    // This is equivalent to 'operator mathrm' except that if the target is already wrapped in a \boldsymbol{}
-    // (presumably created by do_make_bold()), this converts it into a \bold{} which yields a bold Roman glyph.
-    do_make_roman(stack) {
-        const [new_stack, expr] = stack.pop_exprs(1);
-        let new_expr = null;
-        if(expr.expr_type() === 'command' && expr.command_name === 'boldsymbol' && expr.operand_count() === 1)
-            new_expr = new CommandExpr('bold', expr.operand_exprs);
-        else if(expr.expr_type() === 'command' && expr.command_name === 'mathrm')
-            new_expr = expr;
-        else
-            new_expr = new CommandExpr('mathrm', [expr]);
-        return new_stack.push_expr(new_expr);
-    } */
 
     // side: 'left' or 'right'
     // If there is a DelimiterExpr on the stack, the corresponding delimiter side
@@ -1170,10 +1131,8 @@ class InputContext {
             return stack.push(item);
         }
         let new_expr = null;
-        if(textstyle === 'roman_math') {
-            new_expr = new CommandExpr('mathrm', [
-                new TextExpr(LatexEmitter.latex_escape(text))]);
-        }
+        if(textstyle === 'roman_math')
+            new_expr = FontExpr.roman_text(text);
         else if(textstyle === 'operatorname') {
             // Similar to 'roman_math' but filter out anything but alphanumeric characters,
             // spaces and dashes for use inside \operatorname{...}.
