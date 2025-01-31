@@ -5,7 +5,8 @@ const EditorKeymap = {
         '[alnum]': "self_push",
 
         '*': "push *",
-        '~': "push \\sim",
+	'~': "push \\sim",
+        //'~': 'mode font',
 
         // Immediate action special keys
         '!': "autoparenthesize;push !;concat",
@@ -92,6 +93,12 @@ const EditorKeymap = {
         'Ctrl+ArrowRight': "scroll document_container horizontal 75",
         'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
         'Ctrl+/': "operator frac 2"
+    },
+
+    font: {
+	'b': 'font_apply_bold',
+	'r': 'font_apply_typeface roman',
+	's': 'font_apply_typeface sans_serif'
     },
 
     // File Manager mode

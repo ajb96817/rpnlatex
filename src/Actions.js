@@ -5,7 +5,7 @@ import {
 } from './Models';
 
 import {
-    Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    Expr, CommandExpr, FontExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
 
@@ -677,6 +677,18 @@ class InputContext {
         const [new_stack, ...popped_exprs] = stack.pop_exprs(arity);
         const result_expr = new CommandExpr(opname, popped_exprs)
         return new_stack.push_expr(result_expr);
+    }
+
+    do_font_apply_typeface(stack, typeface) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	const font_expr = FontExpr.wrap(expr).with_typeface(typeface);
+	return new_stack.push_expr(font_expr.unwrap_if_possible());
+    }
+
+    do_font_apply_bold(stack) {
+	const [new_stack, expr] = stack.pop_exprs(1);
+	const font_expr = FontExpr.wrap(expr).with_bold(true);
+	return new_stack.push_expr(font_expr.unwrap_if_possible());
     }
 
     // Like do_operator, but if the stack item is already wrapped in a \boldsymbol or \pmb,

@@ -21,6 +21,12 @@ class Expr {
                 json.linebreaks_at || []);
         case 'placeholder':
             return new PlaceholderExpr();
+	case 'font':
+	    return new FontExpr(
+		this._expr(json.expr),
+		json.typeface,
+		json.is_bold,
+		json.size_adjustment);
         case 'text':
             return new TextExpr(json.text);
         case 'sequence':
@@ -606,12 +612,12 @@ class CommandExpr extends Expr {
     }
 
     as_editable_string() {
-	// A single level of \mathrm{...} with only a TextExpr inside is assumed to
+/*	// A single level of \mathrm{...} with only a TextExpr inside is assumed to
 	// have been made by Shift+Enter from math text entry mode.
 	if(this.command_name === 'mathrm' &&
 	   this.operand_count() === 1 &&
 	   this.operand_exprs[0].expr_type() === 'text')
-	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text);
+	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text); */
         // \operatorname{...} with a TextExpr inside.
         // This may have been created with Tab from math entry mode.
         if(this.command_name === 'operatorname' &&
@@ -682,6 +688,156 @@ class CommandExpr extends Expr {
     }
 }
 
+
+class FontExpr extends Expr {
+    // Wrap an expression in FontExpr if it's not already.
+    // This allows the FontExpr methods like with_typeface() to be used to add further styles.
+    static wrap(expr) {
+	if(expr.expr_type() === 'font')
+	    return expr;
+	else return new FontExpr(expr, 'normal', false, 0);
+    }
+    
+    // typeface:
+    //   'normal': regular italic math font
+    //   'roman': \mathrm
+    //   'sans_serif': \mathsf (upright sans serif)
+    //   'sans_serif_italic': \mathsfit (italic sans serif)
+    //   'typewriter': \mathtt
+    //   'blackboard', 'fraktur', 'calligraphic', 'script': \mathbb, etc.
+    // is_bold: true/false
+    // size_adjustment: 0=default, -1=\small, +1=\large, etc.
+    constructor(expr, typeface, is_bold, size_adjustment) {
+	super();
+	this.expr = expr;
+	this.typeface = typeface;
+	this.is_bold = !!is_bold;
+	this.size_adjustment = size_adjustment || 0;
+    }
+
+    expr_type() { return 'font'; }
+
+    json_keys() { return ['expr', 'typeface']; }
+
+    to_json() {
+	let json = super.to_json();
+	if(this.is_bold) json.is_bold = true;
+	if(this.size_adjustment !== 0) json.size_adjustment = this.size_adjustment;
+	return json;
+    }
+
+    visit(fn) {
+	fn(this);
+	this.expr.visit(this);
+    }
+
+    // See comment in Expr.has_subexpressions().
+    has_subexpressions() {
+	return this.expr.has_subexpressions();
+    }
+
+    subexpressions() { return [this.expr]; }
+
+    replace_subexpression(index, new_expr) {
+	return new FontExpr(new_expr, this.typeface, this.is_bold, this.size_adjustment);
+    }
+
+    substitute_expr(old_expr, new_expr) {
+	if(this === old_expr) return new_expr;
+	return new FontExpr(
+	    this.expr.substitute_expr(old_expr, new_expr),
+	    this.typeface, this.is_bold, this.size_adjustment);
+    }
+
+    as_editable_string() {
+	// If there is only a simple TextExpr inside, use that.
+	if(this.expr.expr_type() === 'text')
+	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text);
+	else
+	    return this.expr.as_editable_string();
+    }
+
+    dissolve() { return [this.expr]; }
+
+    // If this FontExpr is a "no-op", remove it by returning the wrapped expression directly.
+    unwrap_if_possible() {
+	if(this.typeface === 'normal' && !this.is_bold && this.size_adjustment === 0)
+	    return this.expr;
+	else return this;
+    }
+    
+    with_typeface(typeface) {
+	return new FontExpr(this.expr, typeface, this.is_bold, this.size_adjustment);
+    }
+
+    with_bold(is_bold) {
+	return new FontExpr(this.expr, this.typeface, is_bold, this.size_adjustment);
+    }
+
+    emit_latex(emitter) {
+	// If there is a size adjustment, emit the \large, etc, and then render
+	// without the size adjustment.
+	const size_adjustment_command = this.size_adjustment_command(this.size_adjustment);
+	if(size_adjustment_command)  {
+	    emitter.command(size_adjustment_command);
+	    return emitter.grouped_expr(
+		new FontExpr(this.expr, this.typeface, this.is_bold),
+		true, 0);
+	}
+	const typeface_command = this.typeface_command(this.typeface, this.is_bold);
+	const use_pmb = this.is_bold && this.use_pmb_for(this.typeface);
+	if(!use_pmb && !typeface_command)
+	    emitter.expr(this.expr, 0);
+	else if(use_pmb && typeface_command) {
+	    emitter.command('pmb');
+	    emitter.grouped(() => {
+		emitter.command(typeface_command);
+		emitter.grouped_expr(this.expr, true, 0);
+	    }, true);
+	}
+	else {
+	    emitter.command(use_pmb ? 'pmb' : typeface_command);
+	    emitter.grouped_expr(this.expr, true, 0);
+	}
+    }
+
+    size_adjustment_command(size_adjustment) {
+	switch(size_adjustment) {
+	case -1: return 'small';
+	case 1: return 'large';
+	default: return null;
+	}
+    }
+
+    // Returns true if the given typeface's bold variant should be rendered using \pmb
+    // on top of the non-bolded version (instead of using a dedicated command like \boldsymbol).
+    use_pmb_for(typeface) {
+	return [
+	    'sans_serif', 'sans_serif_italic', 'typewriter',
+	    'blackboard', 'fraktur', 'calligraphic', 'script'
+	].includes(typeface);
+    }
+
+    // TODO: bold fraktur font support?  (need Unicode maybe?)
+
+    // Return the LaTeX command used to render this typeface (null if no command is needed).
+    // This is used in conjunction with use_pmb_for() so that typefaces without a bolded
+    // version can be rendered as \pmb{\
+    typeface_command(typeface, is_bold) {
+	switch(typeface) {
+	case 'normal': return is_bold ? 'boldsymbol' : null;
+	case 'roman': return is_bold ? 'bold' : 'mathrm';
+	case 'sans_serif': return 'mathsf';
+	case 'sans_serif_italic': return 'mathsfit';
+	case 'typewriter': return 'mathtt';
+	case 'blackboard': return 'mathbb';
+	case 'fraktur': return 'mathfrak';
+	case 'calligraphic': return 'mathcal';
+	case 'script': return 'mathscr';
+	default: return null;
+	}
+    }
+}
 
 // Represents two or more expressions joined by infix operators (like + or \wedge).
 // Fields:
@@ -1913,6 +2069,6 @@ class ArrayExpr extends Expr {
 
 
 export {
-    Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+    Expr, CommandExpr, FontExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
     DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr
 };
