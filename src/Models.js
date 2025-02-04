@@ -1546,7 +1546,7 @@ class TextItem extends Item {
         return json;
     }
 
-    // Empty TextItems are displayed as "separator lines" (visually, the underlined part
+    // Empty TextItems are displayed as "separator lines" (visually, the underline part
     // of an ordinary section header).  Currently empty TextItems can only be created by
     // the ['][=] command, and they are always created with is_heading=true.
     // There is a slight corner case here if is_header flag is turned off via [/]["].
