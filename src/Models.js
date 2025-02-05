@@ -982,8 +982,8 @@ class ExprParser {
     //   close_delimiter: ) or ] or }
     static tokenize(s) {
         let pos = 0;
-        let number_regex = /\d*\.?\d+/g;
         let tokens = [];
+        let number_regex = /\d*\.?\d+/g;
         while(pos < s.length) {
             // Check for number:
             number_regex.lastIndex = pos;

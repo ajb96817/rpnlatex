@@ -69,6 +69,12 @@ class Expr {
     // no_parenthesize=true is passed.
     static combine_pair(left, right, no_parenthesize) {
         const left_type = left.expr_type(), right_type = right.expr_type();
+        const autoparenthesize = expr => {
+            // Parenthesize InfixExprs before combining unless specified not to.
+            if(expr.expr_type() === 'infix' && !no_parenthesize)
+                return DelimiterExpr.parenthesize(expr);
+            else return expr;
+        };
         if(left_type === 'sequence' && !left.fused &&
            right_type === 'sequence' && !right.fused) {
             // Sequence + Sequence
@@ -77,12 +83,12 @@ class Expr {
         else if(left_type === 'sequence' && !left.fused &&
                 right_type !== 'sequence') {
             // Sequence + NonSequence
-            return new SequenceExpr(left.exprs.concat([right]));
+            return new SequenceExpr(left.exprs.concat([autoparenthesize(right)]));
         }
         else if(right_type === 'sequence' && !right.fused &&
                 left_type !== 'sequence') {
             // NonSequence + Sequence
-            return new SequenceExpr([left].concat(right.exprs));
+            return new SequenceExpr([autoparenthesize(left)].concat(right.exprs));
         }
         else if(left_type === 'command' && right_type === 'command') {
             // Some types of Command can be combined in special ways
@@ -95,16 +101,12 @@ class Expr {
         }
         else {
             // NonSequence + NonSequence => Sequence
-            // Parenthesize InfixExprs before combining unless specified not to.
-            const left_expr = (left_type === 'infix' && !no_parenthesize) ?
-		DelimiterExpr.parenthesize(left) : left;
-            const right_expr = (right_type === 'infix' && !no_parenthesize) ?
-		  DelimiterExpr.parenthesize(right) : right;
-
             // Adjacent FontExprs of the same type can be merged into a single
             // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
             // (This renders better in some cases.)
-            if(left_expr.expr_type() === 'font' && right_expr.expr_type() === 'font' &&
+            const left_expr = autoparenthesize(left);
+            const right_expr = autoparenthesize(right);
+            if(left_type === 'font' && right_type === 'font' &&
                FontExpr.font_exprs_compatible(left_expr, right_expr))
                 return new FontExpr(
                     new SequenceExpr([left_expr.expr, right_expr.expr]),
@@ -661,7 +663,9 @@ class FontExpr extends Expr {
     //   'typewriter': \mathtt
     //   'blackboard', 'fraktur', 'calligraphic', 'script': \mathbb, etc.
     // is_bold: true/false
-    // size_adjustment: 0=default, -1=\small, +1=\large, etc.
+    // size_adjustment:
+    //   0=default, -1=\small, +1=\large, etc.
+    //   Limited to -4 <= size <= 5.
     constructor(expr, typeface, is_bold, size_adjustment) {
 	super();
 	this.expr = expr;
@@ -759,8 +763,9 @@ class FontExpr extends Expr {
     }
 
     with_size_adjustment(size_adjustment) {
-        const new_size = Math.max(-4, Math.min(5, size_adjustment));
-        return new FontExpr(this.expr, this.typeface, this.is_bold, new_size);
+        return new FontExpr(
+            this.expr, this.typeface, this.is_bold,
+            Math.max(-4, Math.min(5, size_adjustment)));
     }
 
     emit_latex(emitter) {
@@ -833,21 +838,30 @@ class FontExpr extends Expr {
     }
 }
 
+
 // Represents two or more expressions joined by infix operators (like + or \wedge).
-// Fields:
-//   - operand_exprs: The x,y,z in 'x + y - z'.  There must be at least 2.
-//   - operator_exprs: The +,- in 'x + y - z'.  Length must be 1 less than operand_exprs.
-//   - split_at_index: Index of the operator_expr that is considered the 'split point'
-//     for this InfixExpr.  Generally this is the last operator used to create the
-//     infix expression.  For binary expressions this is 0; for something like 'x+y = z+w'
-//     it would be 1 if the '=' was used to join the existing x+y and z+w.
-//   - 'linebreaks_at' is an array of integers specifying where (if any) the linebreaks
-//     occur in this expression.  Currently linebreaks are only shown if the top-level
-//     Expr in an ExprItem is an InfixExpr.  In that case, each integer index in
-//     linebreaks_at indicates a line break *after* the given subexpression index.
-//     For example, in 'x + y - z',
-//     index=0 breaks after the 'x', index=1 breaks after the '+', etc.
+// This includes relational operators like = or <.
+// operand_exprs: The x,y,z in 'x + y - z'.  There must be at least 2.
+// operator_exprs: The +,- in 'x + y - z'.  Length must be 1 less than operand_exprs.
+// split_at_index: Index of the operator_expr that is considered the 'split point'
+//   for this InfixExpr.  Generally this is the last operator used to create the
+//   infix expression.  For binary expressions this is 0; for something like 'x+y = z+w'
+//   it would be 1 if the '=' was used to join the existing x+y and z+w.
+// linebreaks_at: an array of integers specifying where (if any) the linebreaks
+//   occur in this expression.  Currently linebreaks are only shown if the top-level
+//   Expr in an ExprItem is an InfixExpr.  In that case, each integer index in
+//   linebreaks_at indicates a line break *after* the given subexpression index.
+//   For example, in 'x + y - z',
+//   index=0 breaks after the 'x', index=1 breaks after the '+', etc.
 class InfixExpr extends Expr {
+    constructor(operand_exprs, operator_exprs, split_at_index, linebreaks_at) {
+        super();
+        this.operand_exprs = operand_exprs;
+        this.operator_exprs = operator_exprs;
+        this.split_at_index = split_at_index || 0;
+        this.linebreaks_at = linebreaks_at || [];
+    }
+
     // Combine two existing expressions into an InfixExpr, joined by
     // 'op_expr' as the infix operator.
     // If one or both of the expressions are already InfixExprs, they are
@@ -885,14 +899,6 @@ class InfixExpr extends Expr {
             new_operator_exprs,
             split_at_index,
             new_linebreaks_at);
-    }
-    
-    constructor(operand_exprs, operator_exprs, split_at_index, linebreaks_at) {
-        super();
-        this.operand_exprs = operand_exprs;
-        this.operator_exprs = operator_exprs;
-        this.split_at_index = split_at_index || 0;
-        this.linebreaks_at = linebreaks_at || [];
     }
 
     expr_type() { return 'infix'; }
