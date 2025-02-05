@@ -247,7 +247,7 @@ const EditorKeymap = {
     // \ prefix (math text)
     math_entry: {
         'Enter': "finish_text_entry math",
-        'Shift+Enter': "finish_text_entry roman_math",
+        'Shift+Enter': "finish_text_entry roman_text",
         'Tab': "finish_text_entry operatorname",
         'delegate': "_editor_commands"
     },

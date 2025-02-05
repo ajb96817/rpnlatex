@@ -1108,8 +1108,8 @@ class InputContext {
 
     // textstyle determines what the entered text becomes:
     //   'math' - ExprItem with "parsed" italic math text (see ExprParser)
-    //   'roman_math' - Expr with \mathrm{...}, where ... is always a TextExpr
-    //   'operatorname' - Similar to 'roman_math' but use \operatorname instead of \mathrm
+    //   'roman_text' - Expr with \mathrm{...}, where ... is always a TextExpr (not parsed as a math)
+    //   'operatorname' - Similar to 'roman_text' but use \operatorname instead of \mathrm
     //   'latex' - ExprItem with arbitrary 0-argument latex command
     //   'latex_unary' - ExprItem with 1-argument (from stack) latex command
     //   'text' - TextItem
@@ -1131,10 +1131,10 @@ class InputContext {
             return stack.push(item);
         }
         let new_expr = null;
-        if(textstyle === 'roman_math')
-            new_expr = FontExpr.roman_text(text);
+        if(textstyle === 'roman_text')
+            new_expr = ExprParser.roman_text_to_expr(text);
         else if(textstyle === 'operatorname') {
-            // Similar to 'roman_math' but filter out anything but alphanumeric characters,
+            // Similar to 'roman_text' but filter out anything but alphanumeric characters,
             // spaces and dashes for use inside \operatorname{...}.
             // Currently in KaTeX, spaces need to be explicitly converted to \, inside \operatorname.
             const sanitized_text = text.replaceAll(/[^a-zA-Z0-9- ]/g, '').replaceAll(' ', "\\,");

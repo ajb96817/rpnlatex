@@ -227,7 +227,9 @@
         Typing <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
         will typeset your entry in a roman (non-italic) font instead of the normal italic math font,
 	and it will not be parsed as a math expression, so you can use any text you want.  This can be
-        used to include normal English words or phrases in math expressions.
+        used to include normal English words or phrases in math expressions.  Placeholders can still be
+        included using <span class="keybinding">[</span><span class="keybinding">]</span>.
+        <br />
         <strong>NOTE:</strong> The <a href="#conjunction_anchor"><em>conjunction</em></a>
         command available via <span class="keybinding">,</span><span class="keybinding">&#39;</span>
         is another way of including English words or phrases.
@@ -372,6 +374,7 @@
         <li>
           <span class="keybinding">s</span>
           Save the current document to browser storage.
+          <span class="keybinding">Ctrl+s</span> can also be used as a shortcut for this.
         </li>
         <li>
           <span class="keybinding">v</span>
@@ -427,27 +430,15 @@
         opens the File Manager popup panel.
         If your browser supports it, you can save and manage separate documents in the
         internal browser storage (IndexedDB).
-        Your data persists between browser sessions, but this may not work in Private Mode.
+        Your data persists between browser sessions, but this may not work in Private/Incognito Mode.
         Each document has a filename but there is only one level of storage - no subfolders.
-        There are also some utilities for exporting and importing your data as .zip files.
       </p>
-      <ul class="keybindings">
-        <li>
-          <span class="keybinding">&uarr;</span>
-          <span class="keybinding">&darr;</span>
-          The arrow keys change the selection in your list of saved documents.
-        </li>
-        <li><span class="keybinding">Enter</span> Open the currently selected file.</li>
-        <li><span class="keybinding">d</span> Delete the currently selected file.</li>
-        <li><span class="keybinding">s</span>
-          Save the current document to browser storage.
-          You can also use <span class="keybinding">Tab</span><span class="keybinding">s</span>
-          or <span class="keybinding">Ctrl+s</span> from anywhere without opening
-          the file manager first.
-        </li>
-        <li><span class="keybinding">S</span> Save the current document with a new filename.</li>
-        <li><span class="keybinding">n</span> Start a new, blank document.</li>
-      </ul>
+      <p>
+        <strong>NOTE:</strong>
+        You can use <span class="keybinding">Tab</span><span class="keybinding">s</span>
+        or <span class="keybinding">Ctrl+s</span> from the main screen to save the current
+        document without opening the file manager first.
+      </p>
       <p>
         The <em>Export/Import</em> section of the file manager allows you to download your document
         storage as a .zip file for backup purposes, and to restore your storage from a previously-saved

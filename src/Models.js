@@ -3,8 +3,8 @@
 import KeybindingTable from './Keymap';
 import JSZip from 'jszip';
 import {
-    Expr, CommandExpr, InfixExpr, PlaceholderExpr, TextExpr, DelimiterExpr,
-    // SequenceExpr, SubscriptSuperscriptExpr, ArrayExpr
+    Expr, CommandExpr, FontExpr, InfixExpr, PlaceholderExpr,
+    TextExpr, DelimiterExpr, SequenceExpr //, SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs.js';
 
 
@@ -970,6 +970,28 @@ class ExprParser {
         if(!expr) return null;
         if(!parser.at_end()) return null;  // extraneous tokens at end
         return expr;
+    }
+
+    // "Parse" a roman_text string (via Shift+Enter from [\] math entry mode).
+    // This just wraps the string in a roman typeface FontExpr; but if
+    // the string contains [] sequences, those are converted into placeholders
+    // and the resulting Expr is a SequenceExpr with a mixture of FontExprs
+    // (for the text pieces) and PlaceholderExprs.
+    static roman_text_to_expr(string) {
+        const pieces = string.split('[]');
+        let exprs = [];
+        for(let i = 0; i < pieces.length; i++) {
+            if(pieces[i].length > 0)
+                exprs.push(FontExpr.roman_text(pieces[i]));
+            if(i < pieces.length-1)
+                exprs.push(new PlaceholderExpr());
+        }
+        if(exprs.length === 0)
+            return FontExpr.roman_text('');  // special case: 'string' is empty
+        else if(exprs.length === 1)
+            return exprs[0];
+        else
+            return new SequenceExpr(exprs);
     }
     
     // Break string into tokens; token types are:
