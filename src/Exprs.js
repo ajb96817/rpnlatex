@@ -736,7 +736,7 @@ class FontExpr extends Expr {
     as_editable_string() {
 	// If there is only a simple TextExpr inside, use that.
 	if(this.contains_only_text())
-	    return LatexEmitter.latex_unescape(this.operand_exprs[0].text);
+	    return LatexEmitter.latex_unescape(this.expr.text);
 	else
 	    return this.expr.as_editable_string();
     }
