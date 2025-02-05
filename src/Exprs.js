@@ -1374,11 +1374,22 @@ class SequenceExpr extends Expr {
 }
 
 
-// Represents an expression enclosed in (flexible) left/right delimiters.
-// e.g. \left( ... \right)
-// If the enclosed expression is an InfixExpr, this attempts to convert
+// Represents an expression enclosed in left/right delimiters.
+// Normally the delimiters are "flex-size": \left(xyz\right)
+// but setting fixed_sized to true gives "normal" delimiters (xyz) instead.
+//
+// NOTE: If the enclosed expression is an InfixExpr, this attempts to convert
 // infix operators to their flex-size equivalent if they have one.
+// For example: <x|y>  -> \left\langle x\middle\vert y\right\rangle
 class DelimiterExpr extends Expr {
+    constructor(left_type, right_type, inner_expr, fixed_size) {
+        super();
+        this.left_type = left_type;
+        this.right_type = right_type;
+        this.inner_expr = inner_expr;
+        this.fixed_size = fixed_size || false;
+    }
+
     static parenthesize(expr) {
         // Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
         // just replace the blanks with parentheses instead of re-wrapping expr.
@@ -1447,14 +1458,6 @@ class DelimiterExpr extends Expr {
             return expr;
     }
     
-    constructor(left_type, right_type, inner_expr, fixed_size) {
-        super();
-        this.left_type = left_type;
-        this.right_type = right_type;
-        this.inner_expr = inner_expr;
-        this.fixed_size = fixed_size || false;
-    }
-
     expr_type() { return 'delimiter'; }
     json_keys() { return ['left_type', 'right_type', 'inner_expr']; }
 
@@ -1554,6 +1557,31 @@ class SubscriptSuperscriptExpr extends Expr {
         this.base_expr = base_expr;
         this.subscript_expr = subscript_expr;
         this.superscript_expr = superscript_expr;
+    }
+
+    // If the base already has a subscript, and is_superscript is true, the superscript
+    // is placed into the existing base.  Otherwise, a new subscript/superscript node
+    // is created.  A similar rule applies if is_superscript is false.
+    static build_subscript_superscript(base_expr, child_expr, is_superscript, autoparenthesize) {
+        // Check to see if we can put the child into an empty sub/superscript "slot".
+        if(base_expr.expr_type() === 'subscriptsuperscript' &&
+           ((base_expr.subscript_expr === null && !is_superscript) ||
+            (base_expr.superscript_expr === null && is_superscript))) {
+            // There's "room" for it in this expr.
+            return new SubscriptSuperscriptExpr(
+                base_expr.base_expr,
+                (is_superscript ? base_expr.subscript_expr : child_expr),
+                (is_superscript ? child_expr : base_expr.superscript_expr));
+        }
+        else {
+            // Create a new expr instead, parenthesizing the base if needed.
+            if(autoparenthesize)
+                base_expr = DelimiterExpr.parenthesize_for_power(base_expr);
+            return new SubscriptSuperscriptExpr(
+                base_expr,
+                (is_superscript ? null : child_expr),
+                (is_superscript ? child_expr : null));
+        }
     }
 
     expr_type() { return 'subscriptsuperscript'; }
@@ -1695,11 +1723,28 @@ class SubscriptSuperscriptExpr extends Expr {
 }
 
 
-// \begin{bmatrix} ... etc
+// Arrayed structures; these are all 2-dimensional grids of expressions.
 // Currently supported "array types" are:
 //   matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
 //   non-matrices (alignment environments): gathered, gather, cases, rcases, substack
 class ArrayExpr extends Expr {
+    // element_exprs is a nested array of length 'row_count', each of which is
+    // an array of 'column_count' Exprs.
+    // row_separators and column_separators can either be null or an array of N-1
+    // items (where N is the row or column count respectively).  Each item can be
+    // one of: [null, 'solid', 'dashed'] indicating the type of separator to put
+    // between the corresponding row or column.
+    constructor(array_type, row_count, column_count, element_exprs,
+                row_separators, column_separators) {
+        super();
+        this.array_type = array_type;
+        this.row_count = row_count;
+        this.column_count = column_count;
+        this.element_exprs = element_exprs;
+        this.row_separators = row_separators || new Array(row_count-1).fill(null);
+        this.column_separators = column_separators || new Array(column_count-1).fill(null);
+    }
+
     // Stack two ArrayExprs on top of each other.
     // If column counts do not match, null is returned.
     static vstack_arrays(expr1, expr2) {
@@ -1730,13 +1775,15 @@ class ArrayExpr extends Expr {
             expr1.row_separators,
             expr1.column_separators.concat([null], expr2.column_separators));
     }
-    
-    // split_mode:  (for placing alignment markers automatically for "\cases" and such)
-    //    'none': do nothing, just put each entry_expr in its own row
-    //    'infix': place alignment markers before infix, if any
-    //    'colon': if there is a ':' infix, remove it and place alignment marker where it was
-    //    'colon_if': like 'colon', but place the word "if" before the right-hand side if there
-    //                is a ':' infix.  If there is no ':' infix, the right-hand side becomes 'otherwise'.
+
+    // Split up a 1-D list of expressions into a 2-D grid of array elements
+    // (for placing alignment markers automatically for "\cases" and such).
+    // split_mode: 
+    //   'none': do nothing, just put each entry_expr in its own row
+    //   'infix': place alignment markers before infix, if any
+    //   'colon': if there is a ':' infix, remove it and place alignment marker where it was
+    //   'colon_if': like 'colon', but place the word "if" before the right-hand side if there
+    //               is a ':' infix.  If there is no ':' infix, the right-hand side becomes 'otherwise'.
     static split_elements(exprs, split_mode) {
         return exprs.map(expr => ArrayExpr._split_expr(expr, split_mode));
     }
@@ -1781,23 +1828,6 @@ class ArrayExpr extends Expr {
         default:
             return [expr];
         }
-    }
-
-    // element_exprs is a nested array of length 'row_count', each of which is
-    // an array of 'column_count' Exprs.
-    // row_separators and column_separators can either be null or an array of N-1
-    // items (where N is the row or column count respectively).  Each item can be
-    // one of: [null, 'solid', 'dashed'] indicating the type of separator to put
-    // between the corresponding row or column.
-    constructor(array_type, row_count, column_count, element_exprs,
-                row_separators, column_separators) {
-        super();
-        this.array_type = array_type;
-        this.row_count = row_count;
-        this.column_count = column_count;
-        this.element_exprs = element_exprs;
-        this.row_separators = row_separators || new Array(row_count-1).fill(null);
-        this.column_separators = column_separators || new Array(column_count-1).fill(null);
     }
 
     expr_type() { return 'array'; }
@@ -1959,7 +1989,7 @@ class ArrayExpr extends Expr {
             });
         });
         if(this.array_type === 'substack')
-            emitter.text("}");
+            emitter.text('}');
         else
             emitter.end_environment(this.array_type);
     }

@@ -244,6 +244,11 @@ class InputContext {
         this.new_mode = new_mode;
     }
 
+    // Don't include the results of this action in the undo stack.
+    suppress_undo() {
+        this.perform_undo_or_redo = 'suppress';
+    }
+
     error_flash_element(dom_element) {
         dom_element.classList.remove('errorflash');
         // eslint-disable-next-line no-unused-expressions
@@ -272,42 +277,17 @@ class InputContext {
 
     notify(text) { this.notification_text = text; }
 
-    // If the base already has a subscript, and is_superscript is true, the superscript
-    // is placed into the existing base.  Otherwise, a new subscript/superscript node
-    // is created.  A similar rule applies if is_superscript is false.
-    _build_subscript_superscript(base_expr, child_expr, is_superscript) {
-        // Check to see if we can put the child into an empty sub/superscript "slot".
-        if(base_expr.expr_type() === 'subscriptsuperscript' &&
-           ((base_expr.subscript_expr === null && !is_superscript) ||
-            (base_expr.superscript_expr === null && is_superscript))) {
-            // There's "room" for it in this expr.
-            return new SubscriptSuperscriptExpr(
-                base_expr.base_expr,
-                (is_superscript ? base_expr.subscript_expr : child_expr),
-                (is_superscript ? child_expr : base_expr.superscript_expr));
-        }
-        else {
-            // Create a new expr instead, parenthesizing the base if needed.
-            if(this.settings.autoparenthesize)
-                base_expr = DelimiterExpr.parenthesize_for_power(base_expr);
-            return new SubscriptSuperscriptExpr(
-                base_expr,
-                (is_superscript ? null : child_expr),
-                (is_superscript ? child_expr : null));
-        }
-    }
+    do_subscript(stack) { return this._build_subscript_superscript(stack, false); }
+    do_superscript(stack) { return this._build_subscript_superscript(stack, true); }
 
     // Second-to-top stack item becomes the base, while the stack top becomes the
     // subscript or superscript depending on 'is_superscript'.
-    make_subscript_superscript(stack, is_superscript) {
+    _build_subscript_superscript(stack, is_superscript) {
         const [new_stack, base_expr, child_expr] = stack.pop_exprs(2);
-        const new_expr = this._build_subscript_superscript(
-            base_expr, child_expr, is_superscript);
+        const new_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
+            base_expr, child_expr, is_superscript, this.settings.autoparenthesize);
         return new_stack.push_expr(new_expr);
     }
-
-    do_subscript(stack) { return this.make_subscript_superscript(stack, false); }
-    do_superscript(stack) { return this.make_subscript_superscript(stack, true); }
 
     // Add a \prime to the stack top; this is almost like do_superscript with \prime
     // but needs some special handling to coalesce multiple \prime into a single superscript.
@@ -334,7 +314,8 @@ class InputContext {
             }
         }
         // Otherwise, adding a prime works just like adding a \prime superscript.
-        const new_expr = this._build_subscript_superscript(base_expr, new_prime_expr, true);
+        const new_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
+            base_expr, new_prime_expr, true, this.settings.autoparenthesize);
         return new_stack.push_expr(new_expr);
     }
 
@@ -345,7 +326,7 @@ class InputContext {
 
     do_prefix_argument() {
         const key = this.last_keypress;
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         this.switch_to_mode(this.mode);
         this.preserve_prefix_argument = true;
         let new_prefix_argument = null;
@@ -458,7 +439,7 @@ class InputContext {
 	    if(Math.abs(amount) > 3) percentage = 75;
 	    else if(Math.abs(amount) > 0) percentage = 25;
 	    if(amount < 0) percentage = -percentage;
-            this.perform_undo_or_redo = 'suppress';
+            this.suppress_undo();
 	    return this.do_scroll(stack, 'document_container', 'vertical', percentage.toString());
 	}
 	else
@@ -1030,12 +1011,12 @@ class InputContext {
             return this.error_flash_stack();
         this.text_entry = new TextEntryState(text_entry_mode, initial_text);
         this.switch_to_mode(text_entry_mode);
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         return stack;
     }
 
     do_cancel_text_entry(stack) {
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         return this.cancel_text_entry(stack);
     }
 
@@ -1049,7 +1030,7 @@ class InputContext {
     }
 
     do_text_entry_move_cursor(stack, move_type) {
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         this.switch_to_mode(this.mode);
         this.text_entry.move(move_type);
         return stack;
@@ -1057,7 +1038,7 @@ class InputContext {
 
     do_append_text_entry(stack) {
         const key = this.last_keypress;
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         this.switch_to_mode(this.mode);
         if(key.length === 1) {
             if(this.text_entry.mode === 'latex_entry') {
@@ -1102,7 +1083,7 @@ class InputContext {
                 this.text_entry.do_delete();
             this.switch_to_mode(this.mode);
         }
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         return stack;
     }
 
@@ -1162,7 +1143,7 @@ class InputContext {
                 return new_stack.push_expr(new_expr);
             }
             else {
-		this.perform_undo_or_redo = 'suppress';
+                this.suppress_undo();
 		this.switch_to_mode(this.mode);
 		this.error_flash_stack();
                 return;
@@ -1187,7 +1168,7 @@ class InputContext {
         else {
 	    new_expr = ExprParser.parse_string(text);
 	    if(!new_expr) {
-		this.perform_undo_or_redo = 'suppress';
+                this.suppress_undo();
 		this.switch_to_mode(this.mode);
 		this.error_flash_stack();
 		return;
@@ -1249,7 +1230,7 @@ class InputContext {
 	// The expression to be 'dissected' must have subexpressions or it's an error.
 	if(expr.has_subexpressions()) {
 	    this.switch_to_mode('dissect');
-            this.perform_undo_or_redo = 'suppress';
+            this.suppress_undo();
 	    this.dissect_mode_initial_expr = expr;
 	    // Build a new ExprItem with a default initial selection.
 	    return new_stack.push(new ExprItem(expr, null, new ExprPath(expr, [0])));
@@ -1261,7 +1242,7 @@ class InputContext {
     do_cancel_dissect_mode(stack) {
         // eslint-disable-next-line no-unused-vars
 	const [new_stack, expr] = stack.pop_exprs(1);  // expr will be discarded
-	this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
 	const original_expr = this.dissect_mode_initial_expr;
 	this.dissect_mode_initial_expr = null;
 	return new_stack.push(new ExprItem(original_expr, null, null));
@@ -1359,7 +1340,7 @@ class InputContext {
 	const expr_path = item.selected_expr_path;
 	const new_expr_path = fn(expr_path);
 	if(new_expr_path) {
-	    this.perform_undo_or_redo = 'suppress';
+            this.suppress_undo();
 	    const new_expr_item = new ExprItem(new_expr_path.expr, null, new_expr_path);
 	    return new_stack.push(new_expr_item);
 	}
@@ -1473,7 +1454,7 @@ class InputContext {
             (this.settings.popup_mode === mode_string) ? null : mode_string;
         this.settings.save();
         this.app_component.apply_layout_to_dom();
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
     }
 
     // Set various configuration options.
@@ -1550,7 +1531,7 @@ class InputContext {
             break;
         }
         settings.save();
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         this.app_component.apply_layout_to_dom();
         this.clear_all_flashes();
         if(full_refresh_needed) {
@@ -1567,7 +1548,7 @@ class InputContext {
         }
         else
             document.getElementsByTagName('html')[0].requestFullscreen();
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         return stack;
     }
 
@@ -1851,7 +1832,7 @@ class InputContext {
             this.notify("Copied to clipboard");
         else
             this.notify("Copied to clipboard slot " + slot);
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         return new_stack.push(item);
     }
 
@@ -1876,7 +1857,7 @@ class InputContext {
     // Anything in between is a linear interpolation between the two.
     do_recenter_document(stack, screen_percentage_string) {
         const screen_percentage = parseInt(screen_percentage_string);
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
         
         // TODO: Accessing the DOM elements directly like this is a hack but there's not an easy
         // way to get it properly from React here.  May want to restructure things to make this cleaner.
@@ -1921,7 +1902,7 @@ class InputContext {
         const exported_text = this.app_state.document.to_text();
         navigator.clipboard.writeText(exported_text);
         this.notify("Copied document to clipboard");
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
     }
 
     do_export_stack_items_as_text(stack) {
@@ -1931,7 +1912,7 @@ class InputContext {
         const exported_text = items.map(item => item.to_text()).join("\n\n");
         navigator.clipboard.writeText(exported_text);
         this.notify("Copied " + arg + " item" + (arg === 1 ? "" : "s") + " to clipboard");
-        this.perform_undo_or_redo = 'suppress';
+        this.suppress_undo();
     }
 }
 

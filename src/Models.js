@@ -1600,7 +1600,7 @@ class TextItem extends Item {
     // If this TextItem is simple enough, return a string representation suitable
     // for editing using the minieditor.  "Simple enough" currently means that there
     // are no Exprs mixed into the text, with the exception of PlaceholderExprs which are
-    // rendered as [].  Bold flags are stripped from the text as well.
+    // rendered as [].
     // If this TextItem is not simple, null is returned indicating that it's
     // "uneditable" with the minieditor.
     as_editable_string() {
