@@ -1378,7 +1378,7 @@ class TextItemTextElement extends TextItemElement {
             pieces.push(this._latex_escape(tokens[i]));
             if(i < tokens.length-1)
                 pieces.push(' ');  // preserve spacing between words
-            pieces.push("}\\allowbreak ");
+            pieces.push("}\\allowbreak");
         }
         return pieces.join('');
     }
@@ -1561,7 +1561,12 @@ class TextItem extends Item {
             return this.elements.map(element => element.to_text()).join('');
     }
     
-    to_latex() { return this.elements.map(element => element.to_latex()).join(''); }
+    to_latex() {
+        // NOTE: Elements need to be joined with a space between them,
+        // in case there are adjacent TextItemExprElements.  Otherwise, for example,
+        // adjacent "\to" and "x" would become "\tox".
+        return this.elements.map(element => element.to_latex()).join(' ');
+    }
 
     clone() {
 	return new TextItem(
