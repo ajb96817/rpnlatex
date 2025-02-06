@@ -13,7 +13,6 @@
         "webpack": "^5.97.1"
     },
     "devDependencies": {
-        "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
         "@vitejs/plugin-react": "^4.3.4",
         "vite": "^6.1.0"
     },
