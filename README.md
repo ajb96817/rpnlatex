@@ -28,12 +28,22 @@ browser and runs completely on your local hardware.  There is no server-side sto
 
 A pre-built version is available here: https://ajb96817.github.io/rpnlatex
 
-To run your own local copy, download the latest release package from Github and unpack it,
-then open the 'index.html' file in a web browser.
+To run your own local copy, first download the latest release package from Github and unpack it.
+Due to browser security restrictions, you will need to set up a local webserver to serve the
+application files (it won't work using file:// URLs).  No server-side dynamic features are needed
+on the webserver; it's only static files.
 
-To host this from a webserver, simply copy all files to a location on the server and
-navigate to the URL in your browser.  No server-side dynamic features are needed on the
-webserver; it's only static files.
+A simple option, if you have Python installed, is to use the `http.server` Python module.
+From the directory you unpacked into, run `python3 -m http.server`.  It will display a local
+URL you can use.
+
+Once you have the files available on a webserver, simply open `index.html` from your web browser.
+
+An alternative to a standalone webserver is to use `npm start` as described below in the "Building from source" section.
+This runs a built-in webserver (via [Vite](https://vite.dev/)) to serve up the application, and
+also lets you edit the source code if you want to make any changes or customizations.
+
+## Progressive Web App support
 
 If your browser supports Progressive Web Apps, you can use this as a PWA to get a little
 more screen space.  For example:
@@ -44,18 +54,15 @@ more screen space.  For example:
 
 Desktop Firefox and Safari do not support PWA.
 
-Note that you may need to host from a web server (as opposed to opening the local files
-directly in your browser) in order to take advantage of PWA.
-
 ## Building from source
 
 To build/run from source (not needed unless you want to change something):
 
-  * Install npm (Node Package Manager)
-  * Clone the source code repository: git clone https://github.com/ajb96817/rpnlatex
-  * Run 'npm install'
-  * Run 'npm start'
+  * Install `npm` (Node Package Manager)
+  * Clone the source code repository: `git clone https://github.com/ajb96817/rpnlatex`
+  * Run `npm install`
+  * Run `npm start`
   * Open the displayed server URL in a web browser
-  * To build a packaged release, run 'npm run build' and the release will be created in the build/ subdirectory
+  * To build a packaged release, run `npm run build' and the release will be created in the `build/' subdirectory
 
 
