@@ -924,6 +924,7 @@ class ExprPath {
 // Rules:
 //   - Spaces are ignored except to separate numbers.
 //   - "Symbols" are one-letter substrings like 'x'.
+//   - As a special case, '@' becomes \pi.
 //   - Adjacent factors are combined with implicit multiplication.
 //   - 'xyz' is considered implicit multiplication of x,y,z.
 //   - '*' is multiplication, but gets converted to \cdot.
@@ -948,6 +949,7 @@ class ExprPath {
 //   factor:
 //       number |
 //       symbol |
+//       pi |             (special case '@' syntax)
 //       '(' expr ')' |   (delimiter types must match)
 //       '-' factor |     (unary minus, only if factor(allow_unary_minus))
 //       factor '!' |     (factorial notation)
@@ -999,6 +1001,7 @@ class ExprParser {
   //      NOTE: scientific notation not supported
   //      NOTE: negative numbers are handled by the "- factor" production in the grammar
   //   symbol: x (xyz becomes 3 separate symbols)
+  //   pi: @ -> \pi (special case)
   //   operator: +, -, *, /, //, !
   //   open_delimiter: ( or [ or {
   //   close_delimiter: ) or ] or }
@@ -1033,6 +1036,7 @@ class ExprParser {
         if(/[-+!/*]/.test(token)) token_type = 'operator';
         if(/[([{]/.test(token)) token_type = 'open_delimiter';
         if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
+	if(token === '@') token_type = 'pi';
         if(token_type === null)
           return null;  // invalid token found (something like ^, or unicode)
         if(token_type !== 'whitespace')  // skip whitespace
@@ -1134,6 +1138,10 @@ class ExprParser {
         return Expr.combine_pair(new TextExpr('-'), token_expr);
       else
         return token_expr;
+    }
+    else if(this.peek_for('pi')) {
+      this.next_token();
+      return new CommandExpr('pi');
     }
     else if(this.peek_for('placeholder')) {
       this.next_token();
