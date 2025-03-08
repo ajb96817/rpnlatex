@@ -610,7 +610,7 @@ const EditorKeymap = {
     ',': "infix ,",  // comma without thinspace
     ' ': "infix ,\\,",  // comma plus thinspace
     ':': "infix :",
-    ';': "infix semicolon\\:",
+    ';': "infix semicolon",
     "'": "start_text_entry conjunction_entry",
     '`': "swap;push T;typeface roman;superscript;swap;concat",  // xTy
     '%': "operator pmod;concat",  // y (mod x)
