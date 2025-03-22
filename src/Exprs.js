@@ -1320,13 +1320,15 @@ class SequenceExpr extends Expr {
   replace_subexpression(index, new_expr) {
     return new SequenceExpr(
       this.exprs.map(
-        (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
+        (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr),
+      this.fused);
   }
 
   substitute_expr(old_expr, new_expr) {
     if(this === old_expr) return new_expr;
     return new SequenceExpr(
-      this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)));
+      this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
+      this.fused);
   }
 
   as_editable_string() {
@@ -1341,7 +1343,13 @@ class SequenceExpr extends Expr {
       return null;
   }
 
-  dissolve() { return this.exprs; }    
+  dissolve() { return this.exprs; }
+
+  as_bold() {
+    return new SequenceExpr(
+      this.exprs.map(expr => expr.as_bold()),
+      this.fused);
+  }
 
   evaluate(assignments) {
     // Check for ['-', Expr] and ['+', Expr]

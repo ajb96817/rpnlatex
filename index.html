@@ -1458,12 +1458,12 @@
         <li>
           <span class="keybinding">|</span> or <span class="keybinding">Enter</span>
           Stack N matrices (or other aligned structures) on top of each other (default 2).
-          Both must have the same number of columns.
+          All must have the same number of columns.
           This is the main way to build matrices from individual rows.
         </li>
         <li>
           <span class="keybinding">h</span>
-          Stack N matrices side by side (default 2).  Both must have the same number of rows.
+          Stack N matrices side by side (default 2).  All must have the same number of rows.
         </li>
       </ul>
 
@@ -1500,7 +1500,8 @@
           <span class="keybinding">c</span>
           Build a list of N cases for a piecewise function definition.
           If the component items are infix expressions joined with a colon
-          (via <span class="keybinding">,</span><span class="keybinding">:</span>),
+          (via <span class="keybinding">,</span><span class="keybinding">:</span>
+	  or <span class="keybinding">:</span><span class="keybinding">:</span>),
           they will be split up and placed as the left and right parts of the case structure.
           For example:
           <br />
@@ -1725,7 +1726,7 @@
         can be used as alternatives to
         <span class="keybinding">,</span><span class="keybinding">;</span>
         and
-        <span class="keybinding">,</span><span class="keybinding">:</span>
+        <span class="keybinding">,</span><span class="keybinding">:</span>.
       </p>
       <p>Lowercase Greek letters use the <span class="keybinding">;</span> prefix:</p>
       <table class="keybindings"><tbody>
@@ -1874,12 +1875,13 @@
           and <span class="keybinding">$</span><span class="keybinding">M</span>.
         </li>
         <li>
-          <span class="keybinding">z</span>
+          <span class="keybinding">z</span> or <span class="keybinding">+</span>
           Increase the text zoom factor in steps of 5%.  A prefix argument can be used to jump up multiple steps at once.  A prefix argument of <span class="keybinding">*</span> resets the zoom factor back to the default.
         </li>
         <li>
-          <span class="keybinding">Z</span>
-          Like <span class="keybinding">z</span> but decrease the zoom factor instead.
+          <span class="keybinding">Z</span> or <span class="keybinding">-</span>
+          Like <span class="keybinding">z</span> or <span class="keybinding">+</span>
+	  but decrease the zoom factor instead.
         </li>
         <li>
           <span class="keybinding">f</span>
