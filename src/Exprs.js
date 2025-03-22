@@ -436,34 +436,63 @@ class Expr {
   }
 
   // Number formatting routines.
-  // Javascript doesn't give many good options for this.
-  // Mostly we want to avoid things like '3.14e28'.
+  // If we "know" x should be an integer (e.g. as part of a rationalized fraction),
+  // try to show it without any decimal part with _int_to_expr.
+  // Very large or small-but-nonzero values are shown in scientific notation.
 
   _int_to_expr(x) {
     if(isNaN(x))
       return FontExpr.roman_text('NaN');
-    else if(Math.abs(x) > 1e10)
-      return this._too_large_to_expr(x);
+    else if(Math.abs(x) > 1e12)
+      return this._float_to_expr(x);  // use scientific notation
     else
-      return new TextExpr(Math.floor(x).toString());
+      return new TextExpr(Math.round(x).toString());
   }
 
   _float_to_expr(x) {
     if(isNaN(x))
       return FontExpr.roman_text('NaN');
-    else if(Math.abs(x) > 1e10)
-      return this._too_large_to_expr(x);
-    else
-      return new TextExpr(x.toFixed(6));
+    else if(isFinite(x)) {
+      const abs_x = Math.abs(x);
+      if(abs_x < 1e-30)
+	return new TextExpr('0.0');
+      if(abs_x < 1e-8 || abs_x > 1e9)
+	return this._float_to_scientific_notation_expr(x);
+      else {
+	// Here, x is known to have a "reasonable" exponent so
+	// that toString() will not output scientific notation.
+	return new TextExpr(x.toString());
+      }
+    }
+    else {
+      const infty_expr = Expr.text_or_command("\\infty");
+      if(x > 0)
+	return infty_expr;
+      else  // create 'fused' -\infty sequence
+	return new SequenceExpr([new TextExpr('-'), infty_expr], true);
+    }
   }
 
-  _too_large_to_expr(x) {
-    if(isFinite(x)) {
-      const text = x < 0 ? '[too large (negative)]' : '[too large]';
-      return FontExpr.roman_text(text).with_bold(true);
+  _float_to_scientific_notation_expr(x) {
+    const exp_string = x.toExponential();  // "3e+4", or else "Infinity", "NaN", etc.
+    // Split on e+ and e- both explicitly, in case e.g. "Infinity" happened to have an "e" in it.
+    const pieces_positive = exp_string.split('e+');
+    const pieces_negative = exp_string.split('e-');
+    let coefficient_text = null;
+    let exponent_text = null;
+    if(pieces_positive.length === 2)
+      [coefficient_text, exponent_text] = pieces_positive;
+    else if(pieces_negative.length === 2) {
+      coefficient_text = pieces_negative[0];
+      exponent_text = '-' + pieces_negative[1];
     }
     else
-      return Expr.text_or_command(x > 0 ? "\\infty" : "-\\infty");
+      return new TextExpr('???');  // Infinity, NaN, etc.; shouldn't happen by this point
+    return InfixExpr.combine_infix(
+      new TextExpr(coefficient_text),
+      new SubscriptSuperscriptExpr(
+	new TextExpr('10'), null, new TextExpr(exponent_text)),
+      new CommandExpr('times'));
   }
 }
 
