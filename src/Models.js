@@ -4,7 +4,7 @@ import KeybindingTable from './Keymap';
 import JSZip from 'jszip';
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PlaceholderExpr,
-  TextExpr, DelimiterExpr, SequenceExpr //, SubscriptSuperscriptExpr, ArrayExpr
+  TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr //, ArrayExpr
 } from './Exprs.js';
 
 
@@ -1061,7 +1061,22 @@ class ExprParser {
       this.next_token();
       const allow_unary_minus = binary_token.text === '+';
       const rhs = this.parse_expr(allow_unary_minus) || this.parse_error();
-      result_expr = InfixExpr.combine_infix(
+      // Special case: check for scientific notation with a negative exponent.
+      // 4e-3 is initially parsed as (4e)-(3); convert this specific case
+      // into scientific notation.
+      if(lhs.expr_type() === 'sequence' && lhs.exprs.length === 2 &&
+	 lhs.exprs[0].looks_like_number() &&
+	 lhs.exprs[1].expr_type() === 'text' &&
+	 ['e', 'E'].includes(lhs.exprs[1].text) &&
+	 rhs.expr_type() === 'text' && rhs.looks_like_number() &&
+	 binary_token.text === '-') {
+	result_expr = InfixExpr.combine_infix(
+	  lhs.exprs[0],
+	  new SubscriptSuperscriptExpr(
+	    new TextExpr('10'), null, new TextExpr('-' + rhs.text)),
+	  new CommandExpr('times'));
+      }
+      else result_expr = InfixExpr.combine_infix(
         lhs, rhs, Expr.text_or_command(binary_token.text));
     }
     return result_expr;
@@ -1091,6 +1106,7 @@ class ExprParser {
       // Combining rules for implicit multiplication:
       //   number1 number2      -> number1 \cdot number2
       //   number1 a \cdot b    -> number1 \cdot a \cdot b
+      //   number1 E|e number2  -> number1 \times 10^number2 (scientific notation)
       // Any other pair just concatenates.
       const cdot = Expr.text_or_command("\\cdot");
       if(lhs.expr_type() === 'text' && lhs.looks_like_number() &&
@@ -1099,6 +1115,19 @@ class ExprParser {
       else if(rhs.expr_type() === 'infix' &&
               rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
         return InfixExpr.combine_infix(lhs, rhs, cdot);
+      else if(rhs.expr_type() === 'sequence' &&
+	      rhs.exprs.length === 2 &&
+	      rhs.exprs[1].expr_type() === 'text' && rhs.exprs[1].looks_like_number() &&
+	      rhs.exprs[0].expr_type() === 'text' &&
+	      ['e', 'E'].includes(rhs.exprs[0].text) &&
+	      lhs.expr_type() === 'text' && lhs.looks_like_number()) {
+	// Scientific notation with nonnegative exponent (e.g. prepending a number to "e4").
+	// Negative exponents are handled in parse_expr instead.
+  	return InfixExpr.combine_infix(
+	  lhs,
+	  new SubscriptSuperscriptExpr(new TextExpr('10'), null, rhs.exprs[1]),
+	  new CommandExpr('times'));
+      }
       else
 	return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);
     }

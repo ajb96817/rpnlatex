@@ -188,7 +188,8 @@
 	<span class="keybinding">Enter</span> will parse what you have typed and put it on the stack.
 	A malformed expression will signal an error; allowed expressions include:
 	<ul>
-	  <li>Numbers such as 3, -10, 5.12 (scientific notation not supported).</li>
+	  <li>Numbers such as 3, -10, 5.12</li>
+	  <li>Scientific notation such as 3e-4 (converts to <code>3\times{10}^{-4}</code>)</li>
 	  <li>Single-letter variables such as <code>x</code>.</li>
 	  <li>
 	    Implicit multiplication such as <code>5x</code> or <code>xy</code>
@@ -494,53 +495,68 @@
           </tr>
           <tr>
             <td><span class="keybinding">P</span> <code>\pm</code></td>
+            <td><span class="keybinding">q</span> <code>=</code></td>
             <td><span class="keybinding">s</span> <code>\sum</code></td>
             <td><span class="keybinding">t</span> <code>\therefore</code></td>
             <td><span class="keybinding">U</span> <code>\bigcup</code></td>
-            <td><span class="keybinding">v</span> <code>\vee</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">v</span> <code>\vee</code></td>
             <td><span class="keybinding">V</span> <code>\bigvee</code></td>
             <td><span class="keybinding">w</span> <code>\wedge</code></td>
             <td><span class="keybinding">W</span> <code>\bigwedge</code></td>
             <td><span class="keybinding">y</span> <code>\oint</code></td>
-            <td><span class="keybinding">Y</span> <code>\oiint</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">Y</span> <code>\oiint</code></td>
             <td><span class="keybinding">.</span> <code>\dots</code></td>
             <td><span class="keybinding">&gt;</span> <code>\cdots</code></td>
             <td><span class="keybinding">-</span> <code>-</code></td>
             <td><span class="keybinding">+</span> <code>+</code></td>
-            <td><span class="keybinding">*</span> <code>\star</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">*</span> <code>\star</code></td>
             <td><span class="keybinding">|</span> <code>|</code></td>
             <td><span class="keybinding">?</span> <code>?</code></td>
             <td><span class="keybinding">!</span> <code>!</code></td>
             <td><span class="keybinding">,</span> <code>,</code></td>
-            <td><span class="keybinding">;</span> <code>;</code></td>
 	  </tr>
 	  <tr>
+            <td><span class="keybinding">;</span> <code>;</code></td>
             <td><span class="keybinding">:</span> <code>:</code></td>
             <td><span class="keybinding">`</span> <code>`</code></td>
+            <td><span class="keybinding">/</span> <code>/</code></td>
+            <td><span class="keybinding">\</span> <code>\backslash</code></td>
+          </tr>
+	  <tr>
             <td><span class="keybinding">_</span> <code>\_</code></td>
             <td><span class="keybinding">&uarr;</span> <code>\uparrow</code></td>
             <td><span class="keybinding">&darr;</span> <code>\downarrow</code></td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <span class="keybinding">&nbsp;</span> (blank)
-            </td>
-            <td colspan="3">
-              <span class="keybinding">&#39;</span>
-              <code>\htmlClass{placeholder_expr}{\blacksquare}</code> (placeholder)
-            </td>
-          </tr>
+            <td><span class="keybinding">&larr;</span> <code>\leftarrow</code></td>
+            <td><span class="keybinding">&rarr;</span> <code>\rightarrow</code></td>
+	  </tr>
       </tbody></table>
       <p>
-        Also, <span class="keybinding">=</span> puts a &quot;separator&quot; onto
-        the stack, which can be useful to visually separate parts of the document.
+	Also available are:
       </p>
+      <ul class="keybindings">
+	<li>
+	  <span class="keybinding">&nbsp;</span>
+	  Create a <em>blank</em> expression, which has no content of its own but can still
+	  be combined with other expressions as usual.  This is different from a space
+	  character because it has zero width.  A blank expression on its own will be displayed
+	  as "(blank)" until it's combined with something.
+	</li>
+	<li>
+	  <span class="keybinding">=</span>
+	  Create a <em>separator</em>, a horizontal rule text object which can be
+	  useful to visually separate parts of the document.
+	</li>
+	<li>
+          <span class="keybinding">&#39;</span>
+	  Create a <em>placeholder</em>.  See the following section for more details.
+	</li>
+      </ul>
 
       <h2>
         <a name="placeholders" id="help_placeholders">Placeholders</a>
@@ -975,8 +991,13 @@
         </li>
 	<li>
 	  <span class="keybinding">|</span> <code>y\enspace x \to \left.y\right\vert_{x}</code>
-	  &quot;where&quot; notation, for example:
+	  &nbsp;&quot;where&quot; notation, for example:
 	  <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
+	</li>
+	<li>
+	  <span class="keybinding">^</span> <code>x\times{10}^y</code>
+	  &nbsp;Scientific notation, for example:
+	  <code>1.23\times{10}^{-4}</code>
 	</li>
         <li>
           <span class="keybinding">Enter</span> <code>z\enspace y\enspace x \to z_y^x</code>

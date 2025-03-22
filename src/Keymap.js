@@ -417,6 +417,7 @@ const EditorKeymap = {
     '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
     '+': "infix \\ge;push \\sum;swap;subscript",
     '|': "swap;delimiters . \\vert;swap;subscript",  // y|_{x} ('where')
+    '^': "push 10;swap;superscript;infix \\times",  // scientific notation: 1.23 x 10^-19
     "'": "substitute_placeholder",
     "\"": "toggle_is_heading",
     'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once
@@ -693,6 +694,7 @@ const EditorKeymap = {
     'o': "push \\circ",
     'p': "push \\prod",
     'P': "push \\pm",
+    'q': "push =",
     's': "push \\sum",
     't': "push \\therefore",
     'U': "push \\bigcup",
@@ -717,9 +719,13 @@ const EditorKeymap = {
     '`': "push `",
     '_': "push \\_",
     "'": "push_placeholder",
-    ' ': "push ",  // "nothing", e.g. when you don't want something on one side of an infix
+    ' ': "push ",  // "blank", e.g. when you don't want something on one side of an infix
+    '/': "push /",
+    "\\": "push \\backslash",
     'ArrowUp': "push \\uparrow",
-    'ArrowDown': "push \\downarrow"
+    'ArrowDown': "push \\downarrow",
+    'ArrowLeft': "push \\leftarrow",
+    'ArrowRight': "push \\rightarrow"
   },
 
   // . prefix: expression decorators (fonts, hats, etc)
