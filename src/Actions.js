@@ -1437,7 +1437,7 @@ class InputContext {
   do_toggle_popup(stack, mode_string) {
     // Special case: "toggling" the help while helptext is docked will undock it
     // but not put it back as a popup.
-    if(!this.settings.popup_mode && this.settings.dock_helptext) {
+    if(mode_string === 'help' && this.settings.dock_helptext) {
       this.settings.dock_helptext = false;
       mode_string = null;
     }

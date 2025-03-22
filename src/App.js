@@ -139,7 +139,8 @@ class App extends React.Component {
     if(this.stack_panel_ref.current && this.document_panel_ref.current &&
        this.popup_panel_ref.current) {
       this.state.settings.apply_layout_to_dom(
-        this.stack_panel_ref.current, this.document_panel_ref.current,
+        this.stack_panel_ref.current,
+	this.document_panel_ref.current,
         this.popup_panel_ref.current);
     }
     this.dock_helptext(this.state.settings.dock_helptext);
