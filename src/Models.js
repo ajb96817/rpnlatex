@@ -931,6 +931,7 @@ class ExprPath {
 //   - '/' and '*' bind tighter than '+' and '-'.
 //   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
 //   - Postfix factorial notation is allowed.
+//   - Scientific notation such as 3e-4 is handled as a special case.
 //   - Placeholders can be inserted with [].
 //   - Negative constants such as -10 are handled by the "- factor" production
 //     below; that is the reason for the allow_unary_minus flag being passed
@@ -998,8 +999,7 @@ class ExprParser {
   
   // Break string into tokens; token types are:
   //   number: 3, 3.1, etc.
-  //      NOTE: scientific notation not supported
-  //      NOTE: negative numbers are handled by the "- factor" production in the grammar
+  //     NOTE: negative numbers are handled by the "- factor" production in the grammar
   //   symbol: x (xyz becomes 3 separate symbols)
   //   pi: @ -> \pi (special case)
   //   operator: +, -, *, /, //, !
@@ -1064,16 +1064,19 @@ class ExprParser {
       // Special case: check for scientific notation with a negative exponent.
       // 4e-3 is initially parsed as (4e)-(3); convert this specific case
       // into scientific notation.
+      // Nonnegative exponents are instead parsed as 4e3 -> 4 (e3) and
+      // are handled in parse_term.
       if(lhs.expr_type() === 'sequence' && lhs.exprs.length === 2 &&
 	 lhs.exprs[0].looks_like_number() &&
 	 lhs.exprs[1].expr_type() === 'text' &&
 	 ['e', 'E'].includes(lhs.exprs[1].text) &&
-	 rhs.expr_type() === 'text' && rhs.looks_like_number() &&
-	 binary_token.text === '-') {
+	 rhs.expr_type() === 'text' && rhs.looks_like_number()) {
+	// NOTE: 3e+4 (explicit +) is allowed here for completeness.
+	const exponent_text = binary_token.text === '-' ? ('-' + rhs.text) : rhs.text;
 	result_expr = InfixExpr.combine_infix(
 	  lhs.exprs[0],
 	  new SubscriptSuperscriptExpr(
-	    new TextExpr('10'), null, new TextExpr('-' + rhs.text)),
+	    new TextExpr('10'), null, new TextExpr(exponent_text)),
 	  new CommandExpr('times'));
       }
       else result_expr = InfixExpr.combine_infix(
