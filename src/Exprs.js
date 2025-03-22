@@ -1118,7 +1118,36 @@ class InfixExpr extends Expr {
     }
   }
 
+  // If this expression is "scientific notation" such as 3 \times 10^-2,
+  // return [coefficient_text, exponent_text] (e.g. ['3', '-2'] in this case).
+  // The expression must be of this exact form, with literal numbers for the
+  // coefficient and exponent.  Return null if it's not of this form.
+  _unparse_scientific_notation() {
+    if(!(this.operator_exprs.length === 1 &&
+	 this.operator_exprs[0].expr_type() === 'command' &&
+	 this.operator_exprs[0].command_name === 'times'))
+      return null;
+    const [lhs, rhs] = this.operand_exprs;
+    if(lhs.expr_type() === 'text' && lhs.looks_like_number() &&
+       rhs.expr_type() === 'subscriptsuperscript' &&
+       rhs.base_expr.expr_type() === 'text' && rhs.base_expr.text === '10' &&
+       !rhs.subscript_expr && rhs.superscript_expr &&
+       rhs.superscript_expr.expr_type() === 'text' &&
+       rhs.superscript_expr.looks_like_number())
+      return [lhs.text, rhs.superscript_expr.text];
+    else
+      return null;
+  }
+
   as_editable_string() {
+    // Special case: unparse scientific notation for infix expressions
+    // like 3 \times 10^-2 -> 3e-2
+    // NOTE: Expressions like 1 + 3 \times 10^-2 are flattened into
+    // larger InfixExprs so this unparsing will not work in that case.
+    const scientific_notation_pieces = this._unparse_scientific_notation();
+    if(scientific_notation_pieces)
+      return scientific_notation_pieces.join('e');
+
     const operator_strings = this.operator_exprs.map(
       (expr, index) => this.editable_operator_text_at(index));
     const operand_strings = this.operand_exprs.map(
