@@ -326,7 +326,7 @@ class Expr {
     result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(2pi)
       value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
     // Check factors of ln(2)
-    result = this._try_rationalize_with_factor(
+    result ||= this._try_rationalize_with_factor(
       value, Math.log(2), new CommandExpr('ln', [make_text(2)]), null);
     // Try sqrt(n) in the numerator for small square-free n.
     // No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
@@ -467,7 +467,7 @@ class Expr {
       }
     }
     else {
-      const infty_expr = Expr.text_or_command("\\infty");
+      const infty_expr = new CommandExpr('infty');
       if(x > 0)
 	return infty_expr;
       else  // create 'fused' -\infty sequence
