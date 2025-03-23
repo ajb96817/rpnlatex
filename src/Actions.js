@@ -296,16 +296,16 @@ class InputContext {
     const new_prime_expr = new CommandExpr('prime');
     // Check whether the base expr is already of the form x^{\prime}, x^{\prime\prime}, etc.
     // If so, add an extra \prime into the superscript.
-    if(base_expr.expr_type() === 'subscriptsuperscript' && base_expr.superscript_expr) {
+    if(base_expr.is_expr_type('subscriptsuperscript') && base_expr.superscript_expr) {
       const s = base_expr.superscript_expr;
       const is_prime_command = expr =>
-            expr.expr_type() === 'command' &&
+            expr.is_expr_type('command') &&
             expr.operand_count() === 0 &&
 	    expr.command_name === 'prime';
       let new_superscript_expr = null;
       if(is_prime_command(s))
         new_superscript_expr = new SequenceExpr([s, new_prime_expr]);
-      else if(s.expr_type() === 'sequence' && s.exprs.every(is_prime_command))
+      else if(s.is_expr_type('sequence') && s.exprs.every(is_prime_command))
         new_superscript_expr = new SequenceExpr(s.exprs.concat([new_prime_expr]));
       if(new_superscript_expr) {
         const new_expr = new SubscriptSuperscriptExpr(
@@ -645,7 +645,7 @@ class InputContext {
     };
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr;
-    if(expr.expr_type() === 'text')
+    if(expr.is_expr_type('text'))
       new_expr = new TextExpr(convert_fn(expr.text));
     else
       new_expr = expr;
@@ -736,14 +736,14 @@ class InputContext {
   // or bolded i/j, it's first converted into a \imath or \jmath to remove the dot.
   do_apply_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.expr_type() === 'text' &&
+    if(expr.is_expr_type('text') &&
        (expr.text === 'i' || expr.text === 'j'))
       expr = new CommandExpr(expr.text === 'i' ? 'imath' : 'jmath');
-    else if(expr.expr_type() === 'command' && expr.operand_count() === 1 &&
+    else if(expr.is_expr_type('command') && expr.operand_count() === 1 &&
             (expr.command_name === 'boldsymbol' || expr.command_name === 'mathbf')) {
       // Check for bolded literal i/j
       const inner_expr = expr.operand_exprs[0];
-      if(inner_expr.expr_type() === 'text' &&
+      if(inner_expr.is_expr_type('text') &&
          (inner_expr.text === 'i' || inner_expr.text === 'j'))
         expr = new CommandExpr(
           expr.command_name,
@@ -760,10 +760,10 @@ class InputContext {
   do_html_class(stack, class_name, class_name_2) {
     let [new_stack, expr] = stack.pop_exprs(1);
     let new_class_name = null;
-    if(expr.expr_type() === 'command' &&
+    if(expr.is_expr_type('command') &&
        expr.command_name === 'htmlClass' &&
        expr.operand_count() === 2 &&
-       expr.operand_exprs[0].expr_type() === 'text') {
+       expr.operand_exprs[0].is_expr_type('text')) {
       // It's already wrapped in \htmlClass
       if(expr.operand_exprs[0].text === class_name)
         new_class_name = class_name_2;  // might be null
@@ -790,7 +790,7 @@ class InputContext {
   do_modify_delimiter(stack, delimiter_type, side) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr = expr;
-    if(expr.expr_type() === 'delimiter') {
+    if(expr.is_expr_type('delimiter')) {
       new_expr = new DelimiterExpr(
 	side === 'left' ? delimiter_type : expr.left_type,
 	side === 'right' ? delimiter_type : expr.right_type,
@@ -813,7 +813,7 @@ class InputContext {
 
   do_toggle_fixed_size_delimiters(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.expr_type() === 'delimiter')
+    if(expr.is_expr_type('delimiter'))
       return new_stack.push_expr(expr.as_fixed_size(!expr.fixed_size));
     else
       stack.type_error();
@@ -821,7 +821,7 @@ class InputContext {
 
   do_remove_delimiters(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.expr_type() === 'delimiter')
+    if(expr.is_expr_type('delimiter'))
       return new_stack.push_expr(expr.inner_expr);
     else
       return stack;  // not considered an error
@@ -867,7 +867,7 @@ class InputContext {
   //    - Line break before the operator
   do_infix_linebreak(stack) {
     const [new_stack, infix_expr] = stack.pop_exprs(1);
-    if(infix_expr.expr_type() !== 'infix') {
+    if(!infix_expr.is_expr_type('infix')) {
       this.error_flash_stack();
       return;
     }
@@ -890,18 +890,18 @@ class InputContext {
   do_swap_infix(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr = null;
-    if(expr.expr_type() === 'infix')
+    if(expr.is_expr_type('infix'))
       new_expr = expr.swap_sides_at(expr.split_at_index);
-    else if(expr.expr_type() === 'command' &&
+    else if(expr.is_expr_type('command') &&
             expr.operand_count() === 2 &&
             expr.command_name === 'frac') {
       // "Normal" fraction.
       new_expr = new CommandExpr(
 	'frac', [expr.operand_exprs[1], expr.operand_exprs[0]]);
     }
-    else if(expr.expr_type() === 'delimiter' &&
+    else if(expr.is_expr_type('delimiter') &&
 	    expr.left_type === '.' && expr.right_type === '.' &&
-	    expr.inner_expr.expr_type() === 'infix' &&
+	    expr.inner_expr.is_expr_type('infix') &&
 	    expr.inner_expr.is_binary_operator_with('/')) {
       // Flex-mode inline fraction.
       new_expr = new DelimiterExpr(
@@ -974,17 +974,17 @@ class InputContext {
   do_extract_infix_side(stack, which_side) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let extracted_expr = null;
-    if(expr.expr_type() === 'infix')
+    if(expr.is_expr_type('infix'))
       extracted_expr = expr.extract_side_at(expr.split_at_index, which_side);
-    else if(expr.expr_type() === 'command' &&
+    else if(expr.is_expr_type('command') &&
             expr.operand_count() === 2 &&
             expr.command_name === 'frac')
       extracted_expr = ((which_side === 'right') ?
 			expr.operand_exprs[1] :
 			expr.operand_exprs[0]);
-    else if(expr.expr_type() === 'delimiter' &&
+    else if(expr.is_expr_type('delimiter') &&
 	    expr.left_type === '.' && expr.right_type === '.' &&
-	    expr.inner_expr.expr_type() === 'infix' &&
+	    expr.inner_expr.is_expr_type('infix') &&
 	    expr.inner_expr.is_binary_operator_with('/'))
       extracted_expr = ((which_side === 'right') ?
 			expr.inner_expr.operand_exprs[1] :
@@ -1200,7 +1200,7 @@ class InputContext {
     }
     else if(item.item_type() === 'expr') {
       let expr = item.expr;
-      if(expr.expr_type() === 'command' && expr.operand_count() === 0) {
+      if(expr.is_expr_type('command') && expr.operand_count() === 0) {
 	// LaTeX command with no arguments, e.g. \circledast
 	this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
         this.text_entry.edited_item = item;
@@ -1380,7 +1380,7 @@ class InputContext {
     // Special case: if the stack top is already a DelimiterExpr with "blank" delimiters
     // we can just rebuild a new DelimiterExpr with the specified delimiters instead,
     // without wrapping it in another DelimiterExpr.
-    if(inner_expr.expr_type() === 'delimiter' &&
+    if(inner_expr.is_expr_type('delimiter') &&
        inner_expr.left_type === '.' && inner_expr.right_type === '.')
       return new_stack.push_expr(new DelimiterExpr(
         left, right, inner_expr.inner_expr));
@@ -1394,10 +1394,10 @@ class InputContext {
   // Wrap stack top in parentheses if it's not already in delimiters.
   do_parenthesize(stack) {
     let [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.expr_type() === 'delimiter' &&
+    if(expr.is_expr_type('delimiter') &&
        expr.left_type === '.' && expr.right_type === '.')
       expr = new DelimiterExpr('(', ')', expr.inner_expr);
-    else if(expr.expr_type() !== 'delimiter')
+    else if(!expr.is_expr_type('delimiter'))
       expr = DelimiterExpr.parenthesize(expr);
     return new_stack.push_expr(expr);
   }
@@ -1420,7 +1420,7 @@ class InputContext {
   do_apply_operator(stack, arg_count_string) {
     const arg_count = parseInt(arg_count_string);
     const [new_stack, command_expr, ...operand_exprs] = stack.pop_exprs(arg_count+1);
-    if(command_expr.expr_type() === 'command' && command_expr.operand_count() === 0)
+    if(command_expr.is_expr_type('command') && command_expr.operand_count() === 0)
       return new_stack.push_expr(
         new CommandExpr(command_expr.command_name, operand_exprs));
     else
@@ -1721,7 +1721,7 @@ class InputContext {
   do_evaluate_to_equation(stack, force_approx) {
     const [new_stack, expr] = stack.pop_exprs(1);
     const assignments = {};
-    if(expr.expr_type() === 'infix' && expr.operator_text() === 'approx') {
+    if(expr.is_expr_type('infix') && expr.operator_text() === 'approx') {
       // Re-evaluate the left side, hoping for an "exact" value.
       // If an exact value cannot be found, leave it as it was before.
       const lhs = expr.extract_side_at(expr.split_at_index, 'left');
@@ -1732,7 +1732,7 @@ class InputContext {
 	InfixExpr.combine_infix(
 	  lhs, result[0], new TextExpr('=')));
     }
-    if(expr.expr_type() === 'infix' && expr.operator_text() === '=') {
+    if(expr.is_expr_type('infix') && expr.operator_text() === '=') {
       // Force a floating-point approximation of the left hand side
       // if possible.  (There might be any arbitrary 'x=y' equation
       // at this point.)
@@ -1772,20 +1772,20 @@ class InputContext {
     let variable_expr = null;
     let variable_name = null;
     // Examine the value_expr to decide what to substitute.
-    if(value_expr.expr_type() === 'infix' &&
+    if(value_expr.is_expr_type('infix') &&
        value_expr.operator_text_at(0) === '=' &&
-       ((value_expr.operand_exprs[0].expr_type() === 'text' &&
+       ((value_expr.operand_exprs[0].is_expr_type('text') &&
 	 value_expr.operand_exprs[0].looks_like_variable_name()) ||
-	(value_expr.operand_exprs[0].expr_type() === 'command' &&
+	(value_expr.operand_exprs[0].is_expr_type('command') &&
 	 value_expr.operand_exprs[0].operand_count() === 0))) {
       // Expression of the form 'x=(something)'.  Evaluate the right-hand
       // side and substitute the given variable name.
       const rhs = value_expr.extract_side_at(0, 'right');
       value = rhs.evaluate({});
       variable_expr = value_expr.operand_exprs[0];
-      if(variable_expr.expr_type() === 'text')
+      if(variable_expr.is_expr_type('text'))
 	variable_name = variable_expr.text;
-      else if(variable_expr.expr_type() === 'command')
+      else if(variable_expr.is_expr_type('command'))
 	variable_name = variable_expr.command_name;
       value_expr = rhs;
     }
