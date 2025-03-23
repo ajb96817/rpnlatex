@@ -71,7 +71,7 @@ class Expr {
     const left_type = left.expr_type(), right_type = right.expr_type();
     const autoparenthesize = expr => {
       // Parenthesize InfixExprs before combining unless specified not to.
-      if(expr.expr_type() === 'infix' && !no_parenthesize)
+      if(expr.is_expr_type('infix') && !no_parenthesize)
         return DelimiterExpr.parenthesize(expr);
       else return expr;
     };
@@ -96,7 +96,11 @@ class Expr {
     }
     else if(left_type === 'text' && left.looks_like_number() &&
             right_type === 'text' && right.looks_like_number()) {
-      // Special case: combine 123 456 => 123456 if both sides are numeric
+      // Special case: combine 123 456 => 123456 if both sides are numeric.
+      // This can lead to things like "1.2" + "3.4" -> "1.23.4" but that's
+      // considered OK because the main use for this is to build numbers from
+      // individual digits.  The user should use an explicit \cdot or \times
+      // infix operator to indicate multiplication.
       return new TextExpr(left.text + right.text);
     }
     else {
@@ -104,9 +108,13 @@ class Expr {
       // Adjacent FontExprs of the same type can be merged into a single
       // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
       // (This renders better in some cases.)
+      // Note that applying a font after expressions are concatenated
+      // will not do this merging.  AB -> bold -> \bold{A}\bold{B}.
+      // This could be implemented if needed (by coalescing adjacent FontExprs
+      // within a SequenceExpr).
       const left_expr = autoparenthesize(left);
       const right_expr = autoparenthesize(right);
-      if(left_type === 'font' && right_type === 'font' &&
+      if(left_expr.is_expr_type('font') && right_expr.is_expr_type('font') &&
          FontExpr.font_exprs_compatible(left_expr, right_expr))
         return new FontExpr(
           new SequenceExpr([left_expr.expr, right_expr.expr]),
