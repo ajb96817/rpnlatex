@@ -276,10 +276,10 @@ class Expr {
         return [result, true];
     }
     // Return an approximate floating-point value instead.
-    const decimal_part = value % 1.0;
-    return [
-      this._float_to_expr(value),
-      Math.abs(decimal_part) <= 0.000001];
+    // It's considered "exact" if it's small enough in magnitude and
+    // with a decimal part close enough to zero.
+    const is_exact = Math.abs(value) < 1e9 && Math.abs(value % 1.0) <= 1e-6
+    return [this._float_to_expr(value), is_exact];
   }
 
   // "Dissolve" this expression into its component parts as appropriate.
@@ -300,6 +300,9 @@ class Expr {
     const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
     const pi_expr = new CommandExpr('pi');
     const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
+    // Don't try to rationalize anything too large in magnitude.
+    if(Math.abs(value) > 1e8)
+      return null;
     // Check for very small fractional part; could be either an integer,
     // or a float with large magnitude and thus decayed fractional precision.
     if(Math.abs(value % 1.0) < 0.000001)
