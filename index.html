@@ -18,7 +18,7 @@
 
     <!-- The entire user manual is inline here, to be unhidden at runtime when requested. -->
     <div id="helptext" style="display: none;">
-      <div class="version_info">rpnlatex v1.3.0</div>
+      <div class="version_info">rpnlatex v1.3.1</div>
       <h1>User Guide</h1>
       <p>
         Scroll this text up and down with
@@ -189,7 +189,7 @@
 	A malformed expression will signal an error; allowed expressions include:
 	<ul>
 	  <li>Numbers such as 3, -10, 5.12</li>
-	  <li>Scientific notation such as 3e-4 (converts to <code>3\times{10}^{-4}</code>)</li>
+	  <li>Scientific notation such as 3e-4 (converts to <code>3\times{10}^{-4}</code>).</li>
 	  <li>Single-letter variables such as <code>x</code>.</li>
 	  <li>
 	    Implicit multiplication such as <code>5x</code> or <code>xy</code>
@@ -542,7 +542,7 @@
       <ul class="keybindings">
 	<li>
 	  <span class="keybinding">&nbsp;</span>
-	  Create a <em>blank</em> expression, which has no content of its own but can still
+	  (space) Create a <em>blank</em> expression, which has no content of its own but can still
 	  be combined with other expressions as usual.  This is different from a space
 	  character because it has zero width.  A blank expression on its own will be displayed
 	  as "(blank)" until it's combined with something.
@@ -620,7 +620,7 @@
             <td><span class="keybinding">I</span> <code>x^{+}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>\mathfrak X</code> (Fra<strong>k</strong>tur)</td>
+            <td><span class="keybinding">k</span> <code>\mathfrak x</code> (Fra<strong>k</strong>tur)</td>
             <td><span class="keybinding">l</span> <code>x_\parallel</code></td>
             <td><span class="keybinding">m</span> <code>\mathtt x</code> (monospace)</td>
           </tr>
@@ -909,7 +909,7 @@
         </li>
         <li><span class="keybinding">f</span> Prefix for applying <a href="#named_operators">named operators</a>.</li>
         <li><span class="keybinding">i</span> Prefix for applying <a href="#integrals">integral</a> limits.</li>
-        <li><span class="keybinding">I</span> <code>x\enspace y \to \int_x^y</code></li>
+        <li><span class="keybinding">I</span> <code>y\enspace x \to \int_y^x</code></li>
         <li><span class="keybinding">k</span> <code>f\enspace y\enspace x \to f(y\,|\,x)</code></li>
         <li><span class="keybinding">l</span> <code>x \to \lim\limits_x</code></li>
         <li><span class="keybinding">L</span> <code>y\enspace x \to \lim\limits_{y\to x}</code></li>
@@ -991,7 +991,7 @@
         </li>
 	<li>
 	  <span class="keybinding">|</span> <code>y\enspace x \to \left.y\right\vert_{x}</code>
-	  &nbsp;&quot;where&quot; notation, for example:
+	  &nbsp;&quot;Where&quot; notation, for example:
 	  <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
 	</li>
 	<li>

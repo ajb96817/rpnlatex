@@ -293,7 +293,7 @@ class InputContext {
   // but needs some special handling to coalesce multiple \prime into a single superscript.
   do_prime(stack) {
     const [new_stack, base_expr] = stack.pop_exprs(1);
-    const new_prime_expr = new CommandExpr('prime', []);
+    const new_prime_expr = new CommandExpr('prime');
     // Check whether the base expr is already of the form x^{\prime}, x^{\prime\prime}, etc.
     // If so, add an extra \prime into the superscript.
     if(base_expr.expr_type() === 'subscriptsuperscript' && base_expr.superscript_expr) {
@@ -1743,7 +1743,7 @@ class InputContext {
       const result_expr = result[0];
       return new_stack.push_expr(
 	InfixExpr.combine_infix(
-	  lhs, result_expr, new CommandExpr('approx', [])));
+	  lhs, result_expr, new CommandExpr('approx')));
     }
     else {
       // Try to evaluate expr, rationalizing if possible.
@@ -1752,14 +1752,14 @@ class InputContext {
       if(!result)
 	return this.error_flash_stack();  // not evaluatable
       const [result_expr, is_exact] = result;
-      if(is_exact)
+      if(is_exact && try_rationalize)
 	return new_stack.push_expr(
 	  InfixExpr.combine_infix(
 	    expr, result_expr, new TextExpr('=')));
       else
 	return new_stack.push_expr(
 	  InfixExpr.combine_infix(
-	    expr, result_expr, new CommandExpr('approx', [])));
+	    expr, result_expr, new CommandExpr('approx')));
     }
   }
 
@@ -1818,7 +1818,7 @@ class InputContext {
     else
       return new_stack.push_expr(
 	InfixExpr.combine_infix(
-	  where_expr, result_expr, new CommandExpr('approx', [])));
+	  where_expr, result_expr, new CommandExpr('approx')));
   }
 
   // Copy stack top to an internal clipboard slot.

@@ -296,7 +296,7 @@ class Expr {
     let result = null;
     const make_text = n => this._int_to_expr(n);
     const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
-    const pi_expr = new CommandExpr('pi', []);
+    const pi_expr = new CommandExpr('pi');
     const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
     // Check for very small fractional part; could be either an integer,
     // or a float with large magnitude and thus decayed fractional precision.
@@ -1887,8 +1887,8 @@ class ArrayExpr extends Expr {
           Expr.combine_pair(
             Expr.combine_pair(
               FontExpr.roman_text('if'),
-              new CommandExpr('enspace'), []),
-            expr.extract_side_at(expr.split_at_index, 'right'))];
+              new CommandExpr('enspace'), true),
+            expr.extract_side_at(expr.split_at_index, 'right'), true)];
       else
         return [expr, FontExpr.roman_text('otherwise')];
     default:
@@ -1947,7 +1947,7 @@ class ArrayExpr extends Expr {
   // NOTE: this does not preserve column/row separators.  There's not really a
   // consistent way of doing this automatically.
   with_ellipses() {
-    const make_cell = content => new CommandExpr(content, []);
+    const make_cell = content => new CommandExpr(content);
     let new_row_count = this.row_count, new_column_count = this.column_count;
     let new_element_exprs;
     if(this.column_count > 1) {
@@ -1990,9 +1990,9 @@ class ArrayExpr extends Expr {
   _transpose_cell(cell_expr) {
     if(cell_expr.expr_type() === 'command' && cell_expr.operand_count() === 0) {
       if(cell_expr.command_name === 'vdots')
-        return new CommandExpr('cdots', []);
+        return new CommandExpr('cdots');
       if(cell_expr.command_name === 'cdots')
-        return new CommandExpr('vdots', []);
+        return new CommandExpr('vdots');
     }
     return cell_expr;
   }
