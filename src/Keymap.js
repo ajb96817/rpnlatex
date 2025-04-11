@@ -217,7 +217,7 @@ const EditorKeymap = {
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
     '$': "push \\$",
-    '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int",
+    '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\mathsfit{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int"
   },
 
   // Delegate (shared) keymap for the 5 text_entry modes' editor commands.
@@ -239,14 +239,14 @@ const EditorKeymap = {
     'default': "append_text_entry"
   },
 
-  // " prefix (TextItem text)
+  // " prefix (text entry)
   text_entry: {
     'Enter': "finish_text_entry text",
     'Shift+Enter': "finish_text_entry heading",
     'delegate': "_editor_commands"
   },
 
-  // \ prefix (math text)
+  // \ prefix (math entry)
   math_entry: {
     'Enter': "finish_text_entry math",
     'Shift+Enter': "finish_text_entry roman_text",
@@ -371,7 +371,7 @@ const EditorKeymap = {
     'c': "named_function cos",
     'C': "named_function csc",
     'd': "mode derivative",
-    'D': "dissolve",
+    'D': "mode derivative_alt",
     'e': "push e;typeface roman;swap;superscript",  // exp(x)
     'E': "named_function exp",
     'f': "mode named_operator",
@@ -404,6 +404,7 @@ const EditorKeymap = {
     'X': "infix \\,\\vert\\,;delimiters [ ];push E;operator mathbb;swap;fuse",  // E[y|x]
     'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
     'Y': "push E;operator mathbb;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];fuse",  // E_x[z|y]
+    'z': "dissolve",
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "operator frac 2",
@@ -531,17 +532,17 @@ const EditorKeymap = {
     // \partial^2 y / \partial x^2
     'J': "push 2;superscript;push \\partial;swap;concat;swap;push \\partial;push 2;superscript;swap;concat;swap;operator frac 2",
     // dy/dx
-    'k': "push d;typeface roman;swap;concat;swap;push d;typeface roman;swap;concat;swap;operator frac 2",
+    'k': "push d;swap;concat;swap;push d;swap;concat;swap;operator frac 2",
     // d^2(y) / dx^2
-    'K': "push 2;superscript;push d;typeface roman;swap;concat;swap;push d;typeface roman;push 2;superscript;swap;concat;swap;operator frac 2",
+    'K': "push 2;superscript;push d;swap;concat;swap;push d;push 2;superscript;swap;concat;swap;operator frac 2",
     // \partial / \partial x
     'q': "push \\partial;swap;concat;push \\partial;swap;operator frac 2",
     // \partial^2 / \partial x^2
     'Q': "push 2;superscript;push \\partial;swap;concat;push \\partial;push 2;superscript;swap;operator frac 2",
     // d/dx
-    'x': "push d;typeface roman;swap;concat;push d;typeface roman;swap;operator frac 2",
+    'x': "push d;swap;concat;push d;swap;operator frac 2",
     // d^2 / dx^2
-    'X': "push 2;superscript;push d;typeface roman;swap;concat;push d;typeface roman;push 2;superscript;swap;operator frac 2",
+    'X': "push 2;superscript;push d;swap;concat;push d;push 2;superscript;swap;operator frac 2",
     // \partial^2 / \partial x\,\partial y
     'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;push 2;superscript;swap;operator frac 2",
     // \partial^2 z / \partial x\,\partial y
@@ -559,17 +560,32 @@ const EditorKeymap = {
     // d'Alembertian
     'L': "push \\Box;push 2;superscript;swap;concat",
     // x -> dx
-    'd': "push d;typeface roman;swap;fuse",
+    'd': "push d;swap;fuse",
     // x -> d^2x
+    '2': "push d;push 2;superscript;swap;fuse",
+    '3': "push d;push 3;superscript;swap;fuse",
+    '4': "push d;push 4;superscript;swap;fuse",
+    // y x -> y dx
+    'i': "swap;push \\,;concat;swap;push d;swap;fuse;concat",
+    // y x -> ydx (with thinspace after the dx)
+    'I': "push d;swap;fuse;concat;push \\,;concat",
+    // y x -> ydx (no spacing around the dx)
+    ' ': "push d;swap;fuse;concat"
+  },
+
+  derivative_alt: {
+    'd': "push d;typeface roman;swap;fuse",
     '2': "push d;typeface roman;push 2;superscript;swap;fuse",
     '3': "push d;typeface roman;push 3;superscript;swap;fuse",
     '4': "push d;typeface roman;push 4;superscript;swap;fuse",
-    // y x -> y dx
     'i': "swap;push \\,;concat;swap;push d;typeface roman;swap;fuse;concat",
-    // y x -> ydx (with thinspace after the dx)
     'I': "push d;typeface roman;swap;fuse;concat;push \\,;concat",
-    // y x -> ydx (no spacing around the dx)
-    ' ': "push d;typeface roman;swap;fuse;concat"
+    ' ': "push d;typeface roman;swap;fuse;concat",
+    'k': "push d;typeface roman;swap;concat;swap;push d;typeface roman;swap;concat;swap;operator frac 2",
+    'K': "push 2;superscript;push d;typeface roman;swap;concat;swap;push d;typeface roman;push 2;superscript;swap;concat;swap;operator frac 2",
+    'x': "push d;typeface roman;swap;concat;push d;typeface roman;swap;operator frac 2",
+    'X': "push 2;superscript;push d;typeface roman;swap;concat;push d;typeface roman;push 2;superscript;swap;operator frac 2",
+    'delegate': "derivative"
   },
 
   // comma prefix: combine two objects with an infix operation

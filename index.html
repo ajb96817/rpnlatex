@@ -897,12 +897,6 @@
 	</li>
         <li><span class="keybinding">d</span> Prefix for building <a href="#derivatives">derivative</a> expressions.</li>
         <li>
-          <span class="keybinding">D</span>
-          "Dissolve" an expression, breaking it apart into its component parts if possible.
-          Delimiters will be removed, fractions disassembled, and matrix elements put
-          on the stack in row-major order.
-        </li>
-        <li>
           <span class="keybinding">e</span> <code>\mathrm{e}^x</code>
           &nbsp;&nbsp;
           <span class="keybinding">E</span> <code>\exp x</code>
@@ -973,6 +967,12 @@
         </li>
         <li>
           <span class="keybinding">Y</span> <code>z\enspace y\enspace x \to \mathbb{E}_x{\left[z\,\middle\vert\,y\right]}</code>
+        </li>
+        <li>
+          <span class="keybinding">z</span>
+          "Dissolve" an expression, breaking it apart into its component parts if possible.
+          Delimiters will be removed, fractions disassembled, and matrix elements put
+          on the stack in row-major order.
         </li>
         <li>
           <span class="keybinding">=</span> <code>z\enspace y\enspace x \to \displaystyle\sum_{z=y}^x</code>
@@ -1078,12 +1078,12 @@
             <td><span class="keybinding">M</span> <code>f\enspace y\enspace x \to \frac{\partial^2 f}{\partial y\,\partial x}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>y\enspace x \to \frac{\mathrm{d}y}{\mathrm{d}x}</code></td>
-            <td><span class="keybinding">K</span> <code>y\enspace x \to \frac{\mathrm{d}^2 y}{\mathrm{d}x^2}</code></td>
+            <td><span class="keybinding">k</span> <code>y\enspace x \to \frac{dy}{dx}</code></td>
+            <td><span class="keybinding">K</span> <code>y\enspace x \to \frac{d^2 y}{dx^2}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>x \to \frac{\mathrm{d}}{\mathrm{d}x}</code></td>
-            <td><span class="keybinding">X</span> <code>x \to \frac{\mathrm{d}^2}{\mathrm{d}x^2}</code></td>
+            <td><span class="keybinding">x</span> <code>x \to \frac{d}{dx}</code></td>
+            <td><span class="keybinding">X</span> <code>x \to \frac{d^2}{dx^2}</code></td>
           </tr>
           <tr>
             <td><span class="keybinding">g</span> <code>x \to \nabla x</code></td>
@@ -1098,17 +1098,17 @@
             <td><span class="keybinding">L</span> <code>x \to \Box^2 x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>x \to \mathrm{d}x</code></td>
-            <td><span class="keybinding">2</span> <code>x \to \mathrm{d}^2 x</code></td>
+            <td><span class="keybinding">d</span> <code>x \to dx</code></td>
+            <td><span class="keybinding">2</span> <code>x \to d^2 x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">3</span> <code>x \to \mathrm{d}^3 x</code></td>
-            <td><span class="keybinding">4</span> <code>x \to \mathrm{d}^4 x</code></td>
+            <td><span class="keybinding">3</span> <code>x \to d^3 x</code></td>
+            <td><span class="keybinding">4</span> <code>x \to d^4 x</code></td>
           </tr>
           <tr>
             <td colspan="2">
               <span class="keybinding">i</span> or <span class="keybinding">I</span> or <span class="keybinding">&nbsp;</span>
-              <code>y\enspace x \to y\,\mathrm{d}x</code> (see below)
+              <code>y\enspace x \to y\,dx</code> (see below)
             </td>
           </tr>
       </tbody></table>
@@ -1121,18 +1121,29 @@
         <li>
           <span class="keybinding">i</span> Space goes before the differential.  This is the usual
           "textbook" case, e.g.
-          <code>\int x^2\,\mathrm{d}x</code>
+          <code>\int x^2\,dx</code>
         </li>
         <li>
           <span class="keybinding">I</span> Space goes after the differential, for when you want to
           concatenate the integrand afterwards:
-          <code>\int\mathrm{d}x\,x^2</code>
+          <code>\int dx\,x^2</code>
         </li>
         <li>
           <span class="keybinding">&nbsp;</span> No spacing around the differential, for simple cases like
-          <code>\int\mathrm{d}x</code>
+          <code>\int dx</code>
         </li>
       </ul>
+      <p>
+	<strong>Alternative notation:</strong>
+	Some authors prefer an upright Roman-font &quot;d&quot; when writing differentials.
+	For example:
+	<code>\frac{\mathrm{d}y}{\mathrm{d}x}</code> instead of
+	<code>\frac{dy}{dx}</code>.
+	This can be done by using the
+	<span class="keybinding">/</span><span class="keybinding">D</span>
+	prefix instead of
+	<span class="keybinding">/</span><span class="keybinding">d</span>.
+      </p>
 
       <h2>
 	<span class="keybinding">/</span><span class="keybinding">i</span>
