@@ -7,7 +7,7 @@
   "homepage": ".",
   "dependencies": {
     "jszip": "^3.10.1",
-    "katex": "^0.16.21",
+    "katex": "^0.16.22",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "webpack": "^5.97.1"

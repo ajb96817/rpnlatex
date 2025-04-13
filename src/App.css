@@ -24,7 +24,7 @@ body.inverse_video {
     width: 100%;
     height: 100%;
 
-    /* Disable errant mouse text selection, more trouble than it's worth */
+    /* Disable errant mouse text selection, more trouble than it's worth. */
     user-select: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -53,7 +53,7 @@ div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #88f; }
 
-/* Override item type indicator bar if it contains a KaTeX error */
+/* Override item type indicator bar if it contains a KaTeX error. */
 div.latex_fragment:has(div.latex_error_message) {
     border-left: var(--itemtype-bar-width) solid #c44 !important;
     padding-right: var(--item-margin-width);
@@ -112,7 +112,7 @@ div.separator_item hr {
 .emphasized2 { color: #f00; text-shadow: 0 0 0.08em #f88; }
 
 /* Highlight the selected subexpression(s) in "dissect" mode. */
-.dissect_highlight_brace { color: #83cc; }
+.dissect_highlight_brace { color: #83c; }
 .dissect_highlight {
     color: #f33;
     text-shadow: 0 0 0.16em #f88;
@@ -155,7 +155,6 @@ div.tag_string {
     color: #666;
 }
 
-
 /* These are to support settings.layout.rightalign_math options. */
 .rightalign_math .katex-display.fleqn > .katex {
     text-align: right;
@@ -190,7 +189,7 @@ div.panel { background-color: #f8f8f8; }
     box-shadow: inset 0 0 1em 0 #ccc;
 }
 body.eink_mode #stack_panel {
-    /* Remove "tinting" for E-ink displays */
+    /* Remove "tinting" for E-ink displays. */
     box-shadow: none;
     background-color: white;
 }
@@ -219,7 +218,7 @@ body.eink_mode div.stack_items {
     border-bottom-color: #666;
 }
 
-/* highlight stack items "selected" by prefix arguments */
+/* Highlight stack items "selected" by prefix arguments. */
 div.stack_items div.selected { background-color: #eef; }
 
 div.stack_items div.text_entry {
@@ -241,14 +240,14 @@ div.stack_items div.text_entry span.cursored_character {
     background-color: #666;
 }
 
-/* different background colors for text entry depending on the mode */
+/* Different background colors for text entry depending on the mode. */
 div.stack_items div.math_entry_mode { background-color: #eee; }
 div.stack_items div.text_entry_mode { background-color: #eef; }
 div.stack_items div.latex_entry_mode { background-color: #ded; }
 div.stack_items div.conjunction_entry_mode { background-color: #fec; }
 div.stack_items div.tag_entry_mode { background-color: #dfe; }
 
-/* show an initial backslash at the beginning when in latex entry mode */
+/* Show an initial backslash at the beginning when in latex entry mode. */
 div.stack_items div.latex_entry_mode::before {
     content: "\\";
     font-weight: bold;

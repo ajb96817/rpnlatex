@@ -711,10 +711,11 @@ class ItemComponent extends React.Component {
   }
 
   _render_with_katex(latex_code, node, display_mode) {
-    if(latex_code === '' || latex_code === "\\,") {
-      // Empty/blank latex expression - fake it with something so that it's visible.
-      latex_code = "\\text{(blank)}";
-    }
+    // Check for empty/blank latex expressions - fake it with something so that it's visible.
+    if(latex_code === '')
+      latex_code = "\\llbracket\\mathsf{blank}\\rrbracket";
+    else if(latex_code === "\\,")
+      latex_code = "\\llbracket\\mathsf{space}\\rrbracket";
     try {
       // NOTE: trust: true here allows the use of \htmlClass etc.
       katex.render(latex_code, node, {
@@ -825,7 +826,7 @@ class PopupPanelComponent extends React.Component {
     for(let i = 0; i < anchor_elts.length; i++) {
       const anchor_elt = anchor_elts[i];
       const href = anchor_elt.getAttribute('href');
-      if(href && href.startsWith('#'))
+      if(href?.startsWith('#'))
 	anchor_elt.onclick = this._helptext_anchor_onclick.bind(anchor_elt);
     }
   }
