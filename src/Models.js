@@ -1145,7 +1145,7 @@ class ExprParser {
       const op_token = this.peek_for('operator');
       if(op_token && op_token.text === '!') {
         this.next_token();
-        factor = Expr.combine_pair(factor, Expr.text_or_command('!'));
+        factor = Expr.combine_pair(factor, new TextExpr('!'));
       }
       else break;
     }
@@ -1263,6 +1263,21 @@ class SpecialFunctions {
       y += C[i] / (x + i);
     const t = x + g + 0.5;
     return Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
+  }
+
+  // Basic iterative evaluation of double factorial.
+  // 7!! = 7*5*3*1, 8!! = 8*6*4*2, 0!! = 1
+  // x must be a nonnegative integer and its magnitude is limited to something reasonable
+  // to avoid long loops or overflow.
+  static double_factorial(x) {
+    if(!this.is_integer(x) || x < 0) return NaN;
+    if(x > 100) return Infinity;
+    let result = 1;
+    while(x > 1) {
+      result *= x;
+      x -= 2;
+    }
+    return result;
   }
 
   static is_integer(x) {

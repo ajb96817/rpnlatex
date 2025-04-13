@@ -5,8 +5,9 @@ import {
 } from './Models';
 
 import {
-  Expr, CommandExpr, FontExpr, InfixExpr, PlaceholderExpr, TextExpr, SequenceExpr,
-  DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr
+  Expr, CommandExpr, FontExpr, InfixExpr, PostfixExpr,
+  PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
+  SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
 
 

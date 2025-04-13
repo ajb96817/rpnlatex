@@ -25,6 +25,10 @@ class Expr {
         this._list(json.operator_exprs),
         json.split_at_index,
         json.linebreaks_at || []);
+    case 'postfix':
+      return new PostfixExpr(
+	this._expr(json.base_expr),
+	this._expr(json.operator_expr));
     case 'placeholder':
       return new PlaceholderExpr();
     case 'text':
@@ -75,53 +79,77 @@ class Expr {
         return DelimiterExpr.parenthesize(expr);
       else return expr;
     };
-    if(left_type === 'sequence' && !left.fused &&
-       right_type === 'sequence' && !right.fused) {
-      // Sequence + Sequence
-      return new SequenceExpr(left.exprs.concat(right.exprs));
-    }
-    else if(left_type === 'sequence' && !left.fused &&
-            right_type !== 'sequence') {
-      // Sequence + NonSequence
-      return new SequenceExpr(left.exprs.concat([autoparenthesize(right)]));
-    }
-    else if(right_type === 'sequence' && !right.fused &&
-            left_type !== 'sequence') {
-      // NonSequence + Sequence
-      return new SequenceExpr([autoparenthesize(left)].concat(right.exprs));
-    }
-    else if(left_type === 'command' && right_type === 'command') {
-      // Some types of Command can be combined in special ways
-      return Expr.combine_command_pair(left, right);
-    }
-    else if(left_type === 'text' && left.looks_like_number() &&
-            right_type === 'text' && right.looks_like_number()) {
-      // Special case: combine 123 456 => 123456 if both sides are numeric.
-      // This can lead to things like "1.2" + "3.4" -> "1.23.4" but that's
-      // considered OK because the main use for this is to build numbers from
-      // individual digits.  The user should use an explicit \cdot or \times
-      // infix operator to indicate multiplication.
-      return new TextExpr(left.text + right.text);
-    }
-    else {
-      // NonSequence + NonSequence => Sequence
-      // Adjacent FontExprs of the same type can be merged into a single
-      // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
-      // (This renders better in some cases.)
-      // Note that applying a font after expressions are concatenated
-      // will not do this merging.  AB -> bold -> \bold{A}\bold{B}.
-      // This could be implemented if needed (by coalescing adjacent FontExprs
-      // within a SequenceExpr).
-      const left_expr = autoparenthesize(left);
-      const right_expr = autoparenthesize(right);
-      if(left_expr.is_expr_type('font') && right_expr.is_expr_type('font') &&
-         FontExpr.font_exprs_compatible(left_expr, right_expr))
-        return new FontExpr(
-          new SequenceExpr([left_expr.expr, right_expr.expr]),
-          left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
+
+    // Handle concatenating an expression to one or more ! signs, for factorial notation.
+    // This notation has to be handled carefully:
+    //   - The usual case is concatenating a base expression 'x' to a ! sign,
+    //     yielding a PostfixExpr(x, '!').
+    //   - Concatenating ! to ! should give a Sequence['!', '!'].
+    //   - Concatenating a non-'!' expression to such a sequence should yield
+    //     the double-factorial x!!, which is a nested PostfixExpr.
+    //   - Any amount of ! symbols can be used, although only x! and x!! have meaning here.
+    const excl_count = expr => {
+      // Count number of exclamation points, for both TextExprs and SequenceExprs.
+      if(expr.is_expr_type('text') && expr.text === '!')
+	return 1;
+      else if(expr.is_expr_type('sequence') &&
+	      expr.exprs.every(subexpr => subexpr.is_expr_type('text') &&
+			       subexpr.text === '!'))
+	return expr.exprs.length;
       else
-        return new SequenceExpr([left_expr, right_expr]);
+	return 0;
+    };
+    const left_excl_count = excl_count(left);
+    const right_excl_count = excl_count(right);
+    if(right_excl_count > 0) {
+      if(left_excl_count === 0) {
+	// Concatenating a "normal" expression to 1 or more ! signs.
+	return PostfixExpr.factorial_expr(
+	  autoparenthesize(left), right_excl_count);
+      }
+      else {
+	// Concatenating groups (1 or more) of ! signs together.
+	return new SequenceExpr(
+	  new Array(left_excl_count + right_excl_count).fill(new TextExpr('!')));
+      }
     }
+    // Sequence + Sequence
+    if(left_type === 'sequence' && !left.fused && right_type === 'sequence' && !right.fused)
+      return new SequenceExpr(left.exprs.concat(right.exprs));
+    // Sequence + NonSequence
+    if(left_type === 'sequence' && !left.fused && right_type !== 'sequence')
+      return new SequenceExpr(left.exprs.concat([autoparenthesize(right)]));
+    // NonSequence + Sequence
+    if(right_type === 'sequence' && !right.fused && left_type !== 'sequence')
+      return new SequenceExpr([autoparenthesize(left)].concat(right.exprs));
+    // Some types of Command can be combined in special ways
+    if(left_type === 'command' && right_type === 'command')
+      return Expr.combine_command_pair(left, right);
+    // Special case: combine 123 456 => 123456 if both sides are numeric.
+    // This can lead to things like "1.2" + "3.4" -> "1.23.4" but that's
+    // considered OK because the main use for this is to build numbers from
+    // individual digits.  The user should use an explicit \cdot or \times
+    // infix operator to indicate multiplication.
+    if(left_type === 'text' && left.looks_like_number() &&
+       right_type === 'text' && right.looks_like_number())
+      return new TextExpr(left.text + right.text);
+    // NonSequence + NonSequence => Sequence
+    // Adjacent FontExprs of the same type can be merged into a single
+    // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
+    // (This renders better in some cases.)
+    // Note that applying a font after expressions are concatenated
+    // will not do this merging.  AB -> bold -> \bold{A}\bold{B}.
+    // This could be implemented if needed (by coalescing adjacent FontExprs
+    // within a SequenceExpr).
+    const left_expr = autoparenthesize(left);
+    const right_expr = autoparenthesize(right);
+    if(left_expr.is_expr_type('font') && right_expr.is_expr_type('font') &&
+       FontExpr.font_exprs_compatible(left_expr, right_expr))
+      return new FontExpr(
+        new SequenceExpr([left_expr.expr, right_expr.expr]),
+        left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
+    else
+      return new SequenceExpr([left_expr, right_expr]);
   }
 
   // Combine two CommandExprs with some special-casing for some particular command pairs.
@@ -1267,6 +1295,111 @@ class PlaceholderExpr extends Expr {
 }
 
 
+// Represents a postfix operation where the operator comes after the operand.
+// Currently this is only used for factorial and double-factorial notation.
+// Potentially this could be used for things like transpose and conjugate, but
+// those are currently treated as SubscriptSuperscriptExprs.
+// The main use case for PostfixExpr currently is for representing and evaluating things
+// like '3!4!' (= 144) which would otherwise be a SequenceExpr['3', '!', '4', '!'].
+// NOTE: Double factorials (x!!) are actually represented as
+//       PostfixExpr(PostfixExpr(x, '!'), '!') instead of PostfixExpr(x, '!!').
+class PostfixExpr extends Expr {
+  // Create a factorial expression with 'factorial_depth' exclamation points.
+  static factorial_expr(base_expr, factorial_depth) {
+    if(factorial_depth > 1)
+      base_expr = PostfixExpr.factorial_expr(base_expr, factorial_depth-1);
+    return new PostfixExpr(base_expr, new TextExpr('!'));
+  }
+  
+  constructor(base_expr, operator_expr) {
+    super();
+    this.base_expr = base_expr;
+    this.operator_expr = operator_expr;
+  }
+  
+  expr_type() { return 'postfix'; }
+  json_keys() { return ['base_expr', 'operator_expr']; }
+
+  emit_latex(emitter) {
+    emitter.expr(this.base_expr, 0);
+    emitter.expr(this.operator_expr, 1);
+  }
+
+  visit(fn) {
+    fn(this);
+    this.subexpressions().forEach(expr => expr.visit(fn));
+  }
+
+  has_subexpressions() { return true; }
+  subexpressions() { return [this.base_expr, this.operator_expr]; }
+
+  replace_subexpression(index, new_expr) {
+    return new PostfixExpr(
+      index === 0 ? new_expr : this.base_expr,
+      index === 1 ? new_expr : this.operator_expr);
+  }
+
+  substitute_expr(old_expr, new_expr) {
+    if(this === old_expr) return new_expr;
+    return new PostfixExpr(
+      this.base_expr.substitute_expr(old_expr, new_expr),
+      this.operator_expr.substitute_expr(old_expr, new_expr));
+  }
+
+  as_editable_string() {
+    const base_string = this.base_expr.as_editable_string();
+    const operator_string = this.operator_expr.as_editable_string();
+    if(base_string && operator_string)
+      return [base_string, operator_string].join('');
+    else
+      return null;
+  }
+
+  dissolve() { return [this.base_expr, this.operator_expr]; }
+
+  as_bold() {
+    return new PostfixExpr(
+      this.base_expr.as_bold(),
+      this.operator_expr.as_bold());
+  }
+
+  // Factorial expressions with multiple ! signs are represented as nested
+  // PostfixExprs with single-! operators.  For example:
+  //   x!!! = Postfix(Postfix(Postfix(x, '!'), '!'), '!')
+  // Return [base_expr, factorial_signs_count], where base_expr is the innermost 'x'
+  // and factorial_signs_count is the number of nested factorial signs (3 in this case).
+  // Non-factorial postfix expressions will return factorial_signs_count=0.
+  analyze_factorial() {
+    let [base_expr, factorial_signs_count] = [this.base_expr, 0];
+    if(this.operator_expr.is_expr_type('text') && this.operator_expr.text === '!') {
+      if(this.base_expr.is_expr_type('postfix'))
+	[base_expr, factorial_signs_count] = base_expr.analyze_factorial();
+      factorial_signs_count++;
+    }
+    return [base_expr, factorial_signs_count];
+  }
+
+  // Currently the only PostfixExprs that can be evaluated are single and double factorials.
+  // i.e. 3! = 1*2*3;  7!! = 7*5*3*1.
+  // Double factorial arguments must be integers, while single factorials can be
+  // real numbers evaluated via the Gamma function.
+  evaluate(assignments) {
+    let [base_expr, factorial_signs_count] = this.analyze_factorial();
+    if(!(factorial_signs_count === 1 || factorial_signs_count === 2))
+      return null;
+    const value = base_expr.evaluate(assignments);
+    if(value === null) return null;
+    if(factorial_signs_count === 1)
+      return SpecialFunctions.factorial(value);
+    else if(factorial_signs_count === 2) {
+      const result = SpecialFunctions.double_factorial(value);
+      return isNaN(result) ? null : result;
+    }
+    return null;
+  }
+}
+
+
 // Represents a snippet of LaTeX code; these are the "leaves" of Expr-trees.
 class TextExpr extends Expr {
   static blank() { return new TextExpr(''); }
@@ -1419,19 +1552,13 @@ class SequenceExpr extends Expr {
         return sign * (new SequenceExpr(
 	  this.exprs.slice(1), this.fused).evaluate(assignments));
     }
-    // Consider anything else as implicit multiplications,
-    // with special-casing for '!' factorial notation.
+    // Consider anything else as implicit multiplications.
     let value = this.exprs[0].evaluate(assignments);
     if(value === null) return null;
     for(let i = 1; i < this.exprs.length; i++) {
-      // Check for factorial
-      if(this.exprs[i].is_expr_type('text') && this.exprs[i].text === '!')
-	value = SpecialFunctions.factorial(value);
-      else {
-        const rhs = this.exprs[i].evaluate(assignments);
-        if(rhs === null) return null;
-        value *= rhs;
-      }
+      const rhs = this.exprs[i].evaluate(assignments);
+      if(rhs === null) return null;
+      value *= rhs;
       if(isNaN(value)) return null;
     }
     return value;
@@ -1570,7 +1697,6 @@ class DelimiterExpr extends Expr {
   }
 
   has_subexpressions() { return true; }
-
   subexpressions() { return [this.inner_expr]; }
 
   replace_subexpression(index, new_expr) {
@@ -2162,7 +2288,7 @@ class ArrayExpr extends Expr {
 
 
 export {
-  Expr, CommandExpr, FontExpr, InfixExpr,
+  Expr, CommandExpr, FontExpr, InfixExpr, PostfixExpr,
   PlaceholderExpr, TextExpr, SequenceExpr,
   DelimiterExpr, SubscriptSuperscriptExpr,
   ArrayExpr
