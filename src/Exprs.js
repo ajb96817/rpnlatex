@@ -128,15 +128,6 @@ class Expr {
   static combine_command_pair(left, right) {
     const left_name = left.command_name, right_name = right.command_name;
 
-    // Try combining \boldsymbol{X...} + \boldsymbol{Y...} -> \boldsymbol{X...Y...}
-    // Combining in this way fixes (or at least improves) some edge-case spacing problems with KaTeX.
-    // Compare: \boldsymbol{W}\boldsymbol{A} vs. \boldsymbol{WA}
-    if(left_name === 'boldsymbol' && right_name === 'boldsymbol' &&
-       left.operand_count() === 1 && right.operand_count() === 1)
-      return new SequenceExpr(
-        [left.operand_exprs[0], right.operand_exprs[0]]
-      ).as_bold();
-
     // Try combining adjacent integral symbols into multiple-integral commands.
     let new_command_name = null;
     if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
@@ -257,7 +248,7 @@ class Expr {
       return this;
   }
 
-  // Attempt to evaluate this Expr numerically.
+  // Attempt to evaluate this Expr numerically, returning a floating-point value.
   // Return null if evaluation is not possible; subclasses can override.
   // The evaluation might raise errors, so the caller should use an exception handler.
   //
@@ -523,7 +514,7 @@ class CommandExpr extends Expr {
   //   - 'options', if provided, is a plain string that becomes "\command_name[options]{...}"
   //   - 'command_name' itself can include the options in [brackets], in which case it is
   //     automatically split off into 'options' (this is used for keybindings).
-  //     (e.g.: command_name='sqrt[3]' -> command_name='sqrt', options='3'
+  //     (e.g.: command_name='sqrt[3]' -> command_name='sqrt', options='3')
   constructor(command_name, operand_exprs, options) {
     super();
     if(command_name.endsWith(']')) {
@@ -820,7 +811,7 @@ class FontExpr extends Expr {
       // i.e.: {\large ...} instead of \large{...}
       return emitter.grouped(() => {
 	emitter.command(size_adjustment_command);
-        (new FontExpr(this.expr, this.typeface, this.is_bold)).emit_latex(emitter)
+	this.with_size_adjustment(0).emit_latex(emitter);
       }, true);
     }
     const typeface_command = this.typeface_command(this.typeface, this.is_bold);
@@ -895,6 +886,7 @@ class FontExpr extends Expr {
 //   linebreaks_at indicates a line break *after* the given subexpression index.
 //   For example, in 'x + y - z',
 //   index=0 breaks after the 'x', index=1 breaks after the '+', etc.
+//   Note that these indexes are different from the sense of 'split_at_index'.
 class InfixExpr extends Expr {
   constructor(operand_exprs, operator_exprs, split_at_index, linebreaks_at) {
     super();
@@ -999,7 +991,6 @@ class InfixExpr extends Expr {
     return this.operator_exprs.every(op_expr => {
       const op = this.operator_text(op_expr);
       return op && this._operator_info(op) && this._operator_info(op).prec <= 1;
-      // return op && (op === '+' || op === '-');
     });
   }
 
@@ -1037,10 +1028,8 @@ class InfixExpr extends Expr {
 
   _convert_to_flex_delimiter(expr) {
     let new_text = null;
-    if(expr.is_expr_type('text')) {
-      if(expr.text === '/')
-        new_text = "\\middle/";
-    }
+    if(expr.is_expr_type('text') && expr.text === '/')
+      new_text = "\\middle/";
     else if(expr.is_expr_type('command') && expr.operand_count() === 0) {
       const command = expr.command_name;
       if(command === ",\\vert\\," || command === 'vert')
@@ -1058,11 +1047,7 @@ class InfixExpr extends Expr {
 
   visit(fn) {
     fn(this);
-    for(let i = 0; i < this.operator_exprs.length; i++) {
-      this.operand_exprs[i].visit(fn);
-      this.operator_exprs[i].visit(fn);
-    }
-    this.operand_exprs[this.operand_exprs.length-1].visit(fn);
+    this.subexpressions().forEach(expr => expr.visit(fn));
   }
 
   subexpressions() {
@@ -1273,7 +1258,8 @@ class PlaceholderExpr extends Expr {
 
   emit_latex(emitter) {
     const expr = new CommandExpr('htmlClass', [
-      new TextExpr('placeholder_expr'), new TextExpr("\\blacksquare")]);
+      new TextExpr('placeholder_expr'),
+      new TextExpr("\\blacksquare")]);
     emitter.expr(expr, null);
   }
 
@@ -1426,11 +1412,11 @@ class SequenceExpr extends Expr {
     // Check for ['-', Expr] and ['+', Expr]
     if(this.exprs.length >= 2 &&
        this.exprs[0].is_expr_type('text')) {
-      let factor = null;
-      if(this.exprs[0].text === '+') factor = 1;
-      else if(this.exprs[0].text === '-') factor = -1;
-      if(factor !== null)
-        return factor * (new SequenceExpr(
+      let sign = null;
+      if(this.exprs[0].text === '+') sign = 1;
+      else if(this.exprs[0].text === '-') sign = -1;
+      if(sign !== null)
+        return sign * (new SequenceExpr(
 	  this.exprs.slice(1), this.fused).evaluate(assignments));
     }
     // Consider anything else as implicit multiplications,
@@ -1491,13 +1477,13 @@ class DelimiterExpr extends Expr {
 
   // expr is about to become the base of a SubscriptSuperscriptExpr.
   // The expression will be parenthesized if it is:
-  //    - any kind of InfixExpr
-  //    - any kind of SequenceExpr that is not a function application
-  //      of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
-  //    - a normal fraction like \frac{x}{y}
-  //    - a "flex style" fraction like \left. x/y \right.
-  //    - TODO: parenthesize \ln{x}, etc., unless x is a DelimiterExpr;
-  //      but exclude things like \boldsymbol{x}.
+  //   - any kind of InfixExpr
+  //   - any kind of SequenceExpr that is not a function application
+  //     of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
+  //   - a normal fraction like \frac{x}{y}
+  //   - a "flex style" fraction like \left. x/y \right.
+  //   - TODO: parenthesize \ln{x}, etc., unless x is a DelimiterExpr
+  //     (but not if x is a FontExpr)
   static parenthesize_for_power(expr) {
     const needs_parenthesization = (
       // any infix expression
@@ -1692,9 +1678,7 @@ class SubscriptSuperscriptExpr extends Expr {
 
   visit(fn) {
     fn(this);
-    this.base_expr.visit(fn);
-    if(this.subscript_expr) this.subscript_expr.visit(fn);
-    if(this.superscript_expr) this.superscript_expr.visit(fn);
+    this.subexpressions().forEach(expr => expr.visit(fn));
   }
 
   subexpressions() {
@@ -1724,6 +1708,8 @@ class SubscriptSuperscriptExpr extends Expr {
   // This matches the order of [/][Enter] so a fully populated SubscriptSuperscriptExpr
   // can be reassembled with this command.
   dissolve() {
+    // TODO: This order differs from this.subexpressions().
+    // Probably should fix this inconsistency.
     const pieces = [this.base_expr];
     if(this.subscript_expr) pieces.push(this.subscript_expr);
     if(this.superscript_expr) pieces.push(this.superscript_expr);

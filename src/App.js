@@ -780,7 +780,8 @@ class PopupPanelComponent extends React.Component {
     const help_dest_elt = this.refs.help_content.current;
     if(help_source_elt) {
       help_source_elt.style.display = 'block';
-      this._render_help_latex(help_source_elt);
+      this._render_helptext_latex(help_source_elt);
+      this._setup_helptext_anchors(help_source_elt);
       help_source_elt.parentNode.removeChild(help_source_elt);
       help_dest_elt.appendChild(help_source_elt);
     }
@@ -800,10 +801,10 @@ class PopupPanelComponent extends React.Component {
   }
 
   // Render any <code>...</code> spans in the help text with KaTeX.
-  _render_help_latex(help_elt) {
-    const children = help_elt.getElementsByTagName('code');
-    for(let i = 0; i < children.length; i++) {
-      let code_elt = children[i];
+  _render_helptext_latex(help_elt) {
+    const code_elts = help_elt.getElementsByTagName('code');
+    for(let i = 0; i < code_elts.length; i++) {
+      const code_elt = code_elts[i];
       const latex_code = code_elt.textContent;
       if(latex_code)
         katex.render(latex_code, code_elt, {
@@ -812,6 +813,37 @@ class PopupPanelComponent extends React.Component {
           trust: true,
           strict: false
         });
+    }
+  }
+
+  // Set onclick handlers of internal links within the helptext
+  // (i.e. <a href="#...">) so that the scrolling happens without
+  // changing the URL in the address bar.  We don't want "#whatever"
+  // in the address bar and adding to the URL history.
+  _setup_helptext_anchors(help_elt) {
+    const anchor_elts = help_elt.getElementsByTagName('a');
+    for(let i = 0; i < anchor_elts.length; i++) {
+      const anchor_elt = anchor_elts[i];
+      const href = anchor_elt.getAttribute('href');
+      if(href && href.startsWith('#'))
+	anchor_elt.onclick = this._helptext_anchor_onclick.bind(anchor_elt);
+    }
+  }
+
+  _helptext_anchor_onclick(event) {
+    const anchor_target = this.getAttribute('href').slice(1);  // remove leading '#'
+    const help_elt = document.getElementById('helptext');
+    if(!help_elt) return;
+    // Search for the corresponding <a name="..."> anchor and scroll to it.
+    const anchor_elts = help_elt.getElementsByTagName('a');
+    for(let i = 0; i < anchor_elts.length; i++) {
+      const anchor_elt = anchor_elts[i];
+      const name_attr = anchor_elt.getAttribute('name');
+      if(name_attr && name_attr === anchor_target) {
+	event.preventDefault();
+	anchor_elt.scrollIntoView();
+	break;
+      }
     }
   }
 }

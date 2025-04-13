@@ -372,6 +372,7 @@ div.help h2 {
 }
 body.eink_mode div.help h2 { border-bottom-color: #666; }
 div.help p { margin: 0.7em 0; }
+div.help a { scroll-margin-top: 0.5em; }  /* snap margin for internal links within helptext */
 
 ul.keybindings { margin: 0; padding: 0; margin-left: 3em; }
 ul.keybindings li { list-style-type: none; text-indent: -2em; margin: 0.2em 0; }
