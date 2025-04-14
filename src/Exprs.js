@@ -237,11 +237,6 @@ class Expr {
   // This is the 'inverse' of ExprParser.parse_string().
   as_editable_string() { return null; }
 
-  // Invoke fn once for each subexpression in this expression tree (including 'this').
-  // The visiting is performed depth-first, left-to-right, so should correspond visually
-  // to the left-to-right rendering of the expression.
-  visit(fn) { fn(this); }
-
   // Return a list of all immediate subexpressions of this one, in (at least approximate)
   // left-to-right order.
   subexpressions() { return []; }
@@ -260,12 +255,12 @@ class Expr {
 
   // Find the first PlaceholderExpr that exists in this expression.  Returns null if none.
   find_placeholder() {
-    let found = null;
-    this.visit(expr => {
-      if(expr.is_expr_type('placeholder') && !found)
-        found = expr;
+    let found_expr = null;
+    this.subexpressions().forEach(expr => {
+      if(expr.is_expr_type('placeholder') && !found_expr)
+        found_expr = expr;
     });
-    return found;
+    return found_expr;
   }
 
   // Return a (possibly) new Expr with new_expr substituted for old_expr, if old_expr is present.
@@ -569,11 +564,6 @@ class CommandExpr extends Expr {
       emitter.grouped_expr(operand_expr, 'force', index));
   }
 
-  visit(fn) {
-    fn(this);
-    this.operand_exprs.forEach(operand_expr => operand_expr.visit(fn));
-  }
-
   subexpressions() { return this.operand_exprs; }
 
   replace_subexpression(index, new_expr) {
@@ -769,11 +759,6 @@ class FontExpr extends Expr {
     if(this.is_bold) json.is_bold = true;
     if(this.size_adjustment !== 0) json.size_adjustment = this.size_adjustment;
     return json;
-  }
-
-  visit(fn) {
-    fn(this);
-    this.expr.visit(fn);
   }
 
   // See comment in Expr.has_subexpressions().
@@ -1073,11 +1058,6 @@ class InfixExpr extends Expr {
       return null;
   }
 
-  visit(fn) {
-    fn(this);
-    this.subexpressions().forEach(expr => expr.visit(fn));
-  }
-
   subexpressions() {
     // Interleave operators and operands.
     let exprs = [];
@@ -1292,6 +1272,9 @@ class PlaceholderExpr extends Expr {
   }
 
   as_editable_string() { return '[]'; }
+
+  // NOTE: overrides superclass method
+  find_placeholder() { return this; }
 }
 
 
@@ -1325,11 +1308,6 @@ class PostfixExpr extends Expr {
     emitter.expr(this.operator_expr, 1);
   }
 
-  visit(fn) {
-    fn(this);
-    this.subexpressions().forEach(expr => expr.visit(fn));
-  }
-
   has_subexpressions() { return true; }
   subexpressions() { return [this.base_expr, this.operator_expr]; }
 
@@ -1355,7 +1333,7 @@ class PostfixExpr extends Expr {
       return null;
   }
 
-  dissolve() { return [this.base_expr, this.operator_expr]; }
+  dissolve() { return this.subexpressions(); }
 
   as_bold() {
     return new PostfixExpr(
@@ -1380,7 +1358,7 @@ class PostfixExpr extends Expr {
   }
 
   // Currently the only PostfixExprs that can be evaluated are single and double factorials.
-  // i.e. 3! = 1*2*3;  7!! = 7*5*3*1.
+  // i.e. 3! = 3*2*1;  7!! = 7*5*3*1.
   // Double factorial arguments must be integers, while single factorials can be
   // real numbers evaluated via the Gamma function.
   evaluate(assignments) {
@@ -1498,11 +1476,6 @@ class SequenceExpr extends Expr {
     }
     else
       this.exprs.forEach((expr, index) => emitter.expr(expr, index));
-  }
-
-  visit(fn) {
-    fn(this);
-    this.exprs.forEach(expr => expr.visit(fn));
   }
 
   subexpressions() { return this.exprs; }
@@ -1691,11 +1664,6 @@ class DelimiterExpr extends Expr {
     return json;
   }
 
-  visit(fn) {
-    fn(this);
-    this.inner_expr.visit(fn);
-  }
-
   has_subexpressions() { return true; }
   subexpressions() { return [this.inner_expr]; }
 
@@ -1800,11 +1768,6 @@ class SubscriptSuperscriptExpr extends Expr {
       emitter.grouped_expr(this.subscript_expr, 'force_commands', subexpr_index);
       subexpr_index++;  // not strictly needed
     }
-  }
-
-  visit(fn) {
-    fn(this);
-    this.subexpressions().forEach(expr => expr.visit(fn));
   }
 
   subexpressions() {
@@ -2251,12 +2214,6 @@ class ArrayExpr extends Expr {
       emitter.command('right');
       emitter.text_or_command(right_delim);
     }
-  }
-
-  visit(fn) {
-    fn(this);
-    this.element_exprs.forEach(
-      row_exprs => row_exprs.forEach(expr => expr.visit(fn)));
   }
 
   subexpressions() {
