@@ -561,26 +561,43 @@ const EditorKeymap = {
     'L': "push \\Box;push 2;superscript;swap;concat",
     // x -> dx
     'd': "push d;swap;fuse",
+    // x -> \partial x
+    'p': "push \\partial;swap;fuse",
+    // y x -> \partial_x y
+    'P': "push \\partial;swap;subscript;swap;fuse",
+    // x -> \cancel\partial x
+    'q': "push \\partial;operator cancel 1;swap;fuse",
+    // y x -> \cancel\partial_x y
+    'Q': "push \\partial;operator cancel 1;swap;subscript;swap;fuse",
+    // x y -> dx ^ dy
+    'f': "differential_form 2 false false",
+    // x y z -> dx ^ dy ^ dz
+    'F': "differential_form 3 false false",
+    // x y -> dx ^ ... ^ dy
+    'E': "differential_form 2 true false",
     // x -> d^2x
     '2': "push d;push 2;superscript;swap;fuse",
     '3': "push d;push 3;superscript;swap;fuse",
     '4': "push d;push 4;superscript;swap;fuse",
     // y x -> y dx
-    'i': "swap;push \\,;concat;swap;push d;swap;fuse;concat",
+    'i': "autoparenthesize;swap;push \\,;concat;swap;push d;swap;fuse;concat",
     // y x -> ydx (with thinspace after the dx)
-    'I': "push d;swap;fuse;concat;push \\,;concat",
+    'I': "autoparenthesize;push d;swap;fuse;concat;push \\,;concat",
     // y x -> ydx (no spacing around the dx)
-    ' ': "push d;swap;fuse;concat"
+    ' ': "autoparenthesize;push d;swap;fuse;concat"
   },
 
   derivative_alt: {
     'd': "push d;typeface roman;swap;fuse",
+    'f': "differential_form 2 false true",
+    'F': "differential_form 3 false true",
+    'E': "differential_form 2 true true",
     '2': "push d;typeface roman;push 2;superscript;swap;fuse",
     '3': "push d;typeface roman;push 3;superscript;swap;fuse",
     '4': "push d;typeface roman;push 4;superscript;swap;fuse",
-    'i': "swap;push \\,;concat;swap;push d;typeface roman;swap;fuse;concat",
-    'I': "push d;typeface roman;swap;fuse;concat;push \\,;concat",
-    ' ': "push d;typeface roman;swap;fuse;concat",
+    'i': "autoparenthesize;swap;push \\,;concat;swap;push d;typeface roman;swap;fuse;concat",
+    'I': "autoparenthesize;push d;typeface roman;swap;fuse;concat;push \\,;concat",
+    ' ': "autoparenthesize;push d;typeface roman;swap;fuse;concat",
     'k': "push d;typeface roman;swap;concat;swap;push d;typeface roman;swap;concat;swap;operator frac 2",
     'K': "push 2;superscript;push d;typeface roman;swap;concat;swap;push d;typeface roman;push 2;superscript;swap;concat;swap;operator frac 2",
     'x': "push d;typeface roman;swap;concat;push d;typeface roman;swap;operator frac 2",
@@ -611,6 +628,7 @@ const EditorKeymap = {
     'Q': "conjunction or",
     'r': "conjunction for",
     's': "infix \\,",
+    ' ': "infix \\,",
     't': "infix \\to",
     'T': "infix \\longrightarrow",
     'u': "infix \\cup",
@@ -627,7 +645,6 @@ const EditorKeymap = {
     '+': "infix \\oplus",
     '.': "infix \\cdot",
     ',': "infix ,",  // comma without thinspace
-    ' ': "infix ,\\,",  // comma plus thinspace
     ':': "infix :",
     ';': "infix semicolon",
     "'": "start_text_entry conjunction_entry",

@@ -714,6 +714,40 @@ class InputContext {
     return new_stack.push_expr(expr);
   }
 
+  // Create a differential form infix expression like: dx ^ dy ^ dz.
+  // degree_string is the number of differential elements to combine.
+  // ellipses='true' inserts a set of ellipses before the last element.
+  // is_roman='true' typesets the 'd' with \mathrm.
+  // Unary minus signs are pulled out into the differential, e.g. -x -> -dx.
+  do_differential_form(stack, degree_string, ellipses, is_roman) {
+    const degree = parseInt(degree_string);
+    const [new_stack, ...exprs] = stack.pop_exprs(degree);
+    let d_exprs = exprs.map(expr => {
+      let is_negated = false;
+      let base_expr = expr;
+      // Check for a unary minus sign.
+      if(expr.is_expr_type('sequence') && expr.exprs.length > 1 &&
+	 expr.exprs[0].is_expr_type('text') && expr.exprs[0].text === '-') {
+	is_negated = true;
+	base_expr = expr.exprs.length === 2 ? expr.exprs[1] : new SequenceExpr(expr.exprs.slice(1));
+      }
+      let d_expr = Expr.combine_pair(
+	is_roman === 'true' ? FontExpr.roman_text('d') : new TextExpr('d'),
+	base_expr);
+      if(is_negated)
+	d_expr = Expr.combine_pair(new TextExpr('-'), d_expr);
+      return d_expr;
+    });
+    if(ellipses === 'true') {
+      // Splice in ellipses before the final element.
+      d_exprs = d_exprs.slice(0, degree-1).concat(
+	[new CommandExpr('cdots')]).concat(d_exprs.slice(degree-1));
+    }
+    const form_expr = d_exprs.reduce((form_expr, d_expr) =>
+      InfixExpr.combine_infix(form_expr, d_expr, new CommandExpr('wedge')));
+    return new_stack.push_expr(form_expr);
+  }
+
   // opname == 'argmax': y x -> \argmax\limits_{x} y
   // If make_operatorname is true, opname is not a built-in LaTeX operator
   // but is instead wrapped in an \operatorname{} to simulate it.

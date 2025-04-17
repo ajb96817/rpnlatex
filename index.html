@@ -750,7 +750,11 @@
           </tr>
           <tr>
             <td><span class="keybinding">r</span> <code>x\quad\mathrm{for}\quad y</code></td>
-            <td><span class="keybinding">s</span> <code>x\, y</code></td>
+            <td>
+	      <span class="keybinding">s</span> or
+	      <span class="keybinding">&nbsp;</span>
+	      <code>x\,y</code>
+	    </td>
             <td><span class="keybinding">t</span> <code>x\to y</code></td>
           </tr>
           <tr>
@@ -779,24 +783,23 @@
             <td><span class="keybinding">,</span> <code>x,y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">&nbsp;</span> <code>x,\,y</code></td>
             <td><span class="keybinding">&gt;</span> <code>x\cdots y</code></td>
             <td><span class="keybinding">&lt;</span> <code>\left\langle x,y\right\rangle</code></td>
+            <td><span class="keybinding">(</span> <code>\left(x,y\right)</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">(</span> <code>\left(x,y\right)</code></td>
             <td><span class="keybinding">*</span> <code>x*y</code></td>
             <td><span class="keybinding">:</span> <code>x : y</code></td>
+            <td><span class="keybinding">;</span> <code>x;y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">;</span> <code>x;y</code></td>
             <td><span class="keybinding">`</span> <code>x^\mathrm{T} y</code></td>
             <td><span class="keybinding">/</span> <code>x/y</code></td>
+            <td><span class="keybinding">\</span> <code>x\backslash y</code></td>
 	  </tr>
 	  <tr>
-            <td><span class="keybinding">\</span> <code>x\backslash y</code></td>
             <td><span class="keybinding">%</span> <code>x\pmod y</code></td>
-            <td><span class="keybinding">&#39;</span> <em>conjunction</em> (see below)</td>
+            <td colspan="2"><span class="keybinding">&#39;</span> <em>conjunction</em> (see below)</td>
           </tr>
       </tbody></table>
       <p>
@@ -1107,8 +1110,16 @@
             <td><span class="keybinding">X</span> <code>x \to \frac{d^2}{dx^2}</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">p</span> <code>x \to \partial x</code></td>
+            <td><span class="keybinding">P</span> <code>y\enspace x \to \partial_x y</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">q</span> <code>x \to \cancel\partial x</code></td>
+            <td><span class="keybinding">Q</span> <code>y\enspace x \to \cancel\partial_x y</code></td>
+          </tr>
+          <tr>
             <td><span class="keybinding">g</span> <code>x \to \nabla x</code></td>
-            <td><span class="keybinding">G</span> <code>x\enspace y \to \nabla_y x</code></td>
+            <td><span class="keybinding">G</span> <code>y\enspace x \to \nabla_x y</code></td>
           </tr>
           <tr>
             <td><span class="keybinding">.</span> <code>x \to \nabla\cdot x</code></td>
@@ -1127,6 +1138,16 @@
             <td><span class="keybinding">4</span> <code>x \to d^4 x</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">f</span> <code>x\enspace y \to dx \wedge dy</code></td>
+            <td><span class="keybinding">F</span> <code>x\enspace y\enspace z \to dx \wedge dy \wedge dz</code></td>
+          </tr>
+          <tr>
+            <td colspan="2">
+	      <span class="keybinding">E</span>
+	      <code>x\enspace y \to dx \wedge \cdots \wedge dy</code>
+	    </td>
+          </tr>
+          <tr>
             <td colspan="2">
               <span class="keybinding">i</span> or <span class="keybinding">I</span> or <span class="keybinding">&nbsp;</span>
               <code>y\enspace x \to y\,dx</code> (see below)
@@ -1134,6 +1155,7 @@
           </tr>
       </tbody></table>
       <p>
+	<strong>Integral Spacing:</strong>
         <span class="keybinding">i</span> and <span class="keybinding">I</span> and <span class="keybinding">&nbsp;</span>
         are meant for attaching a differential to an existing integral expression with appropriate spacing.
         The difference between the three is where the spacing goes:
@@ -1155,7 +1177,19 @@
         </li>
       </ul>
       <p>
-	<strong>Alternative notation:</strong>
+	<strong>Differential Forms:</strong>
+	The <span class="keybinding">f</span> <span class="keybinding">F</span> <span class="keybinding">E</span>
+	commands for building differential forms will pull out minus signs as needed, as in:
+	<code>-y\enspace x \to -dy \wedge dx</code>.
+	When concatenating differential forms to integral expressions, use
+	<span class="keybinding">,</span><span class="keybinding">&nbsp;</span>
+	instead of <span class="keybinding">&nbsp;</span> to avoid parenthesizing the differential form.
+	For example:
+	<code>\int f{(x,y)}\,dx\wedge dy</code> instead of
+	<code>\int f{(x,y)} \left(dx\wedge dy\right)</code>.
+      </p>
+      <p>
+	<strong>Alternative Notation:</strong>
 	Some authors prefer an upright Roman-font &quot;d&quot; when writing differentials.
 	For example:
 	<code>\frac{\mathrm{d}y}{\mathrm{d}x}</code> instead of
@@ -2086,6 +2120,10 @@
         <li>
           <span class="keybinding">Ctrl+,</span> Join two items with a comma
           (same as <span class="keybinding">,</span><span class="keybinding">,</span>)
+        </li>
+        <li>
+          <span class="keybinding">Ctrl+Space</span> Join two items with a thin space
+          (same as <span class="keybinding">,</span><span class="keybinding">&nbsp;</span>)
         </li>
         <li>
           <span class="keybinding">Ctrl+&larr;&rarr;</span>
