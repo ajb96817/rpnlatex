@@ -565,10 +565,6 @@ const EditorKeymap = {
     'p': "push \\partial;swap;fuse",
     // y x -> \partial_x y
     'P': "push \\partial;swap;subscript;swap;fuse",
-    // x -> \cancel\partial x
-    'q': "push \\partial;operator cancel 1;swap;fuse",
-    // y x -> \cancel\partial_x y
-    'Q': "push \\partial;operator cancel 1;swap;subscript;swap;fuse",
     // x y -> dx ^ dy
     'f': "differential_form 2 false false",
     // x y z -> dx ^ dy ^ dz
