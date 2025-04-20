@@ -150,9 +150,11 @@ div.tag_string {
     width: auto;
     right: 0.5em;
     margin-top: 0.1em;
+    padding: 0.1em 0.5em;
     font-size: 90%;
     font-weight: bold;
     color: #666;
+    background-color: #dfe;
 }
 
 /* These are to support settings.layout.rightalign_math options. */

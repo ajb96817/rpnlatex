@@ -645,9 +645,7 @@ class ItemComponent extends React.Component {
       className = 'heading_style ' + className;
     let tag_element = null;
     if(item.tag_string)
-      tag_element = $e(
-        'div', {className: 'tag_string'},
-        '(' + item.tag_string + ')');
+      tag_element = $e('div', {className: 'tag_string'}, item.tag_string);
     switch(item.item_type()) {
     case 'expr':
       return $e(
