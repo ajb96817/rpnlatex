@@ -72,10 +72,10 @@ const EditorKeymap = {
     'Ctrl+a': "swap",
     'Ctrl+b': "make_bold",
     'Ctrl+c': "copy_to_clipboard",
-    'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x) - same as [/][e]
+    'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x): same as [/][e]
     'Ctrl+i': "pop_to_document",
     'Ctrl+j': "extract_from_document",
-    'Ctrl+k': "infix \\,",
+    'Ctrl+k': "infix \\,\\vert\\,;parenthesize;fuse",  // f(x|y): same as [/][k]
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "push -;swap;fuse",  // same as [.][-]
     'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
@@ -138,6 +138,7 @@ const EditorKeymap = {
     '=': "scroll_to help_relational",
     '/': "scroll_to help_operators",
     'd': "scroll_to help_derivatives",
+    'D': "scroll_to help_derivatives",
     'i': "scroll_to help_integrals",
     'f': "scroll_to help_named_operators",
     ')': "scroll_to help_delimiters",

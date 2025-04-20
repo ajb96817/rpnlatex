@@ -379,6 +379,7 @@ table.keybindings {
     border: none;
     border-collapse: collapse;
     margin: 0;
+    margin-left: 0.5em;  /* try to match left-alignment of ul.keybindings */
 }
 table.keybindings td { padding: 0.1em 0.5em; }
 
