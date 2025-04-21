@@ -774,15 +774,14 @@ class InputContext {
     if(expr.is_expr_type('text') &&
        (expr.text === 'i' || expr.text === 'j'))
       expr = new CommandExpr(expr.text === 'i' ? 'imath' : 'jmath');
-    else if(expr.is_expr_type('command') && expr.operand_count() === 1 &&
-            (expr.command_name === 'boldsymbol' || expr.command_name === 'mathbf')) {
+    else if(expr.is_expr_type('font') && expr.typeface === 'normal' && expr.is_bold) {
       // Check for bolded literal i/j
-      const inner_expr = expr.operand_exprs[0];
+      const inner_expr = expr.expr;
       if(inner_expr.is_expr_type('text') &&
-         (inner_expr.text === 'i' || inner_expr.text === 'j'))
-        expr = new CommandExpr(
-          expr.command_name,
-          [new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath')]);
+	 (inner_expr.text === 'i' || inner_expr.text === 'j'))
+	expr = new FontExpr(
+	  new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'),
+	  expr.typeface, expr.is_bold, expr.size_adjustment);
     }
     const result_expr = new CommandExpr(hat_op, [expr]);
     return new_stack.push_expr(result_expr);
@@ -802,7 +801,7 @@ class InputContext {
       // It's already wrapped in \htmlClass
       if(expr.operand_exprs[0].text === class_name)
         new_class_name = class_name_2;  // might be null
-      expr = expr.operand_exprs[1];  // Strip existing \htmlClass
+      expr = expr.operand_exprs[1];  // strip existing \htmlClass
     }
     else
       new_class_name = class_name;
@@ -811,8 +810,6 @@ class InputContext {
     return new_stack.push_expr(expr);
   }
 
-  // For ExprItems, this just wraps the expression in a bold FontExpr (if it's not already wrapped).
-  // For TextItems, the individual components of the text are bolded.
   do_make_bold(stack) {
     const [new_stack, item] = stack.pop(1);
     return new_stack.push(item.as_bold());
@@ -1038,7 +1035,7 @@ class InputContext {
   do_start_text_entry(stack, text_entry_mode, initial_text) {
     // Special cases:
     //   conjunction_entry mode: make sure there are two expressions on the stack beforehand.
-    //   tag_entry: make sure there is one expression or text item
+    //   tag_entry: make sure there is one expression or text item.
     if((text_entry_mode === 'conjunction_entry' && !stack.check_exprs(2)) ||
        (text_entry_mode === 'tag_entry' && !(
          stack.check(1) &&
