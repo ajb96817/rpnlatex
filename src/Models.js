@@ -926,7 +926,7 @@ class ExprPath {
 //   - "Symbols" are one-letter substrings like 'x'.
 //   - As a special case, '@' becomes \pi.
 //   - Adjacent factors are combined with implicit multiplication.
-//   - 'xyz' is considered implicit multiplication of x,y,z.
+//     'xyz' is considered implicit multiplication of x,y,z.
 //   - '*' is multiplication, but gets converted to \cdot.
 //   - '/' and '*' bind tighter than '+' and '-'.
 //   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
@@ -1032,11 +1032,11 @@ class ExprParser {
         const token = s[pos];
         let token_type = null;
         if(/\s/.test(token)) token_type = 'whitespace';
-        if(/\w/.test(token)) token_type = 'symbol';
-        if(/[-+!/*]/.test(token)) token_type = 'operator';
-        if(/[([{]/.test(token)) token_type = 'open_delimiter';
-        if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
-	if(token === '@') token_type = 'pi';
+        else if(/\w/.test(token)) token_type = 'symbol';
+        else if(/[-+!/*]/.test(token)) token_type = 'operator';
+        else if(/[([{]/.test(token)) token_type = 'open_delimiter';
+        else if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
+	else if(token === '@') token_type = 'pi';
         if(token_type === null)
           return null;  // invalid token found (something like ^, or unicode)
         if(token_type !== 'whitespace')  // skip whitespace
@@ -1098,12 +1098,12 @@ class ExprParser {
         lhs, rhs, Expr.text_or_command(op_text));
     }
     if(op_token && op_token.text === '//') {
-      // Full-size fraction
+      // Full-size fraction.
       this.next_token();
       const rhs = this.parse_term(true) || this.parse_error();
       return new CommandExpr('frac', [lhs, rhs]);
     }
-    // Try implicit multiplication: 'factor term' production
+    // Try implicit multiplication: 'factor term' production.
     const rhs = this.parse_term(false);  // NOTE: not an error if null
     if(rhs) {
       // Combining rules for implicit multiplication:
@@ -1345,7 +1345,7 @@ class Item {
 
   // Return a new Item of the same type and contents (shallow copy) but with a new serial_number.
   // This is mainly needed for React, which needs a distinct React key for each item in
-  // a list (like the list of stack items).  Things like 'dup' that can duplicate objects
+  // a list (like the list of stack items).  Things like 'dup' that can duplicate items
   // need to make sure to use clone() so that every Item in the stack/document is distinct.
   clone() { return null; }
 }
@@ -1406,9 +1406,8 @@ class TextItemElement {
 
 class TextItemTextElement extends TextItemElement {
   // Bold/italic fonts are handled specially for text items.
-  // Within a \text{...}, bold and italic are switched on and off
-  // via \bf{}, \it{}, and \rm{} commands.
-  // Currently bold and italic at once is not supported.
+  // Bold and italic words are put inside \textbf{} and \textit{} commands
+  // instead of \text{}.  Currently bold and italic at once is not supported.
   constructor(text, is_bold, is_italic) {
     super();
     this.text = text;
@@ -1485,7 +1484,7 @@ class TextItemExprElement extends TextItemElement {
   is_expr() { return true; }
   as_bold() { return new TextItemExprElement(this.expr.as_bold()); }
   to_json() { return { 'expr': this.expr.to_json() }; }
-  to_text() { return '$' + this.expr.to_latex() + '$'; }
+  to_text() { return ['$', this.expr.to_latex(), '$'].join(''); }
   to_latex() { return this.expr.to_latex(); }
 }
 
@@ -1579,7 +1578,8 @@ class TextItem extends Item {
           last_merged_element.text + elements[i].text,
           elements[i].is_bold, elements[i].is_italic);
       }
-      else if(last_merged_element.is_raw() && last_merged_element.is_explicit_space() &&
+      else if(last_merged_element.is_raw() &&
+	      last_merged_element.is_explicit_space() &&
               elements[i].is_text()) {
         // raw space + TextElement
         merged_elements[last_index] = new TextItemTextElement(
@@ -1587,7 +1587,8 @@ class TextItem extends Item {
           elements[i].is_bold, elements[i].is_italic);
       }
       else if(last_merged_element.is_text() &&
-              elements[i].is_raw() && elements[i].is_explicit_space()) {
+              elements[i].is_raw() &&
+	      elements[i].is_explicit_space()) {
         // TextElement + raw space
         merged_elements[last_index] = new TextItemTextElement(
           last_merged_element.text + ' ',
@@ -1617,7 +1618,7 @@ class TextItem extends Item {
       item_type: 'text',
       elements: this.elements.map(element => element.to_json())
     };
-    // avoid lots of useless is_heading: false in the JSON
+    // Avoid lots of useless is_heading:false / tag_string:null in the JSON.
     if(this.is_heading) json.is_heading = true;
     if(this.tag_string) json.tag_string = this.tag_string;
     return json;
@@ -1763,7 +1764,7 @@ class Stack {
   depth() { return this.items.length; }
   check(n) { return this.depth() >= n; }
 
-  // Check that at least n items are available and that they are all ExprItems
+  // Check that at least n items are available and that they are all ExprItems.
   check_exprs(n) {
     if(!this.check(n)) return false;
     for(let i = 0; i < n; i++)
@@ -1772,13 +1773,13 @@ class Stack {
     return true;
   }
 
-  // Fetch item at position n (stack top = 1, next = 2, etc)
+  // Fetch item at position n (stack top = 1, next = 2, etc).
   peek(n) {
     if(!this.check(1)) this.underflow();
     return this.items[this.items.length - n];
   }
 
-  // Returns [new_stack, item1, item2, ...]
+  // Returns [new_stack, item1, item2, ...].
   pop(n) {
     if(n === undefined) n = 1;
     if(!this.check(n)) this.underflow();
@@ -1863,7 +1864,6 @@ class Document {
   }
 
   // Insert a new item below the current selection, and select the inserted item.
-  // Returns a modified Document; does not alter this one.
   insert_item(new_item) {
     const index = this.selection_index;
     const new_items = this.items.slice(0, index).concat([new_item], this.items.slice(index));
@@ -1891,7 +1891,7 @@ class Document {
   }
 
   // If there is a current selection, move it by the given offset.
-  // Returns the changed document if anything was done.
+  // Returns null if trying to shift out-of-bounds.
   shift_selection_by(offset) {
     const item = this.selected_item();
     if(!item ||
@@ -1904,7 +1904,9 @@ class Document {
 
   // See Stack.clone_all_items()
   clone_all_items() {
-    return new Document(this.items.map(item => item.clone()), this.selection_index);
+    return new Document(
+      this.items.map(item => item.clone()),
+      this.selection_index);
   }
 
   to_json() {

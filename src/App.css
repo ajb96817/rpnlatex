@@ -137,13 +137,6 @@ div.latex_source_item div.latex_source {
     padding: 0.2em 0.5em;
 }
 
-div.rendered_latex_source_item {
-    background-color: #eee;
-}
-div.rendered_latex_source_item div.latex_fragment {
-    border-left: var(--itemtype-bar-width) solid #bcb;
-}
-
 div.tag_string {
     position: absolute;
     z-index: 10;

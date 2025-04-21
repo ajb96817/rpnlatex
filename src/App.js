@@ -480,15 +480,13 @@ class FileManagerComponent extends React.Component {
 
   render_export_import_section() {
     const import_export_state = this.props.import_export_state;
-    let subcomponents = [];
-
-    subcomponents.push(
-      $e('p', {}, 'This section lets you download the internal browser document storage as a .zip file, or restore the internal storage from a previously downloaded export.'));
-
-    subcomponents.push(
+    const subcomponents = [
+      $e(
+	'p', {},
+	'This section lets you download the internal browser document storage as a .zip file, or restore the internal storage from a previously downloaded export.'),
       $e('p', {},
-         $e('strong', {}, import_export_state.textual_state())));
-
+         $e('strong', {}, import_export_state.textual_state()))
+    ];
     if(import_export_state.state === 'idle')
       subcomponents.push(
         $e('p', {},
@@ -503,7 +501,6 @@ class FileManagerComponent extends React.Component {
            $e('a', {href: import_export_state.download_url, download: export_filename},
               'Download: ' + export_filename)));
     }
-
     // Show file upload element if ready to accept uploads.
     if(import_export_state.state === 'idle') {
       subcomponents.push(
@@ -519,14 +516,12 @@ class FileManagerComponent extends React.Component {
              onClick: this.handle_file_upload.bind(this)
            })));
     }
-
     // Show import results when import finished.
     if(import_export_state.state === 'idle' && import_export_state.import_result_string)
       subcomponents.push(
         $e('p', {},
            $e('span', {style: {fontWeight: 'bold'}}, 'Import result: '),
            $e('span', {}, import_export_state.import_result_string)));
-    
     return $e('div', {}, ...subcomponents);
   }
 
@@ -583,7 +578,7 @@ class FileManagerComponent extends React.Component {
     const keybinding = key => $e('span', {className: 'keybinding'}, key);
     const helptext = text => $e('span', {}, text);
     const helpline = items => {
-      // Interleave spaces between each item
+      // Interleave spaces between each item.
       let pieces = [];
       let first = true;
       items.forEach(item => {
@@ -676,14 +671,6 @@ class ItemComponent extends React.Component {
           tag_element,  // not currently allowed
 	  $e('div', {className: 'latex_source'}, item.source));
       }
-      else if(item.language === 'rendered_latex') {
-        // Arbitrary LaTeX code rendered with KaTeX.
-        // NOTE: Not currently used; maybe remove this (along with CSS rules)
-        return $e(
-          'div', {className: 'rendered_latex_source_item'},
-          tag_element,
-          $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
-      }
       else return $e('div', {}, '????');
     default:
       return $e('div', {}, '????');
@@ -704,8 +691,6 @@ class ItemComponent extends React.Component {
       // of the rightalign_math layout settings.
       this._render_with_katex(item.to_latex(), node, false);
     }
-    else if(item.item_type() === 'code' && item.language === 'rendered_latex')
-      this._render_with_katex(item.source, node, !this.props.inline_math);
   }
 
   _render_with_katex(latex_code, node, display_mode) {
