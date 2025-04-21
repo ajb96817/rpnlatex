@@ -7,6 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="description" content="rpnlatex" />
     <link rel="manifest" href="manifest.json" />
+    <!-- <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png" /> -->
     <title>rpnlatex</title>
   </head>
   <body id="body">
@@ -86,11 +87,11 @@
         </li>
         <li>
           <span class="keybinding">^</span> or <span class="keybinding">`</span> <em>(backtick)</em>
-          Make superscript: <code>y\enspace x \to y^x</code>
+          Make superscript: <code>x\enspace y \to x^y</code>
 	  (also <span class="keybinding">Ctrl+u</span>).
         </li>
         <li><span class="keybinding">Enter</span>
-          Make subscript: <code>y\enspace x \to y_x</code>
+          Make subscript: <code>x\enspace y \to x_y</code>
         </li>
         <li><span class="keybinding">Shift+Enter</span>
 	  Start <a href="#edit_text">editing</a> the stack top as text.
@@ -212,7 +213,8 @@
 	    For example: <kbd>1//2@i</kbd> <code>\to \frac{1}{2\pi i}</code>.
 	  </li>
 	  <li><code>x!</code> factorial notation is allowed.</li>
-	  <li>Expressions can be parenthesized, e.g. <code>(x+y)</code>.  Brackets and curly braces may also
+	  <li>
+	    Expressions can be parenthesized, e.g. <code>(x+y)</code>.  Square brackets and curly braces may also
 	    be used, but they have to be properly matched.
 	  </li>
 	</ul>
@@ -229,7 +231,7 @@
 	and assembled on the stack.
       </p>
       <p>
-        <strong>Plain text entry:</strong>
+        <strong>Plain Text Entry:</strong>
         Typing <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
         will typeset your entry in a roman (non-italic) font instead of the normal italic math font,
 	and it will not be parsed as a math expression, so you can use any text you want.  This can be
@@ -241,7 +243,7 @@
         is another way of including English words or phrases.
       </p>
       <p>
-        <strong>Named operators:</strong>
+        <strong>Named Operators:</strong>
         Typing <span class="keybinding">Tab</span> instead of <span class="keybinding">Enter</span>
         will typeset your entry as an <em>operator name</em> which behaves the same as built-in operators
         such as <code>\lim</code> and <code>\sin</code>.  This gives extra spacing between anything
@@ -249,7 +251,7 @@
         numbers, spaces and dashes are allowed in operator names.
       </p>
       <p>
-        <strong>LaTeX entry:</strong>
+        <strong>LaTeX Entry:</strong>
         Typing another <span class="keybinding">\</span>
         after the first one will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
         zero-argument LaTeX command.  This can be used to create any standard LaTeX symbol.
@@ -954,15 +956,9 @@
           <span class="keybinding">C</span> <code>\csc x</code>
           <span class="keybinding">T</span> <code>\cot x</code>
         </li>
-	<li>
-	  <span class="keybinding">-</span> <em>inverse</em> mode (see below)
-	</li>
-	<li>
-	  <span class="keybinding">h</span> <em>hyperbolic</em> mode
-	</li>
-	<li>
-	  <span class="keybinding">2</span> <em>squared</em> mode
-	</li>
+	<li><span class="keybinding">-</span> <em>inverse</em> mode (see below)</li>
+	<li><span class="keybinding">h</span> <em>hyperbolic</em> mode</li>
+	<li><span class="keybinding">2</span> <em>squared</em> mode</li>
       </ul>
       <p>
 	Using <span class="keybinding">-</span> or <span class="keybinding">h</span> or
@@ -1068,17 +1064,17 @@
 	  <code>x\enspace y \to \displaystyle\sum_{x\ge y}</code>
         </li>
 	<li>
-	  <span class="keybinding">|</span> <code>y\enspace x \to \left.y\right\vert_{x}</code>
-	  &nbsp;&quot;Where&quot; notation, for example:
+	  <span class="keybinding">|</span> <code>x\enspace y \to \left.x\right\vert_{y}</code>
+	  &nbsp;&nbsp;&quot;Where&quot; notation, for example:
 	  <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
 	</li>
 	<li>
 	  <span class="keybinding">^</span> <code>x\times{10}^y</code>
-	  &nbsp;Scientific notation, for example:
+	  &nbsp;&nbsp;Scientific notation, for example:
 	  <code>1.23\times{10}^{-4}</code>
 	</li>
         <li>
-          <span class="keybinding">Enter</span> <code>z\enspace y\enspace x \to z_y^x</code>
+          <span class="keybinding">Enter</span> <code>x\enspace y\enspace z \to x_y^z</code>
           (shortcut for adding a subscript and superscript at once)
         </li>
         <li>
@@ -1205,14 +1201,16 @@
           </tr>
           <tr>
             <td colspan="2">
-              <span class="keybinding">i</span> or <span class="keybinding">I</span> or <span class="keybinding">&nbsp;</span>
-              <code>y\enspace x \to y\,dx</code> (see below)
+              <span class="keybinding">i</span> or <span class="keybinding">I</span> or
+	      <span class="keybinding">&nbsp;</span>
+              <code>x\enspace y \to x\,dy</code> (see below)
             </td>
           </tr>
       </tbody></table>
       <p>
 	<strong>Integral Spacing:</strong>
-        <span class="keybinding">i</span> and <span class="keybinding">I</span> and <span class="keybinding">&nbsp;</span>
+        <span class="keybinding">i</span> and <span class="keybinding">I</span> and
+	<span class="keybinding">&nbsp;</span>
         are meant for attaching a differential to an existing integral expression with appropriate spacing.
         The difference between the three is where the spacing goes:
       </p>
@@ -1605,7 +1603,8 @@
       </tbody></table>
 
       <p>
-        <strong>Matrix Manipulation:</strong> These commands operate on existing matrices.
+        <strong>Matrix Manipulation:</strong>
+	These commands operate on existing matrices.
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">E</span>
@@ -1741,9 +1740,7 @@
         </li>
       </ul>
 
-      <p>
-        <strong>Miscellaneous:</strong>
-      </p>
+      <p><strong>Miscellaneous:</strong></p>
       <ul class="keybindings">
 	<li>
           <span class="keybinding">k</span>
@@ -1775,40 +1772,49 @@
         The following commands will then be available:
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">]</span> or <span class="keybinding">}</span> or <span class="keybinding">&rarr;</span>
+        <li>
+	  <span class="keybinding">]</span> or <span class="keybinding">}</span> or <span class="keybinding">&rarr;</span>
           Move the selection to its nearest "sibling" to the right, if available.
         </li>
-        <li><span class="keybinding">[</span> or <span class="keybinding">{</span> or <span class="keybinding">&larr;</span>
+        <li>
+	  <span class="keybinding">[</span> or <span class="keybinding">{</span> or <span class="keybinding">&larr;</span>
           Move the selection to the left instead.
         </li>
-        <li><span class="keybinding">_</span> or <span class="keybinding">&darr;</span>
+        <li>
+	  <span class="keybinding">_</span> or <span class="keybinding">&darr;</span>
           Descend further into the tree structure, if possible.  The leftmost subexpression will be selected.
         </li>
-        <li><span class="keybinding">u</span> or <span class="keybinding">U</span> or <span class="keybinding">&uarr;</span>
+        <li>
+	  <span class="keybinding">u</span> or <span class="keybinding">U</span> or <span class="keybinding">&uarr;</span>
           Ascend the tree structure if possible, selecting a larger expression containing the current selection.
           Note that the top-level expression itself as a whole cannot be selected in <em>dissect</em> mode.
         </li>
-        <li><span class="keybinding">x</span> or <span class="keybinding">X</span> or <span class="keybinding">&#39;</span>
+        <li>
+	  <span class="keybinding">x</span> or <span class="keybinding">X</span> or <span class="keybinding">&#39;</span>
           <strong>Extract</strong> the currently selected subexpression, replacing it with a
           <a href="#placeholders">placeholder</a>.  The extracted subexpression will be left on the stack
           top, where it can be further manipulated or replaced with normal commands, and then re-substituted
           back into the original expression using <span class="keybinding">/</span><span class="keybinding">&#39;</span>.
         </li>
-        <li><span class="keybinding">d</span> or <span class="keybinding">D</span> or <span class="keybinding">Backspace</span>
+        <li>
+	  <span class="keybinding">d</span> or <span class="keybinding">D</span> or <span class="keybinding">Backspace</span>
           <strong>Delete</strong> the currently selected subexpression, replacing it with a placeholder.
           Same as <span class="keybinding">x</span>, but the selected subexpression is not left on the stack.
         </li>
-        <li><span class="keybinding">c</span> or <span class="keybinding">C</span>
+        <li>
+	  <span class="keybinding">c</span> or <span class="keybinding">C</span>
           <strong>Copy</strong> the currently selected subexpression.  Same as
           <span class="keybinding">x</span>, but a placeholder is not inserted (the original
           expression is left unmodified).
         </li>
-        <li><span class="keybinding">t</span> or <span class="keybinding">T</span>
+        <li>
+	  <span class="keybinding">t</span> or <span class="keybinding">T</span>
           <strong>Trim</strong> down to the currently selected subexpression.
           Same as <span class="keybinding">x</span>, but only the selected subexpression is left
           on the stack.
         </li>
-        <li><span class="keybinding">q</span> or <span class="keybinding">Q</span> or <span class="keybinding">Esc</span>
+        <li>
+	  <span class="keybinding">q</span> or <span class="keybinding">Q</span> or <span class="keybinding">Esc</span>
           Cancel out of <em>dissect</em> mode.
         </li>
       </ul>
@@ -1882,17 +1888,6 @@
         <span class="keybinding">:</span>
         <a name="greek" id="help_greek">Greek Letters</a>
       </h2>
-      <p>
-        <strong>NOTE:</strong>
-        The sequences
-        <span class="keybinding">;</span><span class="keybinding">;</span>
-        and
-        <span class="keybinding">:</span><span class="keybinding">:</span>
-        can be used as alternatives to
-        <span class="keybinding">,</span><span class="keybinding">;</span>
-        and
-        <span class="keybinding">,</span><span class="keybinding">:</span>.
-      </p>
       <p>Lowercase Greek letters use the <span class="keybinding">;</span> prefix:</p>
       <table class="keybindings"><tbody>
           <tr>
@@ -1996,6 +1991,15 @@
             <td></td>
           </tr>
       </tbody></table>
+      <p>
+        <strong>NOTE:</strong>
+        The sequences
+        <span class="keybinding">;</span><span class="keybinding">;</span> and
+        <span class="keybinding">:</span><span class="keybinding">:</span> can be used as alternatives to
+        <span class="keybinding">,</span><span class="keybinding">;</span> and
+        <span class="keybinding">,</span><span class="keybinding">:</span>
+	to insert literal semicolons or colons.
+      </p>
       <p>
         <strong>NOTE:</strong>
         As a convenience, you can use uppercase keystrokes as well as lowercase in
@@ -2152,7 +2156,6 @@
         </li>
         <li><span class="keybinding">Ctrl+m</span>
           <code>x \to -x</code>
-          Prepend a minus sign to the stack top
           (same as <span class="keybinding">.</span><span class="keybinding">-</span>)
         </li>
         <li><span class="keybinding">Ctrl+o</span>
@@ -2194,7 +2197,7 @@
         </li>
         <li>
           <span class="keybinding">Ctrl+/</span>
-          <code>y\enspace x \to \displaystyle\frac{y}{x}</code>
+          <code>x\enspace y \to \frac{x}{y}</code>
           (same as <span class="keybinding">/</span><span class="keybinding">/</span>)
         </li>
         <li>
