@@ -863,16 +863,15 @@ class InputContext {
   // The cases of Expr+Expr and Expr+Text (or Text+Text) are handled separately.
   do_infix(stack, opname) {
     const [new_stack, left_item, right_item] = stack.pop(2);
-    const left_type = left_item.item_type(), right_type = right_item.item_type();
-    if(left_type === 'expr' && right_type === 'expr') {
+    if(left_item.is_expr_item() && right_item.is_expr_item()) {
       // Expr+Expr (the usual case).
       let operator_expr = Expr.text_or_command(opname);
       const new_expr = InfixExpr.combine_infix(
         left_item.expr, right_item.expr, operator_expr);
       return new_stack.push_expr(new_expr);
     }
-    else if((left_type === 'expr' || left_type === 'text') &&
-            (right_type === 'expr' || right_type === 'text')) {
+    else if((left_item.is_expr_item() || left_item.is_text_item()) &&
+	    (right_item.is_expr_item() || right_item.is_text_item())) {
       // Expr+Text or Text+Expr or Text+Text.
       const new_item = TextItem.concatenate_items(left_item, right_item, opname);
       return new_stack.push(new_item);
@@ -984,7 +983,7 @@ class InputContext {
   do_substitute_placeholder(stack) {
     const [new_stack, substitution_expr] = stack.pop_exprs(1);
     const [new_stack_2, item] = new_stack.pop(1);
-    if(item.item_type() === 'expr') {
+    if(item.is_expr_item()) {
       const original_expr = item.expr;
       const placeholder_expr = original_expr.find_placeholder();
       if(placeholder_expr) {
@@ -992,7 +991,7 @@ class InputContext {
         return new_stack_2.push_expr(new_expr);
       }
     }
-    else if(item.item_type() === 'text') {
+    else if(item.is_text_item()) {
       const new_text_item = item.try_substitute_placeholder(substitution_expr);
       if(new_text_item)
         return new_stack_2.push(new_text_item);
@@ -1230,7 +1229,7 @@ class InputContext {
 	return new_stack;
       }
     }
-    else if(item.item_type() === 'expr') {
+    else if(item.is_expr_item()) {
       let expr = item.expr;
       if(expr.is_expr_type('command') && expr.operand_count() === 0) {
 	// LaTeX command with no arguments, e.g. \circledast
@@ -1334,7 +1333,7 @@ class InputContext {
   // This command also exits dissect mode.
   do_dissect_extract_selection(stack, trim) {
     const [new_stack, item] = stack.pop(1);
-    if(item.item_type() !== 'expr')
+    if(!item.is_expr_item())
       stack.type_error();
     const expr_path = item.selected_expr_path;
     const expr_with_placeholder = expr_path.extract_selection();
@@ -1351,7 +1350,7 @@ class InputContext {
   // leaving only the selected subexpression.
   do_dissect_copy_selection(stack, trim) {
     const [new_stack, item] = stack.pop(1);
-    if(item.item_type() !== 'expr')
+    if(!item.is_expr_item())
       stack.type_error();
     const expr_path = item.selected_expr_path;
     const extracted_expr = expr_path.selected_expr();
@@ -1366,7 +1365,7 @@ class InputContext {
   // or null if the operation is considered an error.
   _do_dissect_operation(stack, fn) {
     const [new_stack, item] = stack.pop(1);
-    if(item.item_type() !== 'expr')
+    if(!item.is_expr_item())
       stack.type_error();
     this.switch_to_mode(this.mode);
     const expr_path = item.selected_expr_path;
@@ -1382,11 +1381,11 @@ class InputContext {
 
   do_toggle_is_heading(stack) {
     let [new_stack, item] = stack.pop(1);
-    if(item.item_type() === 'expr') {
+    if(item.is_expr_item()) {
       // Implicitly turn ExprItems into TextItems.
       item = TextItem.from_expr(item.expr);
     }
-    if(item.item_type() === 'text') {
+    if(item.is_text_item()) {
       // Special case: don't allow empty TextItems to be changed this way.
       // See the comment in TextItem.is_empty().
       if(item.is_empty())
@@ -1440,7 +1439,7 @@ class InputContext {
     const expr_count = (expr_count_string === undefined) ? 1 : parseInt(expr_count_string);
     const [new_stack, ...items] = stack.pop(expr_count);
     if(this.settings.autoparenthesize &&
-       items.every(item => item.item_type() === 'expr'))
+       items.every(item => item.is_expr_item()))
       return new_stack.push_all_exprs(
         items.map(item => DelimiterExpr.autoparenthesize(item.expr)));
     else
@@ -1918,7 +1917,7 @@ class InputContext {
     else if(direction_string === 'bottom')
       panel_elt.scrollTop = 100000;
     else if(direction_string === 'horizontal')
-      panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage)
+      panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage);
     else
       panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
   }

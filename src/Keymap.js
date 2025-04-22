@@ -35,13 +35,11 @@ const EditorKeymap = {
     'Home': "change_document_selection -10000",
     'End': "change_document_selection +10000",
 
-    // Stack scrolling commands
-    'ArrowRight': "scroll stack_panel horizontal 75",
-    'ArrowLeft': "scroll stack_panel horizontal -75",
-
-    // Document scrolling commands
-    'Shift+ArrowRight': "scroll document_container horizontal 75",
-    'Shift+ArrowLeft': "scroll document_container horizontal -75",
+    // Horizontal scrolling commands
+    'ArrowRight': "scroll stack_panel horizontal 50",
+    'ArrowLeft': "scroll stack_panel horizontal -50",
+    'Shift+ArrowRight': "scroll document_container horizontal 50",
+    'Shift+ArrowLeft': "scroll document_container horizontal -50",
 
     // Prefix keys
     'Tab': "mode stack",

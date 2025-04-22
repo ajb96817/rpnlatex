@@ -1343,6 +1343,9 @@ class Item {
   to_json() { return {}; }
   to_text() { return '???'; }
 
+  is_expr_item() { return this.item_type() === 'expr'; }
+  is_text_item() { return this.item_type() === 'text'; }
+
   // Return a new Item of the same type and contents (shallow copy) but with a new serial_number.
   // This is mainly needed for React, which needs a distinct React key for each item in
   // a list (like the list of stack items).  Things like 'dup' that can duplicate items
@@ -1551,10 +1554,10 @@ class TextItem extends Item {
     return new TextItem(elements);
   }
   
-  // item1/2 can each be TextItems or ExprItems.
+  // item1/2 can each be TextItems or ExprItems (caller must check).
   static concatenate_items(item1, item2, separator_text) {
-    if(item1.item_type() === 'expr') item1 = TextItem.from_expr(item1.expr);
-    if(item2.item_type() === 'expr') item2 = TextItem.from_expr(item2.expr);
+    if(item1.is_expr_item()) item1 = TextItem.from_expr(item1.expr);
+    if(item2.is_expr_item()) item2 = TextItem.from_expr(item2.expr);
     const elements = item1.elements.concat(
       separator_text ? [new TextItemRawElement(separator_text)] : [],
       item2.elements);

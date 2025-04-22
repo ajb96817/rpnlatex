@@ -636,7 +636,7 @@ class ItemComponent extends React.Component {
     let item = this.props.item;
     let ref = this.props.item_ref;
     let className = this.props.selected ? 'selected ' : '';
-    if(item.item_type() === 'text' && item.is_heading)
+    if(item.is_text_item() && item.is_heading)
       className = 'heading_style ' + className;
     let tag_element = null;
     if(item.tag_string)
@@ -681,11 +681,11 @@ class ItemComponent extends React.Component {
     const item = this.props.item;
     const node = this.props.item_ref.current;
     if(!node) return;  // shouldn't happen
-    if(item.item_type() === 'expr') {
+    if(item.is_expr_item()) {
       // Render math with KaTeX
       this._render_with_katex(item.to_latex(), node, !this.props.inline_math);
     }
-    else if(item.item_type() === 'text') {
+    else if(item.is_text_item()) {
       // TextItems are always rendered in inline mode.
       // Note that this means that text items will always be left-aligned regardless
       // of the rightalign_math layout settings.
