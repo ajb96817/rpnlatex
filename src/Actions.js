@@ -950,13 +950,17 @@ class InputContext {
 
   do_cancel() {}
 
-  do_concat(stack) {
+  // Concatenate two Expr or Text items.  This is the basic concatenation action.
+  // If 'autoparenthesize' is 'false', autoparenthesization is inhibited,
+  // otherwise the behavior depends on the global settings.
+  // (Default is to always autoparenthesize).
+  do_concat(stack, autoparenthesize) {
     let [new_stack, left_item, right_item] = stack.pop(2);
     const left_type = left_item.item_type(), right_type = right_item.item_type();
+    const no_parenthesize = autoparenthesize === 'false' ? true : !this.settings.autoparenthesize;
     if(left_type === 'expr' && right_type === 'expr') {
       let left_expr = left_item.expr, right_expr = right_item.expr;
-      const new_expr = Expr.combine_pair(
-        left_expr, right_expr, !this.settings.autoparenthesize);
+      const new_expr = Expr.combine_pair(left_expr, right_expr, no_parenthesize);
       return new_stack.push_expr(new_expr);
     }
     else if((left_type === 'expr' || left_type === 'text') &&
@@ -1010,16 +1014,12 @@ class InputContext {
     else if(expr.is_expr_type('command') &&
             expr.operand_count() === 2 &&
             expr.command_name === 'frac')
-      extracted_expr = ((which_side === 'right') ?
-			expr.operand_exprs[1] :
-			expr.operand_exprs[0]);
+      extracted_expr = expr.operand_exprs[which_side === 'right' ? 1 : 0];
     else if(expr.is_expr_type('delimiter') &&
 	    expr.left_type === '.' && expr.right_type === '.' &&
 	    expr.inner_expr.is_expr_type('infix') &&
 	    expr.inner_expr.is_binary_operator_with('/'))
-      extracted_expr = ((which_side === 'right') ?
-			expr.inner_expr.operand_exprs[1] :
-			expr.inner_expr.operand_exprs[0]);
+      extracted_expr = expr.inner_expr.operand_exprs[which_side === 'right' ? 1 : 0];
     else
       return stack.type_error();
     return new_stack.push_expr(extracted_expr);
@@ -1423,14 +1423,12 @@ class InputContext {
   }
 
   // Wrap stack top in parentheses if it's not already in delimiters.
-  do_parenthesize(stack) {
+  // 'left_type' and 'right_type' default to '(' and ')' if not specified.
+  do_parenthesize(stack, left_type, right_type) {
     let [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_expr_type('delimiter') &&
-       expr.left_type === '.' && expr.right_type === '.')
-      expr = new DelimiterExpr('(', ')', expr.inner_expr);
-    else if(!expr.is_expr_type('delimiter'))
-      expr = DelimiterExpr.parenthesize(expr);
-    return new_stack.push_expr(expr);
+    const new_expr = DelimiterExpr.parenthesize_if_not_already(
+      expr, left_type, right_type);
+    return new_stack.push_expr(new_expr);
   }
 
   // If expr_count_string is provided, exactly that many expressions from the stack

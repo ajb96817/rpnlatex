@@ -922,6 +922,16 @@
 	    <td><span class="keybinding">I</span> <code>x\enspace y \to \int_x^y</code></td>
 	  </tr>
 	  <tr>
+	    <td>
+              <span class="keybinding">=</span>
+	      <code>x\enspace y\enspace z \to \displaystyle\sum_{x=y}^z</code>
+	    </td>
+	    <td>
+              <span class="keybinding">+</span>
+	      <code>x\enspace y \to \displaystyle\sum_{x\ge y}</code>
+	    </td>
+	  </tr>
+	  <tr>
             <td><span class="keybinding">q</span> <code>\sqrt{x}</code></td>
 	    <td><span class="keybinding">Q</span> <code>\sqrt[3]{x}</code></td>
 	  </tr>
@@ -1009,19 +1019,25 @@
       <p><strong>Probability and Statistics:</strong></p>
       <table class="keybindings"><tbody>
 	  <tr>
-	    <td><span class="keybinding">p</span> <code>x \to \Pr{(x)}</code></td>
+	    <td>
+	      <span class="keybinding">p</span>
+	      <code>x \to \mathbb{P}{[x]}</code>
+	    </td>
 	    <td><em>probability</em></td>
 	  </tr>
 	  <tr>
-	    <td><span class="keybinding">P</span> <code>x\enspace y \to \Pr{(x\,\vert\,y)}</code></td>
+	    <td>
+	      <span class="keybinding">P</span>
+	      <code>x\enspace y \to \mathbb{P}{[x\,\vert\,y]}</code>
+	    </td>
 	    <td><em>conditional probability</em></td>
 	  </tr>
 	  <tr>
-            <td><span class="keybinding">v</span> <code>x \to \operatorname{Var}(x)</code></td>
+            <td><span class="keybinding">v</span> <code>x \to \mathrm{Var}{[x]}</code></td>
 	    <td><em>variance</em></td>
 	  </tr>
 	  <tr>
-	    <td><span class="keybinding">V</span> <code>x\enspace y \to \operatorname{Cov}(x,y)</code></td>
+	    <td><span class="keybinding">V</span> <code>x\enspace y \to \mathrm{Cov}{[x,y]}</code></td>
 	    <td><em>covariance</em></td>
 	  </tr>
 	  <tr>
@@ -1054,13 +1070,6 @@
            "Dissolve" an expression, breaking it apart into its component parts if possible.
           Delimiters will be removed, fractions disassembled, and matrix elements put
           on the stack in row-major order.
-        </li>
-        <li>
-          <span class="keybinding">=</span>
-	  <code>x\enspace y\enspace z \to \displaystyle\sum_{x=y}^z</code>
-          &nbsp;&nbsp;
-          <span class="keybinding">+</span>
-	  <code>x\enspace y \to \displaystyle\sum_{x\ge y}</code>
         </li>
 	<li>
 	  <span class="keybinding">|</span> <code>x\enspace y \to \left.x\right\vert_{y}</code>

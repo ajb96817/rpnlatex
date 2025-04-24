@@ -77,7 +77,8 @@ class Expr {
       // Parenthesize InfixExprs before combining unless specified not to.
       if(expr.is_expr_type('infix') && !no_parenthesize)
         return DelimiterExpr.parenthesize(expr);
-      else return expr;
+      else
+	return expr;
     };
 
     // Handle concatenating an expression to one or more ! signs, for factorial notation.
@@ -158,12 +159,14 @@ class Expr {
 
     // Try combining adjacent integral symbols into multiple-integral commands.
     let new_command_name = null;
-    if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
-    if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
-    if(left_name === 'int' && right_name === 'iint') new_command_name = 'iiint';
-    if(left_name === 'oint' && right_name === 'oint') new_command_name = 'oiint';
-    if(left_name === 'oiint' && right_name === 'oint') new_command_name = 'oiiint';
-    if(left_name === 'oint' && right_name === 'oiint') new_command_name = 'oiiint';
+    if(left.operand_count() === 0 && right.operand_count() === 0) {
+      if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
+      if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
+      if(left_name === 'int' && right_name === 'iint') new_command_name = 'iiint';
+      if(left_name === 'oint' && right_name === 'oint') new_command_name = 'oiint';
+      if(left_name === 'oiint' && right_name === 'oint') new_command_name = 'oiiint';
+      if(left_name === 'oint' && right_name === 'oiint') new_command_name = 'oiiint';
+    }
     if(new_command_name)
       return new CommandExpr(new_command_name);
 
@@ -1555,41 +1558,48 @@ class DelimiterExpr extends Expr {
     this.fixed_size = fixed_size || false;
   }
 
-  static parenthesize(expr) {
-    // Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
-    // just replace the blanks with parentheses instead of re-wrapping expr.
-    if(expr.is_expr_type('delimiter') &&
+  // Wrap expr in delimiters of the given type (defaulting to '(', ')').
+  // Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
+  // the blank delimiters are removed first.
+  static parenthesize(expr, left_type, right_type) {
+    while(expr.is_expr_type('delimiter') &&
        expr.left_type === '.' && expr.right_type === '.')
-      return new DelimiterExpr('(', ')', expr.inner_expr);
-    return new DelimiterExpr('(', ')', expr);
+      expr = expr.inner_expr;
+    return new DelimiterExpr(left_type || '(', right_type || ')', expr);
   }
 
-  static parenthesize_if_not_already(expr) {
-    if(expr.is_expr_type('delimiter')) {
-      if(expr.left_type === '.' && expr.right_type === '.')
-        return new DelimiterExpr('(', ')', expr.inner_expr);
-      else
-        return expr;
-    }
+  // Parenthesize expr if it's not already.
+  static parenthesize_if_not_already(expr, left_type, right_type) {
+    while(expr.is_expr_type('delimiter') &&
+       expr.left_type === '.' && expr.right_type === '.')
+      expr = expr.inner_expr;
+    if(expr.is_expr_type('delimiter'))
+      return expr;
     else
-      return this.parenthesize(expr);
+      return this.parenthesize(expr, left_type, right_type);
   }
 
   // expr is about to become the base of a SubscriptSuperscriptExpr.
   // The expression will be parenthesized if it is:
-  //   - any kind of InfixExpr
-  //   - any kind of SequenceExpr that is not a function application
+  //   - Any kind of InfixExpr
+  //   - Blank delimiters containing any kind of InfixExpr
+  //   - Any kind of SequenceExpr that is not a function application
   //     of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
-  //   - a normal fraction like \frac{x}{y}
-  //   - a "flex style" fraction like \left. x/y \right.
-  //   - TODO: parenthesize \ln{x}, etc., unless x is a DelimiterExpr
-  //     (but not if x is a FontExpr)
-  static parenthesize_for_power(expr) {
+  //   - A normal fraction like \frac{x}{y}
+  // TODO: parenthesize \ln{x}, etc., unless x is a DelimiterExpr
+  //       (but not if x is a FontExpr)
+  static parenthesize_for_power(expr, left_type, right_type) {
     const needs_parenthesization = (
-      // any infix expression
+      // Any infix expression
       expr.is_expr_type('infix') ||
 
-      // any SequenceExpr that is not [anything, DelimiterExpr]
+      // Any infix expression inside "blank" delimiters
+      // (e.g. \left. x+y+z \right.)
+      (expr.is_expr_type('delimiter') &&
+       expr.left_type === '.' && expr.right_type === '.' &&
+       expr.inner_expr.is_expr_type('infix')) ||
+
+      // Any SequenceExpr that is not [anything, DelimiterExpr]
       // cf. SequenceExpr.emit_latex
       (expr.is_expr_type('sequence') &&
        !(expr.exprs.length === 2 &&
@@ -1598,27 +1608,18 @@ class DelimiterExpr extends Expr {
       // \frac{x}{y}
       (expr.is_expr_type('command') &&
        expr.command_name === 'frac' &&
-       expr.operand_count() === 2) ||
-
-      // \left. x/y \right.
-      // (x/y is an InfixExpr); this is a "flex size fraction".
-      // TODO: add is_flex_inline_fraction() or something; this
-      // logic is duplicated elsewhere.
-      (expr.is_expr_type('delimiter') &&
-       expr.left_type === '.' && expr.right_type === '.' &&
-       expr.inner_expr.is_expr_type('infix') &&
-       expr.inner_expr.is_binary_operator_with('/'))
+       expr.operand_count() === 2)
     );
     if(needs_parenthesization)
-      return DelimiterExpr.parenthesize(expr);
+      return DelimiterExpr.parenthesize(expr, left_type, right_type);
     else
       return expr;
   }
 
   // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
-  static autoparenthesize(expr) {
+  static autoparenthesize(expr, left_type, right_type) {
     if(expr.is_expr_type('infix') && expr.needs_autoparenthesization())
-      return DelimiterExpr.parenthesize(expr);
+      return DelimiterExpr.parenthesize(expr, left_type, right_type);
     else
       return expr;
   }

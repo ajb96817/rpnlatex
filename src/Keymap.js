@@ -85,7 +85,7 @@ const EditorKeymap = {
     'Ctrl+x': "push x;parenthesize;fuse",  // f -> f(x)
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
-    'Ctrl+ ': "infix \\,",
+    'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
     'Ctrl+,': "infix ,",
     'Ctrl+ArrowRight': "scroll document_container horizontal 75",
     'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
@@ -385,8 +385,8 @@ const EditorKeymap = {
     'N': "named_function log",
     'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
     'O': "swap;operator overset 2",
-    'p': "parenthesize;operator Pr",  // Pr(x) (probability)
-    'P': "infix \\,\\vert\\,;parenthesize;operator Pr",  // Pr(y|x)
+    'p': "parenthesize;push P;typeface blackboard;swap;fuse",  // P(X) (probability)
+    'P': "infix \\,\\vert\\,;parenthesize;push P;typeface blackboard;swap;fuse",  // P(y|x)
     'q': "operator sqrt",
     'Q': "operator sqrt[3]",
     'r': "infix ,;parenthesize;fuse",  // f x y -> f(x,y)
@@ -396,19 +396,19 @@ const EditorKeymap = {
     't': "named_function tan",
     'T': "named_function cot",
     'U': "swap;operator underset 2",
-    'v': "parenthesize;push Var;operator operatorname;swap;concat",
-    'V': "swap;push ,;concat;swap;concat;parenthesize;push Cov;operator operatorname;swap;concat",
+    'v': "parenthesize [ ];push Var;typeface roman;swap;fuse",  // Var[x]
+    'V': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;fuse",  // Cov[x,y]
     'w': "swap_infix",
-    'x': "delimiters [ ];push E;operator mathbb;swap;fuse",  // E[x] (expectation)
-    'X': "infix \\,\\vert\\,;delimiters [ ];push E;operator mathbb;swap;fuse",  // E[y|x]
-    'y': "push E;operator mathbb;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
-    'Y': "push E;operator mathbb;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];fuse",  // E_x[z|y]
+    'x': "delimiters [ ];push E;typeface blackboard;swap;fuse",  // E[x] (expectation)
+    'X': "infix \\,\\vert\\,;delimiters [ ];push E;typeface blackboard;swap;fuse",  // E[y|x]
+    'y': "push E;typeface blackboard;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
+    'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];fuse",  // E_x[z|y]
     'z': "dissolve",
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "operator frac 2",
-    '[': "delimiters [ ];fuse",  // f x -> f[x]
-    ']': "delimiters \\{ \\};fuse",  // f x -> f{x}
+    '[': "parenthesize [ ];fuse",  // f x -> f[x]
+    ']': "parenthesize \\{ \\};fuse",  // f x -> f{x}
     '}': "swap;operator underbrace;swap;subscript",
     '{': "swap;operator overbrace;swap;superscript",
     '<': "extract_infix_side left",
@@ -622,8 +622,8 @@ const EditorKeymap = {
     'q': "conjunction and",
     'Q': "conjunction or",
     'r': "conjunction for",
-    's': "infix \\,",
-    ' ': "infix \\,",
+    's': "push \\,;swap;concat false;concat false",
+    ' ': "push \\,;swap;concat false;concat false",
     't': "infix \\to",
     'T': "infix \\longrightarrow",
     'u': "infix \\cup",
