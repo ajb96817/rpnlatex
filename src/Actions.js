@@ -767,10 +767,22 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
-  // Same as do_operator, except if the object the hat is being added to is a literal 'i' or 'j',
-  // or bolded i/j, it's first converted into a \imath or \jmath to remove the dot.
+  // Similar to do_operator, except:
+  //   - If the object the hat is being added to is a literal 'i' or 'j',
+  //     or bolded i/j, it's first converted into a \imath or \jmath to remove the dot.
+  //   - Adding a hat to a subscripted/superscripted expression instead applies
+  //     to the base expression, for better horizontal positioning.
   do_apply_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
+    return new_stack.push_expr(this._do_apply_hat(expr, hat_op));
+  }
+
+  _do_apply_hat(expr, hat_op) {
+    if(expr.is_expr_type('subscriptsuperscript'))
+      return new SubscriptSuperscriptExpr(
+	this._do_apply_hat(expr.base_expr, hat_op),
+	expr.subscript_expr,
+	expr.superscript_expr);
     if(expr.is_expr_type('text') &&
        (expr.text === 'i' || expr.text === 'j'))
       expr = new CommandExpr(expr.text === 'i' ? 'imath' : 'jmath');
@@ -783,8 +795,7 @@ class InputContext {
 	  new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'),
 	  expr.typeface, expr.is_bold, expr.size_adjustment);
     }
-    const result_expr = new CommandExpr(hat_op, [expr]);
-    return new_stack.push_expr(result_expr);
+    return new CommandExpr(hat_op, [expr]);
   }
 
   // Wrap expr in \htmlClass{...}
@@ -893,9 +904,9 @@ class InputContext {
 
   // Make a line break at the current split_at_index of the stack top InfixExpr.
   // Cycles between:
-  //    - No line break at split_at_index
-  //    - Line break after the split_at_index operator
-  //    - Line break before the operator
+  //   - No line break at split_at_index
+  //   - Line break after the split_at_index operator
+  //   - Line break before the operator
   do_infix_linebreak(stack) {
     const [new_stack, infix_expr] = stack.pop_exprs(1);
     if(!infix_expr.is_expr_type('infix')) {
@@ -927,8 +938,9 @@ class InputContext {
             expr.operand_count() === 2 &&
             expr.command_name === 'frac') {
       // "Normal" fraction.
-      new_expr = new CommandExpr(
-	'frac', [expr.operand_exprs[1], expr.operand_exprs[0]]);
+      new_expr = CommandExpr.frac(
+	expr.operand_exprs[1],
+	expr.operand_exprs[0]);
     }
     else if(expr.is_expr_type('delimiter') && expr.is_flex_inline_fraction()) {
       // Flex-mode inline fraction.

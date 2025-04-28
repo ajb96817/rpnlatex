@@ -274,6 +274,8 @@ div.stack_items div.tag_entry_mode::before {
 }
 #document_panel div.selected {
     background-color: #eee;
+    /* NOTE: box-shadow so that the element size is not affected
+       like it would be with border */
     box-shadow: inset 0 0 0.25em 0 #999;
 }
 body.eink_mode #document_panel div.selected {

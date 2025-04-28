@@ -252,7 +252,8 @@ class App extends React.Component {
 
   _keyname_from_event(event) {
     let key = event.key;
-    if((key.startsWith('Arrow') || key === 'Enter' || key === 'Backspace') && event.shiftKey)
+    if(event.shiftKey &&
+       (key.startsWith('Arrow') || key === 'Enter' || key === 'Backspace'))
       key = 'Shift+' + key;
     if(event.ctrlKey)
       key = 'Ctrl+' + key;
@@ -421,8 +422,9 @@ class DocumentComponent extends React.Component {
     // NOTE: can't have inline_math and rightalign_math both at once currently
     if(layout.document_rightalign_math && !layout.inline_math)
       class_names.push('rightalign_math');
-    return $e('div', {className: class_names.join(' ')},
-              [top_spacer].concat(subcomponents));
+    return $e(
+      'div', {className: class_names.join(' ')},
+      [top_spacer].concat(subcomponents));
   }
 
   componentDidUpdate() {
@@ -806,7 +808,7 @@ class PopupPanelComponent extends React.Component {
     for(let i = 0; i < anchor_elts.length; i++) {
       const anchor_elt = anchor_elts[i];
       const href = anchor_elt.getAttribute('href');
-      if(href?.startsWith('#'))
+      if(href && href.startsWith('#'))
 	anchor_elt.onclick = this._helptext_anchor_onclick.bind(anchor_elt);
     }
   }
