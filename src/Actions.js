@@ -105,12 +105,12 @@ class InputContext {
     this.notification_text = null;
 
     // Special indicator to help control the undo stack:
-    //    null - save state to undo stack after this action as normal
-    //    'undo' - request an undo
-    //    'redo' - request a redo of saved undo states
-    //    'suppress' - perform action as normal, but don't save state to the undo state
-    //                 (used for 'minor' actions that don't warrant undo tracking)
-    //    'clear' - undo stack will be reset (e.g. when loading a new document)
+    //   null - save state to undo stack after this action as normal
+    //   'undo' - request an undo
+    //   'redo' - request a redo of saved undo states
+    //   'suppress' - perform action as normal, but don't save state to the undo state
+    //                (used for 'minor' actions that don't warrant undo tracking)
+    //   'clear' - undo stack will be reset (e.g. when loading a new document)
     this.perform_undo_or_redo = null;
 
     // Current prefix argument for commands like Swap; can be one of:
@@ -930,10 +930,7 @@ class InputContext {
       new_expr = new CommandExpr(
 	'frac', [expr.operand_exprs[1], expr.operand_exprs[0]]);
     }
-    else if(expr.is_expr_type('delimiter') &&
-	    expr.left_type === '.' && expr.right_type === '.' &&
-	    expr.inner_expr.is_expr_type('infix') &&
-	    expr.inner_expr.is_binary_operator_with('/')) {
+    else if(expr.is_expr_type('delimiter') && expr.is_flex_inline_fraction()) {
       // Flex-mode inline fraction.
       new_expr = new DelimiterExpr(
 	'.', '.',
@@ -1015,10 +1012,7 @@ class InputContext {
             expr.operand_count() === 2 &&
             expr.command_name === 'frac')
       extracted_expr = expr.operand_exprs[which_side === 'right' ? 1 : 0];
-    else if(expr.is_expr_type('delimiter') &&
-	    expr.left_type === '.' && expr.right_type === '.' &&
-	    expr.inner_expr.is_expr_type('infix') &&
-	    expr.inner_expr.is_binary_operator_with('/'))
+    else if(expr.is_expr_type('delimiter') && expr.is_flex_inline_fraction())
       extracted_expr = expr.inner_expr.operand_exprs[which_side === 'right' ? 1 : 0];
     else
       return stack.type_error();

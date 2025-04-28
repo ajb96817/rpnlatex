@@ -684,7 +684,7 @@ class CommandExpr extends Expr {
 
   // 0-argument commands are left as-is (\alpha, etc)
   // 1-argument commands dissolve into their only argument.
-  // 2-argument \frac breaks into numerator and denominator
+  // 2-argument \frac breaks into numerator and denominator.
   // 2-argument \overset and \underset break into their components in the proper visual order.
   // Everything else is left as-is.
   dissolve() {
@@ -696,7 +696,8 @@ class CommandExpr extends Expr {
         return this.operand_exprs;
       else if(this.command_name === 'underset')
         return [this.operand_exprs[1], this.operand_exprs[0]];
-      else return [this];
+      else
+	return [this];
     default:
       return [this];
     }
@@ -733,7 +734,8 @@ class FontExpr extends Expr {
   static wrap(expr) {
     if(expr.is_expr_type('font'))
       return expr;
-    else return new FontExpr(expr, 'normal', false, 0);
+    else
+      return new FontExpr(expr, 'normal', false, 0);
   }
 
   // Wrap 'expr' in a Roman typeface FontExpr.
@@ -800,7 +802,8 @@ class FontExpr extends Expr {
   unwrap_if_possible() {
     if(this.typeface === 'normal' && !this.is_bold && this.size_adjustment === 0)
       return this.expr;
-    else return this;
+    else
+      return this;
   }
   
   with_typeface(typeface) {
@@ -896,7 +899,7 @@ class FontExpr extends Expr {
 //   for this InfixExpr.  Generally this is the last operator used to create the
 //   infix expression.  For binary expressions this is 0; for something like 'x+y = z+w'
 //   it would be 1 if the '=' was used to join the existing x+y and z+w.
-// linebreaks_at: an array of integers specifying where (if any) the linebreaks
+// linebreaks_at: An array of integers specifying where (if any) the linebreaks
 //   occur in this expression.  Currently linebreaks are only shown if the top-level
 //   Expr in an ExprItem is an InfixExpr.  In that case, each integer index in
 //   linebreaks_at indicates a line break *after* the given subexpression index.
@@ -967,16 +970,13 @@ class InfixExpr extends Expr {
   // If it's anything more complex, return null.
   // If 'op_expr' is omitted, check only the operator at the split_at point.
   operator_text(op_expr) {
-    if(op_expr) {
-      if(op_expr.is_expr_type('command') && op_expr.operand_count() === 0)
-        return op_expr.command_name;
-      else if(op_expr.is_expr_type('text'))
-        return op_expr.text;
-      else
-        return null;
-    }
+    op_expr ||= this.operator_exprs[this.split_at_index];
+    if(op_expr.is_expr_type('command') && op_expr.operand_count() === 0)
+      return op_expr.command_name;
+    else if(op_expr.is_expr_type('text'))
+      return op_expr.text;
     else
-      return this.operator_text(this.operator_exprs[this.split_at_index]);
+      return null;
   }
 
   operator_text_at(index) {
@@ -994,12 +994,6 @@ class InfixExpr extends Expr {
       return null;
   }
   
-  // e.g. operator_text==='/' would match 'x/y'.
-  is_binary_operator_with(operator_text) {
-    return this.operator_exprs.length === 1 &&
-      this.operator_text(this.operator_exprs[0]) === operator_text;
-  }
-
   // Check if this is a low-precedence infix expression like x+y
   // This is mostly for convenience so it doesn't need to be that precise.
   // TODO: reduce or eliminate the need for this; there is probably a cleaner way
@@ -1701,8 +1695,24 @@ class DelimiterExpr extends Expr {
       return null;
   }
 
-  // Dissolving removes the delimiters.
-  dissolve() { return [this.inner_expr]; }        
+  // An inline division infix expression surrounded by "blank" delimiters
+  // i.e.: \left. x/y \right.
+  // is in some cases treated like a \frac{x}{y} command.
+  is_flex_inline_fraction() {
+    return this.left_type === '.' && this.right_type === '.' &&
+      this.inner_expr.is_expr_type('infix') &&
+      this.inner_expr.operator_exprs.length === 1 &&
+      this.inner_expr.operator_text_at(0) === '/';
+  }
+
+  // Dissolving removes the delimiters.  As a special case,
+  // "flex" fractions are split into numerator/denominator.
+  dissolve() {
+    if(this.is_flex_inline_fraction())
+      return this.inner_expr.operand_exprs;
+    else
+      return [this.inner_expr];
+  }
 
   evaluate(assignments) {
     return this.inner_expr.evaluate(assignments);
