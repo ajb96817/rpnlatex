@@ -252,16 +252,13 @@ class App extends React.Component {
 
   _keyname_from_event(event) {
     let key = event.key;
-
     if((key.startsWith('Arrow') || key === 'Enter' || key === 'Backspace') && event.shiftKey)
       key = 'Shift+' + key;
     if(event.ctrlKey)
       key = 'Ctrl+' + key;
-
     // NOTE: none of the Alt stuff works on Firefox for some reason.  Chromium seems ok.
     // if(event.metaKey || event.altKey || event.getModifierState('Alt') || event.getModifierState('Meta'))
     //     key = 'Alt+' + key;
-
     return key;
   }
 

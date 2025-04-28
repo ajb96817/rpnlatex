@@ -74,11 +74,13 @@ const EditorKeymap = {
     'Ctrl+i': "pop_to_document",
     'Ctrl+j': "extract_from_document",
     'Ctrl+k': "infix \\,\\vert\\,;parenthesize;fuse",  // f(x|y): same as [/][k]
+    'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z): same as [/][K]
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "push -;swap;fuse",  // same as [.][-]
     'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
     'Ctrl+r': "infix ,;parenthesize;fuse",  // -> f(x,y): same as [/][r]
+    'Ctrl+R': "infix ,;infix ,;parenthesize;fuse",  // f x y z -> f(x,y,z): same as [/][R]
     'Ctrl+s': "save_file",
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
@@ -378,9 +380,11 @@ const EditorKeymap = {
     'i': "mode integral_limits",
     'I': "push \\int;swap;superscript;swap;subscript",
     'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
+    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z)
     'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
     'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
-    'M': "parenthesize;push Im;typeface roman;swap;fuse",  // Im(x)
+    'm': "parenthesize;push Im;typeface roman;swap;fuse",  // Im(x)
+    'M': "parenthesize;push Re;typeface roman;swap;fuse",  // Re(x)
     'n': "named_function ln",
     'N': "named_function log",
     'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
@@ -390,7 +394,7 @@ const EditorKeymap = {
     'q': "operator sqrt",
     'Q': "operator sqrt[3]",
     'r': "infix ,;parenthesize;fuse",  // f x y -> f(x,y)
-    'R': "parenthesize;push Re;typeface roman;swap;fuse",  // Im(x)
+    'R': "infix ,;infix ,;parenthesize;fuse",  // f x y z -> f(x,y,z)
     's': "named_function sin",
     'S': "named_function sec",
     't': "named_function tan",
@@ -556,8 +560,8 @@ const EditorKeymap = {
     'c': "push \\nabla;swap;infix \\times",
     // Laplacian
     'l': "push \\nabla;push 2;superscript;swap;concat",
-    // d'Alembertian
-    'L': "push \\Box;push 2;superscript;swap;concat",
+    // Delta-x
+    'n': "push \\Delta;swap;concat",  // i[n]crement (?)
     // x -> dx
     'd': "push d;swap;fuse",
     // x -> \partial x
@@ -613,6 +617,7 @@ const EditorKeymap = {
     'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
     '|': "infix \\,\\vert\\,",  // (alias for k)
     'l': "infix \\parallel",
+    'm': "operator pmod;concat",  // y (mod x)
     'M': "infix \\mp",
     'n': "conjunction when",
     'o': "infix \\circ",
@@ -639,13 +644,13 @@ const EditorKeymap = {
     '-': "infix \\ominus",
     '+': "infix \\oplus",
     '.': "infix \\cdot",
-    ',': "infix ,",  // comma without thinspace
+    ',': "infix ,",
     ':': "infix :",
     ';': "infix semicolon",
     "'": "start_text_entry conjunction_entry",
     '`': "swap;push T;typeface roman;superscript;swap;concat",  // xTy
-    '%': "operator pmod;concat",  // y (mod x)
     '*': "infix *",
+    '%': "infix \\div",
     '(': "infix ,;delimiters ( )",  // (x,y)
     '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
     '>': "infix \\cdots",
