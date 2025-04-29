@@ -798,7 +798,7 @@ const EditorKeymap = {
     'T': "operator widetilde",
     'u': "apply_hat breve",
     'U': "operator utilde",
-    'v': "operator vec",
+    'v': "apply_hat vec",
     'V': "apply_hat check",
     'w': "operator overline",
     'W': "operator widecheck",

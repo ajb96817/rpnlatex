@@ -8,12 +8,12 @@
   "dependencies": {
     "jszip": "^3.10.1",
     "katex": "^0.16.22",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "webpack": "^5.97.1"
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "webpack": "^5.99.7"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^4.4.1",
     "vite": "^6.2.1"
   },
   "scripts": {
