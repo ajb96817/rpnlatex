@@ -41,8 +41,20 @@ class Settings {
   
   static from_json(json) {
     let s = new Settings();
-    Settings.saved_keys.forEach(key => { s[key] = json[key]; });
+    Settings.saved_keys().forEach(key => { s[key] = json[key]; });
     return s;
+  }
+
+  static saved_keys() {
+    return [
+      'inverse_video',
+      'eink_mode',
+      'last_opened_filename',
+      'popup_mode',
+      'layout',
+      'show_mode_indicator',
+      'autoparenthesize'
+    ];
   }
   
   constructor() {
@@ -88,7 +100,9 @@ class Settings {
 
     // Set up panel layout.
     let [stack_bounds, document_bounds] = this._split_rectangle(
-      {x: 0, y: 0, w: 100, h: 100}, layout.stack_side, layout.stack_split);
+      {x: 0, y: 0, w: 100, h: 100},
+      layout.stack_side,
+      layout.stack_split);
 
     this._apply_bounds(stack_panel_elt, stack_bounds);
     this._apply_bounds(document_panel_elt, document_bounds);
@@ -133,20 +147,10 @@ class Settings {
 
   to_json() {
     let json = {};
-    Settings.saved_keys.forEach(key => { json[key] = this[key]; });
+    Settings.saved_keys().forEach(key => { json[key] = this[key]; });
     return json;
   }
 }
-
-Settings.saved_keys = [
-  'inverse_video',
-  'eink_mode',
-  'last_opened_filename',
-  'popup_mode',
-  'layout',
-  'show_mode_indicator',
-  'autoparenthesize'
-];
 
 
 // Helper for generating LaTeX strings from Expr objects.
@@ -1422,7 +1426,7 @@ class TextItemTextElement extends TextItemElement {
   as_bold() { return new TextItemTextElement(this.text, true); }
 
   to_json() {
-    let json = { 'text': this.text };
+    let json = {'text': this.text};
     if(this.is_bold) json.is_bold = true;
     if(this.is_italic) json.is_italic = true;
     return json;
@@ -1486,7 +1490,7 @@ class TextItemExprElement extends TextItemElement {
   constructor(expr) { super(); this.expr = expr; }
   is_expr() { return true; }
   as_bold() { return new TextItemExprElement(this.expr.as_bold()); }
-  to_json() { return { 'expr': this.expr.to_json() }; }
+  to_json() { return {'expr': this.expr.to_json()}; }
   to_text() { return ['$', this.expr.to_latex(), '$'].join(''); }
   to_latex() { return this.expr.to_latex(); }
 }
@@ -1500,7 +1504,7 @@ class TextItemRawElement extends TextItemElement {
   constructor(string) { super(); this.string = string; }
   is_raw() { return true; }
   as_bold() { return this; }
-  to_json() { return { 'raw': this.string }; }
+  to_json() { return {'raw': this.string}; }
   to_text() { return this.string; }
   to_latex() { return this.string; }
   is_explicit_space() { return this.string === "\\,"; }
@@ -1584,7 +1588,7 @@ class TextItem extends Item {
       else if(last_merged_element.is_raw() &&
 	      last_merged_element.is_explicit_space() &&
               elements[i].is_text()) {
-        // raw space + TextElement
+        // Raw space + TextElement
         merged_elements[last_index] = new TextItemTextElement(
           ' ' + elements[i].text,
           elements[i].is_bold, elements[i].is_italic);

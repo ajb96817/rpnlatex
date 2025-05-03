@@ -68,14 +68,22 @@ class TextEntryState {
   }
 
   move(direction) {
-    if(direction === 'left' && this.cursor_position > 0)
-      this.cursor_position--;
-    if(direction === 'right' && this.cursor_position < this.current_text.length)
-      this.cursor_position++;
-    if(direction === 'begin')
+    switch(direction) {
+    case 'left':
+      if(this.cursor_position > 0)
+	this.cursor_position--;
+      break;
+    case 'right':
+      if(this.cursor_position < this.current_text.length)
+	this.cursor_position++;
+      break;
+    case 'begin':
       this.cursor_position = 0;
-    if(direction === 'end')
+      break;
+    case 'end':
       this.cursor_position = this.current_text.length;
+      break;
+    }
   }
 }
 

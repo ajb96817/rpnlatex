@@ -281,7 +281,7 @@ const EditorKeymap = {
   delimiters: {
     'b': "delimiters \\langle \\vert",  // <x| Dirac bra
     'c': "delimiters \\lceil \\rceil",
-    'd': "push \\llbracket;swap;concat;push \\rrbracket;concat",
+    'd': "push \\llbracket;swap;concat;push \\rrbracket;concat",  // NOTE: non flex size due to KaTeX limitation
     'f': "delimiters \\lfloor \\rfloor",
     'F': "toggle_fixed_size_delimiters",
     'g': "delimiters \\lgroup \\rgroup",
@@ -785,9 +785,8 @@ const EditorKeymap = {
     'l': "push \\parallel;subscript",
     'm': "typeface typewriter",  // [m]onospace
     'M': "push \\mp;swap;fuse",
-    'n': "push \\neg;swap;fuse",
-    'o': "apply_hat bar",
-    'O': "operator overline",
+    'n': "apply_hat bar",
+    'o': "operator overline",
     'p': "push \\perp;subscript",
     'P': "push \\pm;swap;fuse",
     'q': "push =;swap;fuse",
@@ -799,8 +798,8 @@ const EditorKeymap = {
     'u': "apply_hat breve",
     'U': "operator utilde",
     'v': "apply_hat vec",
-    'V': "apply_hat check",
-    'w': "operator overline",
+    'V': "operator overrightharpoon",
+    'w': "apply_hat check",
     'W': "operator widecheck",
     'x': "operator boxed",
     'X': "operator sout",  // strikeout
@@ -818,6 +817,7 @@ const EditorKeymap = {
     '`': "push T;typeface roman;superscript",  // transpose
     '/': "push 1;swap;autoparenthesize;infix /",  // 1/x
     '_': "operator underline",
+    '!': "push \\neg;swap;fuse",
     "\\": "operator bcancel",
     '[': "adjust_size smaller",
     ']': "adjust_size larger"

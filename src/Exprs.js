@@ -1015,7 +1015,7 @@ class InfixExpr extends Expr {
       if(is_top_level && this.linebreaks_at.includes(2*i)) {
         // Break before ith operator.
         emitter.command("\\");  // outputs two backslashes (LaTeX newline command)
-        emitter.command("qquad");
+        emitter.command('qquad');
       }
       let emitted_expr = this.operator_exprs[i];
       if(inside_delimiters) {
@@ -1028,7 +1028,7 @@ class InfixExpr extends Expr {
       if(is_top_level && this.linebreaks_at.includes(2*i+1)) {
         // Break after ith operator.
         emitter.command("\\");
-        emitter.command("qquad");
+        emitter.command('qquad');
       }
     }
     emitter.expr(
@@ -1179,7 +1179,6 @@ class InfixExpr extends Expr {
     const scientific_notation_pieces = this._unparse_scientific_notation();
     if(scientific_notation_pieces)
       return scientific_notation_pieces.join('e');
-
     const operator_strings = this.operator_exprs.map(
       (expr, index) => this.editable_operator_text_at(index));
     const operand_strings = this.operand_exprs.map(
@@ -1440,9 +1439,8 @@ class TextExpr extends Expr {
 // Represents a sequence of expressions all concatenated together.
 // Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
 // If 'fused' is true, this will not be combined with other adjacent
-// sequences in Expr.combine_pair(), etc.
-// This can be used to group things that functionally belong together
-// like f(x), which matters for 'dissect' mode.
+// sequences in Expr.combine_pair(), etc.  This can be used to group things
+// that functionally belong together like f(x), which matters for 'dissect' mode.
 class SequenceExpr extends Expr {
   constructor(exprs, fused) {
     super();
@@ -1562,7 +1560,6 @@ class DelimiterExpr extends Expr {
     return new DelimiterExpr(left_type || '(', right_type || ')', expr);
   }
 
-  // Parenthesize expr if it's not already.
   static parenthesize_if_not_already(expr, left_type, right_type) {
     while(expr.is_expr_type('delimiter') &&
        expr.left_type === '.' && expr.right_type === '.')
@@ -2043,7 +2040,7 @@ class ArrayExpr extends Expr {
   // Return a new ArrayExpr like this one, but with ellipses inserted before the
   // last row and column, and along the diagonal.
   // NOTE: is_matrix() should be true before calling this.
-  // NOTE: this does not preserve column/row separators.  There's not really a
+  // NOTE: This does not preserve column/row separators.  There's not really a
   // consistent way of doing this automatically.
   with_ellipses() {
     const make_cell = content => new CommandExpr(content);
