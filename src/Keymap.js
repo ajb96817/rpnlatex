@@ -413,8 +413,8 @@ const EditorKeymap = {
     '/': "operator frac 2",
     '[': "parenthesize [ ];fuse",  // f x -> f[x]
     ']': "parenthesize \\{ \\};fuse",  // f x -> f{x}
-    '}': "swap;operator underbrace;swap;subscript",
     '{': "swap;operator overbrace;swap;superscript",
+    '}': "swap;operator underbrace;swap;subscript",
     '<': "extract_infix_side left",
     '>': "extract_infix_side right",
     '-': "mode inverse",
@@ -820,7 +820,9 @@ const EditorKeymap = {
     '!': "push \\neg;swap;fuse",
     "\\": "operator bcancel",
     '[': "adjust_size smaller",
-    ']': "adjust_size larger"
+    ']': "adjust_size larger",
+    '{': "operator overbrace",
+    '}': "operator underbrace"
   },
 
   // | prefix: array/matrix operations
