@@ -1,6 +1,6 @@
 
 import {
-  LatexEmitter, SpecialFunctions
+  LatexEmitter, SpecialFunctions, ExprPath
 } from './Models';
 
 
@@ -256,22 +256,18 @@ class Expr {
   // with a new one.  The subexpression indexes here correspond to what is returned by subexpressions().
   replace_subexpression(index, new_expr) { return this; }
 
-  // Find the first PlaceholderExpr that exists in this expression.  Returns null if none.
-  find_placeholder() {
-    let found_expr = null;
-    this.subexpressions().forEach(expr => {
-      if(expr.is_expr_type('placeholder') && !found_expr)
-        found_expr = expr;
-    });
-    return found_expr;
+  // Return an ExprPath to the first PlaceholderExpr within this Expr-tree,
+  // or null if there is none.
+  find_placeholder_expr_path() {
+    return this._find_placeholder_expr_path(new ExprPath(this, []));
   }
-
-  // Return a (possibly) new Expr with new_expr substituted for old_expr, if old_expr is present.
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr)
-      return new_expr;
-    else
-      return this;
+  _find_placeholder_expr_path(expr_path) {
+    let found_expr_path = null;
+    this.subexpressions().forEach((subexpr, index) => {
+      if(found_expr_path === null)
+	found_expr_path = subexpr._find_placeholder_expr_path(expr_path.descend(index));
+    });
+    return found_expr_path;
   }
 
   // Attempt to evaluate this Expr numerically, returning a floating-point value.
@@ -577,15 +573,6 @@ class CommandExpr extends Expr {
       this.options);
   }
 
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    return new CommandExpr(
-      this.command_name,
-      this.operand_exprs.map(
-        operand_expr => operand_expr.substitute_expr(old_expr, new_expr)),
-      this.options);
-  }
-
   evaluate(assignments) {
     const c = this.command_name;
     // NOTE: 'sech' and 'csch' are special cases (along with their inverse and squared variants);
@@ -775,13 +762,6 @@ class FontExpr extends Expr {
 
   replace_subexpression(index, new_expr) {
     return new FontExpr(new_expr, this.typeface, this.is_bold, this.size_adjustment);
-  }
-
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    return new FontExpr(
-      this.expr.substitute_expr(old_expr, new_expr),
-      this.typeface, this.is_bold, this.size_adjustment);
   }
 
   as_editable_string() {
@@ -1077,15 +1057,6 @@ class InfixExpr extends Expr {
       this.linebreaks_at);
   }
 
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    return new InfixExpr(
-      this.operand_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
-      this.operator_exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
-      this.split_at_index,
-      this.linebreaks_at);
-  }
-
   has_linebreak_at(index) {
     return this.linebreaks_at.includes(index);
   }
@@ -1270,7 +1241,7 @@ class PlaceholderExpr extends Expr {
   as_editable_string() { return '[]'; }
 
   // NOTE: overrides superclass method
-  find_placeholder() { return this; }
+  _find_placeholder_expr_path(expr_path) { return expr_path; }
 }
 
 
@@ -1311,13 +1282,6 @@ class PostfixExpr extends Expr {
     return new PostfixExpr(
       index === 0 ? new_expr : this.base_expr,
       index === 1 ? new_expr : this.operator_expr);
-  }
-
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    return new PostfixExpr(
-      this.base_expr.substitute_expr(old_expr, new_expr),
-      this.operator_expr.substitute_expr(old_expr, new_expr));
   }
 
   as_editable_string() {
@@ -1479,13 +1443,6 @@ class SequenceExpr extends Expr {
     return new SequenceExpr(
       this.exprs.map(
         (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr),
-      this.fused);
-  }
-
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    return new SequenceExpr(
-      this.exprs.map(expr => expr.substitute_expr(old_expr, new_expr)),
       this.fused);
   }
 
@@ -1667,15 +1624,6 @@ class DelimiterExpr extends Expr {
       this.fixed_size);
   }
 
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    return new DelimiterExpr(
-      this.left_type,
-      this.right_type,
-      this.inner_expr.substitute_expr(old_expr, new_expr),
-      this.fixed_size);
-  }
-
   as_editable_string() {
     const inner_string = this.inner_expr.as_editable_string();
     if(!inner_string) return null;
@@ -1791,14 +1739,6 @@ class SubscriptSuperscriptExpr extends Expr {
       index === 0 ? new_expr : this.base_expr,
       (index === 2 || (!this.superscript_expr && index === 1)) ? new_expr : this.subscript_expr,
       (index === 1 && this.superscript_expr) ? new_expr : this.superscript_expr);
-  }
-
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    return new SubscriptSuperscriptExpr(
-      this.base_expr.substitute_expr(old_expr, new_expr),
-      this.subscript_expr ? this.subscript_expr.substitute_expr(old_expr, new_expr) : null,
-      this.superscript_expr ? this.superscript_expr.substitute_expr(old_expr, new_expr) : null);
   }
 
   // Components are dissolved in the order: base, subscript, superscript
@@ -2235,16 +2175,6 @@ class ArrayExpr extends Expr {
     const new_element_exprs = this.element_exprs.map(
       (row_exprs, row_index) => row_exprs.map(
         (expr, col_index) => (row_index === row && col_index === column) ? new_expr : expr));
-    return new ArrayExpr(
-      this.array_type, this.row_count, this.column_count, new_element_exprs,
-      this.row_separators, this.column_separators);
-  }
-
-  substitute_expr(old_expr, new_expr) {
-    if(this === old_expr) return new_expr;
-    const new_element_exprs = this.element_exprs.map(
-      row_exprs => row_exprs.map(
-        expr => expr.substitute_expr(old_expr, new_expr)));
     return new ArrayExpr(
       this.array_type, this.row_count, this.column_count, new_element_exprs,
       this.row_separators, this.column_separators);

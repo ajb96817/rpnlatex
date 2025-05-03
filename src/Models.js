@@ -824,9 +824,7 @@ class FileManagerState {
 
 // Represents a "path" within an Expr to one of its subexpressions.
 // Each element (index) along the path is an integer identifying one of the
-// children of the Expr at that level.  In the current implementation, the
-// path must be at least of length 1; in other words an ExprPath can't refer
-// directly to its base expression.
+// children of the Expr at that level.
 class ExprPath {
   constructor(expr, subexpr_indexes) {
     this.expr = expr;
@@ -901,6 +899,8 @@ class ExprPath {
   // indicated subexpression has been replaced by the given expression.
   // The subexpression that has been replaced is still available via this.selected_expr().
   replace_selection(new_expr) {
+    if(this.depth() === 0)
+      return new_expr;  // special case - "replacing" the base expression
     const parent_expr = this.last_expr_but(1);
     const final_index = this.last_index_but(1);
     let expr = parent_expr.replace_subexpression(final_index, new_expr);
@@ -1711,9 +1711,9 @@ class TextItem extends Item {
     let new_elements = [...this.elements];
     for(let i = 0; i < new_elements.length; i++) {
       if(new_elements[i].is_expr()) {
-        const placeholder_expr = new_elements[i].expr.find_placeholder();
-        if(placeholder_expr) {
-          const new_expr = new_elements[i].expr.substitute_expr(placeholder_expr, substitution_expr);
+        const placeholder_expr_path = new_elements[i].expr.find_placeholder_expr_path();
+        if(placeholder_expr_path !== null) {
+	  const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
           new_elements[i] = new TextItemExprElement(new_expr);
           return new TextItem(new_elements, this.tag_string, this.is_heading);
         }

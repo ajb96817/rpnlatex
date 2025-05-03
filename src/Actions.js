@@ -1006,9 +1006,9 @@ class InputContext {
     const [new_stack_2, item] = new_stack.pop(1);
     if(item.is_expr_item()) {
       const original_expr = item.expr;
-      const placeholder_expr = original_expr.find_placeholder();
-      if(placeholder_expr) {
-        const new_expr = original_expr.substitute_expr(placeholder_expr, substitution_expr);
+      const placeholder_expr_path = original_expr.find_placeholder_expr_path();
+      if(placeholder_expr_path !== null) {
+	const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
         return new_stack_2.push_expr(new_expr);
       }
     }
