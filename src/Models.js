@@ -878,11 +878,13 @@ class ExprPath {
       this.subexpr_indexes.slice(0, -1));
   }
 
-  // Return a new Expr that is like this one but with the "sibling" subexpression
+  // Return a new ExprPath that is like this one but with the "sibling" subexpression
   // in the given direction selected.
   // 'direction' can be 'left' or 'right'.  The selection wraps around when going
   // past the ends of the expression.
   move(direction) {
+    if(this.depth() === 0)
+      return this;  // no siblings at top level
     const parent_expr = this.last_expr_but(1);
     const final_index = this.last_index_but(1);
     const subexpr_count = parent_expr.subexpressions().length;

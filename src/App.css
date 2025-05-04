@@ -51,7 +51,7 @@ div.latex_fragment {
 }
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
-div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #88f; }
+div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #bbf; }
 
 /* Override item type indicator bar if it contains a KaTeX error. */
 div.latex_fragment:has(div.latex_error_message) {
@@ -91,7 +91,7 @@ div.separator_item {
     display: flex;
     align-items: center;  /* this will have a single <hr /> inside it to be centered vertically */
     height: 0.75em;
-    border-left: var(--itemtype-bar-width) solid #88f; /* #6a6; */
+    border-left: var(--itemtype-bar-width) solid #bbf;
     padding: 0.2em 0;
 }
 div.separator_item hr {
@@ -102,7 +102,7 @@ div.separator_item hr {
     margin-left: var(--item-margin-width);
     margin-right: var(--item-margin-width);
     border: none;
-    background-color: #bbf; /* #8b8 */
+    background-color: #bbf;
 }
 
 /* "Emphasized" expressions created with [.][e]
