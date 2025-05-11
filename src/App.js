@@ -383,12 +383,15 @@ class StackItemsComponent extends React.Component {
 
 class DocumentComponent extends React.Component {
   render() {
+    this.selected_item_ref = null;
     const document = this.props.document;
+    const selection_index = document.selection_index;
     const layout = this.props.settings.layout;
     const subcomponents = document.items.map((item, index) => {
       let item_ref = React.createRef();
-      const is_selected = document.selection_index === index+1;
-      if(is_selected) this.selected_item_ref = item_ref;
+      const is_selected = selection_index === index+1;
+      if(is_selected)
+	this.selected_item_ref = item_ref;
       return $e(
         ItemComponent, {
           item: item,
@@ -408,14 +411,15 @@ class DocumentComponent extends React.Component {
     // Top of document "spacer", which is used to indicate that items are to be
     // inserted at the top of the document.  Unlike the bottom spacer, the top
     // spacer can be the current document selection.
-    const top_is_selected = document.selection_index === 0;
+    const spacer_ref = React.createRef();
+    const top_is_selected = selection_index === 0;
     if(top_is_selected)
-      this.selected_item_ref = React.createRef();
+      this.selected_item_ref = spacer_ref;
     const top_spacer = $e(
       'div', {
         className: 'top_spacer' + (top_is_selected ? ' selected' : ''),
         key: 'top_spacer',
-        ref: top_is_selected ? this.selected_item_ref : null
+        ref: spacer_ref
       });
     
     let class_names = ['document_items'];
@@ -633,7 +637,7 @@ class FileManagerComponent extends React.Component {
 class ItemComponent extends React.Component {
   render() {
     let item = this.props.item;
-    let ref = this.props.item_ref;
+    let ref = this.props.item_ref;  // references the top-level (outer) item div
     let className = this.props.selected ? 'selected ' : '';
     if(item.is_text_item() && item.is_heading)
       className = 'heading_style ' + className;
@@ -642,53 +646,62 @@ class ItemComponent extends React.Component {
       tag_element = $e('div', {className: 'tag_string'}, item.tag_string);
     switch(item.item_type()) {
     case 'expr':
+      this.katex_ref = React.createRef();  // KaTeX rendering target node
       return $e(
-        'div', {className: 'expr_item'},
+        'div', {className: 'expr_item', ref: ref},
         tag_element,
-        $e('div', {className: className + 'latex_fragment', ref: ref}, ''));
+        $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''));
     case 'text':
       if(item.is_empty()) {
 	// Empty TextItems are rendered as separator lines as a special case.
 	return $e(
-          'div', {className: className + 'separator_item'},
+          'div', {className: className + 'separator_item', ref: ref},
           tag_element,
-          $e('hr'));
+          $e('hr', {ref: ref}));
       }
       else {
 	// TODO: The CSS/markup for heading texts is a little hacky
+	this.katex_ref = React.createRef();
 	return $e(
-          'div', {className: 'text_item'},
+          'div', {className: 'text_item', ref: ref},
           tag_element,
           $e('div', {className: className + 'latex_fragment'},
-             $e('div', {className: 'latex_fragment_inner', ref: ref}, '')));
+             $e('div', {className: 'latex_fragment_inner', ref: this.katex_ref}, '')));
       }
     case 'code':
       if(item.language === 'latex') {
         // Non-rendered raw LaTeX source code.
 	return $e(
-	  'div', {className: className + 'latex_source_item'},
+	  'div', {className: className + 'latex_source_item', ref: ref},
           tag_element,  // not currently allowed
 	  $e('div', {className: 'latex_source'}, item.source));
       }
-      else return $e('div', {}, '????');
+      else return $e('div', {ref: ref}, 'Unknown code language: ' + item.language);
     default:
-      return $e('div', {}, '????');
+      return $e('div', {ref: ref}, 'Unknown item type: ' + item.item_type());
     }
   }
 
   componentDidMount() {
     const item = this.props.item;
-    const node = this.props.item_ref.current;
-    if(!node) return;  // shouldn't happen
+    const katex_target_node = this.katex_ref ? this.katex_ref.current : null;
+    if(!katex_target_node)
+      return;
     if(item.is_expr_item()) {
-      // Render math with KaTeX
-      this._render_with_katex(item.to_latex(), node, !this.props.inline_math);
+      // Render math with KaTeX.
+      this._render_with_katex(
+	item.to_latex(),
+	katex_target_node,
+	!this.props.inline_math);
     }
     else if(item.is_text_item()) {
       // TextItems are always rendered in inline mode.
       // Note that this means that text items will always be left-aligned regardless
       // of the rightalign_math layout settings.
-      this._render_with_katex(item.to_latex(), node, false);
+      this._render_with_katex(
+	item.to_latex(),
+	katex_target_node,
+	false);
     }
   }
 
