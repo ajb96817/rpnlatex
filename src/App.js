@@ -439,12 +439,18 @@ class DocumentComponent extends React.Component {
     if(!this.selected_item_ref) return;
     const item = this.selected_item_ref.current;
     if(!item) return;
-    let container = document.getElementById('document_container');
-    const extra_space = item.offsetHeight/2;
-    if(item.offsetTop < container.scrollTop)
-      container.scrollTop = item.offsetTop - extra_space;
-    if(item.offsetTop + item.offsetHeight > container.scrollTop + container.offsetHeight)
-      container.scrollTop = item.offsetTop + item.offsetHeight - container.offsetHeight + extra_space;
+
+    // Use the nonstandard scrollIntoViewIfNeeded method if available.
+    if(item.scrollIntoViewIfNeeded)
+      item.scrollIntoViewIfNeeded(false /* centerIfNeeded, i.e. don't recenter */);
+    else {
+      let container = document.getElementById('document_container');
+      const extra_space = item.offsetHeight/2;
+      if(item.offsetTop < container.scrollTop)
+	container.scrollTop = item.offsetTop - extra_space;
+      if(item.offsetTop + item.offsetHeight > container.scrollTop + container.offsetHeight)
+	container.scrollTop = item.offsetTop + item.offsetHeight - container.offsetHeight + extra_space;
+    }
   }
 }
 
@@ -648,14 +654,14 @@ class ItemComponent extends React.Component {
     case 'expr':
       this.katex_ref = React.createRef();  // KaTeX rendering target node
       return $e(
-        'div', {className: 'expr_item', ref: ref},
+        'div', {className: 'item expr_item', ref: ref},
         tag_element,
         $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''));
     case 'text':
       if(item.is_empty()) {
 	// Empty TextItems are rendered as separator lines as a special case.
 	return $e(
-          'div', {className: className + 'separator_item', ref: ref},
+          'div', {className: className + 'item separator_item', ref: ref},
           tag_element,
           $e('hr', {ref: ref}));
       }
@@ -663,7 +669,7 @@ class ItemComponent extends React.Component {
 	// TODO: The CSS/markup for heading texts is a little hacky
 	this.katex_ref = React.createRef();
 	return $e(
-          'div', {className: 'text_item', ref: ref},
+          'div', {className: 'item text_item', ref: ref},
           tag_element,
           $e('div', {className: className + 'latex_fragment'},
              $e('div', {className: 'latex_fragment_inner', ref: this.katex_ref}, '')));
@@ -672,13 +678,13 @@ class ItemComponent extends React.Component {
       if(item.language === 'latex') {
         // Non-rendered raw LaTeX source code.
 	return $e(
-	  'div', {className: className + 'latex_source_item', ref: ref},
+	  'div', {className: className + 'item latex_source_item', ref: ref},
           tag_element,  // not currently allowed
 	  $e('div', {className: 'latex_source'}, item.source));
       }
-      else return $e('div', {ref: ref}, 'Unknown code language: ' + item.language);
+      else return $e('div', {className: 'item', ref: ref}, 'Unknown code language: ' + item.language);
     default:
-      return $e('div', {ref: ref}, 'Unknown item type: ' + item.item_type());
+      return $e('div', {className: 'item', ref: ref}, 'Unknown item type: ' + item.item_type());
     }
   }
 

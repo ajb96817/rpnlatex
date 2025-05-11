@@ -38,9 +38,14 @@ body.inverse_video {
 }
 
 
+div.item {
+    /* Snap margins for scrolling when the document selection changes. */
+    scroll-margin-top: 0.5em;
+    scroll-margin-bottom: 0.5em;
+}
+
 /* div.expr_item {}
    div.text_item {} */
-
 
 div.latex_fragment {
     /* NOTE: vertical margins should match .katex-display margins below.

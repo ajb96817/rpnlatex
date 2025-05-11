@@ -1909,11 +1909,20 @@ class InputContext {
     const selected_elts = container.getElementsByClassName('selected')
     if(selected_elts.length === 0) return;
     const selected_elt = selected_elts[0];
-    const top_scrolltop = selected_elt.offsetTop;
-    const bottom_scrolltop = selected_elt.offsetTop + selected_elt.offsetHeight - container.clientHeight;
-    const ratio = screen_percentage/100;
-    const new_scrolltop = Math.round(top_scrolltop*(1-ratio) + bottom_scrolltop*ratio);
-    container.scrollTop = new_scrolltop;
+
+    if([0, 50, 100].includes(screen_percentage)) {
+      // For these special cases, the browser's native scrollIntoView can be used.
+      const block_mode = screen_percentage === 0 ? 'start' :
+	    (screen_percentage === 100 ? 'end' : 'center')
+      selected_elt.scrollIntoView({block: block_mode, inline: 'start'});
+    }
+    else {
+      const top_scrolltop = selected_elt.offsetTop;
+      const bottom_scrolltop = selected_elt.offsetTop + selected_elt.offsetHeight - container.clientHeight;
+      const ratio = screen_percentage/100;
+      const new_scrolltop = Math.round(top_scrolltop*(1-ratio) + bottom_scrolltop*ratio);
+      container.scrollTop = new_scrolltop;
+    }
   }
 
   // direction_string:
