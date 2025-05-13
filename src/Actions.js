@@ -1913,7 +1913,7 @@ class InputContext {
     if([0, 50, 100].includes(screen_percentage)) {
       // For these special cases, the browser's native scrollIntoView can be used.
       const block_mode = screen_percentage === 0 ? 'start' :
-	    (screen_percentage === 100 ? 'end' : 'center')
+	    (screen_percentage === 100 ? 'end' : 'center');
       selected_elt.scrollIntoView({block: block_mode, inline: 'start'});
     }
     else {
