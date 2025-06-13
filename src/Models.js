@@ -1,16 +1,18 @@
 
 
-import KeybindingTable from './Keymap';
 import JSZip from 'jszip';
+import {
+  EditorKeymap
+} from './Keymap';
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PlaceholderExpr,
   TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr //, ArrayExpr
-} from './Exprs.js';
+} from './Exprs';
 
 
 class Keymap {
   constructor() {
-    this.bindings = KeybindingTable;
+    this.bindings = EditorKeymap;
   }
   
   lookup_binding(mode, key) {

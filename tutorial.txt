@@ -1,0 +1,256 @@
+
+TODO:
+  - talk about advantages of RPN (no explicit parens, more efficient keystrokewise etc)
+
+
+
+<h1>Tutorial</h1>
+
+<p>
+  This tutorial walks you through learning to use the editor.
+  You can switch between this tutorial and the User Guide with the Tab key.
+  Pressing [[?]] again will "dock" the tutorial into the document section
+  so that you can follow along as you perform the steps here.
+</p>
+
+<h2>The Stack and the Document</h2>
+
+<p>
+  
+</p>
+
+
+
+- Entering letters and numbers
+The letter and number keys put the corresponding character on the stack.
+Letters are treated, by default, as ordinary single-character mathematical variables.
+They are typeset in a textbook-style italic font.
+
+Keystrokes     Result     Notes
+x              x
+3              3
+
+- Concatenation
+
+[ ] concatenates two items from the stack, combining them into a single item.
+Depending on context, this can indicate implicit multiplication; for numbers,
+concatenation is one way to build up integers greater than 9.
+
+x y [ ]        xy       x times y
+
+3 x [ ]        3x       3 times x
+
+1 2 3 [ ] [ ]  123      the integer 123
+
+- Decimal numbers
+
+Longer numbers, decimals, and negatives can be created with /math entry/ mode
+using [\].  This displays a small input field where you can type your number.
+Finish your entry with [Enter].  If you change your mind, [Esc] cancels out of
+math entry mode.
+
+\ 1 2 3 Enter       123
+
+\ - 3 . 1 4 Enter  -3.14
+
+- Algebraic expression entry
+
+Math entry mode can also be used to enter simple math expressions using
+traditional algebraic syntax.  Generally, you should use the other stack-based
+entry methods covered in the rest of this tutorial, but this way is available
+as a convenience.
+
+Please see the User Guide section on math entry mode for the full details
+of what is supported here.
+
+\ 3 x + 1 Enter     3x+1
+
+\ x y z Enter       xyz      x times y times z
+
+\ (a+b)/(c-d) Enter    (a+b)/(c-d)
+
+- Infix expressions
+
+In this editor, an /infix/ expression is two or more /terms/ combined with one or more /operators/
+like + or =.  For example, x + y = z is an infix expression with three terms
+(x, y, z) and two operators (+, =).
+
+A few common infix operations are available as single-keystroke commands.
+These include +, -, < and >.  Other infix operations require a /prefix key/
+(typically [,] or [=]) followed by a /subcommand key/.  These will be covered
+later in the tutorial.
+
+Infix operations all take the first two items from the stack, combine them with
+the infix operator, and place the result back on the stack.
+
+(NOTE: '--' should be represented by something like a grey bullet)
+
+x y          x -- y       create 'x' and 'y' terms
++            x + y        create a two-term infix expression
+z            x + y -- z   create another 'z' term
+-            x + y - z    combine x+y and z into a three-term infix expression
+
+- Errors
+
+If you make a mistake in the editor (for instance, trying to perform an infix
+operation with only one item on the stack) the stack area will indicate the error
+with a brief red flash.  Most errors are harmless and you do not need to do anything
+to "clear" the error; you can continue on as normal.
+
+Pressing an unassigned key or key sequence is silently ignored (with no flashing
+of the screen).
+
+- Undo
+
+If you perform an accidental operation, such as pressing [+] when you meant [-], you
+can revert your action with the /undo/ command using [Ctrl+z].  Multiple presses of
+[Ctrl+z] will revert further and further back.  This allows you to quickly clean up
+typos and other mistakes.
+
+Undo is also available via the two-key sequence [Tab][Tab] in addition to [Ctrl+z].
+
+- Superscripts and subscripts
+
+Expressions with superscripts and subscripts such as 'x^2' or 'z_0' can be easily created.
+The basic key for subscripts is simply [Enter], which takes
+two items from the stack and places one as the subscript of the other:
+
+z 0 Enter    z_0
+
+For superscripts, you can use either [`] (backtick), or [^] (caret), as you prefer.
+
+x 2 ^        x^2
+
+More complex expressions can of course be combined this way:
+
+A B +       A+B
+i j [ ]     A+B ; ij
+Enter       (A+B)_{ij}
+
+As this shows, in some cases the base expression will be automatically parenthesized
+for you (more about this later).
+
+Adding a subscript to an expression that already has a superscript, or vice verse,
+will result in an expression carrying both:
+
+x 2 ^       x^2
+0 Enter     x^2_0
+
+Adding multiple "layers" and superscripts or subscripts creates "nested" expressions:
+
+x y ^       x^y
+2 ^         x^y^2
+
+As shown, this expression is ambiguous, but if desired you can manually add parentheses
+to indicate the grouping using the [(] key, which wraps the stack top in a set of parentheses.
+
+x y ^ (     (x^y)
+2 ^         (x^y)^2
+
+x y 2 ^     x -- y^2
+(           x -- (y^2)
+^           x^(y^2)
+
+Finally, there are some shortcuts for quickly creating the most common superscripts and subscripts:
+
+z Ctrl+0   z_0
+x Ctrl+1   x^{-1}
+x Ctrl+2   x^2
+x Ctrl+3   x^3
+x Ctrl+4   x^4
+
+Instead of Ctrl+Number, you can also use the [.] prefix (/decoration/ mode, described later)
+followed by the number:
+
+z [.] 0    z_0
+
+and so on.
+
+- Bold font  ]
+
+The ] key (right square bracket) will apply a **bold font** to the stack top:
+
+x 2 ^     x^2
+]         \bold{x^2}
+
+Other fonts and styles are available, but require two-keystroke sequences
+using /decoration mode/.
+
+
+- Modes
+
+To go beyond the above single-keystroke commands, you first need to switch into the /mode/
+for the command you want.  For example, ['] (single quote) switches into /symbol/ mode, which contains
+commands for creating different mathematical symbols.  [.] (period) enters /decoration/ mode,
+for modifying the stack top item in various ways.  There are over 20 modes for all kinds of operations.
+
+Each mode has its own keymap of /subcommands/.  Almost all actions in this editor, aside
+from the basic single-keystroke commands, consist of two keystrokes: the /mode prefix/ key
+and then the /subcommand/ key.  Most of the User Guide is dedicated to describing all
+these two-key combinations.
+
+After pressing the mode prefix key, a /mode indicator/ will appear in grey in the upper-right
+corner of the stack area.  For example, pressing ['] will display "symbol", indicating that you
+are now in the /symbol/ mode and the subcommands from that mode are now available.
+
+If you accidentally enter a mode prefix key you didn't want, you can cancel out of it with [Esc].
+
+If the mode indicator is absent, you are in the /base mode/, which is where you can use
+the usual single-character commands described above to create letters, numbers, superscripts, etc.
+Every time you complete a subcommand from a mode, you will be returned to the base mode anew.
+Errors and unassigned subcommand keys also return you to the base mode.
+
+
+- Manipulating the stack
+
+The stack is the focus of all expression editing operations.  Most actions operate on the first
+one, two, or three items on the stack (those displayed bottommost on the screen).  As such,
+efficient manipulation of the stack is important to get items into the right position to be
+operated on.  If you are unfamiliar with Reverse Polish Notation (RPN), it can take some practice
+to get a feel for how to use the stack most effectively.
+
+The [Tab] key enters /stack mode/, which contains commands for rearranging, removing, and
+duplicating stack items.  See the User Guide for the full list.
+
+[Tab][Enter] duplicates the stack top item; for example to enter (x+1)(x+1):
+
+x 1 +       x+1
+[Tab] [Enter]  x+1  --  x+1
+[ ]         (x+1)(x+1)
+
+[Tab][d] deletes the stack top item.  [Backspace] (without the [Tab] prefix) is a shortcut for this.
+
+[Tab][a] swaps the order of the top two items:
+
+x y        x -- y
+[Tab][a]   y -- x
+
+
+- Math symbols [including greek letters]
+
+
+- Large operators like summation (talk about superscripts etc)
+
+  - Fractions
+
+
+- Parenthesization (delimiters) and autoparenthesization
+
+- Prefix arguments [later]
+
+
+
+- Bunch of examples of different "complex" expressions from textbooks
+
+
+
+
+
+
+
+
+
+
+
+
+

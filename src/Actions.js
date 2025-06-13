@@ -3,7 +3,6 @@ import {
   AppState, Document, Stack,
   ExprPath, ExprParser, ExprItem, TextItem, CodeItem
 } from './Models';
-
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PostfixExpr,
   PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
@@ -645,17 +644,14 @@ class InputContext {
   // case_type: 'uppercase', 'lowercase'
   // Stack top should be an ExprItem with a simple TextExpr.
   do_to_case(stack, case_type) {
-    const convert_fn = string => {
-      switch(case_type) {
-      case 'uppercase': return string.toUpperCase();
-      case 'lowercase': return string.toLowerCase();
-      default: return string;
-      }
-    };
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr;
-    if(expr.is_expr_type('text'))
-      new_expr = new TextExpr(convert_fn(expr.text));
+    if(expr.is_expr_type('text')) {
+      let text = expr.text;
+      if(case_type === 'uppercase') text = text.toUpperCase();
+      if(case_type === 'lowercase') text = text.toLowerCase();
+      new_expr = new TextExpr(text);
+    }
     else
       new_expr = expr;
     return new_stack.push_expr(new_expr);
@@ -965,7 +961,9 @@ class InputContext {
       return this.error_flash_stack();
   }
 
-  do_cancel() {}
+  do_cancel(stack) {
+    return stack;
+  }
 
   // Concatenate two Expr or Text items.  This is the basic concatenation action.
   // If 'autoparenthesize' is 'false', autoparenthesization is inhibited,
@@ -976,8 +974,7 @@ class InputContext {
     const left_type = left_item.item_type(), right_type = right_item.item_type();
     const no_parenthesize = autoparenthesize === 'false' ? true : !this.settings.autoparenthesize;
     if(left_type === 'expr' && right_type === 'expr') {
-      let left_expr = left_item.expr, right_expr = right_item.expr;
-      const new_expr = Expr.combine_pair(left_expr, right_expr, no_parenthesize);
+      const new_expr = Expr.combine_pair(left_item.expr, right_item.expr, no_parenthesize);
       return new_stack.push_expr(new_expr);
     }
     else if((left_type === 'expr' || left_type === 'text') &&
@@ -1062,10 +1059,10 @@ class InputContext {
 
   do_cancel_text_entry(stack) {
     this.suppress_undo();
-    return this.cancel_text_entry(stack);
+    return this._cancel_text_entry(stack);
   }
 
-  cancel_text_entry(stack) {
+  _cancel_text_entry(stack) {
     const edited_item = this.text_entry.edited_item;
     this.text_entry = null;
     if(edited_item)
@@ -1114,7 +1111,7 @@ class InputContext {
       // Everything has been deleted; cancel text entry.
       // Note that when cancelling via backspace this way, even if
       // there was a text_entry_edited_item, it's discarded.
-      this.cancel_text_entry(stack);
+      this._cancel_text_entry(stack);
       if(new_mode_when_empty) {
         this.text_entry = new TextEntryState(new_mode_when_empty, '');
         this.switch_to_mode(new_mode_when_empty);
@@ -1147,13 +1144,13 @@ class InputContext {
     if(!this.text_entry)
       return stack;  // shouldn't happen
     if(this.text_entry.is_empty() && textstyle !== 'tag')
-      return this.cancel_text_entry(stack);
+      return this._cancel_text_entry(stack);
     const text = this.text_entry.current_text;
     const trimmed_text = text.trim();
     if(textstyle === 'text' || textstyle === 'heading') {
       let item = TextItem.parse_string(text);
       if(textstyle === 'heading') item.is_heading = true;
-      this.cancel_text_entry(stack);
+      this._cancel_text_entry(stack);
       return stack.push(item);
     }
     let new_expr = null;
@@ -1184,7 +1181,7 @@ class InputContext {
       if(stack.check_exprs(1)) {
         const [new_stack, argument_expr] = stack.pop_exprs(1);
         new_expr = new CommandExpr(trimmed_text, [argument_expr]);
-        this.cancel_text_entry(new_stack);
+        this._cancel_text_entry(new_stack);
         return new_stack.push_expr(new_expr);
       }
       else {
@@ -1200,14 +1197,14 @@ class InputContext {
       const new_expr = Expr.combine_with_conjunction(
         left_expr, right_expr,
         trimmed_text, textstyle === 'bold_conjunction');
-      this.cancel_text_entry(new_stack);
+      this._cancel_text_entry(new_stack);
       return new_stack.push_expr(new_expr);
     }
     else if(textstyle === 'tag') {
       const [new_stack, item] = stack.pop(1);
       const new_item = item.with_tag(
         trimmed_text.length === 0 ? null : trimmed_text);
-      this.cancel_text_entry(new_stack);
+      this._cancel_text_entry(new_stack);
       return new_stack.push(new_item);
     }
     else {
@@ -1219,7 +1216,7 @@ class InputContext {
 	return;
       }
     }
-    this.cancel_text_entry(stack);
+    this._cancel_text_entry(stack);
     return stack.push_expr(new_expr);
   }
 

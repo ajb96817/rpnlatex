@@ -1013,4 +1013,7 @@ const EditorKeymap = {
 };
 
 
-export default EditorKeymap;
+export {
+  EditorKeymap
+};
+
