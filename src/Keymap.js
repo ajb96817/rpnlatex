@@ -861,8 +861,8 @@ const EditorKeymap = {
     '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_arrays vertical",
     ':': "array_separator column dashed",
     '!': "array_separator column solid",
-    '-': "array_separator row dashed",
-    '_': "array_separator row solid",
+    '_': "array_separator row dashed",
+    '-': "array_separator row solid",
     'Enter': "stack_arrays vertical"
   },
 

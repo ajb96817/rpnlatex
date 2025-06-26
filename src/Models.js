@@ -1819,7 +1819,10 @@ class Stack {
   }
 
   _unchecked_pop(n) {
-    return [new Stack(this.items.slice(0, -n))].concat(this.items.slice(-n));
+    if(n <= 0)
+      return [this];
+    else
+      return [new Stack(this.items.slice(0, -n))].concat(this.items.slice(-n));
   }
   
   push_all(items) {

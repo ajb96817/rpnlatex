@@ -410,8 +410,12 @@ class InputContext {
   do_tuck(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
-    const last_item = items[items.length-1];
-    return new_stack.push_all([last_item.clone()].concat(items));
+    if(items.length > 0) {
+      const last_item = items[items.length-1];
+      return new_stack.push_all([last_item.clone()].concat(items));
+    }
+    else
+      return new_stack;
   }
 
   // Pick the Nth item from the stack and copy it to the stack top.
@@ -419,23 +423,34 @@ class InputContext {
   do_over(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
-    return new_stack.push_all(items.concat([items[0].clone()]));
+    if(items.length > 0)
+      return new_stack.push_all(items.concat([items[0].clone()]));
+    else
+      return new_stack;
   }
 
   // Rotate N top stack items (default=3: a b c -> b c a)
   do_rot(stack) {
     const arg = this._get_prefix_argument(3, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
-    const new_items = items.slice(1).concat([items[0]]);
-    return new_stack.push_all(new_items);
+    if(items.length > 0) {
+      const new_items = items.slice(1).concat([items[0]]);
+      return new_stack.push_all(new_items);
+    }
+    else
+      return new_stack;
   }
 
   // Rotate N top stack items backwards (default=3: a b c -> c a b)
   do_unrot(stack) {
     const arg = this._get_prefix_argument(3, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
-    const new_items = items.slice(-1).concat(items.slice(0, -1));
-    return new_stack.push_all(new_items);
+    if(items.length > 0) {
+      const new_items = items.slice(-1).concat(items.slice(0, -1));
+      return new_stack.push_all(new_items);
+    }
+    else
+      return new_stack;
   }
 
   do_change_document_selection(stack, amount_string) {
