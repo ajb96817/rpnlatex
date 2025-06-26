@@ -655,7 +655,8 @@ const EditorKeymap = {
     '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
     '>': "infix \\cdots",
     '/': "autoparenthesize 2;infix /",
-    "\\": "autoparenthesize 2;infix \\backslash"
+    "\\": "autoparenthesize 2;infix \\backslash",
+    'Tab': "infix \\quad"
   },
 
   // = prefix: relational operators
@@ -822,7 +823,8 @@ const EditorKeymap = {
     '[': "adjust_size smaller",
     ']': "adjust_size larger",
     '{': "operator overbrace",
-    '}': "operator underbrace"
+    '}': "operator underbrace",
+    'Tab': "push \\quad;swap;concat false"
   },
 
   // | prefix: array/matrix operations
