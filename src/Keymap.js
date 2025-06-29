@@ -417,6 +417,7 @@ const EditorKeymap = {
     '}': "swap;operator underbrace;swap;subscript",
     '<': "extract_infix_side left",
     '>': "extract_infix_side right",
+    '!': "negate_infix",
     '-': "mode inverse",
     '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
     '+': "infix \\ge;push \\sum;swap;subscript",
@@ -609,7 +610,7 @@ const EditorKeymap = {
     'a': "apply_infix",
     'b': "infix \\bullet",
     'c': "infix \\cap",
-    'd': "infix \\setminus",  // (set [d]ifference)
+    'd': "swap;push \\dagger;superscript;swap;concat",  // x^\dagger y
     'e': "infix ,\\dots,",
     'f': "conjunction if",
     'F': "conjunction iff",
@@ -671,7 +672,7 @@ const EditorKeymap = {
     'f': "infix \\Leftarrow", // "[f]rom"
     'G': "infix \\gg",
     'i': "infix \\in",
-    'I': "infix \\notin",
+    'I': "infix \\in;negate_infix",
     'j': "infix \\Join",
     'l': "infix <",
     'L': "infix \\ll",

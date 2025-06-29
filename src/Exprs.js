@@ -1121,6 +1121,54 @@ class InfixExpr extends Expr {
     }
   }
 
+  // Try to "negate" an operator using \not (which puts a slash through the operator).
+  // This only works for simple operators like \le (more complex expressions don't
+  // format right); otherwise null is returned.  If the operator already has a \not,
+  // remove it instead.
+  negate_operator_at(operator_index) {
+    // Special cases to handle; things like '=' are TextExprs instead of CommandExprs.
+    const special_pairs = [
+      ['<', 'nless'],
+      ['>', 'ngtr'],
+      ['=', 'neq'],
+      ['=', 'ne']
+    ];
+    const expr = this.operator_exprs[operator_index];
+    let new_expr = null;
+    if(expr.is_expr_type('sequence') && expr.exprs.length === 2 &&
+       expr.exprs[0].is_expr_type('command') && expr.exprs[0].operand_count() === 0 &&
+       expr.exprs[0].command_name === 'not') {
+      // \not\le -> \le
+      new_expr = expr.exprs[1];
+    }
+    else if(expr.is_expr_type('text')) {
+      // Check the special cases for "plain text" operators
+      const pair = special_pairs.find(pair => pair[0] === expr.text);
+      if(pair)
+	new_expr = new CommandExpr(pair[1]);
+    }
+    else if(expr.is_expr_type('command') && expr.operand_count() === 0) {
+      // Check special cases to convert:  \nless -> <
+      const pair = special_pairs.find(pair => pair[1] === expr.command_name);
+      if(pair)
+	new_expr = new TextExpr(pair[0]);
+      else {
+	// Default case: \le -> \not\le
+	new_expr = new SequenceExpr([new CommandExpr('not'), expr]);
+      }
+    }
+    if(new_expr) {
+      let new_operator_exprs = [...this.operator_exprs];
+      new_operator_exprs[operator_index] = new_expr;
+      return new InfixExpr(
+	this.operand_exprs,
+	new_operator_exprs,
+	this.split_at_index,
+	this.linebreaks_at);
+    }
+    else return null;
+  }
+
   // If this expression is "scientific notation" such as 3 \times 10^-2,
   // return [coefficient_text, exponent_text] (e.g. ['3', '-2'] in this case).
   // The expression must be of this exact form, with literal numbers for the

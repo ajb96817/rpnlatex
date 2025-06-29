@@ -1036,7 +1036,7 @@ class InputContext {
   }
 
   // Extract either the left or right side of an expression.
-  //   - InfixExpr yields the part to the left or right of the split_at_infix point.
+  //   - InfixExpr yields the part to the left or right of the split_at_index point.
   //   - CommandExpr \frac yields the numerator or denominator of the fraction.
   do_extract_infix_side(stack, which_side) {
     const [new_stack, expr] = stack.pop_exprs(1);
@@ -1052,6 +1052,20 @@ class InputContext {
     else
       return stack.type_error();
     return new_stack.push_expr(extracted_expr);
+  }
+
+  // Attempt to "negate" the operator of an infix expression at it's split_at_index point.
+  // If the operator is already negated, the negation is removed (if possible - explicit
+  // negated relations such as \nless are not handled).
+  // TODO: Allow negating literal operators on the stack (not part of an infix expression).
+  do_negate_infix(stack) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    if(expr.is_expr_type('infix')) {
+      const new_expr = expr.negate_operator_at(expr.split_at_index);
+      if(new_expr)
+	return new_stack.push_expr(new_expr);
+    }
+    return stack.type_error();
   }
 
   // Take apart an Expr and put all its elements on the stack.

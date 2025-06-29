@@ -727,7 +727,7 @@
             <td><span class="keybinding">c</span> <code>x\cap y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>x\setminus y</code></td>
+            <td><span class="keybinding">d</span> <code>x^\dagger y</code></td>
             <td><span class="keybinding">e</span> <code>x,\dots,y</code></td>
             <td><span class="keybinding">f</span> <code>x\quad\mathrm{if}\quad y</code></td>
           </tr>
@@ -911,6 +911,12 @@
             <td></td>
           </tr>
       </tbody></table>
+      <p>
+	<strong>NOTE:</strong> &quot;Negated&quot; forms of relational operators can be
+	created with the <span class="keybinding">/</span><span class="keybinding">!</span>
+	command.  For example:
+	<code>x\subseteq y \to x\not\subseteq y</code>
+      </p>
 
       <h2>
 	<span class="keybinding">/</span>
@@ -1082,7 +1088,7 @@
 	</li>
         <li>
           <span class="keybinding">z</span>
-           "Dissolve" an expression, breaking it apart into its component parts if possible.
+          "Dissolve" an expression, breaking it apart into its component parts if possible.
           Delimiters will be removed, fractions disassembled, and matrix elements put
           on the stack in row-major order.
         </li>
@@ -1105,6 +1111,13 @@
           Extract the left or right side of an infix or relational expression,
 	  or the numerator/denominator of a fraction.
         </li>
+        <li>
+          <span class="keybinding">!</span>
+	  &quot;Negate&quot; a relational operator in an infix expression by putting a slash through it.
+	  If already negated, the slash is removed instead.  The operator most recently used to create
+	  the infix expression is the one negated.
+	  Example: <code>x&le;y \to x\nleq y</code>
+	</li>
         <li>
 	  <span class="keybinding">&#39;</span> <em>(apostrophe)</em>
 	  Resolve a <a href="#placeholders">placeholder</a>.
@@ -2134,69 +2147,6 @@
         However, these Control key based shortcuts are available for optional use:
       </p>
 
-      <!-- <table class="keybindings"><tbody>
-          <tr>
-	    <th>Shortcut</th>
-	    <th>Effect</th>
-	    <th>Same As</th>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+0</span></td>
-	    <td><code>x \to x_0</code></td>
-	    <td><span class="keybinding">.</span><span class="keybinding">0</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+1</span></td>
-	    <td><code>x \to x^{-1}</code></td>
-	    <td><span class="keybinding">.</span><span class="keybinding">1</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+2</span></td>
-	    <td><code>x \to x^2</code></td>
-	    <td><span class="keybinding">.</span><span class="keybinding">2</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+3</span></td>
-	    <td><code>x \to x^3</code></td>
-	    <td><span class="keybinding">.</span><span class="keybinding">3</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+4</span></td>
-	    <td><code>x \to x^4</code></td>
-	    <td><span class="keybinding">.</span><span class="keybinding">4</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+a</span></td>
-	    <td>Swap the top two stack items</td>
-	    <td><span class="keybinding">Tab</span><span class="keybinding">a</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+b</span></td>
-	    <td>Apply a bold font to the stack top</td>
-	    <td><span class="keybinding">]</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+c</span></td>
-	    <td>Copy the stack top to the clipboard</td>
-	    <td><span class="keybinding">Tab</span><span class="keybinding">c</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+e</span></td>
-	    <td><code>x \to \mathrm{e}^x</code></td>
-	    <td><span class="keybinding">/</span><span class="keybinding">e</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+i</span></td>
-	    <td>Move the stack top into the document at the current selection position</td>
-	    <td><span class="keybinding">Tab</span><span class="keybinding">i</span></td>
-	  </tr>
-	  <tr>
-	    <td><span class="keybinding">Ctrl+j</span></td>
-	    <td>Move the current document selection back onto the stack</td>
-	    <td><span class="keybinding">Tab</span><span class="keybinding">j</span></td>
-	  </tr>
-      </tbody></table>  -->
-      
       <ul class="keybindings">
         <li><span class="keybinding">Ctrl+0</span>
           Add a 0 subscript: <code>x_0</code>
