@@ -662,8 +662,7 @@ const EditorKeymap = {
 
   // = prefix: relational operators
   relational: {
-    '9': "infix \\prec",
-    '0': "infix \\succ",
+    '2': "mode variant_relational",
     'a': "infix \\approx",
     'c': "infix \\cong",  // =~  congruent
     'e': "infix \\equiv",
@@ -682,21 +681,17 @@ const EditorKeymap = {
     'o': "infix \\circeq",
     'p': "infix \\propto",
     'q': "infix =",
-    's': "infix \\subseteq",
-    'S': "infix \\subset",
+    's': "infix \\subset",
+    'S': "infix \\subseteq",
     't': "infix \\sim",
-    'u': "infix \\supseteq",
-    'U': "infix \\supset",
+    'u': "infix \\supset",
+    'U': "infix \\supseteq",
     '=': "infix =",
     '^': "infix \\triangleq",
     '<': "infix \\le",
     '>': "infix \\ge",
     '[': "infix \\le",
     ']': "infix \\ge",
-    '{': "infix \\sqsubset",
-    '}': "infix \\sqsupset",
-    '(': "infix \\preceq",
-    ')': "infix \\succeq",
     '.': "infix \\doteq",
     ':': "infix \\coloneqq",
     ';': "infix \\coloncolon",
@@ -704,6 +699,19 @@ const EditorKeymap = {
     '-': "infix \\vdash",
     '|': "infix \\vDash",
     '?': "push ?;push =;operator overset 2;apply_infix"
+  },
+
+  variant_relational: {
+    's': "infix \\sqsubset",
+    'S': "infix \\sqsubseteq",
+    'u': "infix \\sqsupset",
+    'U': "infix \\sqsupseteq",
+    'l': "infix \\prec",
+    'g': "infix \\succ",
+    '<': "infix \\preceq",
+    '[': "infix \\preceq",
+    '>': "infix \\succeq",
+    ']': "infix \\succeq"
   },
 
   // apostrophe prefix: assorted standalone math symbols
