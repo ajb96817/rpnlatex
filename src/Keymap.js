@@ -708,6 +708,8 @@ const EditorKeymap = {
     'U': "infix \\sqsupseteq",
     'l': "infix \\prec",
     'g': "infix \\succ",
+    'L': "infix \\leqslant",
+    'G': "infix \\geqslant",
     '<': "infix \\preceq",
     '[': "infix \\preceq",
     '>': "infix \\succeq",
