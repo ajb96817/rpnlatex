@@ -22,7 +22,6 @@ body.sepia { filter: sepia(20%) brightness(95%); }
 body.sepia #stack_panel { box-shadow: inset 0 0 1em 0 #ccc; }
 body.sepia #document_panel { box-shadow: inset 0 0 1em 0 #bbb; }
 
-
 #root {
     width: 100%;
     height: 100%;
@@ -93,9 +92,8 @@ div.heading_style div.latex_fragment_inner {
     font-size: 125%;
     font-weight: bold;
 }
-body.eink_mode div.heading_style div.latex_fragment_inner {
-    border-bottom-color: #666;
-}
+body.eink_mode div.heading_style div.latex_fragment_inner { border-bottom-color: #666; }
+
 div.separator_item {
     display: flex;
     align-items: center;  /* this will have a single <hr /> inside it to be centered vertically */
@@ -197,6 +195,11 @@ body.eink_mode #stack_panel {
     box-shadow: none;
     background-color: white;
 }
+body.eink_mode #stack_panel.stack_on_bottom { border-top: 2px solid #888; }
+body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
+body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
+body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
+
 #stack_panel div.indicator {
     position: absolute;
     right: 0.5em;
@@ -218,9 +221,7 @@ div.stack_items {
     bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
     border-bottom: 2px solid #ddd;
 }
-body.eink_mode div.stack_items {
-    border-bottom-color: #666;
-}
+body.eink_mode div.stack_items { border-bottom: none; }
 
 /* Highlight stack items "selected" by prefix arguments. */
 div.stack_items div.selected { background-color: #eef; }

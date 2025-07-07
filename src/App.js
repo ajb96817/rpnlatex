@@ -129,18 +129,31 @@ class App extends React.Component {
   }
 
   apply_layout_to_dom() {
-    let body = document.getElementById('body');
-    body.classList.remove('inverse_video');
-    body.classList.remove('sepia');
-    if(this.state.settings.filter === 'inverse_video')
-      body.classList.add('inverse_video');
-    if(this.state.settings.filter === 'sepia')
-      body.classList.add('sepia');
-    if(this.state.settings.eink_mode)
-      body.classList.add('eink_mode');
-    else
-      body.classList.remove('eink_mode');
-   if(this.stack_panel_ref.current && this.document_panel_ref.current &&
+    const settings = this.state.settings;
+
+    /* Set up color filter / theme CSS classes. */
+    let body_classes = [];
+    if(settings.filter === 'inverse_video') body_classes.push('inverse_video');
+    if(settings.filter === 'sepia') body_classes.push('sepia');
+    if(settings.eink_mode) body_classes.push('eink_mode');
+    document.getElementById('body').className = body_classes.join(' ');
+
+    /* Set up stack position classes.  Currently these are only used to
+       create a solid border between stack and document in E-ink mode. */
+    const stack_panel = document.getElementById('stack_panel');
+    const document_panel = document.getElementById('document_panel');
+    stack_panel.classList.remove('stack_on_bottom');
+    stack_panel.classList.remove('stack_on_right');
+    document_panel.classList.remove('stack_on_top');
+    document_panel.classList.remove('stack_on_left');
+    switch(settings.layout.stack_side) {
+    case 'top': document_panel.classList.add('stack_on_top'); break;
+    case 'bottom': stack_panel.classList.add('stack_on_bottom'); break;
+    case 'left': document_panel.classList.add('stack_on_left'); break;
+    case 'right': stack_panel.classList.add('stack_on_right'); break;
+    }
+    
+    if(this.stack_panel_ref.current && this.document_panel_ref.current &&
        this.popup_panel_ref.current) {
       this.state.settings.apply_layout_to_dom(
         this.stack_panel_ref.current,
