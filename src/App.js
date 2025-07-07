@@ -38,7 +38,6 @@ class App extends React.Component {
     this.state.import_export_state.onstatechange = () => this.import_export_state_changed();
 
     this.handleKeyDown = this.handleKeyDown.bind(this);
-    this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
 
     this.state.document_storage.open_database(this.on_open_database.bind(this));
@@ -121,7 +120,6 @@ class App extends React.Component {
   componentDidMount() {
     this.apply_layout_to_dom();
     window.addEventListener('keydown', this.handleKeyDown);
-    window.addEventListener('beforeunload', this.handleBeforeUnload);
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
     //      window.addEventListener('pageshow', this.handleVisibilityChange);
     //      window.addEventListener('focus', this.handleVisibilityChange);
@@ -184,7 +182,6 @@ class App extends React.Component {
 
   componentWillUnmount() {
     window.removeEventListener('keydown', this.handleKeyDown);
-    window.removeEventListener('beforeunload', this.handleBeforeUnload);
     window.removeEventListener('visibilitychange', this.handleVisibilityChange);
     //      window.removeEventListener('pageshow', this.handleVisibilityChange);
     //      window.removeEventListener('focus', this.handleVisibilityChange);
@@ -280,18 +277,17 @@ class App extends React.Component {
     return key;
   }
 
-  // Auto-save when window is being closed.
-  handleBeforeUnload(event) {
-    const filename = this.state.file_manager_state.current_filename;
-    if(filename)
-      this.state.document_storage.save_state(this.state.app_state, filename);
-    return null;
-  }
-
   // On iOS Safari, this event is triggered when resuming the tab.
   // When this happens, the scroll positions are reset, but a re-render takes care of that
   // via DocumentComponent.ensure_selection_visible().
   handleVisibilityChange(event) {
+    /* Try to auto-save when the app is being "hidden" or closed.
+       This 'visibilitychange' event is used in preference to the
+       unreliable 'beforeunload' event. */
+    if(document.visibilityState === 'hidden' && this.state.app_state.is_dirty) {
+      const filename = this.state.file_manager_state.current_filename;
+      if(filename) this.state.document_storage.save_state(this.state.app_state, filename);
+    }
     this.setState({});  // force React to re-render
   }
 
