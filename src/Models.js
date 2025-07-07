@@ -47,7 +47,7 @@ class Settings {
 
   static saved_keys() {
     return [
-      'inverse_video',
+      'filter',
       'eink_mode',
       'last_opened_filename',
       'popup_mode',
@@ -59,7 +59,7 @@ class Settings {
   
   constructor() {
     this.current_keymap = new Keymap();
-    this.inverse_video = false;
+    this.filter = null;  /* null, 'inverse_video', 'sepia' */
     this.eink_mode = false;
     this.last_opened_filename = null;
     this.popup_mode = null;  // null, 'help', 'files'

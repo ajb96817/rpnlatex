@@ -130,13 +130,17 @@ class App extends React.Component {
 
   apply_layout_to_dom() {
     let body = document.getElementById('body');
-    if(this.state.settings.inverse_video)
+    body.classList.remove('inverse_video');
+    body.classList.remove('sepia');
+    if(this.state.settings.filter === 'inverse_video')
       body.classList.add('inverse_video');
-    else body.classList.remove('inverse_video');
+    if(this.state.settings.filter === 'sepia')
+      body.classList.add('sepia');
     if(this.state.settings.eink_mode)
       body.classList.add('eink_mode');
-    else body.classList.remove('eink_mode');
-    if(this.stack_panel_ref.current && this.document_panel_ref.current &&
+    else
+      body.classList.remove('eink_mode');
+   if(this.stack_panel_ref.current && this.document_panel_ref.current &&
        this.popup_panel_ref.current) {
       this.state.settings.apply_layout_to_dom(
         this.stack_panel_ref.current,

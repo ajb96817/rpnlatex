@@ -1576,7 +1576,10 @@ class InputContext {
       layout.stack_split = scratch;
       break;
     case 'inverse_video':
-      settings.inverse_video = !settings.inverse_video;
+      settings.filter = settings.filter === 'inverse_video' ? null : 'inverse_video';
+      break;
+    case 'sepia':
+      settings.filter = settings.filter === 'sepia' ? null : 'sepia';
       break;
     case 'eink_mode':
       settings.eink_mode = !settings.eink_mode;
@@ -1591,7 +1594,7 @@ class InputContext {
       break;
     case 'reset_layout':
       settings.layout = settings.default_layout();
-      settings.inverse_video = false;
+      settings.filter = null;
       settings.eink_mode = false;
       settings.show_mode_indicator = true;
       full_refresh_needed = true;
