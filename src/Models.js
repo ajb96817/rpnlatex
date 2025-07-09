@@ -1243,7 +1243,7 @@ class SpecialFunctions {
   static factorial(x) {
     if(x >= 0 && this.is_integer(x)) {
       if(x <= 1) return 1;
-      if(x > 20) return NaN;
+      if(x > 20) return Infinity;
       let value = 1;
       for(let i = 2; i <= x; i++)
 	value *= i;
@@ -1268,7 +1268,8 @@ class SpecialFunctions {
     for(let i = 1; i < g+2; i++)
       y += C[i] / (x + i);
     const t = x + g + 0.5;
-    return Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
+    const result = Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
+    return isNaN(result) ? Infinity : result;
   }
 
   // Basic iterative evaluation of double factorial.

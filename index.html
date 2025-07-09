@@ -142,7 +142,7 @@
 	documents section via <span class="keybinding">?</span><span class="keybinding">?</span>.)
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">\</span> Input a longer character string with <a href="#math_entry">math entry</a> mode.</li>
+        <li><span class="keybinding">\</span> Input a longer character string or formula with <a href="#math_entry">math entry</a> mode.</li>
         <li><span class="keybinding">&quot;</span> Create a text object with <a href="#text_entry">text entry</a> mode.</li>
         <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
         <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
@@ -567,7 +567,7 @@
 	</li>
 	<li>
 	  <span class="keybinding">=</span>
-	  Create a <em>separator</em>, a horizontal rule text object which can be
+	  Create a <em>separator</em>, a horizontal rule object which can be
 	  useful to visually separate parts of the document.
 	</li>
 	<li>
@@ -1203,12 +1203,12 @@
 	  Subprefix for building <a href="#derivatives">derivative</a> expressions.
 	</li>
         <li>
-	  <span class="keybinding">f</span>
-	  Subprefix for applying <a href="#named_operators">named operators</a>.
-	</li>
-        <li>
 	  <span class="keybinding">i</span>
 	  Subprefix for applying <a href="#integrals">integral</a> limits.
+	</li>
+        <li>
+	  <span class="keybinding">f</span>
+	  Subprefix for applying <a href="#named_operators">named operators</a>.
 	</li>
       </ul>
 
@@ -1434,7 +1434,7 @@
         <a name="delimiters" id="help_delimiters">Delimiters</a>
       </h2>
       <p>
-        These commands enclose the stack top in various kinds of delimiter pairs.
+        These commands enclose expressions in various kinds of delimiter pairs.
         The delimiters automatically expand to fit the size of their contents.
       </p>
       <p>
@@ -1590,7 +1590,7 @@
           <tr>
             <td colspan="4">
               <span class="keybinding">.</span> or <span class="keybinding">&nbsp;</span>
-              <code>\left.\right.</code> (empty)
+              <code>\left.\right.</code> (blank)
             </td>
           </tr>
       </tbody></table>
