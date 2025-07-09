@@ -558,11 +558,22 @@ class CommandExpr extends Expr {
   json_keys() { return ['command_name', 'operand_exprs', 'options']; }
 
   emit_latex(emitter) {
-    if(this.command_name !== '')
-      emitter.command(this.command_name, this.options);
-    // Braces need to be forced around each operand, even single-letter operands.
-    this.operand_exprs.forEach((operand_expr, index) =>
-      emitter.grouped_expr(operand_expr, 'force', index));
+    if(this.command_name === 'atop' && this.operand_count() === 2) {
+      // \atop is a special case.  It needs to be written as
+      // {left_expr \atop right_expr} instead of \atop{left_expr}{right_expr}.
+      emitter.grouped(() => {
+	emitter.expr(this.operand_exprs[0], 0);
+	emitter.command(this.command_name);
+	emitter.expr(this.operand_exprs[1], 1);
+      }, 'force');
+    }
+    else {
+      if(this.command_name !== '')
+	emitter.command(this.command_name, this.options);
+      // Braces need to be forced around each operand, even single-letter operands.
+      this.operand_exprs.forEach((operand_expr, index) =>
+	emitter.grouped_expr(operand_expr, 'force', index));
+    }
   }
 
   subexpressions() { return this.operand_exprs; }

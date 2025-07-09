@@ -277,18 +277,19 @@ class App extends React.Component {
     return key;
   }
 
-  // On iOS Safari, this event is triggered when resuming the tab.
-  // When this happens, the scroll positions are reset, but a re-render takes care of that
-  // via DocumentComponent.ensure_selection_visible().
   handleVisibilityChange(event) {
-    /* Try to auto-save when the app is being "hidden" or closed.
-       This 'visibilitychange' event is used in preference to the
-       unreliable 'beforeunload' event. */
+    // Try to auto-save when the app is being "hidden" or closed.
+    // This 'visibilitychange' event is used in preference to the
+    // unreliable 'beforeunload' event.
     if(document.visibilityState === 'hidden' && this.state.app_state.is_dirty) {
       const filename = this.state.file_manager_state.current_filename;
       if(filename) this.state.document_storage.save_state(this.state.app_state, filename);
     }
-    this.setState({});  // force React to re-render
+    // On iOS Safari (and maybe others), the scroll positions may be reset when
+    // the app becomes visible again, but a re-render takes care of that via
+    // DocumentComponent.ensure_selection_visible().
+    if(document.visibilityState === 'visible')
+      this.setState({});  // force React to re-render
   }
 
   // Returns 'new' new_app_state.
