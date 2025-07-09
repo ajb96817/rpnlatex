@@ -159,17 +159,16 @@
 	<li><span class="keybinding">#</span> Numerically <a href="#evaluate">evaluate</a> expressions.</li>
         <li><span class="keybinding">;</span> Insert <a href="#greek">lowercase Greek</a> letters.</li>
         <li><span class="keybinding">:</span> Insert <a href="#greek">uppercase Greek</a> letters.</li>
-        <li><span class="keybinding" id="help_insert_script">&amp;</span>
-          Insert script-style uppercase letters such as: <code>\mathscr{ABCDE}</code>;
-          <span class="keybinding">&amp;</span><span class="keybinding">&amp;</span> inserts a literal &amp;.
-        </li>
-        <li id="help_insert_blackboard"><span class="keybinding">%</span>
-          Insert blackboard-style uppercase letters: <code>\mathbb{ABCDE}</code>;
-          <span class="keybinding">%</span><span class="keybinding">%</span> inserts a literal %.
-        </li>
         <li id="help_insert_calligraphic"><span class="keybinding">@</span>
-          Insert calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>;
-          <span class="keybinding">@</span><span class="keybinding">@</span> inserts a literal @.
+          Insert calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>
+        </li>
+        <li>
+	  <span class="keybinding" id="help_insert_script">&amp;</span>
+          Insert script-style uppercase letters: <code>\mathscr{ABCDE}</code>
+        </li>
+        <li id="help_insert_blackboard">
+	  <span class="keybinding">%</span>
+          Insert blackboard-style uppercase letters: <code>\mathbb{ABCDE}</code>
         </li>
         <li><span class="keybinding">$</span> Change <a href="#configuration">configuration settings</a>.</li>
         <li>
@@ -410,10 +409,13 @@
         <li>
           <span class="keybinding">c</span>
           Copy the stack top into an internal clipboard slot.
+	  A prefix argument may optionally be entered to use a different
+	  slot than the default of 1
+	  (e.g. <span class="keybinding">Tab</span><span class="keybinding">5</span><span class="keybinding">c</span>).
         </li>
         <li>
           <span class="keybinding">v</span>
-          Paste the item most recently copied to the clipboard
+          Paste the item copied into a clipboard slot
           (with <span class="keybinding">Tab</span><span class="keybinding">c</span>) onto the stack.
         </li>
         <li>
@@ -553,6 +555,13 @@
             <td><span class="keybinding">&darr;</span> <code>\downarrow</code></td>
             <td><span class="keybinding">&larr;</span> <code>\leftarrow</code></td>
             <td><span class="keybinding">&rarr;</span> <code>\rightarrow</code></td>
+	  </tr>
+	  <tr>
+            <td><span class="keybinding">@</span> <code>@</code></td>
+            <td><span class="keybinding">#</span> <code>\#</code></td>
+            <td><span class="keybinding">$</span> <code>\$</code></td>
+            <td><span class="keybinding">%</span> <code>\%</code></td>
+            <td><span class="keybinding">&amp;</span> <code>\&</code></td>
 	  </tr>
       </tbody></table>
       <p>
@@ -1061,6 +1070,16 @@
         <li><span class="keybinding">[</span> <code>f\enspace x \to f[x]</code></li>
 	<li><span class="keybinding">]</span> <code>f\enspace x \to f\{x\}</code></li>
       </ul>
+      <p>
+	<strong>NOTE:</strong>
+	These commands should be used instead of simply concatenating the function name to
+	its (parenthesized) argument(s) with <span class="keybinding">&nbsp;</span>.
+	The spacing is tighter to match normal function notation.
+	Compare: <code>f{\left(x\right)}</code> vs. <code>f\left(x\right)</code>.
+	Other function patterns can be created by first building an argument list such as
+	<code>x,y\,|\,z,w</code> and then applying to <code>f</code> with
+	<span class="keybinding">/</span><span class="keybinding">o</span>.
+      </p>
 
       <p><strong>Vertical Stacking:</strong></p>
       <ul class="keybindings">

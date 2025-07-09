@@ -1544,6 +1544,8 @@ class InputContext {
         layout.zoom_factor -= scratch;
       else
         layout.zoom_factor += scratch;
+      // Limit zoom percentage to around 2% ... 10000%
+      layout.zoom_factor = Math.max(Math.min(layout.zoom_factor, 80), -80);
       this.notify("Zoom level: " + (layout.zoom_factor > 0 ? "+" : "") + layout.zoom_factor);
       break;
     case 'math_align':
@@ -1897,8 +1899,8 @@ class InputContext {
   }
 
   // Copy stack top to an internal clipboard slot.
-  // A prefix argument may be given to access other slots but this is currently undocumented
-  // because prefix arguments with stack commands highlight items on the stack which is bad UI.
+  // TODO: A prefix argument may be given to access other slots but prefix
+  // arguments with stack commands highlight items on the stack which is bad UI.
   do_copy_to_clipboard(stack) {
     const [new_stack, item] = stack.pop(1);
     const slot = this._get_prefix_argument(1, '*');

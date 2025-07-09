@@ -768,6 +768,11 @@ const EditorKeymap = {
     ' ': "push ",  // "blank", e.g. when you don't want something on one side of an infix
     '/': "push /",
     "\\": "push \\backslash",
+    '@': "push @",
+    '%': "push \\%",
+    '&': "push \\&",
+    '#': "push \\#",
+    '$': "push \\$",
     'ArrowUp': "push \\uparrow",
     'ArrowDown': "push \\downarrow",
     'ArrowLeft': "push \\leftarrow",
@@ -943,12 +948,6 @@ const EditorKeymap = {
     '|': "evaluate_with_variable_substitution"
   },
 
-  // & prefix
-  script: {
-    '[alpha]': "self_push;to_case uppercase;typeface script",
-    '&': "push \\&"
-  },
-
   // @ prefix
   calligraphic: {
     '[alpha]': "self_push;to_case uppercase;typeface calligraphic",
@@ -959,6 +958,12 @@ const EditorKeymap = {
   blackboard: {
     '[alpha]': "self_push;to_case uppercase;typeface blackboard",
     '%': "push \\%"
+  },
+
+  // & prefix
+  script: {
+    '[alpha]': "self_push;to_case uppercase;typeface script",
+    '&': "push \\&"
   },
 
   // ; prefix: lowercase Greek letters

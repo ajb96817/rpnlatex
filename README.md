@@ -46,13 +46,13 @@ also lets you edit the source code if you want to make any changes or customizat
 ## Progressive Web App support
 
 If your browser supports Progressive Web Apps, you can use this as a PWA to get a little
-more screen space.  For example:
+more screen space.
 
   * iOS: Open the application in Safari.  Use the "send to" button and from there select "Add to Home Screen" to create a shortcut to use for PWA mode.
   * Android Chrome: From the three-dots menu, use "Add to Home Screen" to create a PWA mode shortcut.
   * Desktop Chrome: From the menu, select "Cast, save, and share" then "Create shortcut".  After that, there should be a new menu item "Open in rpnlatex" under "Cast, save, and share" to start it in PWA mode.
-
-Desktop Firefox and Safari do not support PWA.
+  * Desktop Safari: Click the "Share" icon in the browser toolbar, then "Add to Dock", then launch the app from the dock.
+  * Desktop Firefox: PWA is not supported.
 
 ## Building from source
 
