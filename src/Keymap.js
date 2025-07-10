@@ -3,7 +3,6 @@ const EditorKeymap = {
   base: {
     // Letters/numbers and some symbols immediately push onto the stack
     '[alnum]': "self_push",
-
     '*': "push *",
     '~': "push \\sim",
 
@@ -15,7 +14,6 @@ const EditorKeymap = {
     'Backspace': "pop",
     "`": "superscript",
     ' ': "concat",
-    '=': "mode relational",
     '<': "infix <",
     '>': "infix >",
     '+': "infix +",
@@ -46,6 +44,7 @@ const EditorKeymap = {
     "'": "mode symbol",
     '.': "mode decoration",
     ',': "mode infix",
+    '=': "mode relational",
     ')': "mode delimiters",
     ';': "mode lowercase_greek",
     ':': "mode uppercase_greek",
@@ -100,16 +99,16 @@ const EditorKeymap = {
     'd': "delete_selected_file",
     'n': "start_new_file",
     'Enter': "load_selected_file",
+    'x': "export_selected_file",
     's': "save_file",
     'S': "save_file_as",
     'ArrowUp': "select_adjacent_file -1",
     'ArrowDown': "select_adjacent_file 1",
-    // undocumented: j/k for scrolling the panel itself
     'j': 'scroll popup_panel vertical 25',
     'k': 'scroll popup_panel vertical -25'
   },
 
-  // User Manual mode
+  // User Guide mode
   help: {
     'ArrowDown': 'scroll popup_panel vertical 25',
     'ArrowUp': 'scroll popup_panel vertical -25',
@@ -216,10 +215,11 @@ const EditorKeymap = {
     '+': "config zoom_factor increase",
     'Z': "config zoom_factor decrease",
     '-': "config zoom_factor decrease",
+    '_': "config zoom_factor decrease",  // undocumented alias for z/-
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
     '$': "push \\$",
-    '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\mathsfit{A}\\textup{A}\\Bbb{A}\\mathscr{A}[\\big[\\Big[\\bigg[\\Bigg[\\int"
+    '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\mathsfit{A}\\textup{A}\\Bbb{A}\\mathscr{A}\\triangleq[\\big[\\Big[\\bigg[\\Bigg[\\int"
   },
 
   // Delegate (shared) keymap for the 5 text_entry modes' editor commands.
@@ -703,6 +703,7 @@ const EditorKeymap = {
     '?': "push ?;push =;operator overset 2;apply_infix"
   },
 
+  // =2 prefix
   variant_relational: {
     's': "infix \\sqsubset",
     'S': "infix \\sqsubseteq",

@@ -110,6 +110,31 @@ class App extends React.Component {
     this.state.input_context.notify('Loaded: ' + filename);
   }
 
+  // Export (download) a single file as .json
+  start_exporting_filename(filename) {
+    this.state.document_storage.load_state(
+      filename,
+      this.file_load_for_export_finished.bind(this),
+      this.file_load_error.bind(this));
+  }
+
+  file_load_for_export_finished(filename, app_state) {
+    // Download the app_state by converting it to a JSON blob,
+    // creating a fake temporary link with the blob data,
+    // then "clicking" on the link.
+    const json = app_state.to_json();
+    const export_blob = new Blob(
+      [JSON.stringify(json, null, 2)],
+      {type: 'application/json'});
+    const blob_url = URL.createObjectURL(export_blob);
+    const download_link = document.createElement('a');
+    download_link.download = filename + '.json';
+    download_link.href = blob_url;
+    document.body.appendChild(download_link);
+    download_link.click();
+    document.body.removeChild(download_link);
+  }
+
   // TODO: It's not necessarily an error if the file doesn't exist,
   // but we should make sure to clear stack/document in that case
   // (same as do_start_new_file).
@@ -620,6 +645,7 @@ class FileManagerComponent extends React.Component {
       helpline([keybinding("\u2191"), keybinding("\u2193"), helptext('Select next/previous file')]),
       helpline([keybinding('j'), keybinding('k'), helptext('Scroll this panel down or up')]),
       helpline([keybinding('Enter'), helptext('Open selected file')]),
+      helpline([keybinding('x'), helptext('Export selected file as JSON')]),
       helpline([keybinding('d'), helptext('Delete selected file')]),
       helpline([keybinding('n'), helptext('Start a new empty file')]),
       helpline([keybinding('s'), helptext('Save current file'),

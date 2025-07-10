@@ -538,6 +538,13 @@ class InputContext {
     this.app_component.start_loading_filename(selected_filename);
   }
 
+  do_export_selected_file(stack) {
+    const selected_filename = this.app_component.state.file_manager_state.selected_filename;
+    if(!selected_filename)
+      return this.error_flash_document();
+    this.app_component.start_exporting_filename(selected_filename);
+  }
+
   do_start_new_file(stack) {
     let file_manager_state = this.app_component.state.file_manager_state;
     let document_storage = this.app_component.state.document_storage;
