@@ -1455,7 +1455,7 @@ class TextItemTextElement extends TextItemElement {
     const tokens = this.text.split(/ +/);
     let pieces = [];
     for(let i = 0; i < tokens.length; i++) {
-      if(this.is_bold)
+     if(this.is_bold)
         pieces.push("\\textbf{");
       else if(this.is_italic)
         pieces.push("\\textit{");

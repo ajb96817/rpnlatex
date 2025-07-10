@@ -237,8 +237,10 @@ class App extends React.Component {
   }
 
   handleKeyDown(event) {
-    // No Alt/Meta key combinations are handled.
-    if(event.altKey || event.metaKey)
+    // No Alt key combinations are handled.
+    // Meta key combinations are aliased to the Ctrl commands to
+    // support things like Cmd-Z on MacOS.
+    if(event.altKey)
       return;
     const key = this._keyname_from_event(event);
     if(key === 'Meta' || key === 'Ctrl+Control')
@@ -269,7 +271,7 @@ class App extends React.Component {
     if(event.shiftKey &&
        (key.startsWith('Arrow') || key === 'Enter' || key === 'Backspace'))
       key = 'Shift+' + key;
-    if(event.ctrlKey)
+    if(event.ctrlKey || event.metaKey)
       key = 'Ctrl+' + key;
     // NOTE: none of the Alt stuff works on Firefox for some reason.  Chromium seems ok.
     // if(event.metaKey || event.altKey || event.getModifierState('Alt') || event.getModifierState('Meta'))

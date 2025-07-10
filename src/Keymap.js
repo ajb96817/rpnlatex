@@ -379,7 +379,7 @@ const EditorKeymap = {
     'f': "mode named_operator",
     'h': "mode hyperbolic",
     'i': "mode integral_limits",
-    'j': "operator atop 2",
+    'J': "operator atop 2",
     'I': "push \\int;swap;superscript;swap;subscript",
     'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
     'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z)
