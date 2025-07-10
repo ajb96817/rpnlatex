@@ -768,6 +768,19 @@ class ImportExportState {
     this.import_count++;
     this.change_state('importing');
   }
+
+  import_json_file(filename, content) {
+    let document_storage = this.document_storage;
+    let parsed, app_state;
+    try {
+      parsed = JSON.parse(content);
+      app_state = AppState.from_json(parsed);
+    } catch(e) {
+      alert('Invalid .json file: ' + filename);
+      return;
+    }
+    document_storage.save_state(app_state, filename);
+  }
 }
 
 

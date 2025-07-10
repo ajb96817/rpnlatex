@@ -282,7 +282,7 @@ const EditorKeymap = {
   delimiters: {
     'b': "delimiters \\langle \\vert",  // <x| Dirac bra
     'c': "delimiters \\lceil \\rceil",
-    'd': "push \\llbracket;swap;concat;push \\rrbracket;concat",  // NOTE: non flex size due to KaTeX limitation
+    'd': "push \\llbracket;swap;concat false;push \\rrbracket;concat false",  // NOTE: non flex size due to KaTeX limitation
     'f': "delimiters \\lfloor \\rfloor",
     'F': "toggle_fixed_size_delimiters",
     'g': "delimiters \\lgroup \\rgroup",

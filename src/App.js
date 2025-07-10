@@ -254,6 +254,7 @@ class App extends React.Component {
 	   className: settings.dock_helptext ? 'help' : null
 	 }, document_component)),
       $e(PopupPanelComponent, {
+	app: this,
         settings: settings,
         popup_panel_ref: this.popup_panel_ref,
         import_export_state: this.state.import_export_state,
@@ -519,6 +520,7 @@ class FileManagerComponent extends React.Component {
   render() {
     const show_import_export = !this.props.file_manager_state.unavailable;
     this.file_input_ref = React.createRef();
+    this.json_file_input_ref = React.createRef();
     return $e(
       'div', {className: 'file_header', id: 'files_panel'},
       $e('h2', {}, 'File Manager'),
@@ -533,11 +535,21 @@ class FileManagerComponent extends React.Component {
   render_export_import_section() {
     const import_export_state = this.props.import_export_state;
     const subcomponents = [
+      $e('p', {}, 'Upload (import) a single .json document:'),
+      $e('p', {},
+	 $e('input', {
+	   type: 'file',
+	   ref: this.json_file_input_ref
+	 }),
+	 $e('input', {
+	   type: 'button',
+	   value: 'Upload',
+	   onClick: this.handle_json_file_upload.bind(this)
+	 })),
       $e(
 	'p', {},
-	'This section lets you download the internal browser document storage as a .zip file, or restore the internal storage from a previously downloaded export.'),
-      $e('p', {},
-         $e('strong', {}, import_export_state.textual_state()))
+	'Import or export all documents as a .zip file:'),
+      $e('p', {}, $e('strong', {}, import_export_state.textual_state()))
     ];
     if(import_export_state.state === 'idle')
       subcomponents.push(
@@ -557,7 +569,7 @@ class FileManagerComponent extends React.Component {
     if(import_export_state.state === 'idle') {
       subcomponents.push(
         $e('p', {},
-           $e('span', {}, 'Import Zip File: '),
+           $e('span', {}, 'Upload zip file: '),
            $e('input', {
              type: 'file',
              ref: this.file_input_ref
@@ -666,6 +678,27 @@ class FileManagerComponent extends React.Component {
       alert('Please select a single .zip file to import.');
     else
       alert('Please select a .zip file to import.');
+  }
+
+  handle_json_file_upload(event) {
+    const file_input_elt = this.json_file_input_ref.current;
+    if(!file_input_elt) return;
+    const file_list = [...file_input_elt.files];
+    if(file_list.length === 0)
+      alert('Please select a .json file to import.');
+    if(!file_list.every(file => file.name.endsWith('.json')))
+      alert('Files must have a .json extension.');
+    for(let i = 0; i < file_list.length; i++)
+      this.import_json_file(file_list[i]);
+  }
+
+  import_json_file(file) {
+    if(!file.name.endsWith('.json')) return;  // should be always true
+    const filename = file.name.slice(0, file.name.length-5);
+    file.text().then(json => {
+      this.props.import_export_state.import_json_file(filename, json);
+      this.props.app.request_file_list();
+    });
   }
 
   start_importing(file) {
@@ -812,6 +845,7 @@ class PopupPanelComponent extends React.Component {
       subcomponent = $e(
         'div', {id: 'files_container'},
         $e(FileManagerComponent, {
+	  app: this.props.app,
           import_export_state: this.props.import_export_state,
           document_storage: this.props.document_storage,
           file_manager_state: this.props.file_manager_state
