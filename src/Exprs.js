@@ -555,7 +555,13 @@ class CommandExpr extends Expr {
 
   operand_count() { return this.operand_exprs.length; }
   expr_type() { return 'command'; }
-  json_keys() { return ['command_name', 'operand_exprs', 'options']; }
+  json_keys() { return ['command_name', 'operand_exprs']; }
+
+  to_json() {
+    let json = super.to_json();
+    if(this.options) json.options = this.options;
+    return json;
+  }
 
   emit_latex(emitter) {
     if(this.command_name === 'atop' && this.operand_count() === 2) {

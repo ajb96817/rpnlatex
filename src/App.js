@@ -130,6 +130,7 @@ class App extends React.Component {
     const download_link = document.createElement('a');
     download_link.download = filename + '.json';
     download_link.href = blob_url;
+    download_link.style.display = 'none';
     document.body.appendChild(download_link);
     download_link.click();
     document.body.removeChild(download_link);
