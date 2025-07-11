@@ -314,6 +314,15 @@ class Expr {
     return FontExpr.wrap(this).with_bold(true).unwrap_if_possible();
   }
 
+  // Add a \prime superscript to this Expr.
+  // SubscriptSuperscriptExpr overrides this to handle the case of multiple
+  // \primes attached to the same Expr, which should be rendered as:
+  // x^{\prime\prime\prime}.
+  with_prime(autoparenthesize) {
+    return SubscriptSuperscriptExpr.build_subscript_superscript(
+      this, new CommandExpr('prime'), true, autoparenthesize);
+  }
+
   // Try to find a close rational approximation to value
   // or up to a factor of some common constants like sqrt(2) or pi.
   // Return an Expr if successful, otherwise null.
@@ -1872,6 +1881,28 @@ class SubscriptSuperscriptExpr extends Expr {
     if(this.subscript_expr) pieces.push(this.subscript_expr);
     if(this.superscript_expr) pieces.push(this.superscript_expr);
     return pieces;
+  }
+
+  with_prime(autoparenthesize) {
+    // Check whether the base expr is already of the form x^{\prime}, x^{\prime\prime}, etc.
+    // If so, add an extra \prime into the superscript.
+    if(this.superscript_expr) {
+      const s = this.superscript_expr;
+      const new_prime_expr = new CommandExpr('prime');
+      const is_prime_command = expr =>
+            expr.is_expr_type('command') &&
+            expr.operand_count() === 0 &&
+	    expr.command_name === 'prime';
+      let new_superscript_expr = null;
+      if(is_prime_command(s))
+        new_superscript_expr = new SequenceExpr([s, new_prime_expr]);
+      else if(s.is_expr_type('sequence') && s.exprs.every(is_prime_command))
+        new_superscript_expr = new SequenceExpr(s.exprs.concat([new_prime_expr]));
+      if(new_superscript_expr)
+        return new SubscriptSuperscriptExpr(
+          this.base_expr, this.subscript_expr, new_superscript_expr);
+    }
+    return super.with_prime(autoparenthesize);
   }
 
   evaluate(assignments) {

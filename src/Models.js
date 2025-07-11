@@ -949,7 +949,7 @@ class ExprPath {
 //   - '*' is multiplication, but gets converted to \cdot.
 //   - '/' and '*' bind tighter than '+' and '-'.
 //   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
-//   - Postfix factorial notation is allowed.
+//   - Postfix factorial and "prime" (y'') notation is allowed.
 //   - Scientific notation such as 3e-4 is handled as a special case.
 //   - Placeholders can be inserted with [].
 //   - Negative constants such as -10 are handled by the "- factor" production
@@ -973,6 +973,8 @@ class ExprPath {
 //       '(' expr ')' |   (delimiter types must match)
 //       '-' factor |     (unary minus, only if factor(allow_unary_minus))
 //       factor '!' |     (factorial notation)
+//       factor "'" |     (prime notation)
+//       
 //       []               (placeholder)
 //
 class ExprParser {
@@ -1021,7 +1023,7 @@ class ExprParser {
   //     NOTE: negative numbers are handled by the "- factor" production in the grammar
   //   symbol: x (xyz becomes 3 separate symbols)
   //   pi: @ -> \pi (special case)
-  //   operator: +, -, *, /, //, !
+  //   operator: +, -, *, /, //, !, '
   //   open_delimiter: ( or [ or {
   //   close_delimiter: ) or ] or }
   static tokenize(s) {
@@ -1052,7 +1054,7 @@ class ExprParser {
         let token_type = null;
         if(/\s/.test(token)) token_type = 'whitespace';
         else if(/\w/.test(token)) token_type = 'symbol';
-        else if(/[-+!/*]/.test(token)) token_type = 'operator';
+        else if(/[-+!'/*]/.test(token)) token_type = 'operator';
         else if(/[([{]/.test(token)) token_type = 'open_delimiter';
         else if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
 	else if(token === '@') token_type = 'pi';
@@ -1160,11 +1162,15 @@ class ExprParser {
   parse_factor(allow_unary_minus) {
     let factor = this.parse_factor_(allow_unary_minus);
     while(factor) {
-      // Process one or more postfix '!' if present.
+      // Process one or more postfix ! or ' (prime) tokens if present.
       const op_token = this.peek_for('operator');
       if(op_token && op_token.text === '!') {
         this.next_token();
         factor = Expr.combine_pair(factor, new TextExpr('!'));
+      }
+      else if(op_token && op_token.text === '\'') {
+	this.next_token();
+	factor = factor.with_prime();
       }
       else break;
     }

@@ -65,7 +65,8 @@ div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid 
    with an active prefix argument. */
 div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
-div.latex_source_item.highlighted { border-left-color: #393; }
+div.latex_source_item.highlighted { border-left-color: #383; }
+div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833 !important; }
 
 /* Override item type indicator bar if it contains a KaTeX error. */
 div.latex_fragment:has(div.latex_error_message) {

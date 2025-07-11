@@ -302,30 +302,8 @@ class InputContext {
   // but needs some special handling to coalesce multiple \prime into a single superscript.
   do_prime(stack) {
     const [new_stack, base_expr] = stack.pop_exprs(1);
-    const new_prime_expr = new CommandExpr('prime');
-    // Check whether the base expr is already of the form x^{\prime}, x^{\prime\prime}, etc.
-    // If so, add an extra \prime into the superscript.
-    if(base_expr.is_expr_type('subscriptsuperscript') && base_expr.superscript_expr) {
-      const s = base_expr.superscript_expr;
-      const is_prime_command = expr =>
-            expr.is_expr_type('command') &&
-            expr.operand_count() === 0 &&
-	    expr.command_name === 'prime';
-      let new_superscript_expr = null;
-      if(is_prime_command(s))
-        new_superscript_expr = new SequenceExpr([s, new_prime_expr]);
-      else if(s.is_expr_type('sequence') && s.exprs.every(is_prime_command))
-        new_superscript_expr = new SequenceExpr(s.exprs.concat([new_prime_expr]));
-      if(new_superscript_expr) {
-        const new_expr = new SubscriptSuperscriptExpr(
-          base_expr.base_expr, base_expr.subscript_expr, new_superscript_expr);
-        return new_stack.push_expr(new_expr);
-      }
-    }
-    // Otherwise, adding a prime works just like adding a \prime superscript.
-    const new_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
-      base_expr, new_prime_expr, true, this.settings.autoparenthesize);
-    return new_stack.push_expr(new_expr);
+    return new_stack.push_expr(
+      base_expr.with_prime(this.settings.autoparenthesize));
   }
 
   do_mode(stack, new_mode) { this.switch_to_mode(new_mode); }
