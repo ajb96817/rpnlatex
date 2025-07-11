@@ -170,6 +170,7 @@ const EditorKeymap = {
     'f': "toggle_popup files",
     'j': "extract_from_document",
     'J': "extract_from_document preserve",
+    'k': "keep",
     'l': "recenter_document 50",
     'n': "nip",
     'o': "over",

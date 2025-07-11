@@ -431,6 +431,13 @@ class InputContext {
       return new_stack;
   }
 
+  // Remove all but the top N stack items (default=1).
+  do_keep(stack) {
+    const arg = this._get_prefix_argument(1, stack.depth());
+    const [new_stack, ...items] = stack.pop(arg);
+    return new_stack.pop(new_stack.depth())[0].push_all(items);
+  }
+
   do_change_document_selection(stack, amount_string) {
     const amount = parseInt(amount_string);
     if(this.settings.dock_helptext) {
