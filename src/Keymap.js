@@ -379,8 +379,9 @@ const EditorKeymap = {
     'f': "mode named_operator",
     'h': "mode hyperbolic",
     'i': "mode integral_limits",
-    'J': "operator atop 2",
     'I': "push \\int;swap;superscript;swap;subscript",
+    'j': "mode integral_with_limits",
+    'J': "operator atop 2",
     'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
     'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z)
     'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
@@ -529,6 +530,18 @@ const EditorKeymap = {
     'U': "push -1;subscript;push 1;superscript",  // -1..1 : symmetric [U]nit
     't': "push 0;subscript;push 2\\pi;superscript",  // 0..2pi : [t]rigonometric
     'T': "push -;push \\pi;fuse;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
+  },
+
+  // /j prefix
+  // (same as /i, but create the integral sign too)
+  integral_with_limits: {
+    'r': "push \\int;push -;push \\infty;fuse;subscript;push \\infty;superscript",
+    'n': "push \\int;push -;push \\infty;fuse;subscript;push 0;superscript",
+    'p': "push \\int;push 0;subscript;push \\infty;superscript",
+    'u': "push \\int;push 0;subscript;push 1;superscript",
+    'U': "push \\int;push -1;subscript;push 1;superscript",
+    't': "push \\int;push 0;subscript;push 2\\pi;superscript",
+    'T': "push \\int;push -;push \\pi;fuse;subscript;push \\pi;superscript"
   },
 
   // /d prefix: derivative operations
