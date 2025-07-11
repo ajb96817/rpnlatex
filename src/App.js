@@ -390,16 +390,17 @@ class StackItemsComponent extends React.Component {
     const input_context = this.props.input_context;
     const layout = this.props.settings.layout;
     const item_components = this.props.stack.items.map((item, index) => {
-      // If there's an active prefix argument for stack commands, highlight the stack items that
-      // will be affected.
-      const selected = (
+      // If there's an active prefix argument for stack commands, highlight the
+      // corresponding stack item that will (probably) be affected.
+      const highlighted = (
         input_context.mode === 'stack' &&
           (input_context.prefix_argument < 0 ||
-           this.props.stack.items.length-index <= input_context.prefix_argument));
+	   (input_context.prefix_argument > 0 &&
+            this.props.stack.items.length-index == input_context.prefix_argument)));
       return $e(
         ItemComponent, {
           item: item,
-          selected: selected,
+          highlighted: highlighted,
           inline_math: layout.inline_math,
           item_ref: React.createRef(),
           key: item.react_key(index)
@@ -721,7 +722,8 @@ class ItemComponent extends React.Component {
   render() {
     const item = this.props.item;
     const item_ref = this.props.item_ref;  // references the top-level (outer) item div
-    let className = this.props.selected ? 'selected ' : '';
+    let className = this.props.selected ? 'selected ' :
+	(this.props.highlighted ? 'highlighted ' : '');
     if(item.is_text_item() && item.is_heading)
       className = 'heading_style ' + className;
     const tag_element = item.tag_string ?

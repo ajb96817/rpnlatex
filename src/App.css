@@ -61,6 +61,12 @@ div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #bbf; }
 
+/* Highlight the stack item(s) that are the "target" for a stack (Tab) command
+   with an active prefix argument. */
+div.expr_item div.highlighted { border-left-color: #555; }
+div.text_item div.highlighted { border-left-color: #66d; }
+div.latex_source_item.highlighted { border-left-color: #393; }
+
 /* Override item type indicator bar if it contains a KaTeX error. */
 div.latex_fragment:has(div.latex_error_message) {
     border-left: var(--itemtype-bar-width) solid #c44 !important;
@@ -222,9 +228,6 @@ div.stack_items {
     border-bottom: 2px solid #ddd;
 }
 body.eink_mode div.stack_items { border-bottom: none; }
-
-/* Highlight stack items "selected" by prefix arguments. */
-div.stack_items div.selected { background-color: #eef; }
 
 div.stack_items div.text_entry {
     text-align: left;  /* overrides .rightalign_math if needed */
