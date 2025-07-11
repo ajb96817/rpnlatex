@@ -845,12 +845,12 @@ const EditorKeymap = {
     '*': "push *;superscript",
     '~': "apply_hat tilde",
     '=': "push \\Rightarrow;swap;fuse",
-    '-': "push -;swap;fuse",
-    '+': "push +;swap;fuse",
+    '-': "autoparenthesize;push -;swap;fuse",
+    '+': "autoparenthesize;push +;swap;fuse",
     '`': "push T;typeface roman;superscript",  // transpose
-    '/': "push 1;swap;autoparenthesize;infix /",  // 1/x
+    '/': "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
     '_': "operator underline",
-    '!': "push \\neg;swap;fuse",
+    '!': "autoparenthesize;push \\neg;swap;fuse",
     "\\": "operator bcancel",
     '[': "adjust_size smaller",
     ']': "adjust_size larger",

@@ -391,12 +391,8 @@ class StackItemsComponent extends React.Component {
     const layout = this.props.settings.layout;
     const item_components = this.props.stack.items.map((item, index) => {
       // If there's an active prefix argument for stack commands, highlight the
-      // corresponding stack item that will (probably) be affected.
-      const highlighted = (
-        input_context.mode === 'stack' &&
-          (input_context.prefix_argument < 0 ||
-	   (input_context.prefix_argument > 0 &&
-            this.props.stack.items.length-index == input_context.prefix_argument)));
+      // corresponding stack item(s) that will (probably) be affected.
+      const highlighted = this.should_highlight_item_index(this.props.stack.items.length-index);
       return $e(
         ItemComponent, {
           item: item,
@@ -421,6 +417,39 @@ class StackItemsComponent extends React.Component {
     if(layout.stack_rightalign_math && !layout.inline_math)
       class_names.push('rightalign_math');
     return $e('div', {className: class_names.join(' ')}, item_components);
+  }
+
+  // Determine if the given stack item index should be "highlighted" with the
+  // current mode and prefix argument.  Here, 'index' is 1-based from the
+  // user's point of view: index=1 is the stack top, index=2 is the next stack
+  // item, etc.  The actual stack.items list internally is reversed from this
+  // (i.e. the stack top is stored at the end of the list).
+  // 'prefix_argument' = 0 means no prefix argument is entered.
+  // 'prefix_argument' < 0 means apply to the entire stack (using '*').
+  // 'prefix_argument' >= 1 corresponds to the 1-based stack indexes.
+  should_highlight_item_index(index) {
+    const prefix_argument = this.props.input_context.prefix_argument;
+    const mode = this.props.input_context.mode;
+    if(mode === 'stack' || mode === 'array') {
+      if(prefix_argument < 0)
+	return true;  // highlight all items
+      else
+	return prefix_argument > 0 && prefix_argument === index;
+    }
+    else if(mode === 'build_matrix') {
+      // In build_matrix mode, the number of matrix rows to build has already
+      // been selected from 'array' mode and stored in the input_context.
+      // The current prefix_argument (if any) indicates the number of columns.
+      // The "effective" prefix_argument is then the product of these.
+      // Note that 'select all' (*) mode isn't allowed in build_matrix mode.
+      // If no column count has been entered yet, treat it as if it were 1
+      // (so that the highlight stays as it was before build_matrix mode was
+      // entered).
+      const column_count = prefix_argument <= 0 ? 1 : prefix_argument;
+      return this.props.input_context.matrix_row_count * column_count === index;
+    }
+    else
+      return false;
   }
 }
 

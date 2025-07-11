@@ -180,7 +180,8 @@ div.tag_string {
 
 #panel_layout { height: 100%; }
 
-div.panel { background-color: #f8f8f8; }
+div.panel { background-color: #f8f8f8; }  /* this ends up being the stack panel color */
+body.sepia div.panel { background-color: #f0f0f0; /* for better contrast against document panel */ }
 
 #stack_panel.errorflash {
     animation-name: errorflash_stack;
