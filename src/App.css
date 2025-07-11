@@ -59,12 +59,13 @@ div.latex_fragment {
 }
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
-div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #bbf; }
+div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
 
 /* Highlight the stack item(s) that are the "target" for a stack (Tab) command
    with an active prefix argument. */
 div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
+div.separator_item.highlighted { border-left-color: #66d; }
 div.latex_source_item.highlighted { border-left-color: #383; }
 div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833 !important; }
 
@@ -105,7 +106,7 @@ div.separator_item {
     display: flex;
     align-items: center;  /* this will have a single <hr /> inside it to be centered vertically */
     height: 0.75em;
-    border-left: var(--itemtype-bar-width) solid #bbf;
+    border-left: var(--itemtype-bar-width) solid #99f;  /* should match div.text_item's color */
     padding: 0.2em 0;
 }
 div.separator_item hr {

@@ -218,8 +218,7 @@ const EditorKeymap = {
     '_': "config zoom_factor decrease",  // undocumented alias for z/-
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
-    '$': "push \\$",
-    '!': "push \\alpha\\boldsymbol{\\alpha}\\mathcal{A}\\mathfrak{A}A\\bold{A}\\boldsymbol{A}\\mathtt{A}\\mathrm{A}\\mathsf{A}\\mathsfit{A}\\textup{A}\\Bbb{A}\\mathscr{A}\\triangleq[\\big[\\Big[\\bigg[\\Bigg[\\int"
+    '$': "push \\$"
   },
 
   // Delegate (shared) keymap for the 5 text_entry modes' editor commands.
