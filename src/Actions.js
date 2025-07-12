@@ -1173,9 +1173,17 @@ class InputContext {
     const trimmed_text = text.trim();
     if(textstyle === 'text' || textstyle === 'heading') {
       let item = TextItem.parse_string(text);
-      if(textstyle === 'heading') item.is_heading = true;
-      this._cancel_text_entry(stack);
-      return stack.push(item);
+      if(item) {
+	if(textstyle === 'heading') item.is_heading = true;
+	this._cancel_text_entry(stack);
+	return stack.push(item);
+      }
+      else {
+	this.suppress_undo();
+	this.switch_to_mode(this.mode);
+	this.error_flash_stack();
+	return;
+      }
     }
     let new_expr = null;
     if(textstyle === 'roman_text')

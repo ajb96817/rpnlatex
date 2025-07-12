@@ -1545,43 +1545,45 @@ class TextItem extends Item {
 
   // "Parse" a string which may or may not contain certain escape sequences:
   //    **bold text** - Converts into a bolded TextItemTextElement
-  //    __italic text__ - Converts into an italic TextItemTextElement
+  //    //italic text// - Converts into an italic TextItemTextElement
   //    [] - Converts into a TextItemExprElement wrapping a PlaceholderExpr
   //    $x+y$ - Converts into TextItemExprElement with an inline math expression
   //            as parsed by ExprParser (limited functionality).
   //            If the parsing fails (invalid syntax), null is returned.
   // A TextItem with the parsed elements is returned, or null on failure.
+  // NOTE: math text after an unclosed $ at the end is silently dropped: 'test $x+y'
   static parse_string(s) {
     let tokens = TextItem.tokenize_string(s);
     let is_bold = false;
     let is_italic = false;
+    let math_mode = false;
+    let math_pieces = null;
     let elements = [];
-    let pos = 0;
-    while(pos < tokens.length) {
-      const token = tokens[pos];
+    for(let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
       if(token.type === 'math_mode') {
-	// Scan ahead to the next 'math_mode' ($) token, if there is one.
-	// If there isn't another, parsing fails (e.g.: 'test $x+1').
-	// Combine text of all tokens between the two $'s into the math
-	// expression to be parsed.  It's done this way in case there
-	// is something like $x//y$ which would normally get confused as
-	// the italic '//' token.
-	pos++;  // skip opening $
-	const math_pieces = [];
-	while(pos < tokens.length && tokens[pos].type !== 'math_mode')
-	  math_pieces.push(tokens[pos++].text);
-	if(pos === tokens.length) return null;
-	pos++;  // skip closing $
-	const math_text = math_pieces.join('');
-	let math_expr = ExprParser.parse_string(math_text);
-	if(!math_expr) return null;  // entire TextItem parsing fails if inline math exprs fail
-	if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
-	elements.push(new TextItemExprElement(math_expr));
+	if(math_mode) {
+	  // Switching out of math mode ($).  All tokens that were between
+	  // the two $'s are combined into the math expression to be parsed.
+	  // It's done this way in case there is something like $x//y$ which
+	  // would normally get confused as the italic '//' token.
+	  const math_text = math_pieces.join('');
+	  let math_expr = ExprParser.parse_string(math_text);
+	  if(!math_expr) return null;  // entire TextItem parsing fails if inline math exprs fail
+	  if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
+	  elements.push(new TextItemExprElement(math_expr));
+	}
+	else  // switching into math mode
+	  math_pieces = [];  // start accumulating text pieces inside $...$
+	math_mode = !math_mode;
       }
-      else {
-	switch(token.type) {
-	case 'bold': is_bold = !is_bold; break;
-	case 'italic': is_italic = !is_italic; break;
+      else if(math_mode)  // inside $...$
+	math_pieces.push(token.text);
+      else switch(token.type) {
+	case 'bold':
+	  is_bold = !is_bold; break;
+	case 'italic':
+	  is_italic = !is_italic; break;
 	case 'placeholder':
 	  elements.push(new TextItemExprElement(
 	    is_bold ? (new PlaceholderExpr()).as_bold() : new PlaceholderExpr()));
@@ -1589,9 +1591,8 @@ class TextItem extends Item {
 	case 'text':
 	  elements.push(new TextItemTextElement(token.text, is_bold, is_italic));
 	  break;
-	default: break;
-	}
-	pos++;
+	default:
+	  break;
       }
     }
     return new TextItem(elements);
