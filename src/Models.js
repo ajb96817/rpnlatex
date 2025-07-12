@@ -159,19 +159,20 @@ class LatexEmitter {
     const replacements = {
       ' ': "\\,",
       '_': "\\_",
-      '^': "\\wedge ",
+      '^': "\\wedge{}",
       '%': "\\%",
-      "'": "\\rq ",
-      "`": "\\lq ",
+      "'": "\\rq{}",
+      "`": "\\lq{}",
       '$': "\\$",
       '&': "\\&",
       '#': "\\#",
       '}': "\\}",
       '{': "\\{",
-      '~': "\\sim ",
-      "\\": "\\backslash "
+      '~': "\\sim{}",
+      ':': "\\colon{}",
+      "\\": "\\backslash{}"
     };
-    return text.replaceAll(/[ _^%'`$&#}{~\\]/g, match => replacements[match]);
+    return text.replaceAll(/[ _^%'`$&#}{~:\\]/g, match => replacements[match]);
   }
 
   // Inverse of latex_escape.  This is used by do_edit_item to allow simple TextExprs
@@ -182,20 +183,21 @@ class LatexEmitter {
     const replacements = {
       "\\,": ' ',
       "\\_": '_',
-      "\\wedge ": '^',
+      "\\wedge{}": '^',
       "\\%": '%',
-      "\\rq ": "'",
-      "\\lq ": "`",
+      "\\rq{}": "'",
+      "\\lq{}": "`",
       "\\$": '$',
       "\\&": '&',
       "\\#": '#',
       "\\}": '}',
       "\\{": '{',
-      "\\sim ": '~',
-      "\\backslash ": "\\"
+      "\\sim{}": '~',
+      "\\colon{}": ':',
+      "\\backslash{}": "\\"
     };
     return text.replaceAll(
-      /\\,|\\_|\\wedge |\\%|\\rq |\\lq |\\\$|\\&|\\#|\\\}|\\\{|\\sim |\\backslash /g,
+      /\\,|\\_|\\wedge\{\}|\\%|\\rq\{\}|\\lq\{\}|\\\$|\\&|\\#|\\\}|\\\{|\\sim\{\}|\\colon\{\}|\\backslash\{\}/g,
       match => replacements[match]);
   }
 
@@ -1669,10 +1671,10 @@ class TextItem extends Item {
   }
   
   to_latex() {
-    // NOTE: Elements need to be joined with a space between them,
+    // NOTE: Elements need to be joined with an empty group {} between them,
     // in case there are adjacent TextItemExprElements.  Otherwise, for example,
     // adjacent "\to" and "x" would become "\tox".
-    return this.elements.map(element => element.to_latex()).join(' ');
+    return this.elements.map(element => element.to_latex()).join('{}');
   }
 
   clone() {

@@ -33,8 +33,6 @@ class Expr {
       return new PlaceholderExpr();
     case 'text':
       return new TextExpr(json.text);
-    case 'word':
-      return new WordExpr(json.text, json.bold, json.italic);
     case 'sequence':
       return new SequenceExpr(
         this._list(json.exprs),
@@ -1414,60 +1412,6 @@ class PostfixExpr extends Expr {
 }
 
 
-// Work-in-progress
-class WordExpr extends Expr {
-  // Special escape sequences are needed within \text{...} commands.
-  // This is a quirk of TeX/LaTeX.
-  static _latex_escape(text) {
-    // TODO: make this table a global (or switch statement) so it doesn't constantly get remade
-    const replacements = {
-      '_': "\\_",
-      '^': "\\textasciicircum",
-      '%': "\\%",
-      '$': "\\$",
-      '&': "\\&",
-      '#': "\\#",
-      '}': "\\}",
-      '{': "\\{",
-      '~': "\\textasciitilde",
-      "\\": "\\textbackslash "
-    };
-    return text.replaceAll(/[_^%$&#}{~\\]/g, match => replacements[match]);
-  }
-
-  constructor(text, is_bold, is_italic) {
-    super();
-    this.text = text;
-    this.is_bold = !!is_bold;
-    this.is_italic = !!is_italic;
-  }
-
-  expr_type() { return 'text'; }
-
-  as_bold() {
-    return new WordExpr(this.text, true, this.is_italic);
-  }
-
-  // to_latex (TextItemTextElement)
-
-  to_json() {
-    let json = {'text': this.text};
-    if(this.is_bold) json.bold = true;
-    if(this.is_italic) json.italic = true;
-    return json;
-  }
-
-  to_text() {
-    if(this.is_bold)
-      return ['**', this.text, '**'].join('');
-    else if(this.is_italic)
-      return ['//', this.text, '//'].join('');
-    else
-      return this.text;
-  }
-}
-
-
 // Represents a snippet of LaTeX code; these are the "leaves" of Expr-trees.
 class TextExpr extends Expr {
   static blank() { return new TextExpr(''); }
@@ -1481,10 +1425,18 @@ class TextExpr extends Expr {
   json_keys() { return ['text']; }
 
   emit_latex(emitter) {
-    // Check explicitly for '-123'.
-    // These need to be enclosed in latex braces to get the proper
-    // spacing in things like x+-3.
-    emitter.text(this.text, this.looks_like_negative_number());
+    if(this.text === '') {
+      // An "empty" TextExpr is a special case, emitted as an empty LaTeX group {}.
+      // For example: -x is unary minus, but {}-x is "something" minus x.
+      // The spacing is larger in the latter case.
+      emitter.grouped(() => null, true);
+    }
+    else {
+      // Check explicitly for '-123'.
+      // These need to be enclosed in latex braces to get the proper
+      // spacing in things like x+-3.
+      emitter.text(this.text, this.looks_like_negative_number());
+    }
   }
 
   looks_like_number() {

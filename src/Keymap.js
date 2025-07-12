@@ -661,7 +661,7 @@ const EditorKeymap = {
     '+': "infix \\oplus",
     '.': "infix \\cdot",
     ',': "infix ,",
-    ':': "infix :",
+    ':': "infix \\colon",
     ';': "infix semicolon",
     "'": "start_text_entry conjunction_entry",
     '`': "swap;push T;typeface roman;superscript;swap;concat",  // xTy
@@ -1027,7 +1027,7 @@ const EditorKeymap = {
     'X': "push \\Xi",        'Y': "push \\Psi",
     'N': "push \\nabla",
 
-    ':': "infix :"
+    ':': "infix \\colon"
   },
 
   // "variant" uppercase Greek letters - these are italic versions of the normal ones

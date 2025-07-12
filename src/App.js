@@ -434,14 +434,14 @@ class StackItemsComponent extends React.Component {
       if(prefix_argument < 0)
 	return true;  // highlight all items
       else
-	return prefix_argument > 0 && prefix_argument === index;
+	return prefix_argument === index;
     }
     else if(mode === 'build_matrix') {
       // In build_matrix mode, the number of matrix rows to build has already
       // been selected from 'array' mode and stored in the input_context.
       // The current prefix_argument (if any) indicates the number of columns.
       // The "effective" prefix_argument is then the product of these.
-      // Note that 'select all' (*) mode isn't allowed in build_matrix mode.
+      // Note that 'select all' (*) isn't allowed in build_matrix mode.
       // If no column count has been entered yet, treat it as if it were 1
       // (so that the highlight stays as it was before build_matrix mode was
       // entered).
@@ -824,7 +824,7 @@ class ItemComponent extends React.Component {
 
   _render_with_katex(latex_code, node, display_mode) {
     // Check for empty/blank latex expressions - fake it with something so that it's visible.
-    if(latex_code === '')
+    if(latex_code === '' || latex_code === '{}')
       latex_code = "\\llbracket\\mathsf{blank}\\rrbracket";
     else if(latex_code === "\\,")
       latex_code = "\\llbracket\\mathsf{space}\\rrbracket";
