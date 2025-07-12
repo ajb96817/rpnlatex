@@ -1457,7 +1457,9 @@ class TextItemTextElement extends TextItemElement {
   }
 
   to_text() {
-    if(this.is_bold)
+    if(this.is_bold && this.is_italic)
+      return ['**//', this.text, '//**'].join('');
+    else if(this.is_bold)
       return ['**', this.text, '**'].join('');
     else if(this.is_italic)
       return ['//', this.text, '//'].join('');
@@ -1476,15 +1478,13 @@ class TextItemTextElement extends TextItemElement {
     const tokens = this.text.split(/ +/);
     let pieces = [];
     for(let i = 0; i < tokens.length; i++) {
-     if(this.is_bold)
-        pieces.push("\\textbf{");
-      else if(this.is_italic)
-        pieces.push("\\textit{");
-      else
-        pieces.push("\\text{");
+      if(this.is_bold && this.is_italic) pieces.push("\\textbf{\\textit{");
+      else if(this.is_bold) pieces.push("\\textbf{");
+      else if(this.is_italic) pieces.push("\\textit{");
+      else pieces.push("\\text{");
       pieces.push(this._latex_escape(tokens[i]));
-      if(i < tokens.length-1)
-        pieces.push(' ');  // preserve spacing between words
+      if(i < tokens.length-1) pieces.push(' ');  // preserve spacing between words
+      if(this.is_bold && this.is_italic) pieces.push("}");
       pieces.push("}\\allowbreak");
     }
     return pieces.join('');
@@ -1544,42 +1544,95 @@ class TextItem extends Item {
   static separator_item() { return new TextItem([], null, true); }
 
   // "Parse" a string which may or may not contain certain escape sequences:
-  //    [] - converts into a TextItemExprElement wrapping a PlaceholderExpr
-  //    **bold text** - converts into a bolded TextItemTextElement
-  //    //italic text// - converts into an italic TextItemTextElement
-  // The result is returned as an array of TextItemElement subclass instances.
+  //    **bold text** - Converts into a bolded TextItemTextElement
+  //    __italic text__ - Converts into an italic TextItemTextElement
+  //    [] - Converts into a TextItemExprElement wrapping a PlaceholderExpr
+  //    $x+y$ - Converts into TextItemExprElement with an inline math expression
+  //            as parsed by ExprParser (limited functionality).
+  //            If the parsing fails (invalid syntax), null is returned.
+  // A TextItem with the parsed elements is returned, or null on failure.
   static parse_string(s) {
-    // First handle [] placeholders.
-    // Note that we don't allow bold/italic to straddle []'s, for example
-    // "text **text [] text** text" will drop the bolding.
-    const pieces = s.split('[]');
+    let tokens = TextItem.tokenize_string(s);
+    let is_bold = false;
+    let is_italic = false;
     let elements = [];
-    // Handle **bold** within each piece between []'s.
-    for(let i = 0; i < pieces.length; i++) {
-      const pieces2 = pieces[i].split('**');
-      for(let j = 0; j < pieces2.length; j++) {
-        // Every odd-index piece2 is to be bolded; but if the total number of pieces
-        // is even that means there is an unpaired **, so that last odd piece stays unbolded.
-        const is_bold = (j % 2 === 1) && (j < pieces2.length-1);
-        if(pieces2[j].length > 0) {
-          // Handle //italic// within each of these sub-pieces using similar logic,
-          // but only if the sub-piece is not already bolded (can't be both at once).
-          if(is_bold)
-            elements.push(new TextItemTextElement(pieces2[j], is_bold));
-          else {
-            const pieces3 = pieces2[j].split('//');
-            for(let k = 0; k < pieces3.length; k++) {
-              const is_italic = (k % 2 === 1) && (k < pieces3.length-1);
-              if(pieces3[k].length > 0)
-                elements.push(new TextItemTextElement(pieces3[k], false, is_italic));
-            }
-          }
-        }
+    let pos = 0;
+    while(pos < tokens.length) {
+      const token = tokens[pos];
+      if(token.type === 'math_mode') {
+	// Scan ahead to the next 'math_mode' ($) token, if there is one.
+	// If there isn't another, parsing fails (e.g.: 'test $x+1').
+	// Combine text of all tokens between the two $'s into the math
+	// expression to be parsed.  It's done this way in case there
+	// is something like $x//y$ which would normally get confused as
+	// the italic '//' token.
+	pos++;  // skip opening $
+	const math_pieces = [];
+	while(pos < tokens.length && tokens[pos].type !== 'math_mode')
+	  math_pieces.push(tokens[pos++].text);
+	if(pos === tokens.length) return null;
+	pos++;  // skip closing $
+	const math_text = math_pieces.join('');
+	let math_expr = ExprParser.parse_string(math_text);
+	if(!math_expr) return null;  // entire TextItem parsing fails if inline math exprs fail
+	if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
+	elements.push(new TextItemExprElement(math_expr));
       }
-      if(i < pieces.length-1)
-        elements.push(new TextItemExprElement(new PlaceholderExpr()));
+      else {
+	switch(token.type) {
+	case 'bold': is_bold = !is_bold; break;
+	case 'italic': is_italic = !is_italic; break;
+	case 'placeholder':
+	  elements.push(new TextItemExprElement(
+	    is_bold ? (new PlaceholderExpr()).as_bold() : new PlaceholderExpr()));
+	  break;
+	case 'text':
+	  elements.push(new TextItemTextElement(token.text, is_bold, is_italic));
+	  break;
+	default: break;
+	}
+	pos++;
+      }
     }
     return new TextItem(elements);
+  }
+
+  // Tokenize 's' into a token sequence usable by TextItem.parse_string().
+  static tokenize_string(s) {
+    let tokens = [];
+    let pos = 0;
+    while(pos < s.length) {
+      const ch = s[pos];
+      let token = null;
+      if(pos < s.length-1) {
+	// Check for length-2 tokens.
+	const ch2 = s[pos+1];
+	if(ch === '[' && ch2 === ']') token = {'type': 'placeholder', 'text': '[]'};
+	else if(ch === '*' && ch2 === '*') token = {'type': 'bold', 'text': '**'};
+	else if(ch === '/' && ch2 === '/') token = {'type': 'italic', 'text': '//'};
+      }
+      if(token) pos += 2;
+      else {
+	if(ch === '$') token = {'type': 'math_mode', 'text': '$'};
+	else token = {'type': 'text', 'text': ch};
+	pos++;
+      }
+      tokens.push(token);
+    }
+    // Coalesce sequences of single-character 'text' tokens into
+    // a single 'text' token.
+    let new_tokens = [];
+    let i = 0;
+    while(i < tokens.length) {
+      if(tokens[i].type === 'text') {
+	let chars = [];
+	while(i < tokens.length && tokens[i].type === 'text')
+	  chars.push(tokens[i++].text);
+	new_tokens.push({'type': 'text', 'text': chars.join('')});
+      }
+      else new_tokens.push(tokens[i++]);
+    }
+    return new_tokens;
   }
   
   // item1/2 can each be TextItems or ExprItems (caller must check).
