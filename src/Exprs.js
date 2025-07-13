@@ -791,11 +791,13 @@ class FontExpr extends Expr {
   }
 
   as_editable_string() {
-    // If there is only a simple TextExpr inside, use that.
-    if(this.contains_only_text())
-      return LatexEmitter.latex_unescape(this.expr.text);
-    else
-      return this.expr.as_editable_string();
+    // Strip any font information.
+    // This allows things like calligraphic letters to be editable
+    // as normal uppercase letters, for example, which isn't necessarily
+    // ideal, but not worth explicitly preventing.
+    // It also allows things like & to be editable in latex-entry mode
+    // as \&, which isn't normally allowed, but doesn't cause problems.
+    return this.expr.as_editable_string();
   }
 
   dissolve() { return [this.expr]; }
@@ -1455,12 +1457,7 @@ class TextExpr extends Expr {
   }
 
   as_editable_string() {
-    if(this.looks_like_number() ||
-       /^\w+$/.test(this.text) ||
-       this.text === '!')
-      return this.text;
-    else
-      return null;
+    return LatexEmitter.latex_unescape(this.text);
   }
 
   evaluate(assignments) {
@@ -1892,17 +1889,12 @@ class SubscriptSuperscriptExpr extends Expr {
     if(sub_expr !== null) return null;
 
     // Check for e^x notation created by [/][e].
-    if(base_expr.is_expr_type('font') &&
-       base_expr.typeface === 'roman' &&
-       base_expr.contains_only_text() &&
-       base_expr.expr.text === 'e') {
+    if(base_expr.is_expr_type('font') && base_expr.typeface === 'roman' &&
+       base_expr.expr.is_expr_type('text') && base_expr.expr.text === 'e') {
       const exponent_value = sup_expr.evaluate(assignments);
       if(exponent_value === null) return null;
       const value = Math.exp(exponent_value);
-      if(isNaN(value))
-        return null;
-      else
-        return value;
+      return isNaN(value) ? null : value;
     }
 
     const base_value = base_expr.evaluate(assignments);
@@ -1921,10 +1913,7 @@ class SubscriptSuperscriptExpr extends Expr {
     const exponent_value = sup_expr.evaluate(assignments);
     if(exponent_value === null) return null;
     const value = Math.pow(base_value, exponent_value);
-    if(isNaN(value))
-      return null;
-    else
-      return value;
+    return isNaN(value) ? null : value;
   }
 }
 

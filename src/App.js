@@ -124,7 +124,7 @@ class App extends React.Component {
     // then "clicking" on the link.
     const json = app_state.to_json();
     const export_blob = new Blob(
-      [JSON.stringify(json, null, 1)],
+      [JSON.stringify(json)],
       {type: 'application/json'});
     const blob_url = URL.createObjectURL(export_blob);
     const download_link = document.createElement('a');

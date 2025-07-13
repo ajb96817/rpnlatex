@@ -827,7 +827,7 @@ const EditorKeymap = {
     's': "typeface sans_serif",
     'S': "typeface sans_serif_italic",
     't': "push \\to;swap;fuse",
-    'T': "operator widetilde",
+    'T': "push \\longrightarrow;swap;fuse",
     'u': "apply_hat breve",
     'U': "operator utilde",
     'v': "apply_hat vec",
@@ -836,6 +836,7 @@ const EditorKeymap = {
     'W': "operator widecheck",
     'x': "operator boxed",
     'X': "operator sout",  // strikeout
+    'Y': "operator widetilde",
     'z': "operator cancel",
     '.': "apply_hat dot",
     '>': "push .;concat",
