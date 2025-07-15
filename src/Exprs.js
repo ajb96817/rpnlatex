@@ -986,7 +986,7 @@ class InfixExpr extends Expr {
   // This is mostly for convenience so it doesn't need to be that precise.
   // TODO: reduce or eliminate the need for this; there is probably a cleaner way
   needs_autoparenthesization() {
-    return this.operator_exprs.every(op_expr => {
+    return this.operator_exprs.some(op_expr => {
       const op = this.operator_text(op_expr);
       return op && this._operator_info(op) && this._operator_info(op).prec <= 1;
     });
