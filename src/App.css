@@ -61,8 +61,8 @@ div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
 
-/* Highlight the stack item(s) that are the "target" for a stack (Tab) command
-   with an active prefix argument. */
+/* Highlight the stack item(s) that are the "target" for a stack (Tab)
+   or array (|) command with an active prefix argument. */
 div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
 div.separator_item.highlighted { border-left-color: #66d; }
@@ -245,11 +245,10 @@ div.stack_items div.text_entry {
     overflow-wrap: break-word;
 }
 
-div.stack_items div.text_entry span.normal_characters {}
-div.stack_items div.text_entry span.cursored_character {
-    color: white;
-    background-color: #666;
-}
+div.stack_items div.text_entry span.normal_character {}
+div.stack_items div.text_entry span.cursor_character { color: white; background-color: #666; }
+div.stack_items div.text_entry span.error_character { color: black; background-color: #faa; }
+div.stack_items div.text_entry span.cursor_character.error_character { color: white; background-color: #c66; }
 
 /* Different background colors for text entry depending on the mode. */
 div.stack_items div.math_entry_mode { background-color: #eee; }

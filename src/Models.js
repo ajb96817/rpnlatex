@@ -1037,17 +1037,17 @@ class ExprParser {
       number_regex.lastIndex = pos;
       const result = number_regex.exec(s);
       if(result && result.index === pos) {
-        tokens.push({type: 'number', text: result[0]});
+        tokens.push({type: 'number', text: result[0], pos: pos});
         pos += result[0].length;
       }
       // Check for [] placeholder:
       else if(pos < s.length-1 && s[pos] === '[' && s[pos+1] === ']') {
-	tokens.push({type: 'placeholder', text: '[]'});
+	tokens.push({type: 'placeholder', text: '[]', pos: pos});
 	pos += 2;
       }
       // Check for // (full size fraction):
       else if(pos < s.length-1 && s[pos] === '/' && s[pos+1] === '/') {
-        tokens.push({type: 'operator', text: '//'});
+        tokens.push({type: 'operator', text: '//', pos: pos});
         pos += 2;
       }
       else {
@@ -1063,7 +1063,7 @@ class ExprParser {
         if(token_type === null)
           return null;  // invalid token found (something like ^, or unicode)
         if(token_type !== 'whitespace')  // skip whitespace
-          tokens.push({type: token_type, text: token});
+          tokens.push({type: token_type, text: token, pos: pos});
         pos++;
       }
     }
@@ -1551,9 +1551,10 @@ class TextItem extends Item {
   //            as parsed by ExprParser (limited functionality).
   //            If the parsing fails (invalid syntax), null is returned.
   // A TextItem with the parsed elements is returned, or null on failure.
-  // NOTE: math text after an unclosed $ at the end is silently dropped: 'test $x+y'
   static parse_string(s) {
     let tokens = TextItem.tokenize_string(s);
+    // Add a fake $ token at the end in order to auto-close math mode (e.g. 'test $x+y').
+    tokens.push({type: 'math_mode', text: '$'});
     let is_bold = false;
     let is_italic = false;
     let math_mode = false;
@@ -1612,7 +1613,8 @@ class TextItem extends Item {
 	else if(ch === '*' && ch2 === '*') token = {'type': 'bold', 'text': '**'};
 	else if(ch === '/' && ch2 === '/') token = {'type': 'italic', 'text': '//'};
       }
-      if(token) pos += 2;
+      if(token)
+	pos += 2;
       else {
 	if(ch === '$') token = {'type': 'math_mode', 'text': '$'};
 	else token = {'type': 'text', 'text': ch};

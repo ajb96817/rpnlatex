@@ -214,7 +214,9 @@
 	    <span class="keybinding">'</span> can be used to add one or more "prime" superscripts:
 	    <code>x^{\prime\prime}</code>.
 	  </li>
-	  <li><code>x!</code> factorial notation is allowed.</li>
+	  <li>
+	    <span class="keybinding">!</span> for factorial notation
+	    (<code>x!</code>) is allowed.
 	  <li>
 	    Expressions can be parenthesized, e.g. <code>(x+y)</code>.  Square brackets and curly braces may also
 	    be used, but they have to be properly matched.
@@ -491,6 +493,11 @@
       <p>
         To download a .zip archive, click the 'Prepare Export' link; this will build the archive
         from your browser's storage and then present you a download link.
+      </p>
+      <p>
+	You can also export individual documents as <kbd>.json</kbd> files using the
+	<span class="keybinding">x</span> command, and import them with the file
+	upload field.
       </p>
 
       <h2>
@@ -1681,6 +1688,10 @@
             </td>
           </tr>
       </tbody></table>
+      <p>
+	A column matrix can be entered by first building a row matrix, then transposing
+	with <span class="keybinding">|</span><span class="keybinding">T</span>.
+      </p>
       <p>
         To change the bracket type of an existing matrix on the stack, use
         <span class="keybinding">|</span><span class="keybinding">t</span> followed by one
