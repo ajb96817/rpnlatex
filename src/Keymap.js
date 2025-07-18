@@ -381,7 +381,7 @@ const EditorKeymap = {
     'i': "mode integral_limits",
     'I': "push \\int;swap;superscript;swap;subscript",
     'j': "mode integral_with_limits",
-    'J': "operator atop 2",
+    //'J': "operator atop 2",  // not that useful
     'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
     'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z)
     'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}

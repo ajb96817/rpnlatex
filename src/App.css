@@ -126,6 +126,10 @@ div.separator_item hr {
 .emphasized { color: #00f; text-shadow: 0 0 0.08em #88f; }
 .emphasized2 { color: #f00; text-shadow: 0 0 0.08em #f88; }
 
+/* Highlight emphasized \box commands with a box shadow. */
+.emphasized span.fbox { box-shadow: inset 0 0 0.35em 0.1em #ccf; }
+.emphasized2 span.fbox { box-shadow: inset 0 0 0.35em 0.1em #fcc; }
+
 /* Highlight the selected subexpression(s) in "dissect" mode. */
 .dissect_highlight_brace { color: #83c; }
 .dissect_highlight {
@@ -322,9 +326,7 @@ div.document_items div.bottom_spacer { min-height: 8em; }
     background-color: white;
     box-shadow: 0 0 1em 2px #bbb;
 }
-body.eink_mode #popup_panel {
-    border: 2px solid black;
-}
+body.eink_mode #popup_panel { border: 2px solid black; }
 
 
 span.keybinding {
