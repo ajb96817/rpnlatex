@@ -377,9 +377,9 @@ const EditorKeymap = {
     'e': "push e;typeface roman;swap;superscript",  // exp(x)
     'E': "named_function exp",
     'f': "mode named_operator",
+    'g': "push \\int;swap;superscript;swap;subscript",
     'h': "mode hyperbolic",
     'i': "mode integral_limits",
-    'I': "push \\int;swap;superscript;swap;subscript",
     'j': "mode integral_with_limits",
     //'J': "operator atop 2",  // not that useful
     'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
