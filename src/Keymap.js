@@ -88,9 +88,10 @@ const EditorKeymap = {
     'Ctrl+z': "undo",
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
     'Ctrl+,': "infix ,",
+    'Ctrl+/': "operator frac 2",
     'Ctrl+ArrowRight': "scroll document_container horizontal 75",
     'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
-    'Ctrl+/': "operator frac 2"
+    'Ctrl+Backspace': "nip"
   },
 
   // File Manager mode
@@ -411,6 +412,7 @@ const EditorKeymap = {
     'y': "push E;typeface blackboard;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
     'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];fuse",  // E_x[z|y]
     'z': "dissolve",
+    ' ': "swap;concat",
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "operator frac 2",

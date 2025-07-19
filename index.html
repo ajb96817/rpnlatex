@@ -654,7 +654,7 @@
             <td><span class="keybinding">c</span> <code>1-x</code> <em>(complement)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>x^\dagger</code></td>
+            <td><span class="keybinding">d</span> <code>x^\dagger</code> <em>(dual)</em></td>
             <td><span class="keybinding">D</span> <code>x^\ddagger</code></td>
             <td><span class="keybinding">e</span> <code>\htmlClass{emphasized}{x}</code> <em>(emphasize)</em></td>
           </tr>
@@ -695,7 +695,7 @@
           </tr>
           <tr>
             <td><span class="keybinding">U</span> <code>\utilde{x\dots}</code></td>
-            <td><span class="keybinding">v</span> <code>\vec x</code></td>
+            <td><span class="keybinding">v</span> <code>\vec x</code> <em>(vector)</em></td>
             <td><span class="keybinding">V</span> <code>\overrightharpoon{x\dots}</code></td>
           </tr>
           <tr>
@@ -879,23 +879,23 @@
       <p>Equality-like relations:</p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">a</span> <code>x\approx y</code> <em>(<strong>a</strong>pprox)</em></td>
-            <td><span class="keybinding">c</span> <code>x\cong y</code> <em>(<strong>c</strong>ongruent)</em></td>
+            <td><span class="keybinding">a</span> <code>x\approx y</code> <em>(approx)</em></td>
+            <td><span class="keybinding">c</span> <code>x\cong y</code> <em>(congruent)</em></td>
 	  </tr>
 	  <tr>
             <td><span class="keybinding">e</span> <code>x\equiv y</code></td>
             <td><span class="keybinding">E</span> <code>x\iff y</code></td>
 	  </tr>
 	  <tr>
-            <td><span class="keybinding">f</span> <code>x\Leftarrow y</code> <em>(<strong>f</strong>rom)</em></td>
-            <td><span class="keybinding">i</span> <code>x\in y</code> <em>(<strong>i</strong>n)</em></td>
+            <td><span class="keybinding">f</span> <code>x\Leftarrow y</code> <em>(from)</em></td>
+            <td><span class="keybinding">i</span> <code>x\in y</code> <em>(in)</em></td>
 	  </tr>
 	  <tr>
             <td><span class="keybinding">I</span> <code>x\notin y</code></td>
-            <td><span class="keybinding">j</span> <code>x\Join y</code> <em>(<strong>j</strong>oin)</em></td>
+            <td><span class="keybinding">j</span> <code>x\Join y</code> <em>(join)</em></td>
 	  </tr>
 	  <tr>
-            <td><span class="keybinding">m</span> <code>x\mapsto y</code> <em>(<strong>m</strong>aps to)</em></td>
+            <td><span class="keybinding">m</span> <code>x\mapsto y</code> <em>(maps to)</em></td>
             <td><span class="keybinding">o</span> <code>x\circeq y</code></td>
 	  </tr>
 	  <tr>
@@ -903,7 +903,7 @@
             <td><span class="keybinding">!</span> or <span class="keybinding">n</span> <code>x\ne y</code></td>
 	  </tr>
 	  <tr>
-            <td><span class="keybinding">p</span> <code>x\propto y</code> <em>(<strong>p</strong>roportional)</em></td>
+            <td><span class="keybinding">p</span> <code>x\propto y</code> <em>(proportional)</em></td>
             <td><span class="keybinding">;</span> <code>x\coloncolon y</code></td>
 	  </tr>
 	  <tr>
@@ -1165,6 +1165,10 @@
 
       <p><strong>Shortcuts and Utilities:</strong></p>
       <ul class="keybindings">
+	<li>
+	  <span class="keybinding">&nbsp;</span>
+	  <code>x\enspace y \to yx</code> (prepend)
+	</li>
 	<li>
 	  <span class="keybinding">w</span>
 	  S<strong>w</strong>ap the left and right sides of an infix or relational expression,
@@ -2344,6 +2348,10 @@
         <li>
           <span class="keybinding">Ctrl+Space</span> Join two items with a thin space
           (same as <span class="keybinding">,</span><span class="keybinding">&nbsp;</span>)
+        </li>
+        <li>
+          <span class="keybinding">Ctrl+Backspace</span> Delete the secondmost item from the stack top
+          (same as <span class="keybinding">Tab</span><span class="keybinding">n</span>)
         </li>
         <li>
           <span class="keybinding">Ctrl+&larr;&rarr;</span>
