@@ -71,11 +71,11 @@ class TextEntryState {
     switch(direction) {
     case 'left':
       if(this.cursor_position > 0)
-	this.cursor_position--;
+        this.cursor_position--;
       break;
     case 'right':
       if(this.cursor_position < this.current_text.length)
-	this.cursor_position++;
+        this.cursor_position++;
       break;
     case 'begin':
       this.cursor_position = 0;
@@ -230,7 +230,7 @@ class InputContext {
           this.prefix_argument = null;
       } catch(e) {
         if(e.message === 'stack_underflow' ||
-	   e.message === 'stack_type_error' ||
+           e.message === 'stack_type_error' ||
            e.message === 'prefix_argument_required') {
           this.error_flash_stack();
           this.perform_undo_or_redo = null;
@@ -744,21 +744,21 @@ class InputContext {
       let base_expr = expr;
       // Check for a unary minus sign.
       if(expr.is_expr_type('sequence') && expr.exprs.length > 1 &&
-	 expr.exprs[0].is_expr_type('text') && expr.exprs[0].text === '-') {
-	is_negated = true;
-	base_expr = expr.exprs.length === 2 ? expr.exprs[1] : new SequenceExpr(expr.exprs.slice(1));
+         expr.exprs[0].is_expr_type('text') && expr.exprs[0].text === '-') {
+        is_negated = true;
+        base_expr = expr.exprs.length === 2 ? expr.exprs[1] : new SequenceExpr(expr.exprs.slice(1));
       }
       let d_expr = Expr.combine_pair(
-	is_roman === 'true' ? FontExpr.roman_text('d') : new TextExpr('d'),
-	base_expr);
+        is_roman === 'true' ? FontExpr.roman_text('d') : new TextExpr('d'),
+        base_expr);
       if(is_negated)
-	d_expr = Expr.combine_pair(new TextExpr('-'), d_expr);
+        d_expr = Expr.combine_pair(new TextExpr('-'), d_expr);
       return d_expr;
     });
     if(ellipses === 'true') {
       // Splice in ellipses before the final element.
       d_exprs = d_exprs.slice(0, degree-1).concat(
-	[new CommandExpr('cdots')]).concat(d_exprs.slice(degree-1));
+        [new CommandExpr('cdots')]).concat(d_exprs.slice(degree-1));
     }
     const form_expr = d_exprs.reduce((form_expr, d_expr) =>
       InfixExpr.combine_infix(form_expr, d_expr, new CommandExpr('wedge')));
@@ -797,9 +797,9 @@ class InputContext {
   _do_apply_hat(expr, hat_op) {
     if(expr.is_expr_type('subscriptsuperscript'))
       return new SubscriptSuperscriptExpr(
-	this._do_apply_hat(expr.base_expr, hat_op),
-	expr.subscript_expr,
-	expr.superscript_expr);
+        this._do_apply_hat(expr.base_expr, hat_op),
+        expr.subscript_expr,
+        expr.superscript_expr);
     if(expr.is_expr_type('text') &&
        (expr.text === 'i' || expr.text === 'j'))
       expr = new CommandExpr(expr.text === 'i' ? 'imath' : 'jmath');
@@ -807,10 +807,10 @@ class InputContext {
       // Check for bolded literal i/j
       const inner_expr = expr.expr;
       if(inner_expr.is_expr_type('text') &&
-	 (inner_expr.text === 'i' || inner_expr.text === 'j'))
-	expr = new FontExpr(
-	  new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'),
-	  expr.typeface, expr.is_bold, expr.size_adjustment);
+         (inner_expr.text === 'i' || inner_expr.text === 'j'))
+        expr = new FontExpr(
+          new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'),
+          expr.typeface, expr.is_bold, expr.size_adjustment);
     }
     return new CommandExpr(hat_op, [expr]);
   }
@@ -852,21 +852,21 @@ class InputContext {
     let new_expr = expr;
     if(expr.is_expr_type('delimiter')) {
       new_expr = new DelimiterExpr(
-	side === 'left' ? delimiter_type : expr.left_type,
-	side === 'right' ? delimiter_type : expr.right_type,
-	expr.inner_expr,
-	expr.fixed_size);
+        side === 'left' ? delimiter_type : expr.left_type,
+        side === 'right' ? delimiter_type : expr.right_type,
+        expr.inner_expr,
+        expr.fixed_size);
       // If both delimiters are now blanks, decay into the inner_expr.
       if(new_expr.left_type === '.' && new_expr.right_type === '.')
-	new_expr = new_expr.inner_expr;
+        new_expr = new_expr.inner_expr;
     }
     else {
       // Wrap in a new DelimiterExpr.
       if(delimiter_type !== '.')
-	new_expr = new DelimiterExpr(
-	  side === 'left' ? delimiter_type : '.',
-	  side === 'right' ? delimiter_type : '.',
-	  expr);
+        new_expr = new DelimiterExpr(
+          side === 'left' ? delimiter_type : '.',
+          side === 'right' ? delimiter_type : '.',
+          expr);
     }
     return new_stack.push_expr(new_expr);
   }
@@ -899,7 +899,7 @@ class InputContext {
       return new_stack.push_expr(new_expr);
     }
     else if((left_item.is_expr_item() || left_item.is_text_item()) &&
-	    (right_item.is_expr_item() || right_item.is_text_item())) {
+            (right_item.is_expr_item() || right_item.is_text_item())) {
       // Expr+Text or Text+Expr or Text+Text.
       const new_item = TextItem.concatenate_items(left_item, right_item, opname);
       return new_stack.push(new_item);
@@ -956,17 +956,17 @@ class InputContext {
             expr.command_name === 'frac') {
       // "Normal" fraction.
       new_expr = CommandExpr.frac(
-	expr.operand_exprs[1],
-	expr.operand_exprs[0]);
+        expr.operand_exprs[1],
+        expr.operand_exprs[0]);
     }
     else if(expr.is_expr_type('delimiter') && expr.is_flex_inline_fraction()) {
       // Flex-mode inline fraction.
       new_expr = new DelimiterExpr(
-	'.', '.',
-	new InfixExpr(
-	  [expr.inner_expr.operand_exprs[1], expr.inner_expr.operand_exprs[0]],
-	  expr.inner_expr.operator_exprs),
-	expr.is_fixed_size);
+        '.', '.',
+        new InfixExpr(
+          [expr.inner_expr.operand_exprs[1], expr.inner_expr.operand_exprs[0]],
+          expr.inner_expr.operator_exprs),
+        expr.is_fixed_size);
     }
     if(new_expr)
       return new_stack.push_expr(new_expr);
@@ -1017,7 +1017,7 @@ class InputContext {
       const original_expr = item.expr;
       const placeholder_expr_path = original_expr.find_placeholder_expr_path();
       if(placeholder_expr_path !== null) {
-	const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
+        const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
         return new_stack_2.push_expr(new_expr);
       }
     }
@@ -1057,7 +1057,7 @@ class InputContext {
     if(expr.is_expr_type('infix')) {
       const new_expr = expr.negate_operator_at(expr.split_at_index);
       if(new_expr)
-	return new_stack.push_expr(new_expr);
+        return new_stack.push_expr(new_expr);
     }
     return stack.type_error();
   }
@@ -1118,10 +1118,10 @@ class InputContext {
           return this.error_flash_stack();
       }
       else if(this.text_entry.mode === 'math_entry' &&
-	      key === "\\" && this.text_entry.is_empty()) {
-	// Switch from math_entry -> latex_entry
-	// when entering as '\' as the first character.
-	return this.do_start_text_entry(stack, 'latex_entry', '');
+              key === "\\" && this.text_entry.is_empty()) {
+        // Switch from math_entry -> latex_entry
+        // when entering as '\' as the first character.
+        return this.do_start_text_entry(stack, 'latex_entry', '');
       }
       this.text_entry.insert(key);
     }
@@ -1176,15 +1176,15 @@ class InputContext {
     if(textstyle === 'text' || textstyle === 'heading') {
       let item = TextItem.parse_string(text);
       if(item) {
-	if(textstyle === 'heading') item.is_heading = true;
-	this._cancel_text_entry(stack);
-	return stack.push(item);
+        if(textstyle === 'heading') item.is_heading = true;
+        this._cancel_text_entry(stack);
+        return stack.push(item);
       }
       else {
-	this.suppress_undo();
-	this.switch_to_mode(this.mode);
-	this.error_flash_stack();
-	return;
+        this.suppress_undo();
+        this.switch_to_mode(this.mode);
+        this.error_flash_stack();
+        return;
       }
     }
     let new_expr = null;
@@ -1220,8 +1220,8 @@ class InputContext {
       }
       else {
         this.suppress_undo();
-	this.switch_to_mode(this.mode);
-	this.error_flash_stack();
+        this.switch_to_mode(this.mode);
+        this.error_flash_stack();
         return;
       }
     }
@@ -1245,9 +1245,9 @@ class InputContext {
       new_expr = ExprParser.parse_string(text);
       if(!new_expr) {
         this.suppress_undo();
-	this.switch_to_mode(this.mode);
-	this.error_flash_stack();
-	return;
+        this.switch_to_mode(this.mode);
+        this.error_flash_stack();
+        return;
       }
     }
     this._cancel_text_entry(stack);
@@ -1269,24 +1269,24 @@ class InputContext {
     if(item.item_type() === 'text') {
       const s = item.as_editable_string();
       if(s) {
-	this.do_start_text_entry(new_stack, 'text_entry', s);
+        this.do_start_text_entry(new_stack, 'text_entry', s);
         this.text_entry.edited_item = item;
-	return new_stack;
+        return new_stack;
       }
     }
     else if(item.is_expr_item()) {
       let expr = item.expr;
       if(expr.is_expr_type('command') && expr.operand_count() === 0) {
-	// LaTeX command with no arguments, e.g. \circledast
-	this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
+        // LaTeX command with no arguments, e.g. \circledast
+        this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
         this.text_entry.edited_item = item;
-	return new_stack;
+        return new_stack;
       }
       const editable_string = expr.as_editable_string();
       if(editable_string) {
-	this.do_start_text_entry(new_stack, 'math_entry', editable_string);
+        this.do_start_text_entry(new_stack, 'math_entry', editable_string);
         this.text_entry.edited_item = item;
-	return new_stack;
+        return new_stack;
       }
     }
     return this.error_flash_stack();
@@ -1331,11 +1331,11 @@ class InputContext {
   // modified, undo is suppressed for this action.  Only log an undo if there has been
   // a change.
   /*    do_finish_dissect_mode(stack) {
-	const [new_stack, expr] = stack.pop_exprs(1);
+        const [new_stack, expr] = stack.pop_exprs(1);
         this.dissect_undo_stack = null;
         // A new ExprItem needs to be constructed in order to remove
         // the existing ExprPath selection.
-	return new_stack.push(new ExprItem(expr, null, null));
+        return new_stack.push(new ExprItem(expr, null, null));
         }     */
 
   // Descend into a subexpression, if possible.
@@ -1345,9 +1345,9 @@ class InputContext {
     return this._do_dissect_operation(stack, expr_path => {
       const subexpr = expr_path.selected_expr();
       if(subexpr.has_subexpressions())
-	return expr_path.descend(0);
+        return expr_path.descend(0);
       else
-	return expr_path;
+        return expr_path;
     });
   }
 
@@ -1359,9 +1359,9 @@ class InputContext {
       // of limited use and inconsistent with the usual UI (where we immediately
       // select the first subexpression of the stack top upon starting dissect mode).
       if(expr_path.depth() <= 1)
-	return expr_path;
+        return expr_path;
       else
-	return expr_path.ascend();
+        return expr_path.ascend();
     });
   }
 
@@ -1434,7 +1434,7 @@ class InputContext {
       // Special case: don't allow empty TextItems to be changed this way.
       // See the comment in TextItem.is_empty().
       if(item.is_empty())
-	return this.error_flash_stack();
+        return this.error_flash_stack();
       item = item.clone();
       item.is_heading = !item.is_heading;
       return new_stack.push(item);
@@ -1463,7 +1463,7 @@ class InputContext {
     else {
       // The usual case.
       return new_stack.push_expr(
-	new DelimiterExpr(left, right, inner_expr));
+        new DelimiterExpr(left, right, inner_expr));
     }
   }
 
@@ -1635,8 +1635,8 @@ class InputContext {
   // column_count is optional; if omitted, the prefix argument is used.
   do_build_matrix_row(stack, matrix_type, column_count) {
     const expr_count = column_count ?
-	  parseInt(column_count) :
-	  this._get_prefix_argument(0, stack.depth());
+          parseInt(column_count) :
+          this._get_prefix_argument(0, stack.depth());
     if(expr_count <= 0)
       return this.error_flash_stack();
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
@@ -1806,10 +1806,10 @@ class InputContext {
       const lhs = expr.extract_side_at(expr.split_at_index, 'left');
       const result = lhs.evaluate_to_expr(assignments, true);
       if(!result || !result[1])
-	return stack;  // either an error or a non-exact result
+        return stack;  // either an error or a non-exact result
       else return new_stack.push_expr(
-	InfixExpr.combine_infix(
-	  lhs, result[0], new TextExpr('=')));
+        InfixExpr.combine_infix(
+          lhs, result[0], new TextExpr('=')));
     }
     if(expr.is_expr_type('infix') && expr.operator_text() === '=') {
       // Force a floating-point approximation of the left hand side
@@ -1818,27 +1818,27 @@ class InputContext {
       const lhs = expr.extract_side_at(expr.split_at_index, 'left');
       const result = lhs.evaluate_to_expr(assignments, false);
       if(!result)
-	return this.error_flash_stack();
+        return this.error_flash_stack();
       const result_expr = result[0];
       return new_stack.push_expr(
-	InfixExpr.combine_infix(
-	  lhs, result_expr, new CommandExpr('approx')));
+        InfixExpr.combine_infix(
+          lhs, result_expr, new CommandExpr('approx')));
     }
     else {
       // Try to evaluate expr, rationalizing if possible.
       const try_rationalize = force_approx !== 'true';
       const result = expr.evaluate_to_expr(assignments, try_rationalize);
       if(!result)
-	return this.error_flash_stack();  // not evaluatable
+        return this.error_flash_stack();  // not evaluatable
       const [result_expr, is_exact] = result;
       if(is_exact && try_rationalize)
-	return new_stack.push_expr(
-	  InfixExpr.combine_infix(
-	    expr, result_expr, new TextExpr('=')));
+        return new_stack.push_expr(
+          InfixExpr.combine_infix(
+            expr, result_expr, new TextExpr('=')));
       else
-	return new_stack.push_expr(
-	  InfixExpr.combine_infix(
-	    expr, result_expr, new CommandExpr('approx')));
+        return new_stack.push_expr(
+          InfixExpr.combine_infix(
+            expr, result_expr, new CommandExpr('approx')));
     }
   }
 
@@ -1854,18 +1854,18 @@ class InputContext {
     if(value_expr.is_expr_type('infix') &&
        value_expr.operator_text_at(0) === '=' &&
        ((value_expr.operand_exprs[0].is_expr_type('text') &&
-	 value_expr.operand_exprs[0].looks_like_variable_name()) ||
-	(value_expr.operand_exprs[0].is_expr_type('command') &&
-	 value_expr.operand_exprs[0].operand_count() === 0))) {
+         value_expr.operand_exprs[0].looks_like_variable_name()) ||
+        (value_expr.operand_exprs[0].is_expr_type('command') &&
+         value_expr.operand_exprs[0].operand_count() === 0))) {
       // Expression of the form 'x=(something)'.  Evaluate the right-hand
       // side and substitute the given variable name.
       const rhs = value_expr.extract_side_at(0, 'right');
       value = rhs.evaluate({});
       variable_expr = value_expr.operand_exprs[0];
       if(variable_expr.is_expr_type('text'))
-	variable_name = variable_expr.text;
+        variable_name = variable_expr.text;
       else if(variable_expr.is_expr_type('command'))
-	variable_name = variable_expr.command_name;
+        variable_name = variable_expr.command_name;
       value_expr = rhs;
     }
     else {
@@ -1886,18 +1886,18 @@ class InputContext {
     const where_expr = new SubscriptSuperscriptExpr(
       new DelimiterExpr('.', "\\vert", expr),
       InfixExpr.combine_infix(
-	variable_expr,
-	value_expr,
-	new TextExpr('=')),
+        variable_expr,
+        value_expr,
+        new TextExpr('=')),
       null);
     if(is_exact)
       return new_stack.push_expr(
-	InfixExpr.combine_infix(
-	  where_expr, result_expr, new TextExpr('=')));
+        InfixExpr.combine_infix(
+          where_expr, result_expr, new TextExpr('=')));
     else
       return new_stack.push_expr(
-	InfixExpr.combine_infix(
-	  where_expr, result_expr, new CommandExpr('approx')));
+        InfixExpr.combine_infix(
+          where_expr, result_expr, new CommandExpr('approx')));
   }
 
   // Copy stack top to an internal clipboard slot.
@@ -1958,7 +1958,7 @@ class InputContext {
     if([0, 50, 100].includes(screen_percentage)) {
       // For these special cases, the browser's native scrollIntoView can be used.
       const block_mode = screen_percentage === 0 ? 'start' :
-	    (screen_percentage === 100 ? 'end' : 'center');
+            (screen_percentage === 100 ? 'end' : 'center');
       selected_elt.scrollIntoView({block: block_mode, inline: 'start'});
     }
     else {

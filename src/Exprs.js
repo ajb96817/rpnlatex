@@ -15,10 +15,10 @@ class Expr {
         json.options);
     case 'font':
       return new FontExpr(
-	this._expr(json.expr),
-	json.typeface,
-	json.is_bold,
-	json.size_adjustment);
+        this._expr(json.expr),
+        json.typeface,
+        json.is_bold,
+        json.size_adjustment);
     case 'infix':
       return new InfixExpr(
         this._list(json.operand_exprs),
@@ -27,8 +27,8 @@ class Expr {
         json.linebreaks_at || []);
     case 'postfix':
       return new PostfixExpr(
-	this._expr(json.base_expr),
-	this._expr(json.operator_expr));
+        this._expr(json.base_expr),
+        this._expr(json.operator_expr));
     case 'placeholder':
       return new PlaceholderExpr();
     case 'text':
@@ -78,7 +78,7 @@ class Expr {
       if(expr.is_expr_type('infix') && !no_parenthesize)
         return DelimiterExpr.parenthesize(expr);
       else
-	return expr;
+        return expr;
     };
 
     // Handle concatenating an expression to one or more ! signs, for factorial notation.
@@ -92,26 +92,26 @@ class Expr {
     const excl_count = expr => {
       // Count number of exclamation points, for both TextExprs and SequenceExprs.
       if(expr.is_expr_type('text') && expr.text === '!')
-	return 1;
+        return 1;
       else if(expr.is_expr_type('sequence') &&
-	      expr.exprs.every(subexpr => subexpr.is_expr_type('text') &&
-			       subexpr.text === '!'))
-	return expr.exprs.length;
+              expr.exprs.every(subexpr => subexpr.is_expr_type('text') &&
+                               subexpr.text === '!'))
+        return expr.exprs.length;
       else
-	return 0;
+        return 0;
     };
     const left_excl_count = excl_count(left);
     const right_excl_count = excl_count(right);
     if(right_excl_count > 0) {
       if(left_excl_count === 0) {
-	// Concatenating a "normal" expression to 1 or more ! signs.
-	return PostfixExpr.factorial_expr(
-	  autoparenthesize(left), right_excl_count);
+        // Concatenating a "normal" expression to 1 or more ! signs.
+        return PostfixExpr.factorial_expr(
+          autoparenthesize(left), right_excl_count);
       }
       else {
-	// Concatenating groups (1 or more) of ! signs together.
-	return new SequenceExpr(
-	  new Array(left_excl_count + right_excl_count).fill(new TextExpr('!')));
+        // Concatenating groups (1 or more) of ! signs together.
+        return new SequenceExpr(
+          new Array(left_excl_count + right_excl_count).fill(new TextExpr('!')));
       }
     }
     // Sequence + Sequence
@@ -245,7 +245,7 @@ class Expr {
     let found_expr_path = null;
     this.subexpressions().forEach((subexpr, index) => {
       if(found_expr_path === null)
-	found_expr_path = subexpr._find_placeholder_expr_path(expr_path.descend(index));
+        found_expr_path = subexpr._find_placeholder_expr_path(expr_path.descend(index));
     });
     return found_expr_path;
   }
@@ -470,21 +470,21 @@ class Expr {
     else if(isFinite(x)) {
       const abs_x = Math.abs(x);
       if(abs_x < 1e-30)
-	return new TextExpr('0.0');
+        return new TextExpr('0.0');
       if(abs_x < 1e-8 || abs_x > 1e9)
-	return this._float_to_scientific_notation_expr(x);
+        return this._float_to_scientific_notation_expr(x);
       else {
-	// Here, x is known to have a "reasonable" exponent so
-	// that toString() will not output scientific notation.
-	return new TextExpr(x.toString());
+        // Here, x is known to have a "reasonable" exponent so
+        // that toString() will not output scientific notation.
+        return new TextExpr(x.toString());
       }
     }
     else {
       const infty_expr = new CommandExpr('infty');
       if(x > 0)
-	return infty_expr;
+        return infty_expr;
       else  // create 'fused' -\infty sequence
-	return new SequenceExpr([new TextExpr('-'), infty_expr], true);
+        return new SequenceExpr([new TextExpr('-'), infty_expr], true);
     }
   }
 
@@ -506,7 +506,7 @@ class Expr {
     return InfixExpr.combine_infix(
       new TextExpr(coefficient_text),
       new SubscriptSuperscriptExpr(
-	new TextExpr('10'), null, new TextExpr(exponent_text)),
+        new TextExpr('10'), null, new TextExpr(exponent_text)),
       new CommandExpr('times'));
   }
 }
@@ -558,17 +558,17 @@ class CommandExpr extends Expr {
       // \atop is a special case.  It needs to be written as
       // {left_expr \atop right_expr} instead of \atop{left_expr}{right_expr}.
       emitter.grouped(() => {
-	emitter.expr(this.operand_exprs[0], 0);
-	emitter.command(this.command_name);
-	emitter.expr(this.operand_exprs[1], 1);
+        emitter.expr(this.operand_exprs[0], 0);
+        emitter.command(this.command_name);
+        emitter.expr(this.operand_exprs[1], 1);
       }, 'force');
     }
     else {
       if(this.command_name !== '')
-	emitter.command(this.command_name, this.options);
+        emitter.command(this.command_name, this.options);
       // Braces need to be forced around each operand, even single-letter operands.
       this.operand_exprs.forEach((operand_expr, index) =>
-	emitter.grouped_expr(operand_expr, 'force', index));
+        emitter.grouped_expr(operand_expr, 'force', index));
     }
   }
 
@@ -599,7 +599,7 @@ class CommandExpr extends Expr {
       // Check for "greek" letters in assignments.
       const assigned_val = assignments[c];
       if(assigned_val !== undefined && assigned_val !== null)
-	return assigned_val;
+        return assigned_val;
       if(c === 'pi') return Math.PI;
       if(c === 'infty') return Infinity;
     }
@@ -693,7 +693,7 @@ class CommandExpr extends Expr {
       else if(this.command_name === 'underset')
         return [this.operand_exprs[1], this.operand_exprs[0]];
       else
-	return [this];
+        return [this];
     default:
       return [this];
     }
@@ -815,8 +815,8 @@ class FontExpr extends Expr {
       // so that the size adjustment does not continue beyond this expression.
       // i.e.: {\large ...} instead of \large{...}
       return emitter.grouped(() => {
-	emitter.command(size_adjustment_command);
-	this.with_size_adjustment(0).emit_latex(emitter);
+        emitter.command(size_adjustment_command);
+        this.with_size_adjustment(0).emit_latex(emitter);
       }, true);
     }
     const typeface_command = this.typeface_command(this.typeface, this.is_bold);
@@ -827,8 +827,8 @@ class FontExpr extends Expr {
       // nested \pmb{\typeface_cmd{...}}
       emitter.command('pmb');
       emitter.grouped(() => {
-	emitter.command(typeface_command);
-	emitter.grouped_expr(this.expr, true, 0);
+        emitter.command(typeface_command);
+        emitter.grouped_expr(this.expr, true, 0);
       }, true);
     }
     else {
@@ -1153,26 +1153,26 @@ class InfixExpr extends Expr {
       // Check the special cases for "plain text" operators
       const pair = special_pairs.find(pair => pair[0] === expr.text);
       if(pair)
-	new_expr = new CommandExpr(pair[1]);
+        new_expr = new CommandExpr(pair[1]);
     }
     else if(expr.is_expr_type('command') && expr.operand_count() === 0) {
       // Check special cases to convert:  \nless -> <
       const pair = special_pairs.find(pair => pair[1] === expr.command_name);
       if(pair)
-	new_expr = new TextExpr(pair[0]);
+        new_expr = new TextExpr(pair[0]);
       else {
-	// Default case: \le -> \not\le
-	new_expr = new SequenceExpr([new CommandExpr('not'), expr]);
+        // Default case: \le -> \not\le
+        new_expr = new SequenceExpr([new CommandExpr('not'), expr]);
       }
     }
     if(new_expr) {
       let new_operator_exprs = [...this.operator_exprs];
       new_operator_exprs[operator_index] = new_expr;
       return new InfixExpr(
-	this.operand_exprs,
-	new_operator_exprs,
-	this.split_at_index,
-	this.linebreaks_at);
+        this.operand_exprs,
+        new_operator_exprs,
+        this.split_at_index,
+        this.linebreaks_at);
     }
     else return null;
   }
@@ -1183,8 +1183,8 @@ class InfixExpr extends Expr {
   // coefficient and exponent.  Return null if it's not of this form.
   _unparse_scientific_notation() {
     if(!(this.operator_exprs.length === 1 &&
-	 this.operator_exprs[0].is_expr_type('command') &&
-	 this.operator_exprs[0].command_name === 'times'))
+         this.operator_exprs[0].is_expr_type('command') &&
+         this.operator_exprs[0].command_name === 'times'))
       return null;
     const [lhs, rhs] = this.operand_exprs;
     if(lhs.is_expr_type('text') && lhs.looks_like_number() &&
@@ -1257,7 +1257,7 @@ class InfixExpr extends Expr {
     for(let i = 0; i < this.operator_exprs.length; i++) {
       const op_info = operator_infos[i];
       while(op_stack.length > 0 &&
-	    op_stack[op_stack.length-1].prec >= op_info.prec)
+            op_stack[op_stack.length-1].prec >= op_info.prec)
         eval_stack_op();
       op_stack.push(op_info);
       value_stack.push(operand_values[i+1]);
@@ -1372,7 +1372,7 @@ class PostfixExpr extends Expr {
     let [base_expr, factorial_signs_count] = [this.base_expr, 0];
     if(this.operator_expr.is_expr_type('text') && this.operator_expr.text === '!') {
       if(this.base_expr.is_expr_type('postfix'))
-	[base_expr, factorial_signs_count] = base_expr.analyze_factorial();
+        [base_expr, factorial_signs_count] = base_expr.analyze_factorial();
       factorial_signs_count++;
     }
     return [base_expr, factorial_signs_count];
@@ -1545,7 +1545,7 @@ class SequenceExpr extends Expr {
       else if(this.exprs[0].text === '-') sign = -1;
       if(sign !== null)
         return sign * (new SequenceExpr(
-	  this.exprs.slice(1), this.fused).evaluate(assignments));
+          this.exprs.slice(1), this.fused).evaluate(assignments));
     }
     // Consider anything else as implicit multiplications.
     let value = this.exprs[0].evaluate(assignments);
@@ -1844,7 +1844,7 @@ class SubscriptSuperscriptExpr extends Expr {
       const is_prime_command = expr =>
             expr.is_expr_type('command') &&
             expr.operand_count() === 0 &&
-	    expr.command_name === 'prime';
+            expr.command_name === 'prime';
       let new_superscript_expr = null;
       if(is_prime_command(s))
         new_superscript_expr = new SequenceExpr([s, new_prime_expr]);
@@ -1875,16 +1875,16 @@ class SubscriptSuperscriptExpr extends Expr {
       const lhs = sub_expr.extract_side_at(0, 'left');
       const rhs = sub_expr.extract_side_at(0, 'right');
       if((lhs.is_expr_type('text') && lhs.looks_like_variable_name()) ||
-	 (lhs.is_expr_type('command') && lhs.operand_count() === 0)) {
-	const subst_value = rhs.evaluate(assignments);
-	if(subst_value !== null) {
-	  let new_assignments = Object.assign({}, assignments);  // shallow copy
-	  if(lhs.is_expr_type('text'))
-	    new_assignments[lhs.text] = subst_value;
-	  else if(lhs.is_expr_type('command'))
-	    new_assignments[lhs.command_name] = subst_value;
-	  return base_expr.inner_expr.evaluate(new_assignments);
-	}
+         (lhs.is_expr_type('command') && lhs.operand_count() === 0)) {
+        const subst_value = rhs.evaluate(assignments);
+        if(subst_value !== null) {
+          let new_assignments = Object.assign({}, assignments);  // shallow copy
+          if(lhs.is_expr_type('text'))
+            new_assignments[lhs.text] = subst_value;
+          else if(lhs.is_expr_type('command'))
+            new_assignments[lhs.command_name] = subst_value;
+          return base_expr.inner_expr.evaluate(new_assignments);
+        }
       }
     }
 
@@ -1989,7 +1989,7 @@ class ArrayExpr extends Expr {
     // of the colon (so we don't get a useless column of empty TextExprs).
     if(split_mode === 'colon' &&
        element_exprs.every(row =>
-	 row.length === 2 && row[1].is_expr_type('text') && row[1].text === ''))
+         row.length === 2 && row[1].is_expr_type('text') && row[1].text === ''))
       return element_exprs.map(row => [row[0]]);
     else
       return element_exprs;

@@ -1,20 +1,20 @@
 
 :root {
-    /* These are dynamically adjusted in code to be the right size
+  /* These are dynamically adjusted in code to be the right size
        for the current zoom level: */
-    --itemtype-bar-width: 5px;
-    --heading-bar-height: 3px;
-    --item-margin-width: 12px;  /* NOTE: not currently dynamically adjusted */
+  --itemtype-bar-width: 5px;
+  --heading-bar-height: 3px;
+  --item-margin-width: 12px;  /* NOTE: not currently dynamically adjusted */
 }
 
 html {
-    height: 100%;
+  height: 100%;
 }
 body {
-    margin: 0;
-    padding: 0;
-    background-color: #bbb;
-    height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #bbb;
+  height: 100%;
 }
 
 body.inverse_video { filter: invert(100%); }
@@ -23,39 +23,39 @@ body.sepia #stack_panel { box-shadow: inset 0 0 1em 0 #ccc; }
 body.sepia #document_panel { box-shadow: inset 0 0 1em 0 #bbb; }
 
 #root {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 
-    /* Disable errant mouse text selection, more trouble than it's worth. */
-    user-select: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+  /* Disable errant mouse text selection, more trouble than it's worth. */
+  user-select: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 
-    /* Disable "font boosting" on Android Chrome and other mobile browsers.
+  /* Disable "font boosting" on Android Chrome and other mobile browsers.
        This boosting doesn't work well when mixed with KaTeX rendering. */
-    text-size-adjust: none;
-    -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  -webkit-text-size-adjust: none;
 }
 
 
 div.item {
-    /* Snap margins for scrolling when the document selection changes. */
-    scroll-margin-top: 0.5em;
-    scroll-margin-bottom: 0.5em;
+  /* Snap margins for scrolling when the document selection changes. */
+  scroll-margin-top: 0.5em;
+  scroll-margin-bottom: 0.5em;
 }
 
 /* div.expr_item {}
    div.text_item {} */
 
 div.latex_fragment {
-    /* NOTE: vertical margins should match .katex-display margins below.
+  /* NOTE: vertical margins should match .katex-display margins below.
        This is to keep the inter-item spacing consistent between full
        math display mode and inline math mode (toggleable with [$][i]). */
-    margin: 3px 0;
-    margin-left: 0;
-    padding-left: var(--item-margin-width);
+  margin: 3px 0;
+  margin-left: 0;
+  padding-left: var(--item-margin-width);
 }
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
@@ -71,53 +71,53 @@ div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color:
 
 /* Override item type indicator bar if it contains a KaTeX error. */
 div.latex_fragment:has(div.latex_error_message) {
-    border-left: var(--itemtype-bar-width) solid #c44 !important;
-    padding-right: var(--item-margin-width);
-    /* Padding to allow the selection indication to be seen better. */
-    padding-top: 0.25em;
-    padding-bottom: 0.25em;
+  border-left: var(--itemtype-bar-width) solid #c44 !important;
+  padding-right: var(--item-margin-width);
+  /* Padding to allow the selection indication to be seen better. */
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
 }
 div.latex_fragment div.latex_error_message {
-    font-family: monospace;
-    font-weight: bold;
-    overflow-wrap: break-word;
-    color: #c00;
-    background-color: #fee;
-    padding: 0.2em 0.5em;
+  font-family: monospace;
+  font-weight: bold;
+  overflow-wrap: break-word;
+  color: #c00;
+  background-color: #fee;
+  padding: 0.2em 0.5em;
 }
 div.latex_fragment div.latex_source_with_error {
-    font-family: monospace;
-    overflow-wrap: break-word;
-    color: black;
-    background-color: #edd;
-    padding: 0.2em 0.5em;
+  font-family: monospace;
+  overflow-wrap: break-word;
+  color: black;
+  background-color: #edd;
+  padding: 0.2em 0.5em;
 }
 
 div.heading_style div.latex_fragment_inner {
-    border-bottom: var(--heading-bar-height) solid #bbf;
-    padding-top: 0.3em;
-    margin-right: var(--item-margin-width);
-    font-size: 125%;
-    font-weight: bold;
+  border-bottom: var(--heading-bar-height) solid #bbf;
+  padding-top: 0.3em;
+  margin-right: var(--item-margin-width);
+  font-size: 125%;
+  font-weight: bold;
 }
 body.eink_mode div.heading_style div.latex_fragment_inner { border-bottom-color: #666; }
 
 div.separator_item {
-    display: flex;
-    align-items: center;  /* this will have a single <hr /> inside it to be centered vertically */
-    height: 0.75em;
-    border-left: var(--itemtype-bar-width) solid #99f;  /* should match div.text_item's color */
-    padding: 0.2em 0;
+  display: flex;
+  align-items: center;  /* this will have a single <hr /> inside it to be centered vertically */
+  height: 0.75em;
+  border-left: var(--itemtype-bar-width) solid #99f;  /* should match div.text_item's color */
+  padding: 0.2em 0;
 }
 div.separator_item hr {
-    /* These hrules should visually look like the underline of section headings.
+  /* These hrules should visually look like the underline of section headings.
        Should match what is in div.heading_style .katex-html. */
-    height: var(--heading-bar-height);
-    width: 100%;  /* for display: flex in parent */
-    margin-left: var(--item-margin-width);
-    margin-right: var(--item-margin-width);
-    border: none;
-    background-color: #bbf;
+  height: var(--heading-bar-height);
+  width: 100%;  /* for display: flex in parent */
+  margin-left: var(--item-margin-width);
+  margin-right: var(--item-margin-width);
+  border: none;
+  background-color: #bbf;
 }
 
 /* "Emphasized" expressions created with [.][e]
@@ -133,51 +133,51 @@ div.separator_item hr {
 /* Highlight the selected subexpression(s) in "dissect" mode. */
 .dissect_highlight_brace { color: #83c; }
 .dissect_highlight {
-    color: #f33;
-    text-shadow: 0 0 0.16em #f88;
-    animation: dissect_blink 0.75s steps(1) infinite;
+  color: #f33;
+  text-shadow: 0 0 0.16em #f88;
+  animation: dissect_blink 0.75s steps(1) infinite;
 }
 @keyframes dissect_blink {
-    0% { color: #c33; }
-    50% { color: #40a; }
+  0% { color: #c33; }
+  50% { color: #40a; }
 }
 
 
 div.latex_source_item {
-    border-left: var(--itemtype-bar-width) solid #bbcfbb;
-    overflow-wrap: break-word;
-    font-family: monospace;
-    padding: 0.2em var(--item-margin-width);
-    margin: 0.2em 0;
+  border-left: var(--itemtype-bar-width) solid #bbcfbb;
+  overflow-wrap: break-word;
+  font-family: monospace;
+  padding: 0.2em var(--item-margin-width);
+  margin: 0.2em 0;
 }
 div.latex_source_item div.latex_source {
-    padding-left: var(--item-margin-width);
-    background-color: #dde8dd;
-    padding: 0.2em 0.5em;
+  padding-left: var(--item-margin-width);
+  background-color: #dde8dd;
+  padding: 0.2em 0.5em;
 }
 
 div.tag_string {
-    position: absolute;
-    z-index: 10;
-    width: auto;
-    right: 0.5em;
-    margin-top: 0.1em;
-    padding: 0.1em 0.5em;
-    font-size: 90%;
-    font-weight: bold;
-    color: #666;
-    background-color: #dfe;
+  position: absolute;
+  z-index: 10;
+  width: auto;
+  right: 0.5em;
+  margin-top: 0.1em;
+  padding: 0.1em 0.5em;
+  font-size: 90%;
+  font-weight: bold;
+  color: #666;
+  background-color: #dfe;
 }
 
 /* These are to support settings.layout.rightalign_math options. */
 .rightalign_math .katex-display.fleqn > .katex {
-    text-align: right;
-    padding-left: 0;
-    padding-right: 0.5em;
+  text-align: right;
+  padding-left: 0;
+  padding-right: 0.5em;
 }
 .rightalign_math div.tag_string {
-    left: 0.5em;
-    right: initial;
+  left: 0.5em;
+  right: initial;
 }
 
 .placeholder_expr { color: #6c6; }  
@@ -188,25 +188,25 @@ div.panel { background-color: #f8f8f8; }  /* this ends up being the stack panel 
 body.sepia div.panel { background-color: #f0f0f0; /* for better contrast against document panel */ }
 
 #stack_panel.errorflash {
-    animation-name: errorflash_stack;
-    animation-duration: 0.3s;
+  animation-name: errorflash_stack;
+  animation-duration: 0.3s;
 }
 @keyframes errorflash_stack {
-    from { background-color: #fdd; }
-    to { background-color: #f8f8f8; }
+  from { background-color: #fdd; }
+  to { background-color: #f8f8f8; }
 }
 
 #stack_panel {
-    position: absolute;
-    height: 100%;
-    overflow-x: scroll;
-    overflow-y: auto;
-    box-shadow: inset 0 0 1em 0 #ccc;
+  position: absolute;
+  height: 100%;
+  overflow-x: scroll;
+  overflow-y: auto;
+  box-shadow: inset 0 0 1em 0 #ccc;
 }
 body.eink_mode #stack_panel {
-    /* Remove "tinting" for E-ink displays. */
-    box-shadow: none;
-    background-color: white;
+  /* Remove "tinting" for E-ink displays. */
+  box-shadow: none;
+  background-color: white;
 }
 body.eink_mode #stack_panel.stack_on_bottom { border-top: 2px solid #888; }
 body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
@@ -214,53 +214,53 @@ body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
 body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 
 #stack_panel div.indicator {
-    float: right;
-    clear: right;  /* in case there's a "floating" stack item */
-    margin-right: 0.25em;
-    margin-top: 0.25em;
-    font-size: 120%;
+  float: right;
+  clear: right;  /* in case there's a "floating" stack item */
+  margin-right: 0.25em;
+  margin-top: 0.25em;
+  font-size: 120%;
 }
 #stack_panel div.indicator span.notification {
-    color: #060;
-    background-color: #ffe;
-    padding: 0.1em 0.2em;
-    border: 1px solid #888;
+  color: #060;
+  background-color: #ffe;
+  padding: 0.1em 0.2em;
+  border: 1px solid #888;
 }
 #stack_panel div.indicator span.highlighted { color: #393; font-weight: bold; font-family: monospace; }
 #stack_panel div.indicator span.mode { color: #888; font-family: monospace; }
 
 #stack_panel div.floating_item {
-    float: right;
-    padding: 0.05em 0.2em;
-    margin-right: 0.25em;
-    margin-top: 0.25em;
-    border: 1px solid #ccc;
-    background-color: #eee;
-    box-shadow: inset 0 0 0.35em 0.1em #ccc;
+  float: right;
+  padding: 0.05em 0.2em;
+  margin-right: 0.25em;
+  margin-top: 0.25em;
+  border: 1px solid #ccc;
+  background-color: #eee;
+  box-shadow: inset 0 0 0.35em 0.1em #ccc;
 }
 div.floating_item div.tag_string {
-    display: none;  /* tags get in the way in the "floating" item spot */
+  display: none;  /* tags get in the way in the "floating" item spot */
 }
 
 div.stack_items {
-    position: absolute;
-    width: 100%;
-    bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
-    border-bottom: 2px solid #ddd;
+  position: absolute;
+  width: 100%;
+  bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome */
+  border-bottom: 2px solid #ddd;
 }
 body.eink_mode div.stack_items { border-bottom: none; }
 
 div.stack_items div.text_entry {
-    text-align: left;  /* overrides .rightalign_math if needed */
-    font-family: monospace;
-    font-size: 120%;
-    border-top: 2px solid #aaa;
-    /* background-color: #eef; */
-    margin: 0.1em 0;
-    padding: 0.25em 1.25em;
-    color: black;
-    white-space: break-spaces;
-    overflow-wrap: break-word;
+  text-align: left;  /* overrides .rightalign_math if needed */
+  font-family: monospace;
+  font-size: 120%;
+  border-top: 2px solid #aaa;
+  /* background-color: #eef; */
+  margin: 0.1em 0;
+  padding: 0.25em 1.25em;
+  color: black;
+  white-space: break-spaces;
+  overflow-wrap: break-word;
 }
 
 div.stack_items div.text_entry span.normal_character {}
@@ -277,51 +277,51 @@ div.stack_items div.tag_entry_mode { background-color: #dfe; }
 
 /* Show an initial backslash at the beginning when in latex entry mode. */
 div.stack_items div.latex_entry_mode::before {
-    content: "\\";
-    font-weight: bold;
+  content: "\\";
+  font-weight: bold;
 }
 div.stack_items div.conjunction_entry_mode::before {
-    content: "phrase: ";
-    font-weight: bold;
-    color: #620;
+  content: "phrase: ";
+  font-weight: bold;
+  color: #620;
 }
 div.stack_items div.tag_entry_mode::before {
-    content: "tag: ";
-    font-weight: bold;
-    color: #264;
+  content: "tag: ";
+  font-weight: bold;
+  color: #264;
 }
 
 
 #document_panel {
-    position: absolute;
-    overflow: hidden;
-    background-color: white;
+  position: absolute;
+  overflow: hidden;
+  background-color: white;
 }
 #document_panel.errorflash {
-    animation-name: errorflash_document;
-    animation-duration: 0.3s;
+  animation-name: errorflash_document;
+  animation-duration: 0.3s;
 }
 @keyframes errorflash_document {
-    from { background-color: #fdd; }
-    to { background-color: #fff; }
+  from { background-color: #fdd; }
+  to { background-color: #fff; }
 }
 #document_panel div.selected {
-    background-color: #eee;
-    /* NOTE: box-shadow so that the element size is not affected
+  background-color: #eee;
+  /* NOTE: box-shadow so that the element size is not affected
        like it would be with border */
-    box-shadow: inset 0 0 0.25em 0 #999;
+  box-shadow: inset 0 0 0.25em 0 #999;
 }
 body.eink_mode #document_panel div.selected {
-    box-shadow: inset 0 0 1px 1px black;
+  box-shadow: inset 0 0 1px 1px black;
 }
 #document_container {
-    position: absolute;
-    overflow: scroll;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+  position: absolute;
+  overflow: scroll;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 #document_container #helptext { padding: 0 1em; }
 
@@ -330,47 +330,47 @@ div.document_items div.bottom_spacer { min-height: 8em; }
 
 
 #popup_panel {
-    position: absolute;
-    overflow: auto;
-    top: 5%;
-    height: 90%;
-    left: 8%;
-    width: 84%;
-    z-index: 30;
-    background-color: white;
-    box-shadow: 0 0 1em 2px #bbb;
+  position: absolute;
+  overflow: auto;
+  top: 5%;
+  height: 90%;
+  left: 8%;
+  width: 84%;
+  z-index: 30;
+  background-color: white;
+  box-shadow: 0 0 1em 2px #bbb;
 }
 body.eink_mode #popup_panel { border: 2px solid black; }
 
 
 span.keybinding {
-    font-size: 120%;
-    font-weight: bold;
-    font-family: monospace;
-    background-color: #eef8ee;
-    color: #040;
-    border: 1px solid #bdb;
-    padding: 0 0.3em;
+  font-size: 120%;
+  font-weight: bold;
+  font-family: monospace;
+  background-color: #eef8ee;
+  color: #040;
+  border: 1px solid #bdb;
+  padding: 0 0.3em;
 }
 body.eink_mode span.keybinding { border-color: black; }
 
 
 #files_panel { padding: 0.5em 1em; }
 #files_panel h2, div.help h1 {
-    border-bottom: 2px solid #ddf;
-    margin: 0.5em 0;
+  border-bottom: 2px solid #ddf;
+  margin: 0.5em 0;
 }
 body.eink_mode div.help h1 { border-bottom-color: #666; }
 #files_panel div.current_file span.filename {
-    padding-left: 0.5em;
-    font-weight: bold;
-    font-family: monospace;
+  padding-left: 0.5em;
+  font-weight: bold;
+  font-family: monospace;
 }
 table.file_table {
-    border: 1px solid #ddd;
-    border-collapse: collapse;
-    margin: 1em 0;
-    margin-top: 0.25em;
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  margin: 1em 0;
+  margin-top: 0.25em;
 }
 body.eink_mode table.file_table { border: 1px solid black; }
 table.file_table th { background-color: #ddd; text-align: left; }
@@ -383,39 +383,39 @@ table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: lef
 div.help { padding: 0.5em 1em; }
 #document_container.help { padding: 0; }  /* when the helptext is 'docked' */
 div.help .version_info {
-    float: right;
-    color: #888;
-    font-family: monospace;
-    text-align: right;
-    font-size: 80%;
+  float: right;
+  color: #888;
+  font-family: monospace;
+  text-align: right;
+  font-size: 80%;
 }
 div.help h2 {
-    font-size: 120%;
-    border-bottom: 2px solid #ddd;
-    margin: 0;
-    margin-top: 1em;
-    margin-bottom: 0.25em;
-    padding: 0.15em 0;
+  font-size: 120%;
+  border-bottom: 2px solid #ddd;
+  margin: 0;
+  margin-top: 1em;
+  margin-bottom: 0.25em;
+  padding: 0.15em 0;
 }
 body.eink_mode div.help h2 { border-bottom-color: #666; }
 div.help p { margin: 0.7em 0; }
 div.help a { scroll-margin-top: 0.5em; }  /* snap margin for internal links within helptext */
 
 ul.keybindings {
-    margin: 0;
-    padding: 0;
-    margin-left: 3em;
+  margin: 0;
+  padding: 0;
+  margin-left: 3em;
 }
 ul.keybindings li {
-    list-style-type: none;
-    text-indent: -2em;
-    margin: 0.2em 0;
+  list-style-type: none;
+  text-indent: -2em;
+  margin: 0.2em 0;
 }
 table.keybindings {
-    border: none;
-    border-collapse: collapse;
-    margin: 0;
-    margin-left: 0.5em;  /* try to match left-alignment of ul.keybindings */
+  border: none;
+  border-collapse: collapse;
+  margin: 0;
+  margin-left: 0.5em;  /* try to match left-alignment of ul.keybindings */
 }
 table.keybindings td { padding: 0.1em 0.5em; }
 
@@ -424,9 +424,9 @@ table.keybindings td { padding: 0.1em 0.5em; }
 
 /* Adjust spacing and alignment of display math to make things more compact. */
 .katex-display {
-    margin: 3px 0;
-    padding: 2px 0;
-    text-align: left;
+  margin: 3px 0;
+  padding: 2px 0;
+  text-align: left;
 }
 .katex-display.fleqn > .katex { padding-left: 0; }
 

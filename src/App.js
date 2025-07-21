@@ -181,7 +181,7 @@ class App extends React.Component {
        this.popup_panel_ref.current) {
       this.state.settings.apply_layout_to_dom(
         this.stack_panel_ref.current,
-	this.document_panel_ref.current,
+        this.document_panel_ref.current,
         this.popup_panel_ref.current);
     }
     this.dock_helptext(this.state.settings.dock_helptext);
@@ -190,8 +190,8 @@ class App extends React.Component {
   dock_helptext(is_docked) {
     const helptext_elt = document.getElementById('helptext');
     const help_dest_elt = is_docked ?
-	  document.getElementById('document_container') :
-	  document.getElementById('help_content');
+          document.getElementById('document_container') :
+          document.getElementById('help_content');
     if(helptext_elt && helptext_elt.parentNode !== help_dest_elt) {
       helptext_elt.parentNode.removeChild(helptext_elt);
       help_dest_elt.appendChild(helptext_elt);
@@ -237,20 +237,20 @@ class App extends React.Component {
       // getting a new React key to trigger the re-render.  Outside of a component
       // list, the React key change would have no effect.
       stack_panel_components.push(
-	$e('div', {className: 'floating_item'},
-	   [$e(ItemComponent, {
-	     item: stack.floating_item,
-	     inline_math: settings.layout.inline_math,
-	     item_ref: React.createRef(),
-	     key: stack.floating_item.react_key(0)
-	   })]));
+        $e('div', {className: 'floating_item'},
+           [$e(ItemComponent, {
+             item: stack.floating_item,
+             inline_math: settings.layout.inline_math,
+             item_ref: React.createRef(),
+             key: stack.floating_item.react_key(0)
+           })]));
     }
     if(settings.show_mode_indicator || input_context.notification_text)
       stack_panel_components.push(
-	$e(ModeIndicatorComponent, {
-	  app_state: app_state,
-	  input_context: input_context
-	}));
+        $e(ModeIndicatorComponent, {
+          app_state: app_state,
+          input_context: input_context
+        }));
 
     let document_component = null;
     if(!settings.dock_helptext)
@@ -264,14 +264,14 @@ class App extends React.Component {
     return $e(
       'div', {id: 'panel_layout'},
       $e('div', {className: 'panel stack_panel', id: 'stack_panel', ref: this.stack_panel_ref},
-	 ...stack_panel_components),
+         ...stack_panel_components),
       $e('div', {className: 'panel document_panel', id: 'document_panel', ref: this.document_panel_ref},
          $e('div', {
-	   id: 'document_container',
-	   className: settings.dock_helptext ? 'help' : null
-	 }, document_component)),
+           id: 'document_container',
+           className: settings.dock_helptext ? 'help' : null
+         }, document_component)),
       $e(PopupPanelComponent, {
-	app: this,
+        app: this,
         settings: settings,
         popup_panel_ref: this.popup_panel_ref,
         import_export_state: this.state.import_export_state,
@@ -424,8 +424,8 @@ class StackItemsComponent extends React.Component {
         TextEntryComponent, {
           text: input_context.text_entry.current_text,
           cursor_position: input_context.text_entry.cursor_position,
-	  error_start: null,
-	  error_end: null,
+          error_start: null,
+          error_end: null,
           entry_type: input_context.text_entry.mode,
           key: 'textentry'
         });
@@ -451,9 +451,9 @@ class StackItemsComponent extends React.Component {
     const mode = this.props.input_context.mode;
     if(mode === 'stack' || mode === 'array') {
       if(prefix_argument < 0)
-	return true;  // highlight all items
+        return true;  // highlight all items
       else
-	return prefix_argument === index;
+        return prefix_argument === index;
     }
     else if(mode === 'build_matrix') {
       // In build_matrix mode, the number of matrix rows to build has already
@@ -483,7 +483,7 @@ class DocumentComponent extends React.Component {
       let item_ref = React.createRef();
       const is_selected = selection_index === index+1;
       if(is_selected)
-	this.selected_item_ref = item_ref;
+        this.selected_item_ref = item_ref;
       return $e(
         ItemComponent, {
           item: item,
@@ -540,9 +540,9 @@ class DocumentComponent extends React.Component {
       let container = document.getElementById('document_container');
       const extra_space = item.offsetHeight/2;
       if(item.offsetTop < container.scrollTop)
-	container.scrollTop = item.offsetTop - extra_space;
+        container.scrollTop = item.offsetTop - extra_space;
       if(item.offsetTop + item.offsetHeight > container.scrollTop + container.offsetHeight)
-	container.scrollTop = item.offsetTop + item.offsetHeight - container.offsetHeight + extra_space;
+        container.scrollTop = item.offsetTop + item.offsetHeight - container.offsetHeight + extra_space;
     }
   }
 }
@@ -553,7 +553,7 @@ class TextEntryComponent extends React.Component {
   render() {
     const class_name = 'text_entry ' + this.props.entry_type + '_mode';
     const [cursor_pos, error_start, error_end] =
-	  [this.props.cursor_position, this.props.error_start, this.props.error_end];
+          [this.props.cursor_position, this.props.error_start, this.props.error_end];
     let s = this.props.text;
     if(this.props.cursor_position === s.length)
       s += ' ';  // so that we can show the cursor when it's at the end of the text
@@ -561,11 +561,11 @@ class TextEntryComponent extends React.Component {
     for(let i = 0; i < s.length; i++) {
       const is_cursor = i == cursor_pos;
       const is_error = error_start !== null && error_end !== null &&
-	    i >= error_start && i < error_end;
+            i >= error_start && i < error_end;
       const span_class_name =
-	    is_cursor && is_error ? 'cursor_character error_character' :
-	    is_cursor ? 'cursor_character' :
-	    is_error ? 'error_character' : 'normal_character';
+            is_cursor && is_error ? 'cursor_character error_character' :
+            is_cursor ? 'cursor_character' :
+            is_error ? 'error_character' : 'normal_character';
       spans.push($e('span', {className: span_class_name}, s.slice(i, i+1)));
     }
     return $e('div', {className: class_name}, ...spans);
@@ -594,18 +594,18 @@ class FileManagerComponent extends React.Component {
     const subcomponents = [
       $e('p', {}, 'Upload (import) a single .json document:'),
       $e('p', {},
-	 $e('input', {
-	   type: 'file',
-	   ref: this.json_file_input_ref
-	 }),
-	 $e('input', {
-	   type: 'button',
-	   value: 'Upload',
-	   onClick: this.handle_json_file_upload.bind(this)
-	 })),
+         $e('input', {
+           type: 'file',
+           ref: this.json_file_input_ref
+         }),
+         $e('input', {
+           type: 'button',
+           value: 'Upload',
+           onClick: this.handle_json_file_upload.bind(this)
+         })),
       $e(
-	'p', {},
-	'Import or export all documents as a .zip file:'),
+        'p', {},
+        'Import or export all documents as a .zip file:'),
       $e('p', {}, $e('strong', {}, import_export_state.textual_state()))
     ];
     if(import_export_state.state === 'idle')
@@ -779,11 +779,11 @@ class ItemComponent extends React.Component {
     const item = this.props.item;
     const item_ref = this.props.item_ref;  // references the top-level (outer) item div
     let className = this.props.selected ? 'selected ' :
-	(this.props.highlighted ? 'highlighted ' : '');
+        (this.props.highlighted ? 'highlighted ' : '');
     if(item.is_text_item() && item.is_heading)
       className = 'heading_style ' + className;
     const tag_element = item.tag_string ?
-	  $e('div', {className: 'tag_string'}, item.tag_string) : null;
+          $e('div', {className: 'tag_string'}, item.tag_string) : null;
     switch(item.item_type()) {
     case 'expr':
       this.katex_ref = React.createRef();  // KaTeX rendering target node
@@ -793,16 +793,16 @@ class ItemComponent extends React.Component {
         $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''));
     case 'text':
       if(item.is_empty()) {
-	// Empty TextItems are rendered as separator lines as a special case.
-	return $e(
+        // Empty TextItems are rendered as separator lines as a special case.
+        return $e(
           'div', {className: className + 'item separator_item', ref: item_ref},
           tag_element,
           $e('hr', {}));
       }
       else {
-	// TODO: The CSS/markup for heading texts is a little hacky
-	this.katex_ref = React.createRef();
-	return $e(
+        // TODO: The CSS/markup for heading texts is a little hacky
+        this.katex_ref = React.createRef();
+        return $e(
           'div', {className: 'item text_item', ref: item_ref},
           tag_element,
           $e('div', {className: className + 'latex_fragment'},
@@ -811,18 +811,18 @@ class ItemComponent extends React.Component {
     case 'code':
       if(item.language === 'latex') {
         // Non-rendered raw LaTeX source code.
-	return $e(
-	  'div', {className: className + 'item latex_source_item', ref: item_ref},
+        return $e(
+          'div', {className: className + 'item latex_source_item', ref: item_ref},
           tag_element,  // not currently allowed
-	  $e('div', {className: 'latex_source'}, item.source));
+          $e('div', {className: 'latex_source'}, item.source));
       }
       else return $e(
-	'div', {className: 'item', ref: item_ref},
-	'Unknown code language: ' + item.language);
+        'div', {className: 'item', ref: item_ref},
+        'Unknown code language: ' + item.language);
     default:
       return $e(
-	'div', {className: 'item', ref: item_ref},
-	'Unknown item type: ' + item.item_type());
+        'div', {className: 'item', ref: item_ref},
+        'Unknown item type: ' + item.item_type());
     }
   }
 
@@ -834,18 +834,18 @@ class ItemComponent extends React.Component {
     if(item.is_expr_item()) {
       // Render math with KaTeX.
       this._render_with_katex(
-	item.to_latex(),
-	katex_target_node,
-	!this.props.inline_math);
+        item.to_latex(),
+        katex_target_node,
+        !this.props.inline_math);
     }
     else if(item.is_text_item()) {
       // TextItems are always rendered in inline mode.
       // Note that this means that text items will always be left-aligned regardless
       // of the rightalign_math layout settings.
       this._render_with_katex(
-	item.to_latex(),
-	katex_target_node,
-	false);
+        item.to_latex(),
+        katex_target_node,
+        false);
     }
   }
 
@@ -858,12 +858,12 @@ class ItemComponent extends React.Component {
     try {
       // NOTE: trust: true here allows the use of \htmlClass etc.
       katex.render(latex_code, node, {
-	throwOnError: true, //false,
-	displayMode: display_mode,
-	fleqn: true,
-	trust: true,
+        throwOnError: true, //false,
+        displayMode: display_mode,
+        fleqn: true,
+        trust: true,
         strict: false,
-	minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
+        minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
       });
     }
     catch(e) {
@@ -871,11 +871,11 @@ class ItemComponent extends React.Component {
       // This will override the item bar's color to be red to indicate the error.
       let msg = null;
       if(e instanceof katex.ParseError) {
-	// NOTE: KaTeX throws actual errors for some inputs, even if throwOnError is false.
-	// Example: \texttt{\textbf{test}}
-	// Generally though, these errors result from [\][\] latex text entry
-	// with invalid latex commands (or [Tab][V]).
-	msg = e.rawMessage;
+        // NOTE: KaTeX throws actual errors for some inputs, even if throwOnError is false.
+        // Example: \texttt{\textbf{test}}
+        // Generally though, these errors result from [\][\] latex text entry
+        // with invalid latex commands (or [Tab][V]).
+        msg = e.rawMessage;
       }
       else msg = e.toString();
       const latex_source_elt = document.createElement('div');
@@ -903,7 +903,7 @@ class PopupPanelComponent extends React.Component {
       subcomponent = $e(
         'div', {id: 'files_container'},
         $e(FileManagerComponent, {
-	  app: this.props.app,
+          app: this.props.app,
           import_export_state: this.props.import_export_state,
           document_storage: this.props.document_storage,
           file_manager_state: this.props.file_manager_state
@@ -967,7 +967,7 @@ class PopupPanelComponent extends React.Component {
       const anchor_elt = anchor_elts[i];
       const href = anchor_elt.getAttribute('href');
       if(href && href.startsWith('#'))
-	anchor_elt.onclick = this._helptext_anchor_onclick.bind(anchor_elt);
+        anchor_elt.onclick = this._helptext_anchor_onclick.bind(anchor_elt);
     }
   }
 
@@ -981,9 +981,9 @@ class PopupPanelComponent extends React.Component {
       const anchor_elt = anchor_elts[i];
       const name_attr = anchor_elt.getAttribute('name');
       if(name_attr && name_attr === anchor_target) {
-	event.preventDefault();
-	anchor_elt.scrollIntoView();
-	break;
+        event.preventDefault();
+        anchor_elt.scrollIntoView();
+        break;
       }
     }
   }

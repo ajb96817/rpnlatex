@@ -991,7 +991,7 @@ class ExprParser {
       if(e.message === 'parse_error')
         ;  // leave expr as null
       else
-	throw e;
+        throw e;
     }
     if(!expr) return null;
     if(!parser.at_end()) return null;  // extraneous tokens at end
@@ -1042,8 +1042,8 @@ class ExprParser {
       }
       // Check for [] placeholder:
       else if(pos < s.length-1 && s[pos] === '[' && s[pos+1] === ']') {
-	tokens.push({type: 'placeholder', text: '[]', pos: pos});
-	pos += 2;
+        tokens.push({type: 'placeholder', text: '[]', pos: pos});
+        pos += 2;
       }
       // Check for // (full size fraction):
       else if(pos < s.length-1 && s[pos] === '/' && s[pos+1] === '/') {
@@ -1059,7 +1059,7 @@ class ExprParser {
         else if(/[-+!'/*]/.test(token)) token_type = 'operator';
         else if(/[([{]/.test(token)) token_type = 'open_delimiter';
         else if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
-	else if(token === '@') token_type = 'pi';
+        else if(token === '@') token_type = 'pi';
         if(token_type === null)
           return null;  // invalid token found (something like ^, or unicode)
         if(token_type !== 'whitespace')  // skip whitespace
@@ -1090,17 +1090,17 @@ class ExprParser {
       // Nonnegative exponents are instead parsed as 4e3 -> 4 (e3) and
       // are handled in parse_term.
       if(lhs.is_expr_type('sequence') && lhs.exprs.length === 2 &&
-	 lhs.exprs[0].looks_like_number() &&
-	 lhs.exprs[1].is_expr_type('text') &&
-	 ['e', 'E'].includes(lhs.exprs[1].text) &&
-	 rhs.is_expr_type('text') && rhs.looks_like_number()) {
-	// NOTE: 3e+4 (explicit +) is allowed here for completeness.
-	const exponent_text = binary_token.text === '-' ? ('-' + rhs.text) : rhs.text;
-	result_expr = InfixExpr.combine_infix(
-	  lhs.exprs[0],
-	  new SubscriptSuperscriptExpr(
-	    new TextExpr('10'), null, new TextExpr(exponent_text)),
-	  new CommandExpr('times'));
+         lhs.exprs[0].looks_like_number() &&
+         lhs.exprs[1].is_expr_type('text') &&
+         ['e', 'E'].includes(lhs.exprs[1].text) &&
+         rhs.is_expr_type('text') && rhs.looks_like_number()) {
+        // NOTE: 3e+4 (explicit +) is allowed here for completeness.
+        const exponent_text = binary_token.text === '-' ? ('-' + rhs.text) : rhs.text;
+        result_expr = InfixExpr.combine_infix(
+          lhs.exprs[0],
+          new SubscriptSuperscriptExpr(
+            new TextExpr('10'), null, new TextExpr(exponent_text)),
+          new CommandExpr('times'));
       }
       else result_expr = InfixExpr.combine_infix(
         lhs, rhs, Expr.text_or_command(binary_token.text));
@@ -1136,26 +1136,26 @@ class ExprParser {
       // Any other pair just concatenates.
       const cdot = Expr.text_or_command("\\cdot");
       if(lhs.is_expr_type('text') && lhs.looks_like_number() &&
-	 rhs.is_expr_type('text') && rhs.looks_like_number())
+         rhs.is_expr_type('text') && rhs.looks_like_number())
         return InfixExpr.combine_infix(lhs, rhs, cdot);
       else if(rhs.is_expr_type('infix') &&
               rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
         return InfixExpr.combine_infix(lhs, rhs, cdot);
       else if(rhs.is_expr_type('sequence') &&
-	      rhs.exprs.length === 2 &&
-	      rhs.exprs[1].is_expr_type('text') && rhs.exprs[1].looks_like_number() &&
-	      rhs.exprs[0].is_expr_type('text') &&
-	      ['e', 'E'].includes(rhs.exprs[0].text) &&
-	      lhs.is_expr_type('text') && lhs.looks_like_number()) {
-	// Scientific notation with nonnegative exponent (e.g. prepending a number to "e4").
-	// Negative exponents are handled in parse_expr instead.
-  	return InfixExpr.combine_infix(
-	  lhs,
-	  new SubscriptSuperscriptExpr(new TextExpr('10'), null, rhs.exprs[1]),
-	  new CommandExpr('times'));
+              rhs.exprs.length === 2 &&
+              rhs.exprs[1].is_expr_type('text') && rhs.exprs[1].looks_like_number() &&
+              rhs.exprs[0].is_expr_type('text') &&
+              ['e', 'E'].includes(rhs.exprs[0].text) &&
+              lhs.is_expr_type('text') && lhs.looks_like_number()) {
+        // Scientific notation with nonnegative exponent (e.g. prepending a number to "e4").
+        // Negative exponents are handled in parse_expr instead.
+        return InfixExpr.combine_infix(
+          lhs,
+          new SubscriptSuperscriptExpr(new TextExpr('10'), null, rhs.exprs[1]),
+          new CommandExpr('times'));
       }
       else
-	return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);
+        return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);
     }
     else
       return lhs;  // factor by itself
@@ -1171,8 +1171,8 @@ class ExprParser {
         factor = Expr.combine_pair(factor, new TextExpr('!'));
       }
       else if(op_token && op_token.text === '\'') {
-	this.next_token();
-	factor = factor.with_prime();
+        this.next_token();
+        factor = factor.with_prime();
       }
       else break;
     }
@@ -1267,7 +1267,7 @@ class SpecialFunctions {
       if(x > 20) return Infinity;
       let value = 1;
       for(let i = 2; i <= x; i++)
-	value *= i;
+        value *= i;
       return value;
     }
     else
@@ -1563,37 +1563,37 @@ class TextItem extends Item {
     for(let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if(token.type === 'math_mode') {
-	if(math_mode) {
-	  // Switching out of math mode ($).  All tokens that were between
-	  // the two $'s are combined into the math expression to be parsed.
-	  // It's done this way in case there is something like $x//y$ which
-	  // would normally get confused as the italic '//' token.
-	  const math_text = math_pieces.join('');
-	  let math_expr = ExprParser.parse_string(math_text);
-	  if(!math_expr) return null;  // entire TextItem parsing fails if inline math exprs fail
-	  if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
-	  elements.push(new TextItemExprElement(math_expr));
-	}
-	else  // switching into math mode
-	  math_pieces = [];  // start accumulating text pieces inside $...$
-	math_mode = !math_mode;
+        if(math_mode) {
+          // Switching out of math mode ($).  All tokens that were between
+          // the two $'s are combined into the math expression to be parsed.
+          // It's done this way in case there is something like $x//y$ which
+          // would normally get confused as the italic '//' token.
+          const math_text = math_pieces.join('');
+          let math_expr = ExprParser.parse_string(math_text);
+          if(!math_expr) return null;  // entire TextItem parsing fails if inline math exprs fail
+          if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
+          elements.push(new TextItemExprElement(math_expr));
+        }
+        else  // switching into math mode
+          math_pieces = [];  // start accumulating text pieces inside $...$
+        math_mode = !math_mode;
       }
       else if(math_mode)  // inside $...$
-	math_pieces.push(token.text);
+        math_pieces.push(token.text);
       else switch(token.type) {
-	case 'bold':
-	  is_bold = !is_bold; break;
-	case 'italic':
-	  is_italic = !is_italic; break;
-	case 'placeholder':
-	  elements.push(new TextItemExprElement(
-	    is_bold ? (new PlaceholderExpr()).as_bold() : new PlaceholderExpr()));
-	  break;
-	case 'text':
-	  elements.push(new TextItemTextElement(token.text, is_bold, is_italic));
-	  break;
-	default:
-	  break;
+        case 'bold':
+          is_bold = !is_bold; break;
+        case 'italic':
+          is_italic = !is_italic; break;
+        case 'placeholder':
+          elements.push(new TextItemExprElement(
+            is_bold ? (new PlaceholderExpr()).as_bold() : new PlaceholderExpr()));
+          break;
+        case 'text':
+          elements.push(new TextItemTextElement(token.text, is_bold, is_italic));
+          break;
+        default:
+          break;
       }
     }
     return new TextItem(elements);
@@ -1607,18 +1607,18 @@ class TextItem extends Item {
       const ch = s[pos];
       let token = null;
       if(pos < s.length-1) {
-	// Check for length-2 tokens.
-	const ch2 = s[pos+1];
-	if(ch === '[' && ch2 === ']') token = {'type': 'placeholder', 'text': '[]'};
-	else if(ch === '*' && ch2 === '*') token = {'type': 'bold', 'text': '**'};
-	else if(ch === '/' && ch2 === '/') token = {'type': 'italic', 'text': '//'};
+        // Check for length-2 tokens.
+        const ch2 = s[pos+1];
+        if(ch === '[' && ch2 === ']') token = {'type': 'placeholder', 'text': '[]'};
+        else if(ch === '*' && ch2 === '*') token = {'type': 'bold', 'text': '**'};
+        else if(ch === '/' && ch2 === '/') token = {'type': 'italic', 'text': '//'};
       }
       if(token)
-	pos += 2;
+        pos += 2;
       else {
-	if(ch === '$') token = {'type': 'math_mode', 'text': '$'};
-	else token = {'type': 'text', 'text': ch};
-	pos++;
+        if(ch === '$') token = {'type': 'math_mode', 'text': '$'};
+        else token = {'type': 'text', 'text': ch};
+        pos++;
       }
       tokens.push(token);
     }
@@ -1628,10 +1628,10 @@ class TextItem extends Item {
     let i = 0;
     while(i < tokens.length) {
       if(tokens[i].type === 'text') {
-	let chars = [];
-	while(i < tokens.length && tokens[i].type === 'text')
-	  chars.push(tokens[i++].text);
-	new_tokens.push({'type': 'text', 'text': chars.join('')});
+        let chars = [];
+        while(i < tokens.length && tokens[i].type === 'text')
+          chars.push(tokens[i++].text);
+        new_tokens.push({'type': 'text', 'text': chars.join('')});
       }
       else new_tokens.push(tokens[i++]);
     }
@@ -1666,7 +1666,7 @@ class TextItem extends Item {
           elements[i].is_bold, elements[i].is_italic);
       }
       else if(last_merged_element.is_raw() &&
-	      last_merged_element.is_explicit_space() &&
+              last_merged_element.is_explicit_space() &&
               elements[i].is_text()) {
         // Raw space + TextElement
         merged_elements[last_index] = new TextItemTextElement(
@@ -1675,7 +1675,7 @@ class TextItem extends Item {
       }
       else if(last_merged_element.is_text() &&
               elements[i].is_raw() &&
-	      elements[i].is_explicit_space()) {
+              elements[i].is_explicit_space()) {
         // TextElement + raw space
         merged_elements[last_index] = new TextItemTextElement(
           last_merged_element.text + ' ',
@@ -1793,7 +1793,7 @@ class TextItem extends Item {
       if(new_elements[i].is_expr()) {
         const placeholder_expr_path = new_elements[i].expr.find_placeholder_expr_path();
         if(placeholder_expr_path !== null) {
-	  const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
+          const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
           new_elements[i] = new TextItemExprElement(new_expr);
           return new TextItem(new_elements, this.tag_string, this.is_heading);
         }
@@ -1905,7 +1905,7 @@ class Stack {
       return [this];
     else
       return [
-	new Stack(this.items.slice(0, -n), this.floating_item)
+        new Stack(this.items.slice(0, -n), this.floating_item)
       ].concat(this.items.slice(-n));
   }
   
