@@ -441,6 +441,13 @@
           a math expression if possible.  Invalid LaTeX code will appear as a special error
           object.
         </li>
+	<li>
+          <span class="keybinding">w</span>
+	  Move the stack top into a special &quot;floating&quot; spot in the upper-right
+	  corner.  This can be used to temporarily keep an item out of the way, or to pin
+	  it for quick reference.  If there is already a floating item in this spot, it is
+	  put back on the stack instead.
+	</li>
         <li>
           <span class="keybinding">f</span>
 	  Open the File Manager (see below).
@@ -1045,14 +1052,14 @@
       <p><strong>Trigonometric Functions:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">s</span> <code>\sin x</code>
-          <span class="keybinding">c</span> <code>\cos x</code>
-          <span class="keybinding">t</span> <code>\tan x</code>
+          <span class="keybinding">s</span> <code>\sin x</code>&nbsp;
+          <span class="keybinding">c</span> <code>\cos x</code>&nbsp;
+          <span class="keybinding">t</span> <code>\tan x</code>&nbsp;
         </li>
         <li>
-          <span class="keybinding">S</span> <code>\sec x</code>
-          <span class="keybinding">C</span> <code>\csc x</code>
-          <span class="keybinding">T</span> <code>\cot x</code>
+          <span class="keybinding">S</span> <code>\sec x</code>&nbsp;
+          <span class="keybinding">C</span> <code>\csc x</code>&nbsp;
+          <span class="keybinding">T</span> <code>\cot x</code>&nbsp;
         </li>
 	<li><span class="keybinding">-</span> <em>inverse</em> mode (see below)</li>
 	<li><span class="keybinding">h</span> <em>hyperbolic</em> mode</li>
@@ -1066,19 +1073,19 @@
       <ul class="keybindings">
         <li>
           <span class="keybinding">/</span><span class="keybinding">-</span><span class="keybinding">c</span>
-          <code>\to \cos^{-1} x</code>
+          <code>x \to \cos^{-1} x</code>
         </li>
         <li>
           <span class="keybinding">/</span><span class="keybinding">h</span><span class="keybinding">T</span>
-          <code>\to \coth x</code>
+          <code>x \to \coth x</code>
         </li>
         <li>
           <span class="keybinding">/</span><span class="keybinding">-</span><span class="keybinding">h</span><span class="keybinding">S</span>
-          <code>\to \operatorname{sech}^{-1} x</code>
+          <code>x \to \operatorname{sech}^{-1} x</code>
         </li>
         <li>
           <span class="keybinding">/</span><span class="keybinding">2</span><span class="keybinding">t</span>
-          <code>\to \tan^2 x</code>
+          <code>x \to \tan^2 x</code>
         </li>
       </ul>
 
@@ -2324,6 +2331,11 @@
         <li><span class="keybinding">Ctrl+v</span>
           Paste clipboard to stack top
           (same as <span class="keybinding">Tab</span><span class="keybinding">v</span>)
+        </li>
+        <li><span class="keybinding">Ctrl+w</span>
+	  Put the stack top into a temporary &quot;floating&quot; spot, or put it back
+	  on the stack again.
+          (same as <span class="keybinding">Tab</span><span class="keybinding">w</span>)
         </li>
         <li><span class="keybinding">Ctrl+x</span>
           <code>f \to f(x)</code>

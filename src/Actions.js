@@ -1929,6 +1929,15 @@ class InputContext {
     return stack.push_expr(new TextExpr(code));
   }
 
+  do_swap_floating_item(stack) {
+    if(stack.floating_item)
+      return stack.set_floating_item(null).push(stack.floating_item);
+    else {
+      const [new_stack, item] = stack.pop(1);
+      return new_stack.set_floating_item(item);
+    }
+  }
+
   // screen_percentage=0 means try to scroll so that the top of the selection is flush with the top of the document panel.
   // screen_percentage=100 tries to make the bottom of the selection flush with the bottom of the panel.
   // Anything in between is a linear interpolation between the two.

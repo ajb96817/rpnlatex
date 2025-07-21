@@ -215,6 +215,7 @@ class App extends React.Component {
 
   render() {
     const app_state = this.state.app_state;
+    const stack = app_state.stack;
     const settings = this.state.settings;
     const input_context = this.state.input_context;
 
@@ -225,9 +226,25 @@ class App extends React.Component {
     let stack_panel_components = [
       $e(StackItemsComponent, {
         settings: settings,
-        stack: app_state.stack,
+        stack: stack,
         input_context: input_context
       })];
+    // TODO: floating item and mode indicator could go inside StackItemsComponent instead
+    if(stack.floating_item) {
+      // NOTE: To handle automatic re-rendering when things like inline-math mode
+      // are changed, the ItemComponent here is put into an array by itself as a
+      // React component list.  When the display mode changes, the Item is cloned,
+      // getting a new React key to trigger the re-render.  Outside of a component
+      // list, the React key change would have no effect.
+      stack_panel_components.push(
+	$e('div', {className: 'floating_item'},
+	   [$e(ItemComponent, {
+	     item: stack.floating_item,
+	     inline_math: settings.layout.inline_math,
+	     item_ref: React.createRef(),
+	     key: stack.floating_item.react_key(0)
+	   })]));
+    }
     if(settings.show_mode_indicator || input_context.notification_text)
       stack_panel_components.push(
 	$e(ModeIndicatorComponent, {

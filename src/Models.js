@@ -1843,10 +1843,14 @@ class CodeItem extends Item {
 class Stack {
   static from_json(json) {
     return new Stack(
-      json.items.map(item_json => Item.from_json(item_json)));
+      json.items.map(item_json => Item.from_json(item_json)),
+      json.floating_item ? Item.from_json(json.floating_item) : null);
   }
-  
-  constructor(items) { this.items = items; }
+
+  constructor(items, floating_item) {
+    this.items = items;
+    this.floating_item = floating_item;
+  }
 
   depth() { return this.items.length; }
   check(n) { return this.depth() >= n; }
@@ -1900,24 +1904,32 @@ class Stack {
     if(n <= 0)
       return [this];
     else
-      return [new Stack(this.items.slice(0, -n))].concat(this.items.slice(-n));
+      return [
+	new Stack(this.items.slice(0, -n), this.floating_item)
+      ].concat(this.items.slice(-n));
   }
   
   push_all(items) {
     if(!items.every(item => item instanceof Item))
       throw new Error('pushing invalid item onto stack');
-    return new Stack(this.items.concat(items));
+    return new Stack(this.items.concat(items), this.floating_item);
   }
   
   push_all_exprs(exprs) { return this.push_all(exprs.map(expr => new ExprItem(expr))); }
   push(item) { return this.push_all([item]); }
   push_expr(expr) { return this.push_all_exprs([expr]); }
 
+  set_floating_item(new_item) { return new Stack(this.items, new_item); }
+
   // Return a new Stack with cloned copies of all the items.
   // The cloned items will have new React IDs, which will force a re-render of the items.
   // This is used for things like changing between display and inline math mode, where
   // the item content doesn't change but the way it's rendered does.
-  clone_all_items() { return new Stack(this.items.map(item => item.clone())); }
+  clone_all_items() {
+    return new Stack(
+      this.items.map(item => item.clone()),
+      this.floating_item ? this.floating_item.clone() : null);
+  }
 
   underflow() { throw new Error('stack_underflow'); }
   type_error() { throw new Error('stack_type_error'); }
@@ -1925,7 +1937,8 @@ class Stack {
   to_json() {
     return {
       object_type: 'stack',
-      items: this.items.map(item => item.to_json())
+      items: this.items.map(item => item.to_json()),
+      floating_item: this.floating_item ? this.floating_item.to_json() : null
     };
   }
 }

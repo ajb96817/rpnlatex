@@ -83,6 +83,7 @@ const EditorKeymap = {
     'Ctrl+s': "save_file",
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
+    'Ctrl+w': "swap_floating_item",
     'Ctrl+x': "push x;parenthesize;fuse",  // f -> f(x)
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
@@ -181,6 +182,7 @@ const EditorKeymap = {
     'u': "unrot",
     'v': "paste_from_clipboard",
     'V': "paste_from_prompt",
+    'w': "swap_floating_item",
     'X': "reset_all",
     'Enter': "dup",
     'Backspace': "pop",
