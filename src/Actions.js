@@ -324,6 +324,8 @@ class InputContext {
         new_prefix_argument = 10*this.prefix_argument + value;
       }
       else new_prefix_argument = value;
+      // Cap maximum value to avoid possible pathological cases (loops, etc).
+      new_prefix_argument = Math.min(9999, new_prefix_argument);
     }
     else if(key === '*')
       new_prefix_argument = -1;

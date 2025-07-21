@@ -238,6 +238,9 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
     background-color: #eee;
     box-shadow: inset 0 0 0.35em 0.1em #ccc;
 }
+div.floating_item div.tag_string {
+    display: none;  /* tags get in the way in the "floating" item spot */
+}
 
 div.stack_items {
     position: absolute;
