@@ -1038,6 +1038,13 @@ class InputContext {
     return stack.type_error();
   }
 
+  // x y z -> 'x', with expressions matching 'y' replaced by 'z'.
+  do_substitute(stack) {
+    const [new_stack, expr, search_expr, substitution_expr] = stack.pop_exprs(3);
+    const result_expr = expr.substitute(search_expr, substitution_expr);
+    return new_stack.push_expr(result_expr);
+  }
+
   // Extract either the left or right side of an expression.
   //   - InfixExpr yields the part to the left or right of the split_at_index point.
   //   - CommandExpr \frac yields the numerator or denominator of the fraction.

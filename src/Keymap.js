@@ -432,6 +432,7 @@ const EditorKeymap = {
     '^': "push 10;swap;superscript;infix \\times",  // scientific notation: 1.23 x 10^-19
     "'": "substitute_placeholder",
     "\"": "toggle_is_heading",
+    '%': "substitute",  // % is from Emacs' Esc-% search and replace command
     'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once
   },
 

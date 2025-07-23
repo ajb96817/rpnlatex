@@ -236,11 +236,45 @@ class Expr {
   // with a new one.  The subexpression indexes here correspond to what is returned by subexpressions().
   replace_subexpression(index, new_expr) { return this; }
 
+  // Check if this Expr "matches" another Expr (i.e., has the same visual content).
+  // Subclasses can extend this to match additional fields that aren't just subexpressions
+  // (such as the delimiter type in DelimiterExpr).
+  matches(expr) {
+    if(this === expr) return true;
+    if(this.expr_type() !== expr.expr_type()) return false;
+    if(this.has_subexpressions() !== expr.has_subexpressions()) return false;
+    const [this_subexpressions, expr_subexpressions] =
+          [this.subexpressions(), expr.subexpressions()];
+    if(this_subexpressions.length != expr_subexpressions.length) return false;
+    for(let i = 0; i < this_subexpressions.length; i++)
+      if(!this_subexpressions[i].matches(expr_subexpressions[i]))
+        return false;
+    return true;
+  }
+
+  // Substitute anything matching 'search_expr' with 'substitution_expr'.
+  // NOTE: This can potentially create expressions that are nested internally
+  // in a way they ordinarily wouldn't be.  For example: (x+y).substitute(y, z+w)
+  // creates a nested Infix(InfixExpr(x, +, InfixExpr(z, + w)).  This shouldn't
+  // be a problem in practice though.
+  substitute(search_expr, substitution_expr) {
+    if(this.matches(search_expr))
+      return substitution_expr;
+    let result = this;
+    this.subexpressions().forEach((subexpr, index) => {
+      const new_subexpr = subexpr.substitute(search_expr, substitution_expr);
+      if(new_subexpr !== subexpr)
+        result = result.replace_subexpression(index, new_subexpr);
+    });
+    return result;
+  }
+
   // Return an ExprPath to the first PlaceholderExpr within this Expr-tree,
   // or null if there is none.
   find_placeholder_expr_path() {
     return this._find_placeholder_expr_path(new ExprPath(this, []));
   }
+
   _find_placeholder_expr_path(expr_path) {
     let found_expr_path = null;
     this.subexpressions().forEach((subexpr, index) => {
@@ -574,6 +608,12 @@ class CommandExpr extends Expr {
 
   subexpressions() { return this.operand_exprs; }
 
+  matches(expr) {
+    return super.matches(expr) &&
+      this.command_name === expr.command_name &&
+      this.options === expr.options;
+  }
+
   replace_subexpression(index, new_expr) {
     return new CommandExpr(
       this.command_name,
@@ -770,6 +810,13 @@ class FontExpr extends Expr {
 
   replace_subexpression(index, new_expr) {
     return new FontExpr(new_expr, this.typeface, this.is_bold, this.size_adjustment);
+  }
+
+  matches(expr) {
+    return super.matches(expr) &&
+      this.typeface === expr.typeface &&
+      this.is_bold === expr.is_bold &&
+      this.size_adjustment === expr.size_adjustment;
   }
 
   as_editable_string() {
@@ -1431,6 +1478,10 @@ class TextExpr extends Expr {
     }
   }
 
+  matches(expr) {
+    return super.matches(expr) && this.text === expr.text;
+  }
+
   looks_like_number() {
     // cf. ExprParser.tokenize()
     return /^-?\d*\.?\d+$/.test(this.text);
@@ -1688,6 +1739,13 @@ class DelimiterExpr extends Expr {
 
   has_subexpressions() { return true; }
   subexpressions() { return [this.inner_expr]; }
+
+  matches(expr) {
+    return super.matches(expr) &&
+      this.left_type === expr.left_type &&
+      this.right_type === expr.right_type &&
+      this.fixed_size === expr.fixed_size;
+  }
 
   replace_subexpression(index, new_expr) {
     return new DelimiterExpr(
@@ -2274,6 +2332,14 @@ class ArrayExpr extends Expr {
   subexpressions() {
     // Flatten element expressions in row-major order.
     return [].concat(...this.element_exprs);
+  }
+
+  matches(expr) {
+    // NOTE: row/column separators are disregarded for matching purposes
+    return super.matches(expr) &&
+      this.array_type === expr.array_type &&
+      this.row_count === expr.row_count &&
+      this.column_count === expr.column_count;
   }
 
   replace_subexpression(index, new_expr) {
