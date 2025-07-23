@@ -208,6 +208,10 @@ class LatexEmitter {
     this.base_expr = base_expr;
     this.tokens = [];
     this.last_token_type = null;
+    // Set export_mode to true to get "exportable" LaTeX code instead of the
+    // default "display mode" code.  This removes some hacks to get KaTeX to
+    // render things properly.
+    this.export_mode = false;
     this.selected_expr_path = selected_expr_path;
     // Initialize a "blank" ExprPath that tracks the rendering.
     // When this current_path matches up with selected_expr_path,
@@ -1369,7 +1373,6 @@ class Item {
   // Subclasses need to override these:
   item_type() { return '???'; }
   to_json() { return {}; }
-  to_text() { return '???'; }
 
   is_expr_item() { return this.item_type() === 'expr'; }
   is_text_item() { return this.item_type() === 'text'; }
@@ -1397,8 +1400,12 @@ class ExprItem extends Item {
 
   item_type() { return 'expr'; }
 
-  to_latex() {
-    return this.expr.to_latex(this.selected_expr_path);
+  to_latex(export_mode) {
+    const rendered_latex = this.expr.to_latex(this.selected_expr_path, export_mode);
+    if(export_mode)
+      return ["$$\n", rendered_latex, "\n$$"].join('');
+    else
+      return rendered_latex;
   }
   
   to_json() {
@@ -1407,7 +1414,6 @@ class ExprItem extends Item {
     return json;
   }
 
-  to_text() { return this.expr.to_text(); }
   clone() { return new ExprItem(this.expr, this.tag_string); }
   as_bold() { return new ExprItem(this.expr.as_bold(), this.tag_string); }
   with_tag(new_tag_string) { return new ExprItem(this.expr, new_tag_string); }
@@ -1456,7 +1462,7 @@ class TextItemTextElement extends TextItemElement {
     return json;
   }
 
-  to_text() {
+  as_editable_string() {
     if(this.is_bold && this.is_italic)
       return ['**//', this.text, '//**'].join('');
     else if(this.is_bold)
@@ -1467,7 +1473,14 @@ class TextItemTextElement extends TextItemElement {
       return this.text;
   }
 
-  to_latex() {
+  to_latex(export_mode) {
+    if(export_mode)
+      return this.to_latex_export_mode();
+    else
+      return this.to_latex_display_mode();
+  }
+
+  to_latex_display_mode() {
     // This is a little messy because of how KaTeX handles line breaks.
     // Normally, breaks are only allowed after operators like +, but when
     // rendering TextItems, we want to allow breaks after each word.
@@ -1487,6 +1500,19 @@ class TextItemTextElement extends TextItemElement {
       if(this.is_bold && this.is_italic) pieces.push("}");
       pieces.push("}\\allowbreak");
     }
+    return pieces.join('');
+  }
+
+  to_latex_export_mode() {
+    // For "export" mode, we can skip the \allowbreak hacks used for "display" mode,
+    // and there is no need to wrap ordinary text in \text{...} (only bold/italic).
+    let pieces = [];
+    if(this.is_bold && this.is_italic) pieces.push("\\textbf{\\textit{");
+    else if(this.is_bold) pieces.push("\\textbf{");
+    else if(this.is_italic) pieces.push("\\textit{");
+    pieces.push(this._latex_escape(this.text));
+    if(this.is_bold && this.is_italic) pieces.push("}}");
+    else if(this.is_bold || this.is_italic) pieces.push("}");
     return pieces.join('');
   }
 
@@ -1515,8 +1541,21 @@ class TextItemExprElement extends TextItemElement {
   is_expr() { return true; }
   as_bold() { return new TextItemExprElement(this.expr.as_bold()); }
   to_json() { return {'expr': this.expr.to_json()}; }
-  to_text() { return ['$', this.expr.to_latex(), '$'].join(''); }
-  to_latex() { return this.expr.to_latex(); }
+
+  to_latex(export_mode) {
+    // When "exporting", we're not in display-math mode (i.e. not within $$ ... $$).
+    // So embedded Exprs need to explicitly enter inline-math mode ($ ... $).
+    if(export_mode) {
+      return [
+        '$', this.expr.to_latex(null, true), '$'
+      ].join('');
+    }
+    else {
+      // In "display" mode, we're implicitly in math mode because it's being rendered
+      // with KaTeX, so the expression can just be emitted directly.
+      return this.expr.to_latex(null, false);
+    }
+  }
 }
 
 
@@ -1529,8 +1568,7 @@ class TextItemRawElement extends TextItemElement {
   is_raw() { return true; }
   as_bold() { return this; }
   to_json() { return {'raw': this.string}; }
-  to_text() { return this.string; }
-  to_latex() { return this.string; }
+  to_latex(export_mode) { return this.string; }
   is_explicit_space() { return this.string === "\\,"; }
 }
 
@@ -1719,18 +1757,16 @@ class TextItem extends Item {
   // just disallowing turning off the is_header flag in [/]["] (do_toggle_is_heading).
   is_empty() { return this.elements.length === 0; }
 
-  to_text() {
+  to_latex(export_mode) {
     if(this.is_empty())
       return "\\rule";
-    else
-      return this.elements.map(element => element.to_text()).join('');
-  }
-  
-  to_latex() {
-    // NOTE: Elements need to be joined with an empty group {} between them,
-    // in case there are adjacent TextItemExprElements.  Otherwise, for example,
-    // adjacent "\to" and "x" would become "\tox".
-    return this.elements.map(element => element.to_latex()).join('{}');
+    else {
+      // NOTE: Elements need to be joined with an empty group {} between them,
+      // in case there are adjacent TextItemExprElements.  Otherwise, for example,
+      // adjacent "\to" and "x" would become "\tox".
+      return this.elements.map(
+        element => element.to_latex(export_mode)).join('{}');
+    }
   }
 
   clone() {
@@ -1751,7 +1787,7 @@ class TextItem extends Item {
     for(let i = 0; i < this.elements.length; i++) {
       const elt = this.elements[i];
       if(elt.is_text())
-        pieces.push(elt.to_text());
+        pieces.push(elt.as_editable_string());
       else if(elt.is_raw()) {
         // Only basic "explicit spaces" are allowed; otherwise it's
         // probably a LaTeX command.
@@ -1825,7 +1861,7 @@ class CodeItem extends Item {
     };
   }
 
-  to_text() {
+  to_latex(export_mode) {
     if(this.language === 'latex')
       return this.source;
     else
@@ -1847,6 +1883,8 @@ class Stack {
       json.floating_item ? Item.from_json(json.floating_item) : null);
   }
 
+  // NOTE: floating_item is a temporary holding slot to keep an item off to
+  // the side, as a user convenience.
   constructor(items, floating_item) {
     this.items = items;
     this.floating_item = floating_item;
@@ -2018,10 +2056,6 @@ class Document {
       items: this.items.map(item => item.to_json()),
       selection_index: this.selection_index
     };
-  }
-
-  to_text() {
-    return this.items.map(item => item.to_text()).join("\n\n");
   }
 }
 

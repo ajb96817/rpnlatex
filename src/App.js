@@ -834,7 +834,7 @@ class ItemComponent extends React.Component {
     if(item.is_expr_item()) {
       // Render math with KaTeX.
       this._render_with_katex(
-        item.to_latex(),
+        item.to_latex(false),
         katex_target_node,
         !this.props.inline_math);
     }
@@ -843,7 +843,7 @@ class ItemComponent extends React.Component {
       // Note that this means that text items will always be left-aligned regardless
       // of the rightalign_math layout settings.
       this._render_with_katex(
-        item.to_latex(),
+        item.to_latex(false),
         katex_target_node,
         false);
     }
@@ -858,7 +858,7 @@ class ItemComponent extends React.Component {
     try {
       // NOTE: trust: true here allows the use of \htmlClass etc.
       katex.render(latex_code, node, {
-        throwOnError: true, //false,
+        throwOnError: true,
         displayMode: display_mode,
         fleqn: true,
         trust: true,

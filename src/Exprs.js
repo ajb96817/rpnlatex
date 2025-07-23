@@ -200,8 +200,9 @@ class Expr {
 
   is_expr_type(s) { return s === this.expr_type(); }
 
-  to_latex(selected_expr_path) {
+  to_latex(selected_expr_path, export_mode) {
     let emitter = new LatexEmitter(this, selected_expr_path);
+    emitter.export_mode = export_mode;
     emitter.expr(this, null);
     return emitter.finished_string();
   }
@@ -212,8 +213,6 @@ class Expr {
   to_json() {
     return { expr_type: this.expr_type() };
   }
-
-  to_text() { return "$$\n" + this.to_latex() + "\n$$"; }
 
   // If this expression can be 'unparsed' for editing in the minieditor, return
   // the editable string.  Return null if not possible.
@@ -255,8 +254,8 @@ class Expr {
   // Substitute anything matching 'search_expr' with 'substitution_expr'.
   // NOTE: This can potentially create expressions that are nested internally
   // in a way they ordinarily wouldn't be.  For example: (x+y).substitute(y, z+w)
-  // creates a nested Infix(InfixExpr(x, +, InfixExpr(z, + w)).  This shouldn't
-  // be a problem in practice though.
+  // creates a nested Infix(Infix(x, +, Infix(z, + w)).  This shouldn't be a
+  // problem in practice though.
   substitute(search_expr, substitution_expr) {
     if(this.matches(search_expr))
       return substitution_expr;
@@ -1334,10 +1333,14 @@ class PlaceholderExpr extends Expr {
   expr_type() { return 'placeholder'; }
 
   emit_latex(emitter) {
-    const expr = new CommandExpr('htmlClass', [
-      new TextExpr('placeholder_expr'),
-      new TextExpr("\\blacksquare")]);
-    emitter.expr(expr, null);
+    if(emitter.export_mode)
+      emitter.expr(new TextExpr("\\blacksquare"), null);
+    else
+      emitter.expr(
+        new CommandExpr('htmlClass', [
+          new TextExpr('placeholder_expr'),
+          new TextExpr("\\blacksquare")]),
+        null);
   }
 
   as_editable_string() { return '[]'; }

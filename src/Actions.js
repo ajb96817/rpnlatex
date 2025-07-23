@@ -68,22 +68,14 @@ class TextEntryState {
   }
 
   move(direction) {
-    switch(direction) {
-    case 'left':
-      if(this.cursor_position > 0)
-        this.cursor_position--;
-      break;
-    case 'right':
-      if(this.cursor_position < this.current_text.length)
-        this.cursor_position++;
-      break;
-    case 'begin':
+    if(direction === 'left' && this.cursor_position > 0)
+      this.cursor_position--;
+    else if(direction === 'right' && this.cursor_position < this.current_text.length)
+      this.cursor_position++;
+    else if(direction === 'begin')
       this.cursor_position = 0;
-      break;
-    case 'end':
+    else if(direction === 'end')
       this.cursor_position = this.current_text.length;
-      break;
-    }
   }
 }
 
@@ -229,9 +221,8 @@ class InputContext {
         if(!this.preserve_prefix_argument)
           this.prefix_argument = null;
       } catch(e) {
-        if(e.message === 'stack_underflow' ||
-           e.message === 'stack_type_error' ||
-           e.message === 'prefix_argument_required') {
+        if(['stack_underflow', 'stack_type_error',
+            'prefix_argument_required'].includes(e.message)) {
           this.error_flash_stack();
           this.perform_undo_or_redo = null;
           this.mode = 'base';
@@ -1459,12 +1450,10 @@ class InputContext {
       this.error_flash_stack();
   }
 
+  // TODO: optional argument to specify export vs. display mode in to_latex()
   do_extract_latex_source(stack) {
-    // eslint-disable-next-line no-unused-vars
-    const [new_stack, expr] = stack.pop_exprs(1);
-    const latex_source = expr.to_text();
-    const code_item = new CodeItem('latex', latex_source);
-    return stack.push(code_item);
+    const latex_source = stack.peek(1).to_latex(true /* export mode */);
+    return stack.push(new CodeItem('latex', latex_source));
   }
 
   do_delimiters(stack, left, right) {
@@ -1514,7 +1503,7 @@ class InputContext {
       return new_stack.push_expr(
         new CommandExpr(command_expr.command_name, operand_exprs));
     else
-      this.error_flash_stack();
+      return this.error_flash_stack();
   }
 
   // Take (left, right, operator) from the stack and create an InfixExpr.
@@ -1556,12 +1545,9 @@ class InputContext {
     switch(config_option) {
     case 'zoom_factor':
       scratch = this._get_prefix_argument(1, -1);
-      if(scratch < 0)
-        layout.zoom_factor = 0;
-      else if(value === 'decrease')
-        layout.zoom_factor -= scratch;
-      else
-        layout.zoom_factor += scratch;
+      if(scratch < 0) layout.zoom_factor = 0;
+      else if(value === 'decrease') layout.zoom_factor -= scratch;
+      else layout.zoom_factor += scratch;
       // Limit zoom percentage to around 2% ... 10000%
       layout.zoom_factor = Math.max(Math.min(layout.zoom_factor, 80), -80);
       this.notify("Zoom level: " + (layout.zoom_factor > 0 ? "+" : "") + layout.zoom_factor);
@@ -1657,8 +1643,7 @@ class InputContext {
       return this.error_flash_stack();
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
     const matrix_expr = new ArrayExpr(
-      (matrix_type || 'bmatrix'),
-      1, expr_count, [exprs]);
+      (matrix_type || 'bmatrix'), 1, expr_count, [exprs]);
     return new_stack.push_expr(matrix_expr);
   }
 
@@ -1740,12 +1725,11 @@ class InputContext {
     const index = this._get_prefix_argument(1, null);
     if(index !== null && (index < 1 || index > size-1))
       return this.error_flash_stack();
-    else
-      return new_stack.push_expr(
-        matrix_expr.with_separator(
-          is_column,
-          index === null ? null : index-1,
-          separator_type, true));
+    else return new_stack.push_expr(
+      matrix_expr.with_separator(
+        is_column,
+        index === null ? null : index-1,
+        separator_type, true));
   }
 
   do_build_align(stack, align_type) {
@@ -1837,8 +1821,7 @@ class InputContext {
         return this.error_flash_stack();
       const result_expr = result[0];
       return new_stack.push_expr(
-        InfixExpr.combine_infix(
-          lhs, result_expr, new CommandExpr('approx')));
+        InfixExpr.combine_infix(lhs, result_expr, new CommandExpr('approx')));
     }
     else {
       // Try to evaluate expr, rationalizing if possible.
@@ -1849,12 +1832,10 @@ class InputContext {
       const [result_expr, is_exact] = result;
       if(is_exact && try_rationalize)
         return new_stack.push_expr(
-          InfixExpr.combine_infix(
-            expr, result_expr, new TextExpr('=')));
+          InfixExpr.combine_infix(expr, result_expr, new TextExpr('=')));
       else
         return new_stack.push_expr(
-          InfixExpr.combine_infix(
-            expr, result_expr, new CommandExpr('approx')));
+          InfixExpr.combine_infix(expr, result_expr, new CommandExpr('approx')));
     }
   }
 
@@ -1908,12 +1889,10 @@ class InputContext {
       null);
     if(is_exact)
       return new_stack.push_expr(
-        InfixExpr.combine_infix(
-          where_expr, result_expr, new TextExpr('=')));
+        InfixExpr.combine_infix(where_expr, result_expr, new TextExpr('=')));
     else
       return new_stack.push_expr(
-        InfixExpr.combine_infix(
-          where_expr, result_expr, new CommandExpr('approx')));
+        InfixExpr.combine_infix(where_expr, result_expr, new CommandExpr('approx')));
   }
 
   // Copy stack top to an internal clipboard slot.
@@ -1937,14 +1916,24 @@ class InputContext {
     if(item)
       return stack.push(item.clone());
     else
-      this.error_flash_stack();
+      return this.error_flash_stack();
   }
 
   // Prompt for a LaTeX source string and put it on the stack as a TextExpr.
   do_paste_from_prompt(stack) {
-    const code = window.prompt('Enter LaTeX code');
-    if(!code || code.length === 0) return stack;
-    return stack.push_expr(new TextExpr(code));
+    let code = window.prompt('Enter LaTeX code') || '';
+    // Strip (ignore) any surrounding whitespace and $$ ... $$
+    code = code.trim();
+    let limit = 6;
+    while(limit-- > 0) {
+      if(code.startsWith("$")) code = code.slice(1);
+      if(code.endsWith("$")) code = code.slice(0, code.length-1);
+    }
+    code = code.trim();  // e.g. "  $$  xyz  $$  "
+    if(code.length === 0)
+      return stack;
+    else
+      return stack.push_expr(new TextExpr(code));
   }
 
   do_swap_floating_item(stack) {
@@ -1987,8 +1976,8 @@ class InputContext {
   }
 
   // direction_string:
-  //     'vertical' or 'horizontal' for normal scrolling;
-  //     'top' or 'bottom' to go to the beginning or end (vertically)
+  //   'vertical' or 'horizontal' for normal scrolling;
+  //   'top' or 'bottom' to go to the beginning or end (vertically)
   // percentage_string: fraction of the current popup height (or width) to scroll by
   do_scroll(stack, panel_name, direction_string, percentage_string) {
     let panel_elt = document.getElementById(panel_name);
@@ -2012,7 +2001,8 @@ class InputContext {
   }
 
   do_export_document_as_text(stack) {
-    const exported_text = this.app_state.document.to_text();
+    const items = this.app_state.document.items;
+    const exported_text = items.map(item => item.to_latex(true)).join("\n\n");
     navigator.clipboard.writeText(exported_text);
     this.notify("Copied document to clipboard");
     this.suppress_undo();
@@ -2022,7 +2012,7 @@ class InputContext {
     const arg = this._get_prefix_argument(1, stack.depth());
     // eslint-disable-next-line no-unused-vars
     const [new_stack, ...items] = stack.pop(arg);
-    const exported_text = items.map(item => item.to_text()).join("\n\n");
+    const exported_text = items.map(item => item.to_latex(true)).join("\n\n");
     navigator.clipboard.writeText(exported_text);
     this.notify("Copied " + arg + " item" + (arg === 1 ? "" : "s") + " to clipboard");
     this.suppress_undo();

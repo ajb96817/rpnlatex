@@ -125,7 +125,7 @@ const EditorKeymap = {
     'Home': 'scroll popup_panel top',
     'End': 'scroll popup_panel bottom',
 
-    // quick navigation to each section:
+    // Quick navigation to each section:
     '&': "scroll_to help_insert_script",
     '%': "scroll_to help_insert_blackboard",
     '@': "scroll_to help_insert_calligraphic",
@@ -222,7 +222,7 @@ const EditorKeymap = {
     '_': "config zoom_factor decrease",  // undocumented alias for z/-
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
-    '$': "push \\$"
+    '$': "push \\$"  // undocumented
   },
 
   // Delegate (shared) keymap for the 5 text_entry modes' editor commands.
@@ -237,8 +237,10 @@ const EditorKeymap = {
     'End': "text_entry_move_cursor end",
     // NOTE: Ctrl editor commands here are undocumented
     'Ctrl+a': "text_entry_move_cursor begin",
+    'Ctrl+ArrowLeft': "text_entry_move_cursor begin",
     'Ctrl+d': "text_entry_backspace delete",
     'Ctrl+e': "text_entry_move_cursor end",
+    'Ctrl+ArrowRight': "text_entry_move_cursor end",
     'Ctrl+f': "text_entry_move_cursor right",
     'Ctrl+b': "text_entry_move_cursor left",
     'default': "append_text_entry"
@@ -972,19 +974,19 @@ const EditorKeymap = {
   // @ prefix
   calligraphic: {
     '[alpha]': "self_push;to_case uppercase;typeface calligraphic",
-    '@': "push @"
+    '@': "push @"  // undocumented
   },
 
   // % prefix
   blackboard: {
     '[alpha]': "self_push;to_case uppercase;typeface blackboard",
-    '%': "push \\%"
+    '%': "push \\%"  // undocumented
   },
 
   // & prefix
   script: {
     '[alpha]': "self_push;to_case uppercase;typeface script",
-    '&': "push \\&"
+    '&': "push \\&"  // undocumented
   },
 
   // ; prefix: lowercase Greek letters
