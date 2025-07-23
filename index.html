@@ -414,13 +414,13 @@
         <strong>Utilities:</strong>
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">Tab</span>
+        <li><span class="keybinding">z</span>
           <em>Undo:</em> Revert the stack and document back to the last 
           state they were in.
           <span class="keybinding">Ctrl+z</span> is a shortcut for this.
         </li>
         <li>
-          <span class="keybinding">.</span> <em>Redo:</em> Replay states that were
+          <span class="keybinding">y</span> <em>Redo:</em> Replay states that were
           previously undone.
         </li>
         <li>
@@ -443,8 +443,8 @@
         </li>
         <li>
           <span class="keybinding">w</span>
-          Move the stack top into a special &quot;floating&quot; spot in the upper-right
-          corner.  This can be used to temporarily keep an item out of the way, or to pin
+          Move the stack top into a &quot;floating&quot; spot in the upper-right corner.
+          This can be used to temporarily keep an item out of the way, or to pin
           it for quick reference.  If there is already a floating item in this spot, it is
           put back on the stack instead.
         </li>
@@ -470,7 +470,7 @@
         </li>
         <li>
           <span class="keybinding">$</span>
-          Extract the LaTeX source of the top stack item as a special code object.
+          Extract the LaTeX source of the top stack item as a &quot;code&quot; object.
         </li>
       </ul>
 
@@ -1032,10 +1032,6 @@
             <td><span class="keybinding">Q</span> <code>\sqrt[3]{x}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">m</span> <code>\mathrm{Im}(x)</code></td>
-            <td><span class="keybinding">M</span> <code>\mathrm{Re}(x)</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">e</span> <code>\mathrm{e}^x</code></td>
             <td><span class="keybinding">E</span> <code>\exp x</code></td>
           </tr>
@@ -1046,6 +1042,10 @@
           <tr>
             <td><span class="keybinding">2</span><span class="keybinding">n</span> <code>\lg{x}</code></td>
             <td><span class="keybinding">2</span><span class="keybinding">N</span> <code>\log_2{x}</code></td>
+          </tr>
+          <tr>
+            <td><span class="keybinding">m</span> <code>\mathrm{Im}(x)</code></td>
+            <td><span class="keybinding">M</span> <code>\mathrm{Re}(x)</code></td>
           </tr>
       </tbody></table>
 
@@ -2342,11 +2342,11 @@
         </li>
         <li><span class="keybinding">Ctrl+z</span>
           Undo last action
-          (same as <span class="keybinding">Tab</span><span class="keybinding">Tab</span>)
+          (same as <span class="keybinding">Tab</span><span class="keybinding">z</span>)
         </li>
         <li>
           <span class="keybinding">Ctrl+y</span> Redo actions undone by 'undo'
-          (same as <span class="keybinding">Tab</span><span class="keybinding">.</span>)
+          (same as <span class="keybinding">Tab</span><span class="keybinding">y</span>)
         </li>
         <li>
           <span class="keybinding">Ctrl+/</span>

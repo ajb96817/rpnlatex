@@ -184,10 +184,10 @@ const EditorKeymap = {
     'V': "paste_from_prompt",
     'w': "swap_floating_item",
     'X': "reset_all",
+    'y': "redo",
+    'z': "undo",
     'Enter': "dup",
     'Backspace': "pop",
-    'Tab': "undo",
-    '.': "redo",
     '!': "export_document_as_text",
     '@': "export_stack_items_as_text",
     '$': "extract_latex_source",
@@ -629,7 +629,7 @@ const EditorKeymap = {
     'a': "apply_infix",
     'b': "infix \\bullet",
     'c': "infix \\cap",
-    'd': "swap;push \\dagger;superscript;swap;concat",  // x^\dagger y
+    'd': "swap;push \\dagger;superscript false;swap;concat",  // x^\dagger y
     'e': "infix ,\\dots,",
     'f': "conjunction if",
     'F': "conjunction iff",
@@ -668,7 +668,7 @@ const EditorKeymap = {
     ':': "infix \\colon",
     ';': "infix semicolon",
     "'": "start_text_entry conjunction_entry",
-    '`': "swap;push T;typeface roman;superscript;swap;concat",  // xTy
+    '`': "swap;push T;typeface roman;superscript false;swap;concat",  // xTy
     '*': "infix *",
     '%': "infix \\div",
     '(': "infix ,;delimiters ( )",  // (x,y)

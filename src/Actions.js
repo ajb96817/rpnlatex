@@ -286,15 +286,24 @@ class InputContext {
 
   notify(text) { this.notification_text = text; }
 
-  do_subscript(stack) { return this._build_subscript_superscript(stack, false); }
-  do_superscript(stack) { return this._build_subscript_superscript(stack, true); }
+  do_subscript(stack, autoparenthesize) {
+    return this._build_subscript_superscript(
+      stack, false,
+      autoparenthesize === 'false' ? false : this.settings.autoparenthesize);
+  }
+
+  do_superscript(stack, autoparenthesize) {
+    return this._build_subscript_superscript(
+      stack, true,
+      autoparenthesize === 'false' ? false : this.settings.autoparenthesize);
+  }
 
   // Second-to-top stack item becomes the base, while the stack top becomes the
   // subscript or superscript depending on 'is_superscript'.
-  _build_subscript_superscript(stack, is_superscript) {
+  _build_subscript_superscript(stack, is_superscript, autoparenthesize) {
     const [new_stack, base_expr, child_expr] = stack.pop_exprs(2);
     const new_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
-      base_expr, child_expr, is_superscript, this.settings.autoparenthesize);
+      base_expr, child_expr, is_superscript, autoparenthesize);
     return new_stack.push_expr(new_expr);
   }
 
