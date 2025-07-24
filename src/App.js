@@ -147,8 +147,6 @@ class App extends React.Component {
     this.apply_layout_to_dom();
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
-    //      window.addEventListener('pageshow', this.handleVisibilityChange);
-    //      window.addEventListener('focus', this.handleVisibilityChange);
     this.request_file_list();
   }
 
@@ -223,12 +221,7 @@ class App extends React.Component {
     this.document_panel_ref = React.createRef();
     this.popup_panel_ref = React.createRef();
 
-    let stack_panel_components = [
-      $e(StackItemsComponent, {
-        settings: settings,
-        stack: stack,
-        input_context: input_context
-      })];
+    let stack_panel_components = [];
     // TODO: floating item and mode indicator could go inside StackItemsComponent instead
     if(stack.floating_item) {
       // NOTE: To handle automatic re-rendering when things like inline-math mode
@@ -251,6 +244,12 @@ class App extends React.Component {
           app_state: app_state,
           input_context: input_context
         }));
+    stack_panel_components.push(
+      $e(StackItemsComponent, {
+        settings: settings,
+        stack: stack,
+        input_context: input_context
+      }));
 
     let document_component = null;
     if(!settings.dock_helptext)
@@ -289,7 +288,6 @@ class App extends React.Component {
     const key = this._keyname_from_event(event);
     if(key === 'Meta' || key === 'Ctrl+Control')
       return;
-    
     let app_state = this.state.app_state;
     let [was_handled, new_app_state] = this.state.input_context.handle_key(app_state, key);
     if(was_handled) {
@@ -357,7 +355,7 @@ class App extends React.Component {
 }
 
 
-// Shows current input mode in top-right corner of stack display
+// Shows current input mode in top-right corner of stack display.
 class ModeIndicatorComponent extends React.Component {
   render() {
     const input_context = this.props.input_context;
@@ -480,7 +478,7 @@ class DocumentComponent extends React.Component {
     const selection_index = document.selection_index;
     const layout = this.props.settings.layout;
     const subcomponents = document.items.map((item, index) => {
-      let item_ref = React.createRef();
+      const item_ref = React.createRef();
       const is_selected = selection_index === index+1;
       if(is_selected)
         this.selected_item_ref = item_ref;
@@ -658,7 +656,7 @@ class FileManagerComponent extends React.Component {
   render_file_table() {
     const file_manager_state = this.props.file_manager_state;
     if(file_manager_state.unavailable)
-      return $e('p', {}, 'IndexedDB support unavailable in your browser.  You will be unable to save or load documents.  Note that Firefox disables IndexedDB when in Private Browsing mode.');
+      return $e('p', {}, 'IndexedDB support unavailable in your browser.  You will be unable to save or load documents.  Note that IndexedDB may be disabled when in Private Browsing mode.');
     else if(file_manager_state.file_list && file_manager_state.file_list.length > 0) {
       return $e(
         'div', {},
@@ -773,7 +771,7 @@ class FileManagerComponent extends React.Component {
 
 
 // Displays an Item instance in any context (stack/document).
-// Props: {item: Item, selected: Bool}
+// Props: {item: Item, selected: Bool, highlighted: Bool}
 class ItemComponent extends React.Component {
   render() {
     const item = this.props.item;
@@ -863,7 +861,7 @@ class ItemComponent extends React.Component {
         fleqn: true,
         trust: true,
         strict: false,
-        minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
+        minRuleThickness: 0.05  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
       });
     }
     catch(e) {

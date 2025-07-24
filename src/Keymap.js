@@ -661,8 +661,6 @@ const EditorKeymap = {
     'W': "infix \\barwedge",
     'x': "infix \\times",
     'X': "infix \\otimes",
-    '[': "infix \\llcorner",  // right-contraction
-    ']': "infix \\lrcorner",  // left-contraction
     '=': "infix \\Rightarrow",
     '-': "infix \\ominus",
     '+': "infix \\oplus",
@@ -675,8 +673,12 @@ const EditorKeymap = {
     '*': "infix *",
     '%': "infix \\div",
     '(': "infix ,;delimiters ( )",  // (x,y)
+    '[': "infix \\llcorner",  // right-contraction
+    ']': "infix \\lrcorner",  // left-contraction
     '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
     '>': "infix \\cdots",
+    //'{': "infix \\leftthreetimes",  // semidirect product
+    //'}': "infix \\rightthreetimes",
     '/': "autoparenthesize 2;infix /",
     "\\": "autoparenthesize 2;infix \\backslash",
     'Tab': "infix \\quad"
@@ -980,6 +982,7 @@ const EditorKeymap = {
   // % prefix
   blackboard: {
     '[alpha]': "self_push;to_case uppercase;typeface blackboard",
+    'k': "push \\Bbbk",  // (undocumented) special case, there's a lowercase k in LaTeX
     '%': "push \\%"  // undocumented
   },
 

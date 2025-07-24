@@ -231,6 +231,8 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 
 #stack_panel div.floating_item {
   float: right;
+  /* keep the floating item from being obscured by other stack items */
+  position: relative; z-index: 2;
   padding: 0.05em 0.2em;
   padding-left: 0;  /* make itemtype bar look "correct" */
   margin-right: 0.25em;

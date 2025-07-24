@@ -887,7 +887,7 @@ class FontExpr extends Expr {
   size_adjustment_command(size_adjustment) {
     // NOTE: -4 <= size_adjustment <= 5
     return [
-      'tiny', 'scriptsize', 'footnotesize', 'small', null,
+      'tiny', 'scriptsize', 'footnotesize', 'small', null /* \normalsize */,
       'large', 'Large', 'LARGE', 'huge', 'Huge'][size_adjustment+4];
   }
 

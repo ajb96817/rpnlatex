@@ -1543,9 +1543,9 @@ class TextItemExprElement extends TextItemElement {
   to_json() { return {'expr': this.expr.to_json()}; }
 
   to_latex(export_mode) {
-    // When "exporting", we're not in display-math mode (i.e. not within $$ ... $$).
-    // So embedded Exprs need to explicitly enter inline-math mode ($ ... $).
     if(export_mode) {
+      // When "exporting", we're not in display-math mode (i.e. not within $$ ... $$).
+      // So embedded Exprs need to explicitly enter inline-math mode ($ ... $).
       return [
         '$', this.expr.to_latex(null, true), '$'
       ].join('');
