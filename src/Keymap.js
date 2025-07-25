@@ -716,6 +716,8 @@ const EditorKeymap = {
     '>': "infix \\ge",
     '[': "infix \\le",
     ']': "infix \\ge",
+    '{': "infix \\lll",
+    '}': "infix \\ggg",
     '.': "infix \\doteq",
     ':': "infix \\coloneqq",
     ';': "infix \\coloncolon",
@@ -749,10 +751,12 @@ const EditorKeymap = {
     '3': "push 1;push 2;infix /",  // 1/2 (inline)
     '8': "push \\infty",
     'a': "push \\forall",
+    'A': "push \\aleph",
     'b': "push \\bullet",
     'c': "push \\cdot",
     'C': "push \\bigcap",
     'd': "push \\partial",
+    'D': "push \\bigoplus",
     'e': "push \\exists",
     'E': "push \\nexists",
     'h': "push \\hslash",
@@ -762,16 +766,20 @@ const EditorKeymap = {
     'M': "push \\mp",
     'n': "push \\ne",
     'o': "push \\circ",
+    'O': "push \\bigodot",
     'p': "push \\prod",
     'P': "push \\pm",
     'q': "push =",
+    'Q': "push \\bigsqcup",
     's': "push \\sum",
+    'S': "push \\S",
     't': "push \\therefore",
     'U': "push \\bigcup",
     'v': "push \\vee",
     'V': "push \\bigvee",
     'w': "push \\wedge",
     'W': "push \\bigwedge",
+    'X': "push \\bigotimes",
     'y': "push \\oint",
     'Y': "push \\oiint",
     '.': "push \\dots",
@@ -982,7 +990,7 @@ const EditorKeymap = {
   // % prefix
   blackboard: {
     '[alpha]': "self_push;to_case uppercase;typeface blackboard",
-    'k': "push \\Bbbk",  // (undocumented) special case, there's a lowercase k in LaTeX
+    'k': "push k;typeface blackboard",  // there's (only) a lowercase k in LaTeX (aka \Bbbk).
     '%': "push \\%"  // undocumented
   },
 
@@ -1023,8 +1031,8 @@ const EditorKeymap = {
     't': "push \\varsigma",  'u': "push \\Upsilon",
     'v': "push \\Theta",     'w': "push \\Omega",
     'x': "push \\Xi",        'y': "push \\Psi",
-    '6': "push \\digamma",   '^': "push \\digamma",
-    'n': "push \\nabla",  // special case
+    /*'6': "push \\digamma",   '^': "push \\digamma",*/
+    'h': "push \\mho",       'n': "push \\nabla",
 
     // TODO: support for case-insensitive keybindings in general
     'D': "push \\Delta",     'E': "push \\varepsilon",
@@ -1036,7 +1044,7 @@ const EditorKeymap = {
     'T': "push \\varsigma",  'U': "push \\Upsilon",
     'V': "push \\Theta",     'W': "push \\Omega",
     'X': "push \\Xi",        'Y': "push \\Psi",
-    'N': "push \\nabla",
+    'N': "push \\nabla",     'H': "push \\mho",
 
     ':': "infix \\colon"
   },

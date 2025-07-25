@@ -66,7 +66,7 @@ div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid 
 div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
 div.separator_item.highlighted { border-left-color: #66d; }
-div.latex_source_item.highlighted { border-left-color: #383; }
+div.latex_source_item.highlighted { border-left-color: #484; }
 div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833 !important; }
 
 /* Override item type indicator bar if it contains a KaTeX error. */
@@ -232,7 +232,7 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 #stack_panel div.floating_item {
   float: right;
   /* keep the floating item from being obscured by other stack items */
-  position: relative; z-index: 2;
+  position: relative; z-index: 2;  /* TODO: maybe use position: sticky instead */
   padding: 0.05em 0.2em;
   padding-left: 0;  /* make itemtype bar look "correct" */
   margin-right: 0.25em;
