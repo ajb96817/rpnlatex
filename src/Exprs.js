@@ -1683,7 +1683,8 @@ class DelimiterExpr extends Expr {
        expr.operand_count() === 2)
     );
     if(needs_parenthesization)
-      return DelimiterExpr.parenthesize(expr, left_type, right_type);
+      return DelimiterExpr.parenthesize(
+        expr, left_type || '(', right_type || ')');
     else
       return expr;
   }
@@ -1814,8 +1815,8 @@ class SubscriptSuperscriptExpr extends Expr {
   static build_subscript_superscript(base_expr, child_expr, is_superscript, autoparenthesize) {
     // Check to see if we can put the child into an empty sub/superscript "slot".
     if(base_expr.is_expr_type('subscriptsuperscript') &&
-       ((base_expr.subscript_expr === null && !is_superscript) ||
-        (base_expr.superscript_expr === null && is_superscript))) {
+       ((!base_expr.subscript_expr && !is_superscript) ||
+        (!base_expr.superscript_expr && is_superscript))) {
       // There's "room" for it in this expr.
       return new SubscriptSuperscriptExpr(
         base_expr.base_expr,
@@ -1925,7 +1926,7 @@ class SubscriptSuperscriptExpr extends Expr {
 
     // Check for expressions of the form f(x) |_ {x=val}
     // i.e., a "where" clause formed by something like [/][|].
-    if(sub_expr !== null && sup_expr === null &&
+    if(sub_expr && !sup_expr &&
        base_expr.is_expr_type('delimiter') &&
        base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
        sub_expr.is_expr_type('infix') &&

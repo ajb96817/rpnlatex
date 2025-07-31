@@ -57,6 +57,7 @@ const EditorKeymap = {
     '|': "mode array",
     '_': "start_dissect_mode",
     '#': "mode evaluate",
+    //'#': "mode algebrite",
     '$': "mode config",
     '?': "toggle_popup help",
 
@@ -979,6 +980,16 @@ const EditorKeymap = {
     '=': "evaluate_to_equation false",
     'Enter': "evaluate_to_equation true",
     '|': "evaluate_with_variable_substitution"
+  },
+
+  algebrite: {
+    '#': "algebrite eval",
+    'e': "algebrite expand",  // guess the variable
+    'E': "algebrite expand 2",
+    'f': "algebrite factor",  // assume variable is 'x'
+    'i': "algebrite integral 2",
+    'F': "algebrite factor 2",
+    's': "algebrite simplify"
   },
 
   // @ prefix

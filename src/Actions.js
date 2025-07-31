@@ -10,6 +10,10 @@ import {
   SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
 
+import {
+  AlgebriteInterface
+} from './CAS';
+
 
 // Holds context for the text entry mode line editor (InputContext.text_entry).
 // Fields:
@@ -310,6 +314,21 @@ class InputContext {
 
   do_undo() { this.perform_undo_or_redo = 'undo'; }
   do_redo() { this.perform_undo_or_redo = 'redo'; }
+
+  do_algebrite(stack, function_name, arg_count_string) {
+    const arg_count = arg_count_string ? parseInt(arg_count_string) : 1;
+    const [new_stack, ...argument_exprs] = stack.pop_exprs(arg_count);
+    let algebrite = new AlgebriteInterface();
+    const result_node = algebrite.call_function(function_name, argument_exprs);
+    if(result_node) {
+      //console.log(result_node.toLatexString());
+      console.log('Output: ' + algebrite.debug_print_list(result_node));
+      const result_expr = algebrite.algebrite_node_to_expr(result_node);
+      if(result_expr)
+        return new_stack.push_expr(result_expr);
+    }
+    return this.error_flash_stack();
+  }
 
   do_prefix_argument() {
     const key = this.last_keypress;
