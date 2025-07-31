@@ -56,8 +56,8 @@ const EditorKeymap = {
     "\"": "start_text_entry text_entry",
     '|': "mode array",
     '_': "start_dissect_mode",
-    '#': "mode evaluate",
-    //'#': "mode algebrite",
+    //'#': "mode evaluate",
+    '#': "mode algebrite",
     '$': "mode config",
     '?': "toggle_popup help",
 
@@ -984,10 +984,13 @@ const EditorKeymap = {
 
   algebrite: {
     '#': "algebrite eval",
+    'd': "push x;algebrite derivative 2",
+    'D': "algebrite derivative 2",
     'e': "algebrite expand",  // guess the variable
     'E': "algebrite expand 2",
     'f': "algebrite factor",  // assume variable is 'x'
-    'i': "algebrite integral 2",
+    'i': "push x;algebrite integral 2",
+    'I': "algebrite integral 2",
     'F': "algebrite factor 2",
     's': "algebrite simplify"
   },

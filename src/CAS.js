@@ -74,10 +74,16 @@ class ExprToAlgebrite {
     switch(expr.expr_type()) {
     case 'text': this.emit_text_expr(expr); break;
     case 'infix': this.emit_infix_expr(expr); break;
+    case 'postfix': this.emit_postfix_expr(expr); break;
     case 'delimiter': this.emit_delimiter_expr(expr); break;
     case 'command': this.emit_command_expr(expr); break;
     case 'subscriptsuperscript': this.emit_subscriptsuperscript_expr(expr); break;
     case 'sequence': this.emit_sequence_expr(expr); break;
+    case 'font': this.emit_font_expr(expr); break;
+    case 'array': this.emit_array_expr(expr); break;
+    case 'placeholder':
+      this.error('Placeholders not allowed', expr);
+      break;
     default: this.error('Unknown expr type: ' + expr.expr_type());
     }
   }
@@ -121,6 +127,11 @@ class ExprToAlgebrite {
       this.emit_expr(operator_exprs[i]);
     }
     this.emit_expr(operand_exprs[operand_exprs.length-1]);
+  }
+
+  emit_postfix_expr(expr) {
+    this.emit_parenthesized_expr(expr.base_expr);
+    this.emit_expr(expr.operator_expr);
   }
 
   // Only "standard" delimiter types can be converted to Algebrite
@@ -243,6 +254,38 @@ class ExprToAlgebrite {
     }
   }
 
+  emit_font_expr(expr) {
+    // TODO: for now, just strip font stuff
+    return this.emit_expr(expr.expr);
+  }
+
+  emit_array_expr(expr) {
+    if(!expr.is_matrix())
+      return this.error('Invalid matrix type', expr);
+    const matrix_expr = expr;
+    const [row_count, column_count] = [matrix_expr.row_count, matrix_expr.column_count];
+    // 1xN or Nx1 matrices are passed as vectors to Algebrite
+    // with only a single bracket pair, e.g. [x,y,z].
+    const is_vector = column_count === 1 || row_count === 1;
+    this.emit('[');
+    for(let row = 0; row < row_count; row++) {
+      if(!is_vector) this.emit('[');
+      for(let column = 0; column < column_count; column++) {
+        const element_expr = matrix_expr.element_exprs[row][column];
+        this.emit_expr(element_expr);
+        if((is_vector && !(row == row_count-1 && column == column_count-1)) ||
+           (!is_vector && column < column_count-1))
+          this.emit(',');
+      }
+      if(!is_vector) {
+        this.emit(']');
+        if(row < row_count-1)
+          this.emit(',');
+      }
+    }
+    this.emit(']');
+  }
+
   // Check if a variable name is acceptable by Algebrite.
   is_valid_variable_name(s, allow_initial_digit) {
     const regex = allow_initial_digit ?
@@ -254,7 +297,7 @@ class ExprToAlgebrite {
   // Check for "special character" operators like + that can be passed
   // directly to Algebrite.
   is_valid_binary_operator(s) {
-    return ['+', '-', '=', '<', '>', ','].includes(s);
+    return ['+', '-', '/', '=', '<', '>', ',', '!'].includes(s);
   }
 
   // allow_initial_digit is for permitting things like '1' for subscripted
@@ -270,10 +313,24 @@ class ExprToAlgebrite {
     else
       return null;
   }
+
+  // Try to recognize a derivative expression.
+  //   - d/dx
+  //   - d(something)/dx
+  //   - f'(x)
+  //   - \partial/{\partial x}
+  analyze_derivative(expr) {
+    
+  }
 }
 
 
 class AlgebriteToExpr {
+  error(message, offending_p) {
+    alert(message);
+    throw new Error('Algebrite: ' + message);
+  }
+  
   utype(U) {
     switch(U.k) {
     case 0: return 'cons';
@@ -306,7 +363,7 @@ class AlgebriteToExpr {
     case 'num': return this.num_to_expr(p.q.a, p.q.b);
     case 'double': return this.double_to_expr(p.d);
     case 'str': return this.str_to_expr(p);
-    case 'tensor': return this.tensor_to_expr(p);
+    case 'tensor': return this.tensor_to_expr(p.tensor);
     case 'sym': return this.sym_to_expr(p.printname);
     default: return null;
     }
@@ -375,6 +432,8 @@ class AlgebriteToExpr {
       return this.add_to_expr(args);
     else if(f === 'power')
       return this.power_to_expr(args);
+    else if(f === 'derivative' && args.length === 2)
+      return this.derivative_to_expr(...args);
     else if(allowed_algebrite_unary_functions.has(f) &&
             args.length === 1) {
       // "Built-in" unary LaTeX command like \sin{x}.
@@ -395,12 +454,9 @@ class AlgebriteToExpr {
 
   is_negative_one(p) {
     const type = this.utype(p);
-    if(type === 'num')
-      return p.q.a.equals(-1) && p.q.b.equals(1);
-    else if(type === 'double')
-      return p.d === -1.0;
-    else
-      return false;
+    if(type === 'num') return p.q.a.equals(-1) && p.q.b.equals(1);
+    else if(type === 'double') return p.d === -1.0;
+    else return false;
   }
 
   is_negative_number(p) {
@@ -455,12 +511,30 @@ class AlgebriteToExpr {
   }
 
   multiply_to_expr(terms) {
+    const first_term = terms[0];
+    // Check for 1/n * x, with n integer; convert to x/n so that we
+    // get x^3/3 instead of (1/3)x^3.
+    if(this.utype(first_term) === 'num' &&
+       (first_term.q.a.equals(1) || first_term.q.a.equals(-1)) &&
+       !first_term.q.b.equals(1)) {
+      const numerator_expr = this.multiply_to_expr(terms.slice(1));
+      let result_expr = new CommandExpr(
+        'frac', [numerator_expr, new TextExpr(first_term.q.b.toString())]);
+      if(first_term.q.a.equals(-1)) {
+        // TODO: use PrefixExpr
+        result_expr = new SequenceExpr([new TextExpr('-'), result_expr], true);
+      }
+      return result_expr;
+    }
+    // Usual case (not in the form 1/n * x):
     let i = 0;
     let unary_minus = false;
-    if(this.is_negative_one(terms[0])) {
+    if(this.is_negative_one(first_term)) {
       unary_minus = true;
       i++;
     }
+    if(i >= terms.length)
+      return new TextExpr('-1');  // degenerate case: multiply('-'); TODO: use PrefixExpr unary minus
     let result_expr = this.to_expr(terms[i++]);
     for(; i < terms.length; i++) {
       if(this.is_integer_term(terms[i]))
@@ -509,6 +583,18 @@ class AlgebriteToExpr {
     return SubscriptSuperscriptExpr.build_subscript_superscript(
       DelimiterExpr.parenthesize_for_power(base_expr),
       exponent_expr, true, false);
+  }
+
+  derivative_to_expr(base_p, variable_p) {
+    // TODO: recognize special forms like derivative(f(x), x)  -> f'(x)
+    //       or df/dx (instead of d/dx f), if f is simple enough
+    const base_expr = this.to_expr(base_p);
+    const variable_expr = this.to_expr(variable_p);
+    const d_dx_expr = new CommandExpr(
+      'frac', [
+        new TextExpr('d'),
+        new SequenceExpr([new TextExpr('d'), variable_expr])]);
+    return Expr.combine_pair(d_dx_expr, base_expr);
   }
 
   // Convert cons list to a flat Javascript array.
@@ -581,8 +667,21 @@ class AlgebriteToExpr {
     }
   }
 
-  tensor_to_expr(p) {
-    return new TextExpr('tensor...');
+  tensor_to_expr(tensor) {
+    let row_count, column_count;
+    if(tensor.ndim === 1) { row_count = tensor.dim[0]; column_count = 1; }
+    else if(tensor.ndim === 2) { row_count = tensor.dim[0]; column_count = tensor.dim[1]; }
+    else return this.error('Tensor rank too high', p);
+    const row_exprs = [];
+    for(let row = 0, linear_index = 0; row < row_count; row++) {
+      const column_exprs = [];
+      for(let column = 0; column < column_count; column++, linear_index++) {
+        const expr = this.to_expr(tensor.elem[linear_index]);
+        column_exprs.push(expr);
+      }
+      row_exprs.push(column_exprs);
+    }
+    return new ArrayExpr('bmatrix', row_count, column_count, row_exprs);
   }
 }
 
