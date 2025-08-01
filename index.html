@@ -1504,14 +1504,9 @@
             <td><span class="keybinding">n</span> <code>\argmin</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">r</span> <code>\operatorname{tr}</code></td>
             <td><span class="keybinding">s</span> <code>\sup</code></td>
-            <td><span class="keybinding">t</span> <code>\det</code></td>
-          </tr>
-          <tr>
             <td><span class="keybinding">u</span> <code>\limsup</code></td>
             <td><span class="keybinding">x</span> <code>\max</code></td>
-            <td></td>
           </tr>
       </tbody></table>
 
@@ -1778,16 +1773,27 @@
         These commands operate on existing matrices.
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">E</span>
+        <li>
+          <span class="keybinding">d</span>
+          <code>x \to \det{x}\enspace</code> <em>(determinant)</em>
+        </li>
+        <li>
+          <span class="keybinding">r</span>
+          <code>x \to \operatorname{Tr}{x}\enspace</code> <em>(t<strong>r</strong>ace)</em>
+        </li>
+        <li>
+          <span class="keybinding">E</span>
           Insert spaces and ellipses before the last row and column in a matrix,
           in order to notate a matrix that is not fully written out.
         </li>
-        <li><span class="keybinding">s</span>
+        <li>
+          <span class="keybinding">s</span>
           Split a matrix into its component rows, putting each row onto the stack.
           To split by columns instead, use the <span class="keybinding">T</span> transpose
           command first.
         </li>
-        <li><span class="keybinding">T</span>
+        <li>
+          <span class="keybinding">T</span>
           Transpose a matrix by exchanging its rows and columns.
         </li>
         <li>

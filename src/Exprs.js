@@ -1680,11 +1680,15 @@ class DelimiterExpr extends Expr {
       // \frac{x}{y}
       (expr.is_expr_type('command') &&
        expr.command_name === 'frac' &&
-       expr.operand_count() === 2)
+       expr.operand_count() === 2) ||
+
+      // \sin{x}, \ln{x}, etc.
+      (expr.is_expr_type('command') &&
+       expr.operand_count() === 1 &&
+       !expr.operand_exprs[0].is_expr_type('delimiter'))
     );
     if(needs_parenthesization)
-      return DelimiterExpr.parenthesize(
-        expr, left_type || '(', right_type || ')');
+      return DelimiterExpr.parenthesize(expr, left_type, right_type);
     else
       return expr;
   }

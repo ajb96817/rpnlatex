@@ -29,11 +29,30 @@ const latex_letter_commands = new Set([
 ]);
 
 const allowed_algebrite_unary_functions = new Set([
-  'sin', 'cos'
+  'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
+  'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
+  'log', 'contract', 'det'
 ]);
   
+const algebrite_function_translations = [
+  // [rpnlatex_command, algebrite_command]
+  ['ln', 'log'],
+  ['Tr', 'contract'],
+  ['sin^{-1}', 'arcsin'],
+  ['cos^{-1}', 'arccos'],
+  ['tan^{-1}', 'arctan']
+];
+
 
 class AlgebriteInterface {
+  static translate_function_name(f, to_algebrite) {
+    const match = algebrite_function_translations.find(
+      pair => pair[to_algebrite ? 0 : 1] === f);
+    if(match)
+      return match[to_algebrite ? 1 : 0];
+    else return f;
+  }
+  
   debug_print_list(p) {
     return new AlgebriteToExpr().print_list(p);
   }
@@ -152,26 +171,79 @@ class ExprToAlgebrite {
   }
 
   emit_command_expr(expr) {
-    const c = expr.command_name;
-    const args = expr.operand_exprs;
-    const nargs = expr.operand_count();
+    let args, nargs, command_name;
+    // Some built-in commands use \operatorname{fn}{x} (a 2-argument CommandExpr).
+    // These include: Tr(), sech(), csch(), which aren't present in LaTeX.
+    // For these cases, the command name and argument to use are extracted
+    // from the \operatorname command.
+    if(expr.command_name === 'operatorname' &&
+       expr.operand_count() == 2 && expr.operand_exprs[0].is_expr_type('text')) {
+      args = expr.operand_exprs.slice(1);
+      nargs = expr.operand_count() - 1;
+      command_name = expr.operand_exprs[0].text;
+    }
+    else {
+      args = expr.operand_exprs;
+      nargs = expr.operand_count();
+      command_name = expr.command_name;
+    }
+    // Translate ln -> log, etc.
+    const algebrite_command =
+          AlgebriteInterface.translate_function_name(command_name, true);
     const variable_name = this.expr_as_variable_name(expr);
     if(variable_name)
       this.emit(variable_name);
-    else if(c === 'frac' && nargs === 2) {
+    else if(command_name === 'frac' && nargs === 2) {
       this.emit_parenthesized_expr(expr.operand_exprs[0]),
       this.emit('/');
       this.emit_parenthesized_expr(expr.operand_exprs[1]);
     }
-    else if(c === 'sqrt' && nargs === 1) {
+    else if(command_name === 'sqrt' && nargs === 1) {
       // TODO: check for [3] option  ->  x^(1/3)
       this.emit_function_call('sqrt', args);
     }
-    else if(allowed_algebrite_unary_functions.has(c) && nargs === 1)
-      this.emit_function_call(c, args);
+    else if(allowed_algebrite_unary_functions.has(algebrite_command) && nargs === 1)
+      this.emit_function_call(algebrite_command, args);
     else {
+      // Algebrite does not have dedicated "reciprocal" trigonometric functions
+      // like sec(), so render them as 1/cos() etc.
+      const reciprocal_trig_substitutions = [
+        ['sec', 'cos'],   ['csc', 'sin'],   ['cot', 'tan'],
+        ['sech', 'cosh'], ['csch', 'sinh'], ['coth', 'tanh']
+      ];
+      const match = reciprocal_trig_substitutions.find(pair => command_name === pair[0]);
+      if(match) {
+        // sec(x) -> 1/cos(x)
+        this.emit('(1/');
+        this.emit_function_call(match[1], args);
+        this.emit(')');
+        return;
+      }
+      // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
+      // having the command_name be a literal 'sin^2'.  This needs to be translated
+      // as sin^2(x) -> sin(x)^2 for Algebrite.  Also, reciprocal trig functions
+      // need to be translated as csc^2(x) -> sin(x)^(-2).
+      const squared_trig_substitutions = [
+        // [rpnlatex, algebrite_function, power]
+        ['sin^2', 'sin', 2],    ['cos^2', 'cos', 2],    ['tan^2', 'tan', 2],
+        ['sinh^2', 'sinh', 2],  ['cosh^2', 'cosh', 2],  ['tanh^2', 'tanh', 2],
+        ['sec^2', 'cos', -2],   ['csc^2', 'sin', -2],   ['cot^2', 'tan', -2],
+        ['sech^2', 'cosh', -2], ['csch^2', 'sinh', -2], ['coth^2', 'tanh', -2]
+      ];
+      const match2 = squared_trig_substitutions.find(pair => command_name === pair[0]);
+      if(match2) {
+        this.emit_function_call(match2[1], args);
+        this.emit('^');
+        if(match2[2] < 0) {
+          this.emit('(');
+          this.emit(match2[2].toString());
+          this.emit(')');
+        }
+        else this.emit(match2[2].toString());
+        return;
+      }
       // TODO: handle this better
-      alert('unknown command_expr: ' + expr.command_name);
+      alert('Unknown command: ' + command_name);
     }
   }
 
@@ -320,7 +392,7 @@ class ExprToAlgebrite {
   //   - f'(x)
   //   - \partial/{\partial x}
   analyze_derivative(expr) {
-    
+    borked();
   }
 }
 
@@ -437,7 +509,10 @@ class AlgebriteToExpr {
     else if(allowed_algebrite_unary_functions.has(f) &&
             args.length === 1) {
       // "Built-in" unary LaTeX command like \sin{x}.
-      return new CommandExpr(f, [this.to_expr(args[0])]);
+      // f: algebrite function name (e.g. arcsin)
+      // c: rpnlatex command name (e.g. sin^{-1})
+      const c = AlgebriteInterface.translate_function_name(f, false);
+      return new CommandExpr(c, [this.to_expr(args[0])]);
     }
     else {
       // Anything else becomes f(x,y,z).

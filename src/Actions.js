@@ -785,9 +785,7 @@ class InputContext {
   }
 
   // opname == 'argmax': y x -> \argmax\limits_{x} y
-  // If make_operatorname is true, opname is not a built-in LaTeX operator
-  // but is instead wrapped in an \operatorname{} to simulate it.
-  do_underset_operator(stack, opname, make_operatorname) {
+  do_underset_operator(stack, opname) {
     const [new_stack, argument_expr, sub_expr] = stack.pop_exprs(2);
     let command_expr;
     if(make_operatorname)
