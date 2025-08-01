@@ -982,15 +982,42 @@ const EditorKeymap = {
 
   algebrite: {
     '#': "algebrite eval",
+    'a': "algebrite polar",  // a=angle
+    'A': "algebrite arg",
     'd': "push x;algebrite derivative 2",
+    'c': "algebrite erfc",
+    'C': "algebrite expcos",
     'D': "algebrite derivative 2",
-    'e': "algebrite expand",  // guess the variable
-    'E': "algebrite expand 2",
+    'e': "algebrite erf",
+    'f': "algebrite rationalize",  // f=frac
     'f': "algebrite factor",  // assume variable is 'x'
+    'F': "algebrite factor 2",
     'i': "push x;algebrite integral 2",
     'I': "algebrite integral 2",
-    'F': "algebrite factor 2",
-    's': "algebrite simplify"
+    'k': "algebrite circexp",  // TODO: better keybinding
+    'p': "mode algebrite_polynomial",
+    'r': "algebrite rect",
+    's': "algebrite simplify",
+    'S': "algebrite expsin",
+    't': "push x;push 7;push 0;algebrite taylor 4",
+    'T': "algebrite taylor 4",
+    'x': "algebrite expand",  // guess the variable
+    'X': "algebrite expand 2",
+    'y': "push x;algebrite nroots 2",
+    'Y': "algebrite nroots 2",
+    'z': "push x;algebrite roots 2", // z=zeroes
+    'Z': "algebrite roots 2",
+    '*': "algebrite conj"
+  },
+
+  algebrite_polynomial: {
+    'l': "push x;swap;algebrite legendre 2",
+    'L': "push x;unrot;algebrite legendre 3",
+    'g': "push x;swap;algebrite laguerre 2",
+    'G': "push x;unrot;algebrite laguerre 3",
+    'h': "push x;swap;algebrite hermite 2",
+    'j': "push x;swap;algebrite besselj 2",
+    'y': "push x;swap;algebrite bessely 2"
   },
 
   // @ prefix

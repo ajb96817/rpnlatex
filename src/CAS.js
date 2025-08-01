@@ -31,13 +31,14 @@ const latex_letter_commands = new Set([
 const allowed_algebrite_unary_functions = new Set([
   'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
-  'log', 'contract', 'det'
+  'log', 'choose', 'contract', 'det'
 ]);
   
 const algebrite_function_translations = [
   // [rpnlatex_command, algebrite_command]
   ['ln', 'log'],
   ['Tr', 'contract'],
+  ['binom', 'choose'],
   ['sin^{-1}', 'arcsin'],
   ['cos^{-1}', 'arccos'],
   ['tan^{-1}', 'arctan']
@@ -107,6 +108,12 @@ class ExprToAlgebrite {
     }
   }
 
+  emit_parenthesized(text) {
+    this.emit('(');
+    this.emit(text);
+    this.emit(')');
+  }
+
   emit_parenthesized_expr(expr) {
     this.emit('(');
     this.emit_expr(expr);
@@ -130,7 +137,7 @@ class ExprToAlgebrite {
        this.is_valid_variable_name(text) ||
        this.is_valid_binary_operator(text)) {
       if(expr.looks_like_negative_number())
-        this.emit('(' + text + ')');
+        emit_parenthesized(text);
       else
         this.emit(text);
     }
@@ -164,10 +171,15 @@ class ExprToAlgebrite {
             (left === '[' && right === ']') ||
             (left === "\\{" && right === "\\}"))
       this.emit_parenthesized_expr(inner_expr);
+    else if(left === "\\lceil" && right === "\\rceil")
+      this.emit_function_call('ceil', [inner_expr]);
+    else if(left === "\\lfloor" && right === "\\rfloor")
+      this.emit_function_call('floor', [inner_expr]);
+    else if((left === "\\lVert" && right === "\\rVert") ||
+            (left === "\\vert" && right === "\\vert"))
+      this.emit_function_call('abs', [inner_expr]);
     else
       this.error('Unsupported delimiters', expr);
-
-    // TODO: ceil, floor, norm, where, vert(abs)
   }
 
   emit_command_expr(expr) {
@@ -202,7 +214,7 @@ class ExprToAlgebrite {
       // TODO: check for [3] option  ->  x^(1/3)
       this.emit_function_call('sqrt', args);
     }
-    else if(allowed_algebrite_unary_functions.has(algebrite_command) && nargs === 1)
+    else if(allowed_algebrite_unary_functions.has(algebrite_command))
       this.emit_function_call(algebrite_command, args);
     else {
       // Algebrite does not have dedicated "reciprocal" trigonometric functions
@@ -225,20 +237,19 @@ class ExprToAlgebrite {
       // need to be translated as csc^2(x) -> sin(x)^(-2).
       const squared_trig_substitutions = [
         // [rpnlatex, algebrite_function, power]
-        ['sin^2', 'sin', 2],    ['cos^2', 'cos', 2],    ['tan^2', 'tan', 2],
-        ['sinh^2', 'sinh', 2],  ['cosh^2', 'cosh', 2],  ['tanh^2', 'tanh', 2],
-        ['sec^2', 'cos', -2],   ['csc^2', 'sin', -2],   ['cot^2', 'tan', -2],
-        ['sech^2', 'cosh', -2], ['csch^2', 'sinh', -2], ['coth^2', 'tanh', -2]
+        ['sin^2', 'sin', 2],       ['cos^2', 'cos', 2],       ['tan^2', 'tan', 2],
+        ['sinh^2', 'sinh', 2],     ['cosh^2', 'cosh', 2],     ['tanh^2', 'tanh', 2],
+        ['sec^2', 'cos', -2],      ['csc^2', 'sin', -2],      ['cot^2', 'tan', -2],
+        ['sech^2', 'cosh', -2],    ['csch^2', 'sinh', -2],    ['coth^2', 'tanh', -2],
+        // NOTE: (sin|cos|tan)^{-1} are handled by algebrite_function_translations
+        ['sec^{-1}', 'cos', -1],   ['csc^{-1}', 'sin', -1],   ['cot^{-1}', 'tan', -1],
+        ['sech^{-1}', 'cosh', -1], ['csch^{-1}', 'sinh', -1], ['coth^{-1}', 'tanh', -1]
       ];
       const match2 = squared_trig_substitutions.find(pair => command_name === pair[0]);
       if(match2) {
         this.emit_function_call(match2[1], args);
         this.emit('^');
-        if(match2[2] < 0) {
-          this.emit('(');
-          this.emit(match2[2].toString());
-          this.emit(')');
-        }
+        if(match2[2] < 0) this.emit_parenthesized(match2[2].toString());
         else this.emit(match2[2].toString());
         return;
       }
@@ -262,8 +273,15 @@ class ExprToAlgebrite {
         }
         return;
       }
-      else
-        return this.error('Cannot use subscript here', expr);
+      // Look for "where" expressions of the form: f|_(x=y).
+      if(base_expr.is_expr_type('delimiter') &&
+         base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
+         subscript_expr.is_expr_type('infix') && subscript_expr.operator_text_at(0) === '=') {
+        const lhs = subscript_expr.operand_exprs[0];
+        const rhs = subscript_expr.extract_side_at(0, 'right');
+        return this.emit_function_call('eval', [base_expr.inner_expr, lhs, rhs]);
+      }
+      return this.error('Cannot use subscript here', expr);
     }
 
     // Check for e^x (both roman and normal 'e').
@@ -498,6 +516,7 @@ class AlgebriteToExpr {
 
   functioncall_to_expr(f, arg_list) {
     const args = this.unpack_list(arg_list);
+    const arg_exprs = args.map(arg => this.to_expr(arg));
     if(f === 'multiply')
       return this.multiply_to_expr(args);
     else if(f === 'add')
@@ -506,20 +525,26 @@ class AlgebriteToExpr {
       return this.power_to_expr(args);
     else if(f === 'derivative' && args.length === 2)
       return this.derivative_to_expr(...args);
-    else if(allowed_algebrite_unary_functions.has(f) &&
-            args.length === 1) {
+    else if(f === 'factorial')
+      return this.factorial_to_expr(args[0]);
+    else if(f === 'ceil')
+      return new DelimiterExpr("\\lceil", "\\rceil", arg_exprs[0]);
+    else if(f === 'floor')
+      return new DelimiterExpr("\\lfloor", "\\rfloor", arg_exprs[0]);
+    else if(f === 'abs')
+      return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
+    else if(allowed_algebrite_unary_functions.has(f) && args.length === 1) {
       // "Built-in" unary LaTeX command like \sin{x}.
-      // f: algebrite function name (e.g. arcsin)
-      // c: rpnlatex command name (e.g. sin^{-1})
-      const c = AlgebriteInterface.translate_function_name(f, false);
-      return new CommandExpr(c, [this.to_expr(args[0])]);
+      return new CommandExpr(
+        AlgebriteInterface.translate_function_name(f, false),
+        [arg_exprs[0]]);
     }
     else {
       // Anything else becomes f(x,y,z).
-      let operands_expr = this.to_expr(args[0]);
+      let operands_expr = arg_exprs[0];
       for(let i = 1; i < args.length; i++)
         operands_expr = InfixExpr.combine_infix(
-          operands_expr, this.to_expr(args[i]), new TextExpr(','));
+          operands_expr, arg_exprs[i], new TextExpr(','));
       return new SequenceExpr(
         [ this.sym_to_expr(f),
           DelimiterExpr.parenthesize(operands_expr)
@@ -670,6 +695,11 @@ class AlgebriteToExpr {
         new TextExpr('d'),
         new SequenceExpr([new TextExpr('d'), variable_expr])]);
     return Expr.combine_pair(d_dx_expr, base_expr);
+  }
+
+  factorial_to_expr(base_p) {
+    const base_expr = this.to_expr(base_p);
+    return PostfixExpr.factorial_expr(base_expr, 1);
   }
 
   // Convert cons list to a flat Javascript array.
