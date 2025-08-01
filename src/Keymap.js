@@ -7,9 +7,10 @@ const EditorKeymap = {
     '~': "push \\sim",
 
     // Immediate action special keys
-    '!': "autoparenthesize;push !;concat",
     'Enter': "subscript",
     'Shift+Enter': "edit_item",
+    // NOTE: ! receives special processing in do_concat (cf. Expr.combine_pair).
+    '!': "autoparenthesize;push !;concat",
     '^': "superscript",
     'Backspace': "pop",
     "`": "superscript",
@@ -76,7 +77,7 @@ const EditorKeymap = {
     'Ctrl+k': "infix \\,\\vert\\,;parenthesize;fuse",  // f(x|y): same as [/][k]
     'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z): same as [/][K]
     'Ctrl+l': "recenter_document 50",
-    'Ctrl+m': "push -;swap;fuse",  // same as [.][-]
+    'Ctrl+m': "autoparenthesize;prefix -",  // same as [.][-]
     'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
     'Ctrl+r': "infix ,;parenthesize;fuse",  // -> f(x,y): same as [/][r]
@@ -860,12 +861,12 @@ const EditorKeymap = {
     '*': "push *;superscript",
     '~': "apply_hat tilde",
     '=': "push \\Rightarrow;swap;fuse",
-    '-': "autoparenthesize;push -;swap;fuse",
-    '+': "autoparenthesize;push +;swap;fuse",
+    '-': "autoparenthesize;prefix -",
+    '+': "autoparenthesize;prefix +",
     '`': "push T;typeface roman;superscript",  // transpose
     '/': "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
     '_': "operator underline",
-    '!': "autoparenthesize;push \\neg;swap;fuse",
+    '!': "autoparenthesize;prefix \\neg",
     "\\": "operator bcancel",
     '[': "adjust_size smaller",
     ']': "adjust_size larger",
@@ -982,31 +983,33 @@ const EditorKeymap = {
 
   algebrite: {
     '#': "algebrite eval",
-    'a': "algebrite polar",  // a=angle
     'A': "algebrite arg",
-    'd': "push x;algebrite derivative 2",
     'c': "algebrite erfc",
     'C': "algebrite expcos",
+    'd': "push x;algebrite derivative 2",
     'D': "algebrite derivative 2",
     'e': "algebrite erf",
-    'f': "algebrite rationalize",  // f=frac
     'f': "algebrite factor",  // assume variable is 'x'
     'F': "algebrite factor 2",
     'i': "push x;algebrite integral 2",
     'I': "algebrite integral 2",
     'k': "algebrite circexp",  // TODO: better keybinding
     'p': "mode algebrite_polynomial",
-    'r': "algebrite rect",
+    'P': "algebrite polar",
+    'r': "algebrite rationalize",  // f=frac
+    'R': "algebrite rect",
     's': "algebrite simplify",
     'S': "algebrite expsin",
     't': "push x;push 7;push 0;algebrite taylor 4",
     'T': "algebrite taylor 4",
+    'v': "evaluate_to_equation false",  // internal evaluate
     'x': "algebrite expand",  // guess the variable
     'X': "algebrite expand 2",
     'y': "push x;algebrite nroots 2",
     'Y': "algebrite nroots 2",
     'z': "push x;algebrite roots 2", // z=zeroes
     'Z': "algebrite roots 2",
+    '=': "algebrite float",
     '*': "algebrite conj"
   },
 

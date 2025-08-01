@@ -3,8 +3,8 @@
 import KeybindingTable from './Keymap';
 import JSZip from 'jszip';
 import {
-  Expr, CommandExpr, FontExpr, InfixExpr, PlaceholderExpr,
-  TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr //, ArrayExpr
+  Expr, CommandExpr, FontExpr, /* PrefixExpr, */ InfixExpr, PlaceholderExpr,
+  TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr /* , ArrayExpr */
 } from './Exprs.js';
 
 

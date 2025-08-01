@@ -25,6 +25,10 @@ class Expr {
         this._list(json.operator_exprs),
         json.split_at_index,
         json.linebreaks_at || []);
+    case 'prefix':
+      return new PrefixExpr(
+        this._expr(json.base_expr),
+        this._expr(json.operator_expr));
     case 'postfix':
       return new PostfixExpr(
         this._expr(json.base_expr),
@@ -80,6 +84,11 @@ class Expr {
       else
         return expr;
     };
+
+    // Concatenating something to a unary minus PrefixExpr converts
+    // into an InfixExpr for subtraction: concat(x, -y) -> x-y
+    if(right_type === 'prefix' && right.is_unary_minus())
+      return InfixExpr.combine_infix(left, right.base_expr, new TextExpr('-'));
 
     // Handle concatenating an expression to one or more ! signs, for factorial notation.
     // This notation has to be handled carefully:
@@ -1350,6 +1359,82 @@ class PlaceholderExpr extends Expr {
 }
 
 
+// Prefix unary operators such as: +x, -x, \neg x
+class PrefixExpr extends Expr {
+  static unary_minus(expr) {
+    return new PrefixExpr(expr, new TextExpr('-'));
+  }
+
+  constructor(base_expr, operator_expr) {
+    super();
+    this.base_expr = base_expr;
+    this.operator_expr = operator_expr;
+  }
+
+  expr_type() { return 'prefix'; }
+
+  to_json() {
+    let json = super.to_json();
+    json.base_expr = this.base_expr.to_json();
+    json.operator_expr = this.operator_expr.to_json();
+    return json;
+  }
+
+  emit_latex(emitter) {
+    emitter.expr(this.operator_expr, 0);
+    emitter.expr(this.base_expr, 1);
+  }
+
+  has_subexpressions() { return true; }
+  subexpressions() { return [this.operator_expr, this.base_expr]; }
+
+  operator_text() {
+    if(this.operator_expr.is_expr_type('text'))
+      return this.operator_expr.text;
+    else if(this.operator_expr.is_expr_type('command') &&
+            this.operator_expr.operand_count() === 0)
+      return this.operator_expr.command_name;
+    else
+      return '';  // shouldn't happen
+  }
+
+  is_unary_minus() { return this.operator_text() === '-'; }
+
+  replace_subexpression(index, new_expr) {
+    return new PrefixExpr(
+      index === 0 ? new_expr : this.operator_expr,
+      index === 1 ? new_expr : this.base_expr);
+  }
+
+  as_editable_string() {
+    const operator_string = this.operator_expr.as_editable_string();
+    const base_string = this.base_expr.as_editable_string();
+    if(base_string && operator_string)
+      return [operator_string, base_string].join('');
+    else
+      return null;
+  }
+
+  dissolve() { return this.subexpressions(); }
+
+  as_bold() {
+    return new PrefixExpr(
+      this.base_expr.as_bold(),
+      this.operator_expr.as_bold());
+  }
+
+  evaluate(assignments) {
+    const value = this.base_expr.evaluate(assignments);
+    switch(this.operator_text()) {
+    case '-': return -value;
+    case '+': return +value;
+    case 'neg': return value === 0.0 ? 0 : 1;
+    default: return value;
+    }
+  }
+}
+
+
 // Represents a postfix operation where the operator comes after the operand.
 // Currently this is only used for factorial and double-factorial notation.
 // Potentially this could be used for things like transpose and conjugate, but
@@ -1365,13 +1450,13 @@ class PostfixExpr extends Expr {
       base_expr = PostfixExpr.factorial_expr(base_expr, factorial_depth-1);
     return new PostfixExpr(base_expr, new TextExpr('!'));
   }
-  
+
   constructor(base_expr, operator_expr) {
     super();
     this.base_expr = base_expr;
     this.operator_expr = operator_expr;
   }
-  
+
   expr_type() { return 'postfix'; }
 
   to_json() {
@@ -1664,6 +1749,9 @@ class DelimiterExpr extends Expr {
     const needs_parenthesization = (
       // Any infix expression
       expr.is_expr_type('infix') ||
+
+      // Any prefix expression (-x, etc)
+      expr.is_expr_type('prefix') ||
 
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
@@ -2364,7 +2452,8 @@ class ArrayExpr extends Expr {
 
 
 export {
-  Expr, CommandExpr, FontExpr, InfixExpr, PostfixExpr,
+  Expr, CommandExpr, FontExpr, InfixExpr,
+  PrefixExpr, PostfixExpr,
   PlaceholderExpr, TextExpr, SequenceExpr,
   DelimiterExpr, SubscriptSuperscriptExpr,
   ArrayExpr

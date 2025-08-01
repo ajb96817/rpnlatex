@@ -2,7 +2,7 @@
 
 import {
   // TODO: may not need all these
-  Expr, CommandExpr, FontExpr, InfixExpr, PostfixExpr,
+  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr,
   PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
@@ -94,6 +94,7 @@ class ExprToAlgebrite {
     switch(expr.expr_type()) {
     case 'text': this.emit_text_expr(expr); break;
     case 'infix': this.emit_infix_expr(expr); break;
+    case 'prefix': this.emit_prefix_expr(expr); break;
     case 'postfix': this.emit_postfix_expr(expr); break;
     case 'delimiter': this.emit_delimiter_expr(expr); break;
     case 'command': this.emit_command_expr(expr); break;
@@ -137,7 +138,7 @@ class ExprToAlgebrite {
        this.is_valid_variable_name(text) ||
        this.is_valid_binary_operator(text)) {
       if(expr.looks_like_negative_number())
-        emit_parenthesized(text);
+        this.emit_parenthesized(text);
       else
         this.emit(text);
     }
@@ -146,13 +147,30 @@ class ExprToAlgebrite {
   }
 
   emit_infix_expr(expr) {
+    // TODO: handle \times (cross product), maybe restrict to binary infix expressions
+    // (otherwise the associativity can be ambiguous).  Maybe should still handle
+    // things like a + b \times c + d though.
     const [operand_exprs, operator_exprs] =
           [expr.operand_exprs, expr.operator_exprs];
     for(let i = 0; i < operator_exprs.length; i++) {
       this.emit_expr(operand_exprs[i]);
-      this.emit_expr(operator_exprs[i]);
+      const op = expr.operator_text_at(i);
+      if(op === 'cdot' || op === 'times')
+        this.emit('*');
+      else if(this.is_valid_binary_operator(op))
+        this.emit(op);
+      else {
+        // TODO: handle this better
+        this.error('Invalid infix operator: ' + op);
+        return;
+      }
     }
     this.emit_expr(operand_exprs[operand_exprs.length-1]);
+  }
+
+  emit_prefix_expr(expr) {
+    this.emit_expr(expr.operator_expr);
+    this.emit_parenthesized_expr(expr.base_expr);
   }
 
   emit_postfix_expr(expr) {
@@ -328,13 +346,13 @@ class ExprToAlgebrite {
     for(let i = 0; i < exprs.length; i++) {
       // Put a '*' between most terms, assuming it's implicit multiplication.
       // Exceptions:
-      //   - Unary plus or minus at the beginning of the sequence (TODO: PrefixExpr).
+      //   - Unary plus or minus at the beginning of the sequence (PrefixExpr)
       //   - Fused length-2 sequence of something plus a DelimiterExpr
       //     (so that we get f(x) and not f*(x)).
       let implicit_multiplication = i < exprs.length-1;
       if(i === 0 &&
-         exprs[i].is_expr_type('text') &&
-         ['-', '+'].includes(exprs[i].text))
+         exprs[i].is_expr_type('prefix') &&
+         ['-', '+'].includes(exprs[i].operator_text()))
         implicit_multiplication = false;  // unary +/-
       if(expr.fused && exprs.length === 2 && exprs[1].is_expr_type('delimiter'))
         implicit_multiplication = false;  // f(x)
@@ -412,6 +430,10 @@ class ExprToAlgebrite {
   analyze_derivative(expr) {
     borked();
   }
+
+  analyze_integral(expr) {
+    borked();
+  }
 }
 
 
@@ -457,27 +479,6 @@ class AlgebriteToExpr {
     case 'sym': return this.sym_to_expr(p.printname);
     default: return null;
     }
-  }
-
-  // p must be something like -3/4, or (multiply -1 x).
-  // This is used so that add(3, -4, 2) can generate 3 - 4 + 2
-  // (instead of 3 + -4 + 2).
-  to_expr_without_unary_minus(p) {
-    const type = this.utype(p);
-    if(type === 'num' && p.q.a.isNegative())
-      return this.num_to_expr(p.q.a.multiply(-1), p.q.b);
-    else if(type === 'double' && p.d < 0.0)
-      return this.double_to_expr(-p.d);
-    else if(type === 'cons' && this.is_sym(this.car(p), 'multiply')) {
-      const terms = this.unpack_list(this.cdr(p));
-      // If the multiply only has two terms, just use the second term directly.
-      if(terms.length === 2)
-        return this.to_expr(terms[1]);
-      else
-        return this.multiply_to_expr(terms.slice(1));
-    }
-    else
-      return this.to_expr(p);  // shouldn't happen
   }
 
   // debug utility
@@ -586,26 +587,16 @@ class AlgebriteToExpr {
     return false;
   }
 
-  is_negative_term(p) {
-    return this.is_negative_number(p) ||
-      (this.is_cons(p) && this.is_sym(this.car(p), 'multiply') &&
-       this.is_negative_number(this.car(this.cdr(p))));
-  }
-
   add_to_expr(terms) {
     let result_expr = this.to_expr(terms[0]);
     for(let i = 1; i < terms.length; i++) {
-      const term = terms[i];
-      if(this.is_negative_term(term))
+      const term_expr = this.to_expr(terms[i]);
+      if(term_expr.expr_type() === 'prefix' && term_expr.is_unary_minus())
         result_expr = InfixExpr.combine_infix(
-          result_expr,
-          this.to_expr_without_unary_minus(term),
-          Expr.text_or_command('-'));
+          result_expr, term_expr.base_expr, new TextExpr('-'));
       else
         result_expr = InfixExpr.combine_infix(
-          result_expr,
-          this.to_expr(term),
-          Expr.text_or_command('+'));
+          result_expr, term_expr, new TextExpr('+'));
     }
     return result_expr;
   }
@@ -620,10 +611,8 @@ class AlgebriteToExpr {
       const numerator_expr = this.multiply_to_expr(terms.slice(1));
       let result_expr = new CommandExpr(
         'frac', [numerator_expr, new TextExpr(first_term.q.b.toString())]);
-      if(first_term.q.a.equals(-1)) {
-        // TODO: use PrefixExpr
-        result_expr = new SequenceExpr([new TextExpr('-'), result_expr], true);
-      }
+      if(first_term.q.a.equals(-1))
+        result_expr = PrefixExpr.unary_minus(result_expr);
       return result_expr;
     }
     // Usual case (not in the form 1/n * x):
@@ -634,7 +623,7 @@ class AlgebriteToExpr {
       i++;
     }
     if(i >= terms.length)
-      return new TextExpr('-1');  // degenerate case: multiply('-'); TODO: use PrefixExpr unary minus
+      return PrefixExpr.unary_minus(new TextExpr('1'));
     let result_expr = this.to_expr(terms[i++]);
     for(; i < terms.length; i++) {
       if(this.is_integer_term(terms[i]))
@@ -644,13 +633,9 @@ class AlgebriteToExpr {
       else
         result_expr = Expr.combine_pair(result_expr, this.to_expr(terms[i]));
     }
-    if(unary_minus) {
-      // TODO: use PrefixExpr when implemented
-      result_expr = new SequenceExpr(
-        [ new TextExpr('-'),
-          DelimiterExpr.autoparenthesize(result_expr)],
-        true /* fused */);
-    }
+    if(unary_minus)
+      result_expr = PrefixExpr.unary_minus(
+        DelimiterExpr.autoparenthesize(result_expr));
     return result_expr;
   }
 
@@ -721,10 +706,8 @@ class AlgebriteToExpr {
     else
       expr = new CommandExpr(
         'frac', [new TextExpr(a.toString()), new TextExpr(b.toString())]);
-    // TODO: use PrefixExpr when available
     if(is_negative)
-      expr = new SequenceExpr(
-        [new TextExpr('-'), expr], true /* fused */);
+      expr = PrefixExpr.unary_minus(expr);
     return expr;
   }
 

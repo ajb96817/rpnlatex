@@ -5,7 +5,7 @@ import {
 } from './Models';
 
 import {
-  Expr, CommandExpr, FontExpr, InfixExpr, PostfixExpr,
+  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr,
   PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
@@ -1022,6 +1022,12 @@ class InputContext {
   do_fuse(stack) {
     const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
     const new_expr = new SequenceExpr([left_expr, right_expr], true);
+    return new_stack.push_expr(new_expr);
+  }
+
+  do_prefix(stack, operator_text) {
+    const [new_stack, base_expr] = stack.pop_exprs(1);
+    const new_expr = new PrefixExpr(base_expr, Expr.text_or_command(operator_text));
     return new_stack.push_expr(new_expr);
   }
 
