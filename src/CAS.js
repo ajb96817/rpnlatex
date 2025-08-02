@@ -35,8 +35,8 @@ const allowed_algebrite_unary_functions = new Set([
   'log', 'choose', 'contract', 'det'
 ]);
   
+// [rpnlatex_command, algebrite_command]
 const algebrite_function_translations = [
-  // [rpnlatex_command, algebrite_command]
   ['ln', 'log'],
   ['Tr', 'contract'],
   ['binom', 'choose'],
@@ -72,7 +72,9 @@ class AlgebriteInterface {
       expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
     console.log('Input: ' + argument_strings[0]);
     const algebrite_method = Algebrite[function_name];
-    return algebrite_method(...argument_strings);
+    const result = algebrite_method(...argument_strings);
+    console.log('Output: ' + this.debug_print_list(result));
+    return result;
   }
 }
 
@@ -230,11 +232,23 @@ class ExprToAlgebrite {
       this.emit_parenthesized_expr(expr.operand_exprs[1]);
     }
     else if(command_name === 'sqrt' && nargs === 1) {
-      // TODO: check for [3] option  ->  x^(1/3)
-      this.emit_function_call('sqrt', args);
+      if(expr.options) {
+        // sqrt[3], etc.
+        this.emit_parenthesized_expr(args[0]);
+        this.emit('^(1/' + expr.options + ')');
+      }
+      else
+        this.emit_function_call('sqrt', args);
     }
     else if(allowed_algebrite_unary_functions.has(algebrite_command))
       this.emit_function_call(algebrite_command, args);
+    else if(command_name === 'lg' || command_name === 'log_2') {
+      // Special case for base-2 logarithm.  Convert to log(x)/log(2).
+      // TODO: base-10 logarithms too if implemented
+      this.emit('(');
+      this.emit_function_call('log', args);
+      this.emit('/log(2))');
+    }
     else {
       // Algebrite does not have dedicated "reciprocal" trigonometric functions
       // like sec(), so render them as 1/cos() etc.
@@ -709,9 +723,13 @@ class AlgebriteToExpr {
           new TextExpr('1'),
           new CommandExpr('sqrt', [base_expr], '3')]);
       // x^n or x^(n/m)
+      // For fractional n/m, render it as an inline fraction rather than using \frac.
       return SubscriptSuperscriptExpr.build_subscript_superscript(
         base_expr,
-        this.num_to_expr(exponent_numerator, exponent_denominator),
+        this.num_to_expr(
+          exponent_numerator,
+          exponent_denominator,
+          true /* inline_fraction */),
         true, /* is_superscript */
         true /* autoparenthesize */);
     }
@@ -742,17 +760,30 @@ class AlgebriteToExpr {
     return PostfixExpr.factorial_expr(base_expr, 1);
   }
 
-  num_to_expr(a, b) {
-    const is_negative = a.isNegative();
-    if(is_negative) a = a.multiply(-1);
+  // If 'inline_fraction' is true, it's rendered as an infix 'x/y'.
+  // Otherwise, it's a full-size \frac{x}{y}.
+  num_to_expr(numerator, denominator, inline_fraction) {
+    const is_negative = numerator.isNegative();
+    if(is_negative) numerator = numerator.multiply(-1);
     let expr = null;
-    if(b.equals(1))
-      expr = new TextExpr(a.toString());  // integer
-    else
+    if(denominator.equals(1))  // integer
+      expr = new TextExpr(numerator.toString());
+    else if(inline_fraction) {
+      expr = InfixExpr.combine_infix(
+        new TextExpr(numerator.toString()),
+        new TextExpr(denominator.toString()),
+        new TextExpr('/'));
+      if(is_negative)
+        expr = PrefixExpr.unary_minus(expr);
+    }
+    else {
       expr = new CommandExpr(
-        'frac', [new TextExpr(a.toString()), new TextExpr(b.toString())]);
-    if(is_negative)
-      expr = PrefixExpr.unary_minus(expr);
+        'frac', [
+          new TextExpr(numerator.toString()),
+          new TextExpr(denominator.toString())]);
+      if(is_negative)
+        expr = PrefixExpr.unary_minus(expr);
+    }
     return expr;
   }
 

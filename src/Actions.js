@@ -321,8 +321,6 @@ class InputContext {
     let algebrite = new AlgebriteInterface();
     const result_node = algebrite.call_function(function_name, argument_exprs);
     if(result_node) {
-      //console.log(result_node.toLatexString());
-      console.log('Output: ' + algebrite.debug_print_list(result_node));
       const result_expr = algebrite.algebrite_node_to_expr(result_node);
       if(result_expr)
         return new_stack.push_expr(result_expr);
