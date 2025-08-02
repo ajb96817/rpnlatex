@@ -25,7 +25,8 @@ const latex_letter_commands = new Set([
   'Sigma', 'varsigma', 'Upsilon', 'Theta', 'Omega', 'Xi', 'Psi',
   'digamma', 'mho', 'nabla', 'varDelta', 'varPhi', 'varGamma',
   'varLambda', 'varOmega', 'varPi', 'varTheta', 'varSigma',
-  'varUpsilon', 'varXi', 'varPsi'
+  'varUpsilon', 'varXi', 'varPsi',
+  'hbar', 'hslash'
 ]);
 
 const allowed_algebrite_unary_functions = new Set([
@@ -421,19 +422,6 @@ class ExprToAlgebrite {
     else
       return null;
   }
-
-  // Try to recognize a derivative expression.
-  //   - d/dx
-  //   - d(something)/dx
-  //   - f'(x)
-  //   - \partial/{\partial x}
-  analyze_derivative(expr) {
-    borked();
-  }
-
-  analyze_integral(expr) {
-    borked();
-  }
 }
 
 
@@ -443,8 +431,9 @@ class AlgebriteToExpr {
     throw new Error('Algebrite: ' + message);
   }
   
-  utype(U) {
-    switch(U.k) {
+  // Algebrite value types.
+  utype(p) {
+    switch(p.k) {
     case 0: return 'cons';
     case 1: return 'num';
     case 2: return 'double';
@@ -461,10 +450,8 @@ class AlgebriteToExpr {
   cdr(p) { return p.cons.cdr; }
 
   is_sym(p, sym_name /* optional */) {
-    if(sym_name)
-      return p.k === 5 && p.printname === sym_name;
-    else
-      return p.k === 5;
+    if(sym_name) return p.k === 5 && p.printname === sym_name;
+    else return p.k === 5;
   }
 
   is_nil(p) { return this.is_sym(p, 'nil'); }
@@ -479,6 +466,16 @@ class AlgebriteToExpr {
     case 'sym': return this.sym_to_expr(p.printname);
     default: return null;
     }
+  }
+
+  // Convert cons list to a flat Javascript array.
+  unpack_list(p) {
+    let elements = [];
+    while(this.is_cons(p)) {
+      elements.push(this.car(p));
+      p = this.cdr(p);
+    }
+    return elements;
   }
 
   // debug utility
@@ -553,121 +550,179 @@ class AlgebriteToExpr {
     }
   }
 
-  is_negative_one(p) {
-    const type = this.utype(p);
-    if(type === 'num') return p.q.a.equals(-1) && p.q.b.equals(1);
-    else if(type === 'double') return p.d === -1.0;
-    else return false;
-  }
-
-  is_negative_number(p) {
-    const type = this.utype(p);
-    if(type === 'num') return p.q.a.isNegative();
-    else if(type === 'double') return p.d < 0.0;
-    else return false;
-  }
-
-  is_integer(p) {
-    const type = this.utype(p);
-    if(type === 'num') return p.q.b.equals(1);
-    else if(type === 'double') return Math.floor(p.d) === p.d;
-    else return false;
-  }
-
-  // Integer, or integer^integer (like from the result of factor(100)).
-  // Adjacent "integers" in a multiplication need an explicit \cdot symbol.
-  is_integer_term(p) {
-    if(this.is_integer(p)) return true;
-    if(this.is_cons(p) && this.is_sym(this.car(p), 'power')) {
-      // Check x^y, with x and y both integer.
-      const args = this.unpack_list(this.cdr(p));
-      if(args.length === 2 && this.is_integer(args[0]) && this.is_integer(args[1]))
-        return true;
-    }
-    return false;
-  }
-
+  // (add x y z ...)
   add_to_expr(terms) {
-    let result_expr = this.to_expr(terms[0]);
-    for(let i = 1; i < terms.length; i++) {
-      const term_expr = this.to_expr(terms[i]);
-      if(term_expr.expr_type() === 'prefix' && term_expr.is_unary_minus())
-        result_expr = InfixExpr.combine_infix(
-          result_expr, term_expr.base_expr, new TextExpr('-'));
+    const exprs = terms.map(term => this.to_expr(term));
+    return exprs.reduce((result_expr, expr) => {
+      if(expr.is_expr_type('prefix') && expr.is_unary_minus())
+        return InfixExpr.combine_infix(
+          result_expr, expr.base_expr, new TextExpr('-'));
       else
-        result_expr = InfixExpr.combine_infix(
-          result_expr, term_expr, new TextExpr('+'));
-    }
-    return result_expr;
+        return InfixExpr.combine_infix(
+          result_expr, expr, new TextExpr('+'));
+    });
   }
 
-  multiply_to_expr(terms) {
-    const first_term = terms[0];
-    // Check for 1/n * x, with n integer; convert to x/n so that we
-    // get x^3/3 instead of (1/3)x^3.
-    if(this.utype(first_term) === 'num' &&
-       (first_term.q.a.equals(1) || first_term.q.a.equals(-1)) &&
-       !first_term.q.b.equals(1)) {
-      const numerator_expr = this.multiply_to_expr(terms.slice(1));
-      let result_expr = new CommandExpr(
-        'frac', [numerator_expr, new TextExpr(first_term.q.b.toString())]);
-      if(first_term.q.a.equals(-1))
-        result_expr = PrefixExpr.unary_minus(result_expr);
-      return result_expr;
+  // (multiply x y z ...)
+  // Algebrite uses negative powers a lot (x^(-1) instead of 1/x),
+  // so try here to convert them to more readable \frac{}{} commands instead.
+  multiply_to_expr(factors) {
+    let numerator_exprs = [];
+    let denominator_exprs = [];
+    let unary_minus = false;  // set to true if the overall sign is negative
+    // Scan through all the factors, splitting them into lists of Exprs
+    // for the numerator and denominator of a (potential) \frac.
+    for(let i = 0; i < factors.length; i++) {
+      const factor = factors[i];
+      if(this.utype(factor) === 'num') {
+        // Integer or rational literal factor; put the pieces into the
+        // numerator and denominator lists.
+        const q = factor.q;
+        if(q.a.isNegative() && i == 0) {
+          // A leading negative factor makes the whole fraction negated
+          // (but only when it comes first in the factors list).
+          unary_minus = true;
+          if(!q.a.equals(-1))  // keep out unnecessary factors of 1
+            numerator_exprs.push(new TextExpr(q.a.multiply(-1).toString()));
+        }
+        else if(!q.a.equals(1))
+          numerator_exprs.push(new TextExpr(q.a.toString()));
+        if(!q.b.equals(1))
+          denominator_exprs.push(new TextExpr(q.b.toString()));
+      }
+      else if(this.utype(factor) === 'cons' &&
+              this.utype(this.car(factor)) === 'sym' &&
+              this.car(factor).printname === 'power') {
+        // (power x y) subexpression
+        const power_terms = this.unpack_list(this.cdr(factor));
+        const [base_term, exponent_term] = power_terms;
+        if(!exponent_term)  // shouldn't happen: (power x) with no 2nd arg
+          numerator_exprs.push(base_term);
+        else if(exponent_term && this.utype(exponent_term) === 'num') {
+          // x^n or x^(n/m) term.  Negative powers go into the denominator and
+          // everything else goes into the numerator.
+          if(exponent_term.q.a.isNegative())
+            denominator_exprs.push(
+              this.power_to_expr(power_terms, true /* negate_exponent */));
+          else
+            numerator_exprs.push(this.power_to_expr(power_terms));
+        }
+        else {
+          // x^y term (y not integer or rational); these always go
+          // into the numerator.
+          numerator_exprs.push(this.power_to_expr(power_terms));
+        }
+      }
+      else {
+        // All other kinds of factors go into the numerator.
+        numerator_exprs.push(this.to_expr(factor));
+      }
     }
-    // Usual case (not in the form 1/n * x):
-    let i = 0;
-    let unary_minus = false;
-    if(this.is_negative_one(first_term)) {
-      unary_minus = true;
-      i++;
+    // All factors have been scanned; create a \frac{}{} if there is anything
+    // in the denominator.
+    if(denominator_exprs.length > 0) {
+      // There could potentially be no terms at all in the numerator, in cases
+      // like 1/x * 1/y * 1/z = 1/(xyz).
+      if(numerator_exprs.length === 0)
+        numerator_exprs.push(new TextExpr('1'));
+      const frac_expr = new CommandExpr(
+        'frac', [
+          this._multiply_exprs(numerator_exprs),
+          this._multiply_exprs(denominator_exprs)]);
+      // Finally add the overall unary minus if there is one.
+      return unary_minus ? PrefixExpr.unary_minus(frac_expr) : frac_expr;
     }
-    if(i >= terms.length)
-      return PrefixExpr.unary_minus(new TextExpr('1'));
-    let result_expr = this.to_expr(terms[i++]);
-    for(; i < terms.length; i++) {
-      if(this.is_integer_term(terms[i]))
-        result_expr = InfixExpr.combine_infix(
-          result_expr, this.to_expr(terms[i]),
-          new CommandExpr('cdot'));
-      else
-        result_expr = Expr.combine_pair(result_expr, this.to_expr(terms[i]));
+    else {
+      // Nothing is in the denominator, so there doesn't need to be a \frac
+      // at all.  Still need to take care of the overall unary minus.
+      const result_expr = this._multiply_exprs(numerator_exprs);
+      return unary_minus ? PrefixExpr.unary_minus(result_expr) : result_expr;
     }
-    if(unary_minus)
-      result_expr = PrefixExpr.unary_minus(
-        DelimiterExpr.autoparenthesize(result_expr));
-    return result_expr;
   }
 
-  power_to_expr(args) {
+  // Helper for multiply_to_expr().  Multiply all the exprs together.
+  _multiply_exprs(exprs) {
+    return exprs.reduce((result_expr, expr) => {
+      // Integers of the form 'n' or 'n^m' (as produced by the output of
+      // factor(10000) for example) need to be combined with the previous
+      // term with \cdot instead of just implicit multiplication.
+      const is_integer_expr =
+            // n
+            (expr.is_expr_type('text') && expr.looks_like_number()) ||
+            // n^m
+            (expr.is_expr_type('subscriptsuperscript') &&
+             expr.base_expr.is_expr_type('text') && expr.base_expr.looks_like_number() &&
+             expr.superscript_expr && !expr.subscript_expr &&
+             expr.superscript_expr.is_expr_type('text') &&
+             expr.superscript_expr.looks_like_number());
+      if(is_integer_expr)
+        return InfixExpr.combine_infix(
+          result_expr, expr, new CommandExpr('cdot'));
+      else
+        return Expr.combine_pair(result_expr, expr);
+    });
+  }
+
+  // negate_exponent=true turns, e.g. x^(-2) -> x^2, so that the term can
+  // be put into the denominator of a larger \frac.  The exponent must be
+  // integer/rational (type='num') for this to work (caller must check).
+  power_to_expr(args, negate_exponent) {
     if(args.length !== 2) return null;
-    const [base_p, exponent_p] = args;
-    const [base_expr, exponent_expr] = [this.to_expr(base_p), this.to_expr(exponent_p)];
-    if(this.utype(exponent_p) === 'num') {
+    const [base_term, exponent_term] = args;
+    const base_expr = this.to_expr(base_term);
+    if(this.utype(exponent_term) === 'num') {
+      // Rational or integer exponent.  Some special cases are checked
+      // to simplify the display (e.g. x^(1/2) -> sqrt(x)).
+      let [exponent_numerator, exponent_denominator] =
+          [exponent_term.q.a, exponent_term.q.b];
+      if(negate_exponent)
+        exponent_numerator = exponent_numerator.multiply(-1);
+      // x^1 -> x (can happen if the exponent of x^(-1) is negated)
+      if(exponent_numerator.equals(1) && exponent_denominator.equals(1))
+        return base_expr;
       // x^(-1) -> 1/x
-      if(exponent_p.q.a.equals(-1) && exponent_p.q.b.equals(1))
+      if(exponent_numerator.equals(-1) && exponent_denominator.equals(1))
         return new CommandExpr('frac', [new TextExpr('1'), base_expr]);
       // x^(-n) -> 1/(x)^n
-      if(exponent_p.q.a.isNegative() && exponent_p.q.b.equals(1))
+      if(exponent_numerator.isNegative() && exponent_denominator.equals(1))
         return new CommandExpr('frac', [
           new TextExpr('1'),
           SubscriptSuperscriptExpr.build_subscript_superscript(
-            DelimiterExpr.parenthesize_for_power(base_expr),
-            this.num_to_expr(exponent_p.q.a.multiply(-1), exponent_p.q.b),
-            true, false)]);
+            base_expr,
+            this.num_to_expr(exponent_numerator.multiply(-1), exponent_denominator),
+            true, /* is_superscript */
+            true /* autoparenthesize */)]);
       // x^(1/2) -> sqrt(x)
-      if(exponent_p.q.a.equals(1) && exponent_p.q.b.equals(2))
+      if(exponent_numerator.equals(1) && exponent_denominator.equals(2))
         return new CommandExpr('sqrt', [base_expr]);
+      // x^(1/3) -> sqrt[3](x)
+      if(exponent_numerator.equals(1) && exponent_denominator.equals(3))
+        return new CommandExpr('sqrt', [base_expr], '3');
       // x^(-1/2) -> 1/sqrt(x)
-      if(exponent_p.q.a.equals(-1) && exponent_p.q.b.equals(2))
+      if(exponent_numerator.equals(-1) && exponent_denominator.equals(2))
         return new CommandExpr('frac', [
           new TextExpr('1'),
           new CommandExpr('sqrt', [base_expr])]);
+      // x^(-1/3) -> 1/sqrt[3](x)
+      if(exponent_numerator.equals(-1) && exponent_denominator.equals(3))
+        return new CommandExpr('frac', [
+          new TextExpr('1'),
+          new CommandExpr('sqrt', [base_expr], '3')]);
+      // x^n or x^(n/m)
+      return SubscriptSuperscriptExpr.build_subscript_superscript(
+        base_expr,
+        this.num_to_expr(exponent_numerator, exponent_denominator),
+        true, /* is_superscript */
+        true /* autoparenthesize */);
     }
-    // x^y
-    return SubscriptSuperscriptExpr.build_subscript_superscript(
-      DelimiterExpr.parenthesize_for_power(base_expr),
-      exponent_expr, true, false);
+    else {
+      // x^y, x and y arbitrary
+      return SubscriptSuperscriptExpr.build_subscript_superscript(
+        base_expr,
+        this.to_expr(exponent_term),
+        true, /* is_superscript */
+        true /* autoparenthesize */);
+    }
   }
 
   derivative_to_expr(base_p, variable_p) {
@@ -685,16 +740,6 @@ class AlgebriteToExpr {
   factorial_to_expr(base_p) {
     const base_expr = this.to_expr(base_p);
     return PostfixExpr.factorial_expr(base_expr, 1);
-  }
-
-  // Convert cons list to a flat Javascript array.
-  unpack_list(p) {
-    let elements = [];
-    while(this.is_cons(p)) {
-      elements.push(this.car(p));
-      p = this.cdr(p);
-    }
-    return elements;
   }
 
   num_to_expr(a, b) {

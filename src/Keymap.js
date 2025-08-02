@@ -64,7 +64,7 @@ const EditorKeymap = {
 
     // Other Ctrl-based shortcuts
     'Ctrl+0': "push 0;subscript",
-    'Ctrl+1': "push -1;superscript",
+    'Ctrl+1': "push 1;negate;superscript",
     'Ctrl+2': "push 2;superscript",
     'Ctrl+3': "push 3;superscript",
     'Ctrl+4': "push 4;superscript",
@@ -77,7 +77,7 @@ const EditorKeymap = {
     'Ctrl+k': "infix \\,\\vert\\,;parenthesize;fuse",  // f(x|y): same as [/][k]
     'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z): same as [/][K]
     'Ctrl+l': "recenter_document 50",
-    'Ctrl+m': "autoparenthesize;prefix -",  // same as [.][-]
+    'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
     'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
     'Ctrl+r': "infix ,;parenthesize;fuse",  // -> f(x,y): same as [/][r]
@@ -528,25 +528,25 @@ const EditorKeymap = {
 
   // /i prefix
   integral_limits: {
-    'r': "push -;push \\infty;fuse;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
-    'n': "push -;push \\infty;fuse;subscript;push 0;superscript",  // -oo..0 : [n]egative 
+    'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
+    'n': "push \\infty;negate;subscript;push 0;superscript",  // -oo..0 : [n]egative 
     'p': "push 0;subscript;push \\infty;superscript",  // 0..oo : [p]ositive
     'u': "push 0;subscript;push 1;superscript",  // 0..1 : [u]nit
-    'U': "push -1;subscript;push 1;superscript",  // -1..1 : symmetric [U]nit
-    't': "push 0;subscript;push 2\\pi;superscript",  // 0..2pi : [t]rigonometric
-    'T': "push -;push \\pi;fuse;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
+    'U': "push 1;negate;subscript;push 1;superscript",  // -1..1 : symmetric [U]nit
+    't': "push 0;subscript;push 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
+    'T': "push \\pi;negate;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
   },
 
   // /j prefix
   // (same as /i, but create the integral sign too)
   integral_with_limits: {
-    'r': "push \\int;push -;push \\infty;fuse;subscript;push \\infty;superscript",
-    'n': "push \\int;push -;push \\infty;fuse;subscript;push 0;superscript",
+    'r': "push \\int;push \\infty;negate;subscript;push \\infty;superscript",
+    'n': "push \\int;push \\infty;negate;subscript;push 0;superscript",
     'p': "push \\int;push 0;subscript;push \\infty;superscript",
     'u': "push \\int;push 0;subscript;push 1;superscript",
-    'U': "push \\int;push -1;subscript;push 1;superscript",
-    't': "push \\int;push 0;subscript;push 2\\pi;superscript",
-    'T': "push \\int;push -;push \\pi;fuse;subscript;push \\pi;superscript"
+    'U': "push \\int;push 1;negate;subscript;push 1;superscript",
+    't': "push \\int;push 0;subscript;push 2;push \\pi;concat;superscript",
+    'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript"
   },
 
   // /d prefix: derivative operations
@@ -744,7 +744,7 @@ const EditorKeymap = {
   // apostrophe prefix: assorted standalone math symbols
   symbol: {
     '0': "push \\varnothing",
-    '1': "push 1;push -;swap;fuse",  // -1
+    '1': "push 1;negate",  // -1
     '2': "push 1;push 2;operator frac 2",  // 1/2 (display)
     '3': "push 1;push 2;infix /",  // 1/2 (inline)
     '8': "push \\infty",
@@ -812,7 +812,7 @@ const EditorKeymap = {
   // . prefix: expression decorators (fonts, hats, etc)
   decoration: {
     '0': "push 0;subscript",
-    '1': "push -1;superscript",
+    '1': "push 1;negate;superscript",
     '2': "push 2;superscript",
     '3': "push 3;superscript",
     '4': "push 4;superscript",
@@ -861,7 +861,7 @@ const EditorKeymap = {
     '*': "push *;superscript",
     '~': "apply_hat tilde",
     '=': "push \\Rightarrow;swap;fuse",
-    '-': "autoparenthesize;prefix -",
+    '-': "autoparenthesize;negate",
     '+': "autoparenthesize;prefix +",
     '`': "push T;typeface roman;superscript",  // transpose
     '/': "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x

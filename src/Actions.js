@@ -1031,6 +1031,9 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
+  // Shortcut for "prefix -", to make the keymap cleaner.
+  do_negate(stack) { return this.do_prefix(stack, '-'); }
+
   // Substitute the stack top expression into the first available placeholder marker in the
   // item second from top.  That item can be either an ExprItem or TextItem.
   do_substitute_placeholder(stack) {
