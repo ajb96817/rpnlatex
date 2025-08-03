@@ -71,12 +71,36 @@ function is_valid_variable_name(s, allow_initial_digit) {
   return s.match(regex) != null;
 }
 
-// If possible, convert an Expr to the corresponding Algebrite variable
-// name.  Greek letters are spelled out, and subscripted variable names
+// If possible, convert an Expr to the corresponding Algebrite
+// variable name.  Greek letters and subscripted variables are
+// allowed.  For example: x_0, f_alpha.
+// 'ignore_superscript'=true will ignore possible superscripts
+// that are "in the way": x_1^y -> 'x_1'.
+// If the Expr does not convert to a valid variable name, null
+// is returned.
+function expr_as_variable_name(expr, ignore_superscript) {
+  if(expr.is_expr_type('subscriptsuperscript')) {
+    if(expr.superscript_expr && !ignore_superscript)
+      return null;
+    const base_name = expr_as_variable_name(expr.base_expr);
+    const subscript_name = expr_as_variable_name(expr.subscript_expr, true);
+    if(base_name && subscript_name) {
+      const final_name = [base_name, subscript_name].join('_');
+      if(is_valid_variable_name(final_name))
+        return final_name;
+    }
+    return null;
+  }
+  else
+    return text_or_command_as_variable_name(expr, false);
+}
+  
+// If possible, convert a text/command expr to the corresponding Algebrite
+// variable name.  Greek letters are spelled out, and subscripted variable
 // are allowed.  For example: x_0, f_alpha.
 // 'allow_initial_digit' is for permitting things like '1' for subscripted
 // variables like x_1.
-function expr_as_variable_name(expr, allow_initial_digit) {
+function text_or_command_as_variable_name(expr, allow_initial_digit) {
   if(expr.is_expr_type('text') &&
      is_valid_variable_name(expr.text, allow_initial_digit))
     return expr.text;
@@ -337,27 +361,34 @@ class ExprToAlgebrite {
     const [base_expr, subscript_expr, superscript_expr] =
           [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
 
-    // TODO: check for integrals, summations, 'where', etc
+    // TODO: check for integrals and summations
     
     // Check for subscripted variable names (x_1).
     if(subscript_expr) {
-      if(this.try_emitting_subscripted_variable(base_expr, subscript_expr)) {
-        if(superscript_expr) {
-          this.emit('^');
-          this.emit_parenthesized_expr(superscript_expr);
-        }
-        return;
+      const variable_name = expr_as_variable_name(expr, true /* ignore_superscript */);
+      if(!variable_name)
+        return this.error('Invalid variable', expr);
+      this.emit(variable_name);
+      if(superscript_expr) {
+        this.emit('^');
+        this.emit_parenthesized_expr(superscript_expr);
       }
-      // Look for "where" expressions of the form: f|_(x=y).
-      if(base_expr.is_expr_type('delimiter') &&
-         base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
-         subscript_expr.is_expr_type('infix') && subscript_expr.operator_text_at(0) === '=') {
-        const lhs = subscript_expr.operand_exprs[0];
-        const rhs = subscript_expr.extract_side_at(0, 'right');
-        return this.emit_function_call('eval', [base_expr.inner_expr, lhs, rhs]);
-      }
-      return this.error('Cannot use subscript here', expr);
+      return;
     }
+    
+    // Check for for "where" expressions of the form: f|_(x=y).
+    if(base_expr.is_expr_type('delimiter') &&
+       base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
+       subscript_expr && subscript_expr.is_expr_type('infix') &&
+       subscript_expr.operator_text_at(0) === '=') {
+      const lhs = subscript_expr.operand_exprs[0];
+      const rhs = subscript_expr.extract_side_at(0, 'right');
+      return this.emit_function_call('eval', [base_expr.inner_expr, lhs, rhs]);
+    }
+
+    // Anything else with a subscript isn't allowed.
+    if(subscript_expr)
+      this.error('Cannot use subscript here', expr);
 
     // Check for e^x (both roman and normal 'e').
     if(superscript_expr &&
@@ -372,30 +403,11 @@ class ExprToAlgebrite {
       // Check if we can omit the parentheses in the exponent, for simple cases like x^2.
       if(superscript_expr.is_expr_type('text') &&
          ((superscript_expr.looks_like_number() && !superscript_expr.looks_like_negative_number()) ||
-          expr_as_variable_name(superscript_expr) !== null))
+          text_or_command_as_variable_name(superscript_expr)))
         this.emit_expr(superscript_expr);
       else
         this.emit_parenthesized_expr(superscript_expr);
     }
-  }
-
-  try_emitting_subscripted_variable(base_expr, subscript_expr) {
-    // Expressions with subscripts have to be "simple" variable names
-    // such as x_1.  Things like (x+y)_1 are not allowed.
-    const base_name = expr_as_variable_name(base_expr);
-    const subscript_name = expr_as_variable_name(subscript_expr, true);
-    if(base_name && subscript_name) {
-      const final_name = [base_name, subscript_name].join('_');
-      if(is_valid_variable_name(final_name)) {
-        this.emit(final_name);
-        return true;
-      }
-      else {
-        this.error('Invalid subscript', subscript_expr);
-        return false;
-      }
-    }
-    return false;
   }
 
   emit_sequence_expr(expr) {
