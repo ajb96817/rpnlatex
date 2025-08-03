@@ -13,8 +13,6 @@ import {
 
 import Algebrite from 'algebrite';
 
-const $A = Algebrite;
-
 
 // LaTeX commands like \alpha that can be treated as variable names
 // in Algebrite by spelling out the command name.
@@ -32,9 +30,15 @@ const latex_letter_commands = new Set([
 ]);
 
 const allowed_algebrite_unary_functions = new Set([
+  // These are built-in Algebrite commands:
   'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
-  'log', 'choose', 'contract', 'det'
+  'log', 'choose', 'contract', 'det',
+
+  // These are "extra" functions added to Algebrite by rpnlatex:
+  'sec', 'csc', 'cot', 'sech', 'csch', 'coth',
+  'arcsec', 'arccsc', 'arccot', 'arcsech', 'arccsch', 'arccoth',
+  'log2', 'log10'
 ]);
   
 // [rpnlatex_command, algebrite_command]
@@ -44,7 +48,19 @@ const algebrite_function_translations = [
   ['binom', 'choose'],
   ['sin^{-1}', 'arcsin'],
   ['cos^{-1}', 'arccos'],
-  ['tan^{-1}', 'arctan']
+  ['tan^{-1}', 'arctan'],
+  ['sec^{-1}', 'arcsec'],
+  ['csc^{-1}', 'arccsc'],
+  ['cot^{-1}', 'arccot'],
+  ['sinh^{-1}', 'arcsinh'],
+  ['cosh^{-1}', 'arccosh'],
+  ['tanh^{-1}', 'arctanh'],
+  ['sech^{-1}', 'arcsech'],
+  ['csch^{-1}', 'arccsch'],
+  ['coth^{-1}', 'arccoth'],
+  ['log_2', 'log2'],
+  ['lg', 'log2'],
+  ['log_{10}', 'log10']  // not yet implemented in the editor
 ];
 
 
@@ -73,10 +89,33 @@ class AlgebriteInterface {
     const argument_strings = argument_exprs.map(
       expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
     console.log('Input: ' + argument_strings[0]);
+    Algebrite.clearall();
+    this.define_extra_algebrite_functions();
     const algebrite_method = Algebrite[function_name];
     const result = algebrite_method(...argument_strings);
     console.log('Output: ' + this.debug_print_list(result));
     return result;
+  }
+
+  // Add some missing math functions to Algebrite.
+  // This has to be re-run every evaluation because we clear the
+  // Algebrite context with clearall().
+  define_extra_algebrite_functions() {
+    [ 'sec(x) = 1/cos(x)',
+      'csc(x) = 1/sin(x)',
+      'cot(x) = 1/tan(x)',
+      'sech(x) = 1/cosh(x)',
+      'csch(x) = 1/sinh(x)',
+      'coth(x) = 1/tanh(x)',
+      'arcsec(x) = arccos(1/x)',
+      'arccsc(x) = arcsin(1/x)',
+      'arccot(x) = arctan(1/x)',
+      'arcsech(x) = arccosh(1/x)',
+      'arccsch(x) = arcsinh(1/x)',
+      'arccoth(x) = arctanh(1/x)',
+      'log2(x) = log(x)/log(2)',
+      'log10(x) = log(x)/log(10)'  // not yet implemented in the editor
+    ].forEach(s => Algebrite.eval(s));
   }
 }
 
@@ -244,28 +283,7 @@ class ExprToAlgebrite {
     }
     else if(allowed_algebrite_unary_functions.has(algebrite_command))
       this.emit_function_call(algebrite_command, args);
-    else if(command_name === 'lg' || command_name === 'log_2') {
-      // Special case for base-2 logarithm.  Convert to log(x)/log(2).
-      // TODO: base-10 logarithms too if implemented
-      this.emit('(');
-      this.emit_function_call('log', args);
-      this.emit('/log(2))');
-    }
     else {
-      // Algebrite does not have dedicated "reciprocal" trigonometric functions
-      // like sec(), so render them as 1/cos() etc.
-      const reciprocal_trig_substitutions = [
-        ['sec', 'cos'],   ['csc', 'sin'],   ['cot', 'tan'],
-        ['sech', 'cosh'], ['csch', 'sinh'], ['coth', 'tanh']
-      ];
-      const match = reciprocal_trig_substitutions.find(pair => command_name === pair[0]);
-      if(match) {
-        // sec(x) -> 1/cos(x)
-        this.emit('(1/');
-        this.emit_function_call(match[1], args);
-        this.emit(')');
-        return;
-      }
       // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
       // having the command_name be a literal 'sin^2'.  This needs to be translated
       // as sin^2(x) -> sin(x)^2 for Algebrite.  Also, reciprocal trig functions
@@ -275,10 +293,7 @@ class ExprToAlgebrite {
         ['sin^2', 'sin', 2],       ['cos^2', 'cos', 2],       ['tan^2', 'tan', 2],
         ['sinh^2', 'sinh', 2],     ['cosh^2', 'cosh', 2],     ['tanh^2', 'tanh', 2],
         ['sec^2', 'cos', -2],      ['csc^2', 'sin', -2],      ['cot^2', 'tan', -2],
-        ['sech^2', 'cosh', -2],    ['csch^2', 'sinh', -2],    ['coth^2', 'tanh', -2],
-        // NOTE: (sin|cos|tan)^{-1} are handled by algebrite_function_translations
-        ['sec^{-1}', 'cos', -1],   ['csc^{-1}', 'sin', -1],   ['cot^{-1}', 'tan', -1],
-        ['sech^{-1}', 'cosh', -1], ['csch^{-1}', 'sinh', -1], ['coth^{-1}', 'tanh', -1]
+        ['sech^2', 'cosh', -2],    ['csch^2', 'sinh', -2],    ['coth^2', 'tanh', -2]
       ];
       const match2 = squared_trig_substitutions.find(pair => command_name === pair[0]);
       if(match2) {
