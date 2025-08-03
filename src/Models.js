@@ -3,7 +3,7 @@
 import KeybindingTable from './Keymap';
 import JSZip from 'jszip';
 import {
-  Expr, CommandExpr, FontExpr, /* PrefixExpr, */ InfixExpr, PlaceholderExpr,
+  Expr, CommandExpr, FontExpr, PrefixExpr, InfixExpr, PlaceholderExpr,
   TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr /* , ArrayExpr */
 } from './Exprs.js';
 
@@ -1103,7 +1103,7 @@ class ExprParser {
         result_expr = InfixExpr.combine_infix(
           lhs.exprs[0],
           new SubscriptSuperscriptExpr(
-            new TextExpr('10'), null, new TextExpr(exponent_text)),
+            TextExpr.integer(10), null, TextExpr.integer(exponent_text)),
           new CommandExpr('times'));
       }
       else result_expr = InfixExpr.combine_infix(
@@ -1155,7 +1155,7 @@ class ExprParser {
         // Negative exponents are handled in parse_expr instead.
         return InfixExpr.combine_infix(
           lhs,
-          new SubscriptSuperscriptExpr(new TextExpr('10'), null, rhs.exprs[1]),
+          new SubscriptSuperscriptExpr(TextExpr.integer(10), null, rhs.exprs[1]),
           new CommandExpr('times'));
       }
       else
@@ -1184,24 +1184,21 @@ class ExprParser {
   }
 
   parse_factor_(allow_unary_minus) {
-    let negate = false;
+    let expr = null;
     if(allow_unary_minus) {
+      // NOTE: double unary minus not allowed (--3).
       const negate_token = this.peek_for('operator');
       if(negate_token && negate_token.text === '-') {
         this.next_token();
-        negate = true;
+        expr = this.parse_factor_(false);
+        if(expr) return PrefixExpr.unary_minus(expr);
+        else return null;
       }
     }
     if(this.peek_for('number'))
-      return new TextExpr(
-        (negate ? '-' : '') + this.next_token().text);
-    else if(this.peek_for('symbol')) {
-      const token_expr = new TextExpr(this.next_token().text);
-      if(negate)
-        return Expr.combine_pair(new TextExpr('-'), token_expr);
-      else
-        return token_expr;
-    }
+      return TextExpr.integer(this.next_token().text);
+    else if(this.peek_for('symbol'))
+      return new TextExpr(this.next_token().text);
     else if(this.peek_for('pi')) {
       this.next_token();
       return new CommandExpr('pi');
@@ -1212,7 +1209,7 @@ class ExprParser {
     }
     else if(this.peek_for('open_delimiter')) {
       const open_delim_type = this.next_token().text;
-      const expr = this.parse_expr(true) || this.parse_error();
+      const inner_expr = this.parse_expr(true) || this.parse_error();
       if(!this.peek_for('close_delimiter'))
         return this.parse_error();
       const close_delim_type = this.next_token().text;
@@ -1221,11 +1218,7 @@ class ExprParser {
       let [left, right] = [open_delim_type, close_delim_type];
       if(open_delim_type === '{')
         [left, right] = ["\\{", "\\}"];  // latex-compatible form
-      const delim_expr = new DelimiterExpr(left, right, expr);
-      if(negate)
-        return Expr.combine_pair(new TextExpr('-'), delim_expr);
-      else
-        return delim_expr;
+      return new DelimiterExpr(left, right, inner_expr);
     }
     else
       return null;

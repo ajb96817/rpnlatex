@@ -1537,6 +1537,14 @@ class PostfixExpr extends Expr {
 // Represents a snippet of LaTeX code; these are the "leaves" of Expr-trees.
 class TextExpr extends Expr {
   static blank() { return new TextExpr(''); }
+
+  static integer(int_or_str) {
+    const s = int_or_str.toString();
+    if(s.startsWith('-'))
+      return PrefixExpr.unary_minus(new TextExpr(s.slice(1)));
+    else
+      return new TextExpr(s);
+  }
   
   constructor(text) {
     super();

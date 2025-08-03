@@ -667,6 +667,11 @@ class InputContext {
     return stack.push_expr(new PlaceholderExpr());
   }
 
+  // Like do_push, but use a PrefixExpr('-') for negative integers.
+  do_integer(stack, integer_string) {
+    return stack.push_expr(TextExpr.integer(integer_string));
+  }
+
   // Used for \mathscr / \mathcal, which only have uppercase glyphs.
   // case_type: 'uppercase', 'lowercase'
   // Stack top should be an ExprItem with a simple TextExpr.

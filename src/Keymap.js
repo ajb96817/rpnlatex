@@ -63,11 +63,11 @@ const EditorKeymap = {
     '?': "toggle_popup help",
 
     // Other Ctrl-based shortcuts
-    'Ctrl+0': "push 0;subscript",
-    'Ctrl+1': "push 1;negate;superscript",
-    'Ctrl+2': "push 2;superscript",
-    'Ctrl+3': "push 3;superscript",
-    'Ctrl+4': "push 4;superscript",
+    'Ctrl+0': "integer 0;subscript",
+    'Ctrl+1': "integer -1;superscript",
+    'Ctrl+2': "integer 2;superscript",
+    'Ctrl+3': "integer 3;superscript",
+    'Ctrl+4': "integer 4;superscript",
     'Ctrl+a': "swap",
     'Ctrl+b': "make_bold",
     'Ctrl+c': "copy_to_clipboard",
@@ -373,7 +373,7 @@ const EditorKeymap = {
 
   // forward-slash prefix: assorted functions/operators
   operator: {
-    '1': "push 1;swap;operator frac 2",
+    '1': "integer 1;swap;operator frac 2",
     '2': "mode squared",
     'a': "operator frac 2",
     'b': "operator binom 2",
@@ -433,7 +433,7 @@ const EditorKeymap = {
     '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
     '+': "infix \\ge;push \\sum;swap;subscript",
     '|': "swap;delimiters . \\vert;swap;subscript",  // y|_{x} ('where')
-    '^': "push 10;swap;superscript;infix \\times",  // scientific notation: 1.23 x 10^-19
+    '^': "integer 10;swap;superscript;infix \\times",  // scientific notation: 1.23 x 10^-19
     "'": "substitute_placeholder",
     "\"": "toggle_is_heading",
     '%': "substitute",  // % is from Emacs' Esc-% search and replace command
@@ -529,11 +529,11 @@ const EditorKeymap = {
   // /i prefix
   integral_limits: {
     'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
-    'n': "push \\infty;negate;subscript;push 0;superscript",  // -oo..0 : [n]egative 
-    'p': "push 0;subscript;push \\infty;superscript",  // 0..oo : [p]ositive
-    'u': "push 0;subscript;push 1;superscript",  // 0..1 : [u]nit
-    'U': "push 1;negate;subscript;push 1;superscript",  // -1..1 : symmetric [U]nit
-    't': "push 0;subscript;push 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
+    'n': "push \\infty;negate;subscript;integer 0;superscript",  // -oo..0 : [n]egative 
+    'p': "integer 0;subscript;push \\infty;superscript",  // 0..oo : [p]ositive
+    'u': "integer 0;subscript;integer 1;superscript",  // 0..1 : [u]nit
+    'U': "integer -1;subscript;integer 1;superscript",  // -1..1 : symmetric [U]nit
+    't': "integer 0;subscript;integer 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
     'T': "push \\pi;negate;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
   },
 
@@ -541,11 +541,11 @@ const EditorKeymap = {
   // (same as /i, but create the integral sign too)
   integral_with_limits: {
     'r': "push \\int;push \\infty;negate;subscript;push \\infty;superscript",
-    'n': "push \\int;push \\infty;negate;subscript;push 0;superscript",
-    'p': "push \\int;push 0;subscript;push \\infty;superscript",
-    'u': "push \\int;push 0;subscript;push 1;superscript",
-    'U': "push \\int;push 1;negate;subscript;push 1;superscript",
-    't': "push \\int;push 0;subscript;push 2;push \\pi;concat;superscript",
+    'n': "push \\int;push \\infty;negate;subscript;integer 0;superscript",
+    'p': "push \\int;integer 0;subscript;push \\infty;superscript",
+    'u': "push \\int;integer 0;subscript;integer 1;superscript",
+    'U': "push \\int;integer -1;subscript;integer 1;superscript",
+    't': "push \\int;integer 0;subscript;integer 2;push \\pi;concat;superscript",
     'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript"
   },
 
@@ -554,23 +554,23 @@ const EditorKeymap = {
     // \partial y / \partial x
     'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;operator frac 2",
     // \partial^2 y / \partial x^2
-    'J': "push 2;superscript;push \\partial;swap;concat;swap;push \\partial;push 2;superscript;swap;concat;swap;operator frac 2",
+    'J': "integer 2;superscript;push \\partial;swap;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;operator frac 2",
     // dy/dx
     'k': "push d;swap;concat;swap;push d;swap;concat;swap;operator frac 2",
     // d^2(y) / dx^2
-    'K': "push 2;superscript;push d;swap;concat;swap;push d;push 2;superscript;swap;concat;swap;operator frac 2",
+    'K': "integer 2;superscript;push d;swap;concat;swap;push d;integer 2;superscript;swap;concat;swap;operator frac 2",
     // \partial / \partial x
     'q': "push \\partial;swap;concat;push \\partial;swap;operator frac 2",
     // \partial^2 / \partial x^2
-    'Q': "push 2;superscript;push \\partial;swap;concat;push \\partial;push 2;superscript;swap;operator frac 2",
+    'Q': "integer 2;superscript;push \\partial;swap;concat;push \\partial;integer 2;superscript;swap;operator frac 2",
     // d/dx
     'x': "push d;swap;concat;push d;swap;operator frac 2",
     // d^2 / dx^2
-    'X': "push 2;superscript;push d;swap;concat;push d;push 2;superscript;swap;operator frac 2",
+    'X': "integer 2;superscript;push d;swap;concat;push d;integer 2;superscript;swap;operator frac 2",
     // \partial^2 / \partial x\,\partial y
-    'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;push 2;superscript;swap;operator frac 2",
+    'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;operator frac 2",
     // \partial^2 z / \partial x\,\partial y
-    'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;push 2;superscript;swap;concat;swap;operator frac 2",
+    'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;operator frac 2",
     // gradient
     'g': "push \\nabla;swap;concat",
     // gradient with respect to x
@@ -580,7 +580,7 @@ const EditorKeymap = {
     // curl
     'c': "push \\nabla;swap;infix \\times",
     // Laplacian
-    'l': "push \\nabla;push 2;superscript;swap;concat",
+    'l': "push \\nabla;integer 2;superscript;swap;concat",
     // Delta-x
     'n': "push \\Delta;swap;concat",  // i[n]crement (?)
     // x -> dx
@@ -596,9 +596,9 @@ const EditorKeymap = {
     // x y -> dx ^ ... ^ dy
     'E': "differential_form 2 true false",
     // x -> d^2x
-    '2': "push d;push 2;superscript;swap;fuse",
-    '3': "push d;push 3;superscript;swap;fuse",
-    '4': "push d;push 4;superscript;swap;fuse",
+    '2': "push d;integer 2;superscript;swap;fuse",
+    '3': "push d;integer 3;superscript;swap;fuse",
+    '4': "push d;integer 4;superscript;swap;fuse",
     // y x -> y dx
     'i': "autoparenthesize;swap;push \\,;concat;swap;push d;swap;fuse;concat",
     // y x -> ydx (with thinspace after the dx)
@@ -612,16 +612,16 @@ const EditorKeymap = {
     'f': "differential_form 2 false true",
     'F': "differential_form 3 false true",
     'E': "differential_form 2 true true",
-    '2': "push d;typeface roman;push 2;superscript;swap;fuse",
-    '3': "push d;typeface roman;push 3;superscript;swap;fuse",
-    '4': "push d;typeface roman;push 4;superscript;swap;fuse",
+    '2': "push d;typeface roman;integer 2;superscript;swap;fuse",
+    '3': "push d;typeface roman;integer 3;superscript;swap;fuse",
+    '4': "push d;typeface roman;integer 4;superscript;swap;fuse",
     'i': "autoparenthesize;swap;push \\,;concat;swap;push d;typeface roman;swap;fuse;concat",
     'I': "autoparenthesize;push d;typeface roman;swap;fuse;concat;push \\,;concat",
     ' ': "autoparenthesize;push d;typeface roman;swap;fuse;concat",
     'k': "push d;typeface roman;swap;concat;swap;push d;typeface roman;swap;concat;swap;operator frac 2",
-    'K': "push 2;superscript;push d;typeface roman;swap;concat;swap;push d;typeface roman;push 2;superscript;swap;concat;swap;operator frac 2",
+    'K': "integer 2;superscript;push d;typeface roman;swap;concat;swap;push d;typeface roman;integer 2;superscript;swap;concat;swap;operator frac 2",
     'x': "push d;typeface roman;swap;concat;push d;typeface roman;swap;operator frac 2",
-    'X': "push 2;superscript;push d;typeface roman;swap;concat;push d;typeface roman;push 2;superscript;swap;operator frac 2",
+    'X': "integer 2;superscript;push d;typeface roman;swap;concat;push d;typeface roman;integer 2;superscript;swap;operator frac 2",
     'delegate': "derivative"
   },
 
@@ -744,9 +744,9 @@ const EditorKeymap = {
   // apostrophe prefix: assorted standalone math symbols
   symbol: {
     '0': "push \\varnothing",
-    '1': "push 1;negate",  // -1
-    '2': "push 1;push 2;operator frac 2",  // 1/2 (display)
-    '3': "push 1;push 2;infix /",  // 1/2 (inline)
+    '1': "integer -1",
+    '2': "integer 1;integer 2;operator frac 2",  // 1/2 (display)
+    '3': "integer 1;integer 2;infix /",  // 1/2 (inline)
     '8': "push \\infty",
     'a': "push \\forall",
     'A': "push \\aleph",
@@ -811,11 +811,11 @@ const EditorKeymap = {
 
   // . prefix: expression decorators (fonts, hats, etc)
   decoration: {
-    '0': "push 0;subscript",
-    '1': "push 1;negate;superscript",
-    '2': "push 2;superscript",
-    '3': "push 3;superscript",
-    '4': "push 4;superscript",
+    '0': "integer 0;subscript",
+    '1': "integer -1;superscript",
+    '2': "integer 2;superscript",
+    '3': "integer 3;superscript",
+    '4': "integer 4;superscript",
     '8': "push \\infty;infix \\to",
     'A': "apply_hat acute",
     'b': "typeface roman;make_bold",  // becomes \bold{...}

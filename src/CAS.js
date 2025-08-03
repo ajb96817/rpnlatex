@@ -13,6 +13,8 @@ import {
 
 import Algebrite from 'algebrite';
 
+const $A = Algebrite;
+
 
 // LaTeX commands like \alpha that can be treated as variable names
 // in Algebrite by spelling out the command name.
@@ -597,12 +599,12 @@ class AlgebriteToExpr {
           // (but only when it comes first in the factors list).
           unary_minus = true;
           if(!q.a.equals(-1))  // keep out unnecessary factors of 1
-            numerator_exprs.push(new TextExpr(q.a.multiply(-1).toString()));
+            numerator_exprs.push(TextExpr.integer(q.a.multiply(-1).toString()));
         }
         else if(!q.a.equals(1))
-          numerator_exprs.push(new TextExpr(q.a.toString()));
+          numerator_exprs.push(TextExpr.integer(q.a.toString()));
         if(!q.b.equals(1))
-          denominator_exprs.push(new TextExpr(q.b.toString()));
+          denominator_exprs.push(TextExpr.integer(q.b.toString()));
       }
       else if(this.utype(factor) === 'cons' &&
               this.utype(this.car(factor)) === 'sym' &&
@@ -638,7 +640,7 @@ class AlgebriteToExpr {
       // There could potentially be no terms at all in the numerator, in cases
       // like 1/x * 1/y * 1/z = 1/(xyz).
       if(numerator_exprs.length === 0)
-        numerator_exprs.push(new TextExpr('1'));
+        numerator_exprs.push(TextExpr.integer(1));
       const frac_expr = new CommandExpr(
         'frac', [
           this._multiply_exprs(numerator_exprs),
@@ -696,11 +698,11 @@ class AlgebriteToExpr {
         return base_expr;
       // x^(-1) -> 1/x
       if(exponent_numerator.equals(-1) && exponent_denominator.equals(1))
-        return new CommandExpr('frac', [new TextExpr('1'), base_expr]);
+        return new CommandExpr('frac', [TextExpr.integer(1), base_expr]);
       // x^(-n) -> 1/(x)^n
       if(exponent_numerator.isNegative() && exponent_denominator.equals(1))
         return new CommandExpr('frac', [
-          new TextExpr('1'),
+          TextExpr.integer(1),
           SubscriptSuperscriptExpr.build_subscript_superscript(
             base_expr,
             this.num_to_expr(exponent_numerator.multiply(-1), exponent_denominator),
@@ -715,12 +717,12 @@ class AlgebriteToExpr {
       // x^(-1/2) -> 1/sqrt(x)
       if(exponent_numerator.equals(-1) && exponent_denominator.equals(2))
         return new CommandExpr('frac', [
-          new TextExpr('1'),
+          TextExpr.integer(1),
           new CommandExpr('sqrt', [base_expr])]);
       // x^(-1/3) -> 1/sqrt[3](x)
       if(exponent_numerator.equals(-1) && exponent_denominator.equals(3))
         return new CommandExpr('frac', [
-          new TextExpr('1'),
+          TextExpr.integer(1),
           new CommandExpr('sqrt', [base_expr], '3')]);
       // x^n or x^(n/m)
       // For fractional n/m, render it as an inline fraction rather than using \frac.
@@ -764,14 +766,13 @@ class AlgebriteToExpr {
   // Otherwise, it's a full-size \frac{x}{y}.
   num_to_expr(numerator, denominator, inline_fraction) {
     const is_negative = numerator.isNegative();
-    if(is_negative) numerator = numerator.multiply(-1);
     let expr = null;
-    if(denominator.equals(1))  // integer
-      expr = new TextExpr(numerator.toString());
+    if(denominator.equals(1))
+      expr = TextExpr.integer(numerator.toString());
     else if(inline_fraction) {
       expr = InfixExpr.combine_infix(
-        new TextExpr(numerator.toString()),
-        new TextExpr(denominator.toString()),
+        TextExpr.integer(numerator.abs().toString()),
+        TextExpr.integer(denominator.toString()),
         new TextExpr('/'));
       if(is_negative)
         expr = PrefixExpr.unary_minus(expr);
@@ -779,8 +780,8 @@ class AlgebriteToExpr {
     else {
       expr = new CommandExpr(
         'frac', [
-          new TextExpr(numerator.toString()),
-          new TextExpr(denominator.toString())]);
+          TextExpr.integer(numerator.abs().toString()),
+          TextExpr.integer(denominator.toString())]);
       if(is_negative)
         expr = PrefixExpr.unary_minus(expr);
     }
@@ -788,7 +789,10 @@ class AlgebriteToExpr {
   }
 
   double_to_expr(d) {
-    return new TextExpr(d.toString());
+    if(d < 0.0)
+      return PrefixExpr.unary_minus(new TextExpr(Math.abs(d).toString()));
+    else
+      return new TextExpr(d.toString());
   }
 
   str_to_expr(p) {
