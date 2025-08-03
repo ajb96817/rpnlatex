@@ -1589,6 +1589,7 @@ class TextExpr extends Expr {
 
   // Check for single-letter variable names.
   // Used by do_evaluate_with_variable_substitution()
+  // and by Algebrite.
   looks_like_variable_name() {
     return /^\w$/.test(this.text);
   }
@@ -1677,6 +1678,29 @@ class SequenceExpr extends Expr {
 
   dissolve() { return this.exprs; }
 
+  // Fused sequences of the form [f, args] where args is a DelimiterExpr
+  // are considered to represent function applications: f(x), f(x, y), etc.
+  // If this is the case, the number of arguments in the function call is
+  // returned (f(x,y,z) -> 3).  Otherwise, 0 is returned.
+  // TODO: maybe check for the degenerate case 'f()'.
+  // TODO: maybe consider ';' as an argument separator as well as ','.
+  analyze_function_application() {
+    if(this.fused && this.exprs.length === 2 &&
+       this.exprs[1].is_expr_type('delimiter')) {
+      // Looks like a function application; try to determine argument count
+      // by checking for an InfixExpr with ',' operators at the top level.
+      // NOTE: this doesn't count "parameter" style arguments like f(x | y).
+      const args_expr = this.exprs[1].inner_expr;
+      if(args_expr.is_expr_type('infix'))
+        return 1 + args_expr.operator_exprs.filter(
+          expr => expr.is_expr_type('command') && expr.command_name === ',');
+      else
+        return 1;  // no commas
+    }
+    else
+      return 0;
+  }
+
   as_bold() {
     return new SequenceExpr(
       this.exprs.map(expr => expr.as_bold()),
@@ -1746,13 +1770,13 @@ class DelimiterExpr extends Expr {
 
   // expr is about to become the base of a SubscriptSuperscriptExpr.
   // The expression will be parenthesized if it is:
-  //   - Any kind of InfixExpr
-  //   - Blank delimiters containing any kind of InfixExpr
-  //   - Any kind of SequenceExpr that is not a function application
+  //   - any kind of InfixExpr
+  //   - a PrefixExpr, such as -x
+  //   - blank delimiters containing any kind of InfixExpr
+  //   - any kind of SequenceExpr that is not a function application
   //     of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
-  //   - A normal fraction like \frac{x}{y}
-  // TODO: parenthesize \ln{x}, etc., unless x is a DelimiterExpr
-  //       (but not if x is a FontExpr)
+  //   - a normal fraction like \frac{x}{y}
+  //   - a "primed" expression like f' (but not f'(x)).
   static parenthesize_for_power(expr, left_type, right_type) {
     const needs_parenthesization = (
       // Any infix expression
@@ -1781,7 +1805,11 @@ class DelimiterExpr extends Expr {
       // \sin{x}, \ln{x}, etc.
       (expr.is_expr_type('command') &&
        expr.operand_count() === 1 &&
-       !expr.operand_exprs[0].is_expr_type('delimiter'))
+       !expr.operand_exprs[0].is_expr_type('delimiter')) ||
+
+      // f', f'', but not f'(x)
+      (expr.is_expr_type('subscriptsuperscript') &&
+       expr.count_primes() > 0)
     );
     if(needs_parenthesization)
       return DelimiterExpr.parenthesize(expr, left_type, right_type);
@@ -1997,28 +2025,53 @@ class SubscriptSuperscriptExpr extends Expr {
     return pieces;
   }
 
-  with_prime(autoparenthesize) {
-    // Check whether the base expr is already of the form x^{\prime}, x^{\prime\prime}, etc.
-    // If so, add an extra \prime into the superscript.
-    if(this.superscript_expr) {
-      const s = this.superscript_expr;
-      const new_prime_expr = new CommandExpr('prime');
-      const is_prime_command = expr =>
-            expr.is_expr_type('command') &&
-            expr.operand_count() === 0 &&
-            expr.command_name === 'prime';
-      let new_superscript_expr = null;
-      if(is_prime_command(s))
-        new_superscript_expr = new SequenceExpr([s, new_prime_expr]);
-      else if(s.is_expr_type('sequence') && s.exprs.every(is_prime_command))
-        new_superscript_expr = new SequenceExpr(s.exprs.concat([new_prime_expr]));
-      if(new_superscript_expr)
-        return new SubscriptSuperscriptExpr(
-          this.base_expr, this.subscript_expr, new_superscript_expr);
-    }
-    return super.with_prime(autoparenthesize);
+  // If this expr is of the form x^{\prime}, x^{\prime\prime}, etc.,
+  // count the number of \primes present (otherwise return 0).
+  count_primes() {
+    const is_prime_command = expr =>
+          expr.is_expr_type('command') &&
+          expr.operand_count() === 0 &&
+          expr.command_name === 'prime';
+    const superscript_expr = this.superscript_expr;
+    if(!superscript_expr) return 0;
+    if(is_prime_command(superscript_expr)) return 1;
+    if(superscript_expr.is_expr_type('sequence') &&
+       superscript_expr.exprs.every(is_prime_command))
+      return superscript_expr.exprs.length;
+    else
+      return 0;
   }
 
+  with_prime(autoparenthesize) {
+    const prime_count = this.count_primes();
+    if(prime_count > 0)
+      return new SubscriptSuperscriptExpr(
+        this.base_expr, this.subscript_expr,
+        new SequenceExpr(
+          new Array(prime_count+1).fill(new CommandExpr('prime'))));
+    else
+      return super.with_prime(autoparenthesize);
+  }
+
+  // Remove one \prime; f'' -> f', etc.
+  remove_prime() {
+    const prime_count = this.count_primes();
+    if(prime_count === 0)
+      return this;
+    else if(prime_count === 1) {
+      if(this.subscript_expr)
+        return new SubscriptSuperscriptExpr(
+          this.base_expr, this.subscript_expr);
+      else
+        return this.base_expr;
+    }
+    else 
+      return new SubscriptSuperscriptExpr(
+        this.base_expr, this.subscript_expr,
+        new SequenceExpr(
+          new Array(prime_count-1).fill(new CommandExpr('prime'))));
+  }
+  
   evaluate(assignments) {
     const base_expr = this.base_expr;
     const sub_expr = this.subscript_expr;

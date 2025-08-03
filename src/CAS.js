@@ -63,6 +63,32 @@ const algebrite_function_translations = [
   ['log_{10}', 'log10']  // not yet implemented in the editor
 ];
 
+// Check if a variable name is acceptable by Algebrite.
+function is_valid_variable_name(s, allow_initial_digit) {
+  const regex = allow_initial_digit ?
+        /^[a-zA-Z0-9]+$/g /* NOTE: disallow _ in this case */ :
+        /^[a-zA-Z][a-zA-Z0-9_]*$/g;
+  return s.match(regex) != null;
+}
+
+// If possible, convert an Expr to the corresponding Algebrite variable
+// name.  Greek letters are spelled out, and subscripted variable names
+// are allowed.  For example: x_0, f_alpha.
+// 'allow_initial_digit' is for permitting things like '1' for subscripted
+// variables like x_1.
+function expr_as_variable_name(expr, allow_initial_digit) {
+  if(expr.is_expr_type('text') &&
+     is_valid_variable_name(expr.text, allow_initial_digit))
+    return expr.text;
+  else if(expr.is_expr_type('command') &&
+          expr.operand_count() === 0 &&
+          latex_letter_commands.has(expr.command_name))
+    return expr.command_name;  // Greek letters, etc.
+  else
+    return null;
+}
+
+
 
 class AlgebriteInterface {
   static translate_function_name(f, to_algebrite) {
@@ -179,7 +205,7 @@ class ExprToAlgebrite {
   emit_text_expr(expr) {
     const text = expr.text;
     if(expr.looks_like_number() ||
-       this.is_valid_variable_name(text) ||
+       is_valid_variable_name(text) ||
        this.is_valid_binary_operator(text)) {
       if(expr.looks_like_negative_number())
         this.emit_parenthesized(text);
@@ -264,7 +290,7 @@ class ExprToAlgebrite {
     // Translate ln -> log, etc.
     const algebrite_command =
           AlgebriteInterface.translate_function_name(command_name, true);
-    const variable_name = this.expr_as_variable_name(expr);
+    const variable_name = expr_as_variable_name(expr);
     if(variable_name)
       this.emit(variable_name);
     else if(command_name === 'frac' && nargs === 2) {
@@ -303,8 +329,7 @@ class ExprToAlgebrite {
         else this.emit(match2[2].toString());
         return;
       }
-      // TODO: handle this better
-      alert('Unknown command: ' + command_name);
+      this.error('Cannot use "' + command_name + '" here', expr);
     }
   }
 
@@ -347,7 +372,7 @@ class ExprToAlgebrite {
       // Check if we can omit the parentheses in the exponent, for simple cases like x^2.
       if(superscript_expr.is_expr_type('text') &&
          ((superscript_expr.looks_like_number() && !superscript_expr.looks_like_negative_number()) ||
-          this.expr_as_variable_name(superscript_expr) !== null))
+          expr_as_variable_name(superscript_expr) !== null))
         this.emit_expr(superscript_expr);
       else
         this.emit_parenthesized_expr(superscript_expr);
@@ -357,11 +382,11 @@ class ExprToAlgebrite {
   try_emitting_subscripted_variable(base_expr, subscript_expr) {
     // Expressions with subscripts have to be "simple" variable names
     // such as x_1.  Things like (x+y)_1 are not allowed.
-    const base_name = this.expr_as_variable_name(base_expr);
-    const subscript_name = this.expr_as_variable_name(subscript_expr, true);
+    const base_name = expr_as_variable_name(base_expr);
+    const subscript_name = expr_as_variable_name(subscript_expr, true);
     if(base_name && subscript_name) {
       const final_name = [base_name, subscript_name].join('_');
-      if(this.is_valid_variable_name(final_name)) {
+      if(is_valid_variable_name(final_name)) {
         this.emit(final_name);
         return true;
       }
@@ -375,19 +400,42 @@ class ExprToAlgebrite {
 
   emit_sequence_expr(expr) {
     const exprs = expr.exprs;
+
+    // Check for function applications: f(x), f(x, y).
+    // TODO: break this out into emit_function_application_expr()
+    const arg_count = expr.analyze_function_application();
+    if(arg_count > 0) {
+      const fn_expr = exprs[0];
+      const args_expr = exprs[1];  // the (x) in f(x) (a DelimiterExpr)
+      // Check for f'(x), f''(x).
+      // Here, 'x' must be a simple variable name; f'(x^2) not allowed.
+      const prime_count = fn_expr.is_expr_type('subscriptsuperscript') ?
+            fn_expr.count_primes() : 0;
+      if(arg_count === 1 && prime_count > 0 &&
+         expr_as_variable_name(args_expr.inner_expr)) {
+        // Clone this SequenceExpr and remove one prime from the f''(x), using that
+        // as the argument to a d() call.  If there is more than one prime, this will
+        // recurse until we arrive at f(x).  f''(x) -> d(d(f(x),x),x)
+        this.emit_function_call(
+          'd', [
+            new SequenceExpr([fn_expr.remove_prime(), args_expr], true),
+            args_expr.inner_expr /* the differentiation variable */]);
+        return;
+      }
+      // Emit an ordinary function call f(x,y).
+      this.emit_expr(fn_expr);
+      this.emit_expr(args_expr);
+      return;
+    }
+
+    // Ordinary case.  Put a '*' between most terms, assuming it's implicit
+    // multiplication.  The exception is if there's a PrefixExpr at the
+    // beginning of the sequence (e.g. unary + or -).
+    // We want -x*y, not -*x*y.
     for(let i = 0; i < exprs.length; i++) {
-      // Put a '*' between most terms, assuming it's implicit multiplication.
-      // Exceptions:
-      //   - Unary plus or minus at the beginning of the sequence (PrefixExpr)
-      //   - Fused length-2 sequence of something plus a DelimiterExpr
-      //     (so that we get f(x) and not f*(x)).
       let implicit_multiplication = i < exprs.length-1;
-      if(i === 0 &&
-         exprs[i].is_expr_type('prefix') &&
-         ['-', '+'].includes(exprs[i].operator_text()))
-        implicit_multiplication = false;  // unary +/-
-      if(expr.fused && exprs.length === 2 && exprs[1].is_expr_type('delimiter'))
-        implicit_multiplication = false;  // f(x)
+      if(i === 0 && exprs[i].is_expr_type('prefix'))
+        implicit_multiplication = false;
       this.emit_expr(exprs[i]);
       if(implicit_multiplication)
         this.emit('*');
@@ -426,32 +474,10 @@ class ExprToAlgebrite {
     this.emit(']');
   }
 
-  // Check if a variable name is acceptable by Algebrite.
-  is_valid_variable_name(s, allow_initial_digit) {
-    const regex = allow_initial_digit ?
-          /^[a-zA-Z0-9]+$/g /* NOTE: disallow _ in this case */ :
-          /^[a-zA-Z][a-zA-Z0-9_]*$/g;
-    return s.match(regex) != null;
-  }
-
   // Check for "special character" operators like + that can be passed
   // directly to Algebrite.
   is_valid_binary_operator(s) {
     return ['+', '-', '/', '=', '<', '>', ',', '!'].includes(s);
-  }
-
-  // allow_initial_digit is for permitting things like '1' for subscripted
-  // variables like x_1.
-  expr_as_variable_name(expr, allow_initial_digit) {
-    if(expr.is_expr_type('text') &&
-       this.is_valid_variable_name(expr.text, allow_initial_digit))
-      return expr.text;
-    else if(expr.is_expr_type('command') &&
-            expr.operand_count() === 0 &&
-            latex_letter_commands.has(expr.command_name))
-      return expr.command_name;  // Greek letters, etc.
-    else
-      return null;
   }
 }
 
@@ -761,10 +787,46 @@ class AlgebriteToExpr {
   }
 
   derivative_to_expr(base_p, variable_p) {
-    // TODO: recognize special forms like derivative(f(x), x)  -> f'(x)
-    //       or df/dx (instead of d/dx f), if f is simple enough
     const base_expr = this.to_expr(base_p);
     const variable_expr = this.to_expr(variable_p);
+
+    // Try to convert forms like d(f(x), x) to f^{\prime}(x):
+    //   - f has to be a simple variable name (possibly with a subscript)
+    //   - f may also already be "primed", in which case another prime is added,
+    //       e.g. d(d(f(x), x), x) -> f''(x)
+    //   - there must only be one function argument; we can't have f'(x, y)
+    //   - the argument to f must match the derivative variable
+    //       e.g. not things like d(f(x^2), x)
+    if(base_expr.is_expr_type('sequence') &&
+       base_expr.analyze_function_application() === 1) {
+      const fn_expr = base_expr.exprs[0];
+      const args_expr = base_expr.exprs[1];  // the DelimiterExpr
+      const variable_name = expr_as_variable_name(variable_expr);
+      // Check the conditions for this notation to be used.
+      // NOTE: f'(x) is assumed to be OK no matter what 'f' is, because it
+      // must have come from a nested d(f(x), x) expression to begin with.
+      if((expr_as_variable_name(fn_expr) ||
+          (fn_expr.is_expr_type('subscriptsuperscript') && fn_expr.count_primes() > 0)) &&
+         expr_as_variable_name(args_expr.inner_expr) === variable_name)
+        return new SequenceExpr([fn_expr.with_prime(), args_expr], true);
+    }
+
+    // TODO: if the variable is 't', maybe use the conversion
+    // d(y(t), t) ==> \dot y
+    // This would need to be done in the Expr->Algebrite direction as well.
+
+    // TODO: See if we can use partial derivative notation for things like
+    // d(f(x, y), y):
+    //   - f has to be a simple variable name (possibly with a subscript)
+    //   - no "primes" allowed on f
+    //   - the arguments to f must all be simple variable names
+    //     (no f(x, y^2, z))
+    //   - the derivative variable must match one of the argument variables
+
+    // TODO: handle mixed partial derivatives too
+
+    // Render everything else with the "default" d/dx notation.
+    // NOTE: this doesn't allow for a (cosmetic) roman-font 'd'.
     const d_dx_expr = new CommandExpr(
       'frac', [
         new TextExpr('d'),
