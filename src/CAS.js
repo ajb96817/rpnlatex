@@ -34,9 +34,7 @@ const allowed_algebrite_unary_functions = new Set([
   // Built-in Algebrite commands:
   'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
-  'log', 'choose', 'contract', 'det',
-
-  // Built-in Algebrite commands corresponding to internal InfixExpr operators:
+  'log', 'choose', 'contract', 'det', 'curl', 'div',
   'add', 'multiply', 'quotient', 'cross', 'inner',
   
   // Custom functions added to Algebrite by rpnlatex:
@@ -101,6 +99,10 @@ function expr_as_variable_name(expr, ignore_superscript) {
   else
     return text_or_command_as_variable_name(expr, false);
 }
+
+
+// TODO: variable_name_as_expr
+
   
 // If possible, convert a text/command expr to the corresponding Algebrite
 // variable name.  Greek letters are spelled out, and subscripted variable
@@ -179,148 +181,201 @@ class AlgebriteInterface {
 }
 
 
-class ExprToAlgebrite {
-  constructor() {
+// Intermediate tree structure for converting Expr nodes into
+// Alegbrite-compatible input syntax.
+class AlgebriteNode {}
+
+// '-3.4', '2', etc
+class AlgebriteNumber extends AlgebriteNode {
+  constructor(value_string) {
+    super();
+    this.value_string = value_string;
   }
-  
+
+  is_negative() { return this.value_string.startsWith('-'); }
+
+  emit(emitter) {
+    // NOTE: Usually, negative numbers will be represented as Prefix('-', '123'),
+    // not a literal '-123', but there are some exceptions.
+    if(this.is_negative()) {
+      emitter.emit('(');
+      emitter.emit(this.value_string);
+      emitter.emit(')');
+    }
+    else
+      emitter.emit(this.value_string);
+  }
+}
+
+// Contains a vector or matrix of other AlgebriteNodes.
+// Tensor orders other than 1 and 2 are not supported.
+// 'element_nodes' is a nested array-of-arrays of nodes,
+// similar to what ArrayExpr has.
+// If column_count=1, this is considered a vector and
+// emitted as [x,y,z] rather than [[x], [y], [z]].
+class AlgebriteTensor extends AlgebriteNode {
+  constructor(row_count, column_count, element_nodes) {
+    super();
+    this.row_count = row_count;
+    this.column_count = column_count;
+    this.element_nodes = element_nodes;
+  }
+
+  emit(emitter) {
+    const is_vector = this.column_count === 1;
+    emitter.emit('[');
+    for(let row = 0; row < this.row_count; row++) {
+      if(!is_vector) emitter.emit('[');
+      for(let column = 0; column < this.column_count; column++) {
+        this.element_nodes[row][column].emit(emitter);
+        if((is_vector && row < this.row_count-1) ||
+           (!is_vector && column < this.column_count-1))
+          emitter.emit(',');
+      }
+      if(!is_vector) {
+        emitter.emit(']');
+        if(row < this.row_count-1)
+          emitter.emit(',');
+      }
+    }
+    emitter.emit(']');
+  }
+}
+
+// Literal variable name/symbol, as a "sanitized" string
+// acceptable to Algebrite.
+// Expr(f_\alpha) -> f_alpha, etc. allowed.
+class AlgebriteVariable extends AlgebriteNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+
+  emit(emitter) {emitter.emit(this.name); }
+}
+
+// functionname(arg1, ...)
+class AlgebriteCall extends AlgebriteNode {
+  constructor(fn_name, arg_nodes) {
+    super();
+    this.fn_name = fn_name;
+    this.arg_nodes = arg_nodes;
+  }
+
+  emit(emitter) {
+    emitter.emit(this.fn_name);
+    emitter.emit('(');
+    this.arg_nodes.forEach((node, i) => {
+      if(i > 0) emitter.emit(', ');
+      node.emit(emitter);
+    });
+    emitter.emit(')');
+  }
+}
+
+
+class AlgebriteEmitter {
+  node_to_string(node) {
+    this.pieces = [];
+    node.emit(this);
+    return this.pieces.join('');
+  }
+
+  emit(s) { this.pieces.push(s); }
+}
+
+
+
+class ExprToAlgebrite {
   error(message, offending_expr) {
     alert(message);
     throw new Error('Algebrite: ' + message);
   }
 
   expr_to_algebrite_string(expr) {
-    this.pieces = [];
-    this.emit_expr(expr);
-    return this.pieces.join('');
+    const emitter = new AlgebriteEmitter();
+    const node = this.expr_to_node(expr);
+    return emitter.node_to_string(node);
   }
 
-  emit(s) { this.pieces.push(s); }
-
-  emit_expr(expr) {
+  expr_to_node(expr) {
     switch(expr.expr_type()) {
-    case 'text': this.emit_text_expr(expr); break;
-    case 'infix': this.emit_infix_expr(expr); break;
-    case 'prefix': this.emit_prefix_expr(expr); break;
-    case 'postfix': this.emit_postfix_expr(expr); break;
-    case 'function_call': this.emit_function_call_expr(expr); break;
-    case 'delimiter': this.emit_delimiter_expr(expr); break;
-    case 'command': this.emit_command_expr(expr); break;
-    case 'subscriptsuperscript': this.emit_subscriptsuperscript_expr(expr); break;
-    case 'sequence': this.emit_sequence_expr(expr); break;
-    case 'font': this.emit_font_expr(expr); break;
-    case 'array': this.emit_array_expr(expr); break;
-    case 'placeholder':
-      this.error('Placeholders not allowed', expr);
-      break;
-    default:
-      this.error('Unknown expr type: ' + expr.expr_type());
-      break;
+    case 'text': return this.text_expr_to_node(expr);
+    case 'infix': return this.infix_expr_to_node(expr);
+    case 'prefix': return this.prefix_expr_to_node(expr);
+    case 'postfix': return this.postfix_expr_to_node(expr);
+    case 'function_call': return this.function_call_expr_to_node(expr);
+    case 'delimiter': return this.delimiter_expr_to_node(expr);
+    case 'command': return this.command_expr_to_node(expr);
+    case 'subscriptsuperscript': return this.subscriptsuperscript_expr_to_node(expr);
+    case 'sequence': return this.sequence_expr_to_node(expr);
+    case 'font': return this.font_expr_to_node(expr);
+    case 'array': return this.array_expr_to_node(expr);
+    case 'placeholder': return this.error('Placeholders not allowed', expr);
+    default: return this.error('Unknown expr type: ' + expr.expr_type());
     }
   }
 
-  emit_parenthesized(text) {
-    this.emit('(');
-    this.emit(text);
-    this.emit(')');
+  text_expr_to_node(text_expr) {
+    const text = text_expr.text;
+    if(text_expr.looks_like_number())
+      return new AlgebriteNumber(text);
+    else if(is_valid_variable_name(text))
+      return new AlgebriteVariable(text);
+    this.error('Invalid text', text_expr);
   }
 
-  emit_parenthesized_expr(expr) {
-    this.emit('(');
-    this.emit_expr(expr);
-    this.emit(')');
-  }
-
-  emit_function_call(function_name, argument_exprs) {
-    this.emit(function_name);
-    this.emit('(');
-    for(let i = 0; i < argument_exprs.length; i++) {
-      this.emit_expr(argument_exprs[i]);
-      if(i < argument_exprs.length-1)
-        this.emit(', ');
-    }
-    this.emit(')');
-  }
-
-  emit_text_expr(expr) {
-    const text = expr.text;
-    if(expr.looks_like_number() || is_valid_variable_name(text)) {
-      if(expr.looks_like_negative_number())
-        this.emit_parenthesized(text);
-      else
-        this.emit(text);
-    }
-    else
-      this.error('Invalid text ' + text, expr);
-  }
-
-  emit_infix_expr(infix_expr) {
-    const converted_expr = this.convert_infix_expr_to_nested(infix_expr);
-    return this.emit_expr(converted_expr);
-  }
-
-  // Convert infix_expr to a nested FunctionCallExpr.
-  convert_infix_expr_to_nested(infix_expr) {
+  infix_expr_to_node(infix_expr) {
     // Gather operator precedence, etc, for all infix operators, and
     // check that all are supported in Algebrite.
     const operator_infos = infix_expr.operator_exprs.map(
-      operator_expr => {
-        const info = this.infix_operator_expr_info(operator_expr);
-        if(info) return info;
-        else return this.error('Invalid binary operator', operator_expr);
-      });
+      operator_expr => this._infix_operator_expr_info(operator_expr) ||
+        this.error('Invalid binary operator', operator_expr));
     const operand_exprs = infix_expr.operand_exprs;
-    let expr_stack = [operand_exprs[0]];
+    let node_stack = [this.expr_to_node(operand_exprs[0])];
     let operator_stack = [];  // stores operator info structures
     for(let i = 0; i < operator_infos.length; i++) {
       const operator_info = operator_infos[i];
       while(operator_stack.length > 0 &&
             operator_stack[operator_stack.length-1].prec >= operator_info.prec)
-        this._resolve_infix_operator(expr_stack, operator_stack);
+        this._resolve_infix_operator(node_stack, operator_stack);
       operator_stack.push(operator_info);
-      expr_stack.push(operand_exprs[i+1]);
+      node_stack.push(this.expr_to_node(operand_exprs[i+1]));
     }
     while(operator_stack.length > 0)
-      this._resolve_infix_operator(expr_stack, operator_stack);
-    // All that remains is the top-level FunctionCallExpr on the stack.
-    return expr_stack.pop();
+      this._resolve_infix_operator(node_stack, operator_stack);
+    // All that remains is the top-level AlgebriteNode on the stack.
+    return node_stack.pop();
   }
 
-  // Take an operator and two expressions off the stacks, combining
-  // them into a FunctionCallExpr that goes back on the stack.
-  _resolve_infix_operator(expr_stack, operator_stack) {
-    const operator_info = operator_stack.pop();
-    let rhs_expr = expr_stack.pop();
-    const lhs_expr = expr_stack.pop();
-    if(operator_info.modifier_fn)
-      rhs_expr = new FunctionCallExpr(
-        new TextExpr(operator_info.modifier_fn),
-        DelimiterExpr.parenthesize(rhs_expr));
-    expr_stack.push(new FunctionCallExpr(
-      new TextExpr(operator_info.fn),
-      DelimiterExpr.parenthesize(
-        new InfixExpr(
-          [lhs_expr, rhs_expr],
-          [new TextExpr(',')]))));
-  }
-
-  infix_operator_expr_info(expr) {
+  _infix_operator_expr_info(expr) {
     let op_name = null;
     if(expr.is_expr_type('text'))
       op_name = expr.text;  // something like + or /
     else if(expr.is_expr_type('command') &&
             expr.operand_count() === 0)
       op_name = expr.command_name;  // times, cdot, etc
-    if(!op_name)
-      return null;
-    else
-      return this.infix_op_info(op_name);
+    if(op_name)
+      return this._infix_op_info(op_name);
+    else return null;
+  }
+
+  // Take an operator and two nodes off the stacks, combining
+  // them into a AlgebriteNode that goes back on the stack.
+  _resolve_infix_operator(node_stack, operator_stack) {
+    const operator_info = operator_stack.pop();
+    let rhs_node = node_stack.pop();
+    const lhs_node = node_stack.pop();
+    if(operator_info.modifier_fn)
+      rhs_node = new AlgebriteCall(operator_info.modifier_fn, [rhs_node]);
+    node_stack.push(new AlgebriteCall(operator_info.fn, [lhs_node, rhs_node]));
   }
 
   // { fn: binary algebrite function to apply
   //   modifier_fn: unary algebrite function to apply to second argument
   //                (e.g., x/y -> multiply(x, quotient(y)))
   //   prec_fn: higher numbers bind tighter }
-  infix_op_info(op_name) {
+  _infix_op_info(op_name) {
     switch(op_name) {
     case '*': return {fn:'multiply', prec:2};
     case '/': return {fn:'multiply', modifier_fn: 'reciprocal', prec:2};
@@ -331,24 +386,36 @@ class ExprToAlgebrite {
     default: return null;
     }
   }
+
+  // Only '+' and '-' prefix operators are supported (and + is disregarded).
+  prefix_expr_to_node(prefix_expr) {
+    if(prefix_expr.operator_expr.is_expr_type('text')) {
+      switch(prefix_expr.operator_expr.text) {
+      case '-': return new AlgebriteCall(
+        'negative', [this.expr_to_node(prefix_expr.base_expr)]);
+      case '+': return this.expr_to_node(prefix_expr.base_expr);
+      }
+    }
+    return this.error('Invalid prefix operator', prefix_expr);
+  }
       
-  emit_prefix_expr(expr) {
-    this.emit_expr(expr.operator_expr);
-    this.emit_parenthesized_expr(expr.base_expr);
+  // Only single-! factorial is supported.
+  postfix_expr_to_node(postfix_expr) {
+    const [base_expr, factorial_signs_count] = postfix_expr.analyze_factorial();
+    if(factorial_signs_count === 0)
+      return new AlgebriteCall('factorial', this.expr_to_node(base_expr));
+    else if(factorial_signs_count > 0)
+      return this.error('Multiple factorial not supported', postfix_expr);
+    else
+      return this.error('Invalid postfix operator', postfix_expr);
   }
 
-  emit_postfix_expr(expr) {
-    this.emit_parenthesized_expr(expr.base_expr);
-    this.emit_expr(expr.operator_expr);
-  }
-
-  emit_function_call_expr(expr) {
+  function_call_expr_to_node(expr) {
     const fn_expr = expr.fn_expr;
     const arg_exprs = expr.extract_argument_exprs();
     const arg_count = arg_exprs.length;
     if(arg_count === 0)
       return this.error('Malformed function call', expr);
-
     // Check for f'(x), f''(x).
     // Here, 'x' must be a simple variable name; f'(x^2) not allowed.
     const prime_count = fn_expr.is_expr_type('subscriptsuperscript') ?
@@ -358,52 +425,52 @@ class ExprToAlgebrite {
       // Remove one prime from the FunctionCallExpr, using that as the argument
       // to a d() call.  If there is more than one prime, this will
       // recurse until we arrive at f(x).  f''(x) -> d(d(f(x),x),x)
-      return this.emit_function_call(
-        'd', [
-          new FunctionCallExpr(fn_expr.remove_prime(), expr.args_expr),
-          arg_exprs[0] /* the differentiation variable */]);
+      return new AlgebriteCall('d', [
+        this.expr_to_node(
+          new FunctionCallExpr(fn_expr.remove_prime(), expr.args_expr)),
+        this.expr_to_node(arg_exprs[0]) /* the differentiation variable */]);
     }
-
     // The usual case (not f'(x)):
     const fn_name = expr_as_variable_name(fn_expr);
     if(fn_name)
-      this.emit_function_call(fn_name, arg_exprs);
+      return new AlgebriteCall(
+        fn_name, arg_exprs.map(arg_expr => this.expr_to_node(arg_expr)));
     else 
       return this.error('Invalid function', expr);
   }
 
   // Only "standard" delimiter types can be converted to Algebrite
-  // syntax.  Others, like <x|, will signal an error.
-  emit_delimiter_expr(expr) {
+  // operations.  Others, like <x|, will signal an error.
+  delimiter_expr_to_node(expr) {
     const [left, right] = [expr.left_type, expr.right_type];
-    const inner_expr = expr.inner_expr;
-    if(left === '.' && right === '.')
-      return this.emit_expr(inner_expr);
-    else if((left === '(' && right === ')') ||
+    const inner_node = this.expr_to_node(expr.inner_expr);
+    if((left === '.' && right === '.') ||
+            (left === '(' && right === ')') ||
             (left === '[' && right === ']') ||
             (left === "\\{" && right === "\\}"))
-      this.emit_parenthesized_expr(inner_expr);
+      return inner_node;
     else if(left === "\\lceil" && right === "\\rceil")
-      this.emit_function_call('ceil', [inner_expr]);
+      return new AlgebriteCall('ceiling', [inner_node]);
     else if(left === "\\lfloor" && right === "\\rfloor")
-      this.emit_function_call('floor', [inner_expr]);
+      return new AlgebriteCall('floor', [inner_node]);
     else if((left === "\\lVert" && right === "\\rVert") ||
             (left === "\\vert" && right === "\\vert"))
-      this.emit_function_call('abs', [inner_expr]);
+      return new AlgebriteCall('abs', [inner_node]);
     else
-      this.error('Unsupported delimiters', expr);
+      return this.error('Unsupported delimiters', expr);
   }
 
-  emit_command_expr(expr) {
+  command_expr_to_node(expr) {
     let args, nargs, command_name;
     // Some built-in commands use \operatorname{fn}{x} (a 2-argument CommandExpr).
     // These include: Tr(), sech(), csch(), which aren't present in LaTeX.
     // For these cases, the command name and argument to use are extracted
     // from the \operatorname command.
     if(expr.command_name === 'operatorname' &&
-       expr.operand_count() == 2 && expr.operand_exprs[0].is_expr_type('text')) {
+       expr.operand_count() == 2 &&
+       expr.operand_exprs[0].is_expr_type('text')) {
       args = expr.operand_exprs.slice(1);
-      nargs = expr.operand_count() - 1;
+      nargs = expr.operand_count()-1;
       command_name = expr.operand_exprs[0].text;
     }
     else {
@@ -414,29 +481,28 @@ class ExprToAlgebrite {
     // Translate ln -> log, etc.
     const algebrite_command =
           AlgebriteInterface.translate_function_name(command_name, true);
-    const variable_name = expr_as_variable_name(expr);
-    if(variable_name)
-      this.emit(variable_name);
-    else if(command_name === 'frac' && nargs === 2) {
+    if(command_name === 'frac' && nargs === 2) {
       // Reuse the InfixExpr logic to convert this into a
-      // FunctionCallExpr: multiply(numer, reciprocal(denom)).
+      // node like: multiply(numer, reciprocal(denom)).
       // NOTE: if InfixExpr is ever changed to automatically merge other
       // InfixExprs into it automatically, this logic will need to be changed
       // (the full-size "fraction bar" is always the lowest possible precedence).
-      const infix_frac_expr = new InfixExpr(expr.operand_exprs, [new TextExpr('/')]);
-      this.emit_infix_expr(infix_frac_expr);
+      return this.expr_to_node(
+        new InfixExpr(expr.operand_exprs, [new TextExpr('/')]));
     }
-    else if(command_name === 'sqrt' && nargs === 1) {
+    else if(nargs === 1 && command_name === 'sqrt') {
       if(expr.options) {
         // sqrt[3], etc.
-        this.emit_parenthesized_expr(args[0]);
-        this.emit('^(1/' + expr.options + ')');
+        return new AlgebriteCall(
+          'power', [
+            this.expr_to_node(args[0]),
+            new AlgebriteCall('reciprocal', [new AlgebriteNumber(expr.options)])]);
       }
       else
-        this.emit_function_call('sqrt', args);
+        return new AlgebriteCall('sqrt', [this.expr_to_node(args[0])]);
     }
-    else if(allowed_algebrite_unary_functions.has(algebrite_command))
-      this.emit_function_call(algebrite_command, args);
+    else if(nargs === 1 && allowed_algebrite_unary_functions.has(algebrite_command))
+      return new AlgebriteCall(algebrite_command, [this.expr_to_node(args[0])]);
     else {
       // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
       // having the command_name be a literal 'sin^2'.  This needs to be translated
@@ -449,36 +515,35 @@ class ExprToAlgebrite {
         ['sec^2', 'cos', -2],      ['csc^2', 'sin', -2],      ['cot^2', 'tan', -2],
         ['sech^2', 'cosh', -2],    ['csch^2', 'sinh', -2],    ['coth^2', 'tanh', -2]
       ];
-      const match2 = squared_trig_substitutions.find(pair => command_name === pair[0]);
-      if(match2) {
-        this.emit_function_call(match2[1], args);
-        this.emit('^');
-        if(match2[2] < 0) this.emit_parenthesized(match2[2].toString());
-        else this.emit(match2[2].toString());
-        return;
-      }
-      this.error('Cannot use "' + command_name + '" here', expr);
+      const match = squared_trig_substitutions.find(
+        pair => command_name === pair[0]);
+      if(match && nargs === 1)
+        return new AlgebriteCall('power', [
+          new AlgebriteCall(match[1], [this.expr_to_node(args[0])]),
+          new AlgebriteNumber(match[2].toString())]);
     }
+    return this.error('Cannot use "' + command_name + '" here', expr);
   }
 
-  emit_subscriptsuperscript_expr(expr) {
+  subscriptsuperscript_expr_to_node(expr) {
     const [base_expr, subscript_expr, superscript_expr] =
           [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
 
     // TODO: check for integrals and summations
     
     // Check for subscripted variable names (x_1).
+    // A possible superscript becomes the exponent.
     if(subscript_expr) {
       const variable_name = expr_as_variable_name(expr, true /* ignore_superscript */);
       if(!variable_name)
         return this.error('Invalid variable', expr);
-      // TODO: use power(x, y), not this
-      this.emit(variable_name);
-      if(superscript_expr) {
-        this.emit('^');
-        this.emit_parenthesized_expr(superscript_expr);
-      }
-      return;
+      if(superscript_expr)
+        return new AlgebriteCall(
+          'power', [
+            new AlgebriteVariable(variable_name),
+            this.expr_to_node(superscript_expr)]);
+      else
+        return new AlgebriteVariable(variable_name);
     }
     
     // Check for for "where" expressions of the form: f|_(x=y).
@@ -488,39 +553,41 @@ class ExprToAlgebrite {
        subscript_expr.operator_text_at(0) === '=') {
       const lhs = subscript_expr.operand_exprs[0];
       const rhs = subscript_expr.extract_side_at(0, 'right');
-      return this.emit_function_call('eval', [base_expr.inner_expr, lhs, rhs]);
+      return new AlgebriteCall(
+        'eval', [
+          this.expr_to_node(base_expr.inner_expr),
+          this.expr_to_node(lhs),
+          this.expr_to_node(rhs)]);
     }
 
     // Anything else with a subscript isn't allowed.
     if(subscript_expr)
-      this.error('Cannot use subscript here', expr);
+      return this.error('Cannot use subscript here', expr);
 
     // Check for e^x (both roman and normal 'e').
     if(superscript_expr &&
        ((base_expr.is_expr_type('text') && base_expr.text === 'e') ||
         (base_expr.is_expr_type('font') && base_expr.typeface === 'roman' &&
          base_expr.expr.is_expr_type('text') && base_expr.expr.text === 'e')))
-      return this.emit_function_call('exp', [superscript_expr]);
+      return new AlgebriteCall('exp', [this.expr_to_node(superscript_expr)]);
 
+    // x^y with no subscript on x.
     if(superscript_expr)
-      this.emit_function_call('power', [base_expr, superscript_expr]);
-    else
-      this.emit_expr(base_expr);
+      return new AlgebriteCall(
+        'power', [
+          this.expr_to_node(base_expr),
+          this.expr_to_node(superscript_expr)]);
+
+    // Shouldn't get here.
+    return this.expr_to_node(base_expr);
   }
 
-  emit_sequence_expr(expr) {
+  // NOTE: Adjacent matrix literals are converted into inner(M1, M2, ...)
+  // calls here without needing an explicit \cdot.
+  sequence_expr_to_node(expr) {
     const exprs = expr.exprs;
-
-    // Put a '*' between most terms, assuming it's implicit multiplication.
-    // The exception is if there's a PrefixExpr at the beginning of the sequence
-    // (e.g. unary + or -).  We want -x*y, not -*x*y.
-    // Adjacent matrix literals are converted into inner(M1, M2, ...) calls
-    // here without needing an explicit \cdot.
+    let multiply_arg_nodes = [];  // arguments to a multiply(...) call
     for(let i = 0; i < exprs.length; i++) {
-      let implicit_multiplication = true;
-      if(i === 0 && exprs[i].is_expr_type('prefix'))
-        implicit_multiplication = false;  /* don't put * after an initial -/+ */
-
       // Look for chains of 2 or more adjacent matrices;
       // convert to inner(M1, M2, ...).
       let matrix_count = 0;
@@ -529,48 +596,33 @@ class ExprToAlgebrite {
           j++, matrix_count++)
         ;
       if(matrix_count >= 2) {
-        this.emit_function_call(
-          'inner', exprs.slice(i, i+matrix_count));
+        multiply_arg_nodes.push(
+          new AlgebriteCall(
+            'inner',
+            exprs.slice(i, i+matrix_count).map(
+              arg_expr => this.expr_to_node(arg_expr))));
         i += matrix_count-1;
       }
-      else
-        this.emit_expr(exprs[i]);  // ordinary term
-      if(implicit_multiplication &&
-         i < exprs.length-i /* don't put a * after the final term */)
-        this.emit('*');
+      else  // ordinary term
+        multiply_arg_nodes.push(this.expr_to_node(exprs[i]));
     }
+    if(multiply_arg_nodes.length === 1)  // e.g. nothing but inner(M1, M2, ...)
+      return multiply_arg_nodes[0];
+    else
+      return new AlgebriteCall('multiply', multiply_arg_nodes);
   }
 
-  emit_font_expr(expr) {
+  font_expr_to_node(expr) {
     // TODO: for now, just strip font stuff
-    return this.emit_expr(expr.expr);
+    return this.expr_to_node(expr.expr);
   }
 
-  emit_array_expr(expr) {
+  array_expr_to_node(expr) {
     if(!expr.is_matrix())
       return this.error('Invalid matrix type', expr);
-    const matrix_expr = expr;
-    const [row_count, column_count] = [matrix_expr.row_count, matrix_expr.column_count];
-    // 1xN or Nx1 matrices are passed as vectors to Algebrite
-    // with only a single bracket pair, e.g. [x,y,z].
-    const is_vector = column_count === 1 || row_count === 1;
-    this.emit('[');
-    for(let row = 0; row < row_count; row++) {
-      if(!is_vector)
-        this.emit('[');
-      for(let column = 0; column < column_count; column++) {
-        this.emit_expr(matrix_expr.element_exprs[row][column]);
-        if((is_vector && !(row == row_count-1 && column == column_count-1)) ||
-           (!is_vector && column < column_count-1))
-          this.emit(',');
-      }
-      if(!is_vector) {
-        this.emit(']');
-        if(row < row_count-1)
-          this.emit(',');
-      }
-    }
-    this.emit(']');
+    const element_nodes = expr.element_exprs.map(row_exprs =>
+      row_exprs.map(element_expr => this.expr_to_node(element_expr)));
+    return new AlgebriteTensor(expr.row_count, expr.column_count, element_nodes);
   }
 }
 
