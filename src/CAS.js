@@ -2,7 +2,8 @@
 
 import {
   // TODO: may not need all these
-  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr,
+  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
+  PostfixExpr, FunctionCallExpr,
   PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
@@ -30,15 +31,21 @@ const latex_letter_commands = new Set([
 ]);
 
 const allowed_algebrite_unary_functions = new Set([
-  // These are built-in Algebrite commands:
+  // Built-in Algebrite commands:
   'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
   'log', 'choose', 'contract', 'det',
 
-  // These are "extra" functions added to Algebrite by rpnlatex:
+  // Built-in Algebrite commands corresponding to internal InfixExpr operators:
+  'add', 'multiply', 'quotient', 'cross', 'inner',
+  
+  // Custom functions added to Algebrite by rpnlatex:
   'sec', 'csc', 'cot', 'sech', 'csch', 'coth',
   'arcsec', 'arccsc', 'arccot', 'arcsech', 'arccsch', 'arccoth',
-  'log2', 'log10'
+  'log2', 'log10',
+
+  // Custom functions for handling - and /:
+  'negative', 'reciprocal'
 ]);
   
 // [rpnlatex_command, algebrite_command]
@@ -164,13 +171,18 @@ class AlgebriteInterface {
       'arccsch(x) = arcsinh(1/x)',
       'arccoth(x) = arctanh(1/x)',
       'log2(x) = log(x)/log(2)',
-      'log10(x) = log(x)/log(10)'  // not yet implemented in the editor
+      'log10(x) = log(x)/log(10)',  // not yet implemented in the editor
+      'negative(x) = -x',  // used for infix '-': x-y -> add(x, negative(y))
+      'reciprocal(x) = 1/x'  // used for infix '/' and fractions
     ].forEach(s => Algebrite.eval(s));
   }
 }
 
 
 class ExprToAlgebrite {
+  constructor() {
+  }
+  
   error(message, offending_expr) {
     alert(message);
     throw new Error('Algebrite: ' + message);
@@ -190,6 +202,7 @@ class ExprToAlgebrite {
     case 'infix': this.emit_infix_expr(expr); break;
     case 'prefix': this.emit_prefix_expr(expr); break;
     case 'postfix': this.emit_postfix_expr(expr); break;
+    case 'function_call': this.emit_function_call_expr(expr); break;
     case 'delimiter': this.emit_delimiter_expr(expr); break;
     case 'command': this.emit_command_expr(expr); break;
     case 'subscriptsuperscript': this.emit_subscriptsuperscript_expr(expr); break;
@@ -199,7 +212,9 @@ class ExprToAlgebrite {
     case 'placeholder':
       this.error('Placeholders not allowed', expr);
       break;
-    default: this.error('Unknown expr type: ' + expr.expr_type());
+    default:
+      this.error('Unknown expr type: ' + expr.expr_type());
+      break;
     }
   }
 
@@ -228,9 +243,7 @@ class ExprToAlgebrite {
 
   emit_text_expr(expr) {
     const text = expr.text;
-    if(expr.looks_like_number() ||
-       is_valid_variable_name(text) ||
-       this.is_valid_binary_operator(text)) {
+    if(expr.looks_like_number() || is_valid_variable_name(text)) {
       if(expr.looks_like_negative_number())
         this.emit_parenthesized(text);
       else
@@ -240,28 +253,85 @@ class ExprToAlgebrite {
       this.error('Invalid text ' + text, expr);
   }
 
-  emit_infix_expr(expr) {
-    // TODO: handle \times (cross product), maybe restrict to binary infix expressions
-    // (otherwise the associativity can be ambiguous).  Maybe should still handle
-    // things like a + b \times c + d though.
-    const [operand_exprs, operator_exprs] =
-          [expr.operand_exprs, expr.operator_exprs];
-    for(let i = 0; i < operator_exprs.length; i++) {
-      this.emit_expr(operand_exprs[i]);
-      const op = expr.operator_text_at(i);
-      if(op === 'cdot' || op === 'times')
-        this.emit('*');
-      else if(this.is_valid_binary_operator(op))
-        this.emit(op);
-      else {
-        // TODO: handle this better
-        this.error('Invalid infix operator: ' + op);
-        return;
-      }
-    }
-    this.emit_expr(operand_exprs[operand_exprs.length-1]);
+  emit_infix_expr(infix_expr) {
+    const converted_expr = this.convert_infix_expr_to_nested(infix_expr);
+    return this.emit_expr(converted_expr);
   }
 
+  // Convert infix_expr to a nested FunctionCallExpr.
+  convert_infix_expr_to_nested(infix_expr) {
+    // Gather operator precedence, etc, for all infix operators, and
+    // check that all are supported in Algebrite.
+    const operator_infos = infix_expr.operator_exprs.map(
+      operator_expr => {
+        const info = this.infix_operator_expr_info(operator_expr);
+        if(info) return info;
+        else return this.error('Invalid binary operator', operator_expr);
+      });
+    const operand_exprs = infix_expr.operand_exprs;
+    let expr_stack = [operand_exprs[0]];
+    let operator_stack = [];  // stores operator info structures
+    for(let i = 0; i < operator_infos.length; i++) {
+      const operator_info = operator_infos[i];
+      while(operator_stack.length > 0 &&
+            operator_stack[operator_stack.length-1].prec >= operator_info.prec)
+        this._resolve_infix_operator(expr_stack, operator_stack);
+      operator_stack.push(operator_info);
+      expr_stack.push(operand_exprs[i+1]);
+    }
+    while(operator_stack.length > 0)
+      this._resolve_infix_operator(expr_stack, operator_stack);
+    // All that remains is the top-level FunctionCallExpr on the stack.
+    return expr_stack.pop();
+  }
+
+  // Take an operator and two expressions off the stacks, combining
+  // them into a FunctionCallExpr that goes back on the stack.
+  _resolve_infix_operator(expr_stack, operator_stack) {
+    const operator_info = operator_stack.pop();
+    let rhs_expr = expr_stack.pop();
+    const lhs_expr = expr_stack.pop();
+    if(operator_info.modifier_fn)
+      rhs_expr = new FunctionCallExpr(
+        new TextExpr(operator_info.modifier_fn),
+        DelimiterExpr.parenthesize(rhs_expr));
+    expr_stack.push(new FunctionCallExpr(
+      new TextExpr(operator_info.fn),
+      DelimiterExpr.parenthesize(
+        new InfixExpr(
+          [lhs_expr, rhs_expr],
+          [new TextExpr(',')]))));
+  }
+
+  infix_operator_expr_info(expr) {
+    let op_name = null;
+    if(expr.is_expr_type('text'))
+      op_name = expr.text;  // something like + or /
+    else if(expr.is_expr_type('command') &&
+            expr.operand_count() === 0)
+      op_name = expr.command_name;  // times, cdot, etc
+    if(!op_name)
+      return null;
+    else
+      return this.infix_op_info(op_name);
+  }
+
+  // { fn: binary algebrite function to apply
+  //   modifier_fn: unary algebrite function to apply to second argument
+  //                (e.g., x/y -> multiply(x, quotient(y)))
+  //   prec_fn: higher numbers bind tighter }
+  infix_op_info(op_name) {
+    switch(op_name) {
+    case '*': return {fn:'multiply', prec:2};
+    case '/': return {fn:'multiply', modifier_fn: 'reciprocal', prec:2};
+    case 'times': return {fn:'cross', prec:2};
+    case 'cdot': return {fn:'inner', prec:2};
+    case '+': return {fn:'add', prec:1};
+    case '-': return {fn:'add', modifier_fn:'negative', prec:1};
+    default: return null;
+    }
+  }
+      
   emit_prefix_expr(expr) {
     this.emit_expr(expr.operator_expr);
     this.emit_parenthesized_expr(expr.base_expr);
@@ -270,6 +340,36 @@ class ExprToAlgebrite {
   emit_postfix_expr(expr) {
     this.emit_parenthesized_expr(expr.base_expr);
     this.emit_expr(expr.operator_expr);
+  }
+
+  emit_function_call_expr(expr) {
+    const fn_expr = expr.fn_expr;
+    const arg_exprs = expr.extract_argument_exprs();
+    const arg_count = arg_exprs.length;
+    if(arg_count === 0)
+      return this.error('Malformed function call', expr);
+
+    // Check for f'(x), f''(x).
+    // Here, 'x' must be a simple variable name; f'(x^2) not allowed.
+    const prime_count = fn_expr.is_expr_type('subscriptsuperscript') ?
+          fn_expr.count_primes() : 0;
+    if(arg_count === 1 && prime_count > 0 &&
+       expr_as_variable_name(arg_exprs[0])) {
+      // Remove one prime from the FunctionCallExpr, using that as the argument
+      // to a d() call.  If there is more than one prime, this will
+      // recurse until we arrive at f(x).  f''(x) -> d(d(f(x),x),x)
+      return this.emit_function_call(
+        'd', [
+          new FunctionCallExpr(fn_expr.remove_prime(), expr.args_expr),
+          arg_exprs[0] /* the differentiation variable */]);
+    }
+
+    // The usual case (not f'(x)):
+    const fn_name = expr_as_variable_name(fn_expr);
+    if(fn_name)
+      this.emit_function_call(fn_name, arg_exprs);
+    else 
+      return this.error('Invalid function', expr);
   }
 
   // Only "standard" delimiter types can be converted to Algebrite
@@ -318,9 +418,13 @@ class ExprToAlgebrite {
     if(variable_name)
       this.emit(variable_name);
     else if(command_name === 'frac' && nargs === 2) {
-      this.emit_parenthesized_expr(expr.operand_exprs[0]),
-      this.emit('/');
-      this.emit_parenthesized_expr(expr.operand_exprs[1]);
+      // Reuse the InfixExpr logic to convert this into a
+      // FunctionCallExpr: multiply(numer, reciprocal(denom)).
+      // NOTE: if InfixExpr is ever changed to automatically merge other
+      // InfixExprs into it automatically, this logic will need to be changed
+      // (the full-size "fraction bar" is always the lowest possible precedence).
+      const infix_frac_expr = new InfixExpr(expr.operand_exprs, [new TextExpr('/')]);
+      this.emit_infix_expr(infix_frac_expr);
     }
     else if(command_name === 'sqrt' && nargs === 1) {
       if(expr.options) {
@@ -368,6 +472,7 @@ class ExprToAlgebrite {
       const variable_name = expr_as_variable_name(expr, true /* ignore_superscript */);
       if(!variable_name)
         return this.error('Invalid variable', expr);
+      // TODO: use power(x, y), not this
       this.emit(variable_name);
       if(superscript_expr) {
         this.emit('^');
@@ -397,59 +502,41 @@ class ExprToAlgebrite {
          base_expr.expr.is_expr_type('text') && base_expr.expr.text === 'e')))
       return this.emit_function_call('exp', [superscript_expr]);
 
-    this.emit_expr(base_expr);
-    if(superscript_expr) {
-      this.emit('^');
-      // Check if we can omit the parentheses in the exponent, for simple cases like x^2.
-      if(superscript_expr.is_expr_type('text') &&
-         ((superscript_expr.looks_like_number() && !superscript_expr.looks_like_negative_number()) ||
-          text_or_command_as_variable_name(superscript_expr)))
-        this.emit_expr(superscript_expr);
-      else
-        this.emit_parenthesized_expr(superscript_expr);
-    }
+    if(superscript_expr)
+      this.emit_function_call('power', [base_expr, superscript_expr]);
+    else
+      this.emit_expr(base_expr);
   }
 
   emit_sequence_expr(expr) {
     const exprs = expr.exprs;
 
-    // Check for function applications: f(x), f(x, y).
-    // TODO: break this out into emit_function_application_expr()
-    const arg_count = expr.analyze_function_application();
-    if(arg_count > 0) {
-      const fn_expr = exprs[0];
-      const args_expr = exprs[1];  // the (x) in f(x) (a DelimiterExpr)
-      // Check for f'(x), f''(x).
-      // Here, 'x' must be a simple variable name; f'(x^2) not allowed.
-      const prime_count = fn_expr.is_expr_type('subscriptsuperscript') ?
-            fn_expr.count_primes() : 0;
-      if(arg_count === 1 && prime_count > 0 &&
-         expr_as_variable_name(args_expr.inner_expr)) {
-        // Clone this SequenceExpr and remove one prime from the f''(x), using that
-        // as the argument to a d() call.  If there is more than one prime, this will
-        // recurse until we arrive at f(x).  f''(x) -> d(d(f(x),x),x)
-        this.emit_function_call(
-          'd', [
-            new SequenceExpr([fn_expr.remove_prime(), args_expr], true),
-            args_expr.inner_expr /* the differentiation variable */]);
-        return;
-      }
-      // Emit an ordinary function call f(x,y).
-      this.emit_expr(fn_expr);
-      this.emit_expr(args_expr);
-      return;
-    }
-
-    // Ordinary case.  Put a '*' between most terms, assuming it's implicit
-    // multiplication.  The exception is if there's a PrefixExpr at the
-    // beginning of the sequence (e.g. unary + or -).
-    // We want -x*y, not -*x*y.
+    // Put a '*' between most terms, assuming it's implicit multiplication.
+    // The exception is if there's a PrefixExpr at the beginning of the sequence
+    // (e.g. unary + or -).  We want -x*y, not -*x*y.
+    // Adjacent matrix literals are converted into inner(M1, M2, ...) calls
+    // here without needing an explicit \cdot.
     for(let i = 0; i < exprs.length; i++) {
-      let implicit_multiplication = i < exprs.length-1;
+      let implicit_multiplication = true;
       if(i === 0 && exprs[i].is_expr_type('prefix'))
-        implicit_multiplication = false;
-      this.emit_expr(exprs[i]);
-      if(implicit_multiplication)
+        implicit_multiplication = false;  /* don't put * after an initial -/+ */
+
+      // Look for chains of 2 or more adjacent matrices;
+      // convert to inner(M1, M2, ...).
+      let matrix_count = 0;
+      for(let j = i; j < exprs.length &&
+              exprs[j].is_expr_type('array') && exprs[j].is_matrix();
+          j++, matrix_count++)
+        ;
+      if(matrix_count >= 2) {
+        this.emit_function_call(
+          'inner', exprs.slice(i, i+matrix_count));
+        i += matrix_count-1;
+      }
+      else
+        this.emit_expr(exprs[i]);  // ordinary term
+      if(implicit_multiplication &&
+         i < exprs.length-i /* don't put a * after the final term */)
         this.emit('*');
     }
   }
@@ -469,10 +556,10 @@ class ExprToAlgebrite {
     const is_vector = column_count === 1 || row_count === 1;
     this.emit('[');
     for(let row = 0; row < row_count; row++) {
-      if(!is_vector) this.emit('[');
+      if(!is_vector)
+        this.emit('[');
       for(let column = 0; column < column_count; column++) {
-        const element_expr = matrix_expr.element_exprs[row][column];
-        this.emit_expr(element_expr);
+        this.emit_expr(matrix_expr.element_exprs[row][column]);
         if((is_vector && !(row == row_count-1 && column == column_count-1)) ||
            (!is_vector && column < column_count-1))
           this.emit(',');
@@ -484,12 +571,6 @@ class ExprToAlgebrite {
       }
     }
     this.emit(']');
-  }
-
-  // Check for "special character" operators like + that can be passed
-  // directly to Algebrite.
-  is_valid_binary_operator(s) {
-    return ['+', '-', '/', '=', '<', '>', ',', '!'].includes(s);
   }
 }
 
@@ -612,10 +693,9 @@ class AlgebriteToExpr {
       for(let i = 1; i < args.length; i++)
         operands_expr = InfixExpr.combine_infix(
           operands_expr, arg_exprs[i], new TextExpr(','));
-      return new SequenceExpr(
-        [ this.sym_to_expr(f),
-          DelimiterExpr.parenthesize(operands_expr)
-        ], true /* fuse operator and arguments */);
+      return new FunctionCallExpr(
+        this.sym_to_expr(f),
+        DelimiterExpr.parenthesize(operands_expr));
     }
   }
 
@@ -809,10 +889,10 @@ class AlgebriteToExpr {
     //   - there must only be one function argument; we can't have f'(x, y)
     //   - the argument to f must match the derivative variable
     //       e.g. not things like d(f(x^2), x)
-    if(base_expr.is_expr_type('sequence') &&
-       base_expr.analyze_function_application() === 1) {
-      const fn_expr = base_expr.exprs[0];
-      const args_expr = base_expr.exprs[1];  // the DelimiterExpr
+    if(base_expr.is_expr_type('function_call') &&
+       base_expr.argument_count() === 1) {
+      const fn_expr = base_expr.fn_expr;
+      const args_expr = base_expr.args_expr;  // the DelimiterExpr
       const variable_name = expr_as_variable_name(variable_expr);
       // Check the conditions for this notation to be used.
       // NOTE: f'(x) is assumed to be OK no matter what 'f' is, because it
@@ -820,7 +900,7 @@ class AlgebriteToExpr {
       if((expr_as_variable_name(fn_expr) ||
           (fn_expr.is_expr_type('subscriptsuperscript') && fn_expr.count_primes() > 0)) &&
          expr_as_variable_name(args_expr.inner_expr) === variable_name)
-        return new SequenceExpr([fn_expr.with_prime(), args_expr], true);
+        return new FunctionCallExpr(fn_expr.with_prime(), args_expr);
     }
 
     // TODO: if the variable is 't', maybe use the conversion
@@ -842,7 +922,7 @@ class AlgebriteToExpr {
     const d_dx_expr = new CommandExpr(
       'frac', [
         new TextExpr('d'),
-        new SequenceExpr([new TextExpr('d'), variable_expr])]);
+        new SequenceExpr([new TextExpr('d'), variable_expr], true)]);
     return Expr.combine_pair(d_dx_expr, base_expr);
   }
 

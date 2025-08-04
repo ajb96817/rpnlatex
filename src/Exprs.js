@@ -33,6 +33,10 @@ class Expr {
       return new PostfixExpr(
         this._expr(json.base_expr),
         this._expr(json.operator_expr));
+    case 'function_call':
+      return new FunctionCallExpr(
+        this._expr(json.fn_expr),
+        this._expr(json.args_expr));
     case 'placeholder':
       return new PlaceholderExpr();
     case 'text':
@@ -1435,6 +1439,101 @@ class PrefixExpr extends Expr {
 }
 
 
+// Represents a function call like: f(x,y,z)
+// Here fn_expr = f, args_expr = (x,y,z).
+class FunctionCallExpr extends Expr {
+  constructor(fn_expr, args_expr) {
+    super();
+    this.fn_expr = fn_expr;
+    this.args_expr = args_expr;  // should be a DelimiterExpr
+  }
+
+  expr_type() { return 'function_call'; }
+
+  to_json() {
+    let json = super.to_json();
+    json.fn_expr = this.fn_expr.to_json();
+    json.args_expr = this.args_expr.to_json();
+    return json;
+  }
+
+  emit_latex(emitter) {
+    // The args_expr gets wrapped in an "empty" latex command
+    // (i.e. a set of braces).  f(x) becomes f{(x)}.
+    // This has the effect of tightening
+    // the spacing after f to better match normal function notation.
+    emitter.expr(this.fn_expr, 0);
+    emitter.grouped_expr(this.args_expr, 'force', 1);
+  }
+
+  has_subexpressions() { return true; }
+  subexpressions() { return [this.fn_expr, this.args_expr]; }
+
+  replace_subexpression(index, new_expr) {
+    return new FunctionCallExpr(
+      index === 0 ? new_expr : this.fn_expr,
+      index === 1 ? new_expr : this.args_expr);
+  }
+
+  as_editable_string() {
+    const fn_string = this.fn_expr.as_editable_string();
+    const args_string = this.args_expr.as_editable_string;
+    if(fn_string && args_string)
+      return [fn_string, args_string].join('');
+    else
+      return null;
+  }
+
+  dissolve() {
+    // TODO: maybe 'dissolve' the args_expr DelimiterExpr too
+    return this.subexpressions();
+  }
+
+  as_bold() {
+    return new FunctionCallExpr(
+      this.fn_expr.as_bold(),
+      this.args_expr.as_bold());
+  }
+
+  // Return an array of individual function arguments.
+  // Something like f(x+y,z-w) returns [x+y, z-w].
+  // TODO: maybe consider ';' as an argument separator as well as ','.
+  extract_argument_exprs() {
+    if(!this.args_expr.is_expr_type('delimiter'))
+      return [];  // shouldn't normally happen
+    const inner_args_expr = this.args_expr.inner_expr;
+    if(!inner_args_expr.is_expr_type('infix'))
+      return [inner_args_expr];  // single argument
+    // Break up the InfixExpr into pieces according to where the commas are.
+    // These pieces may be other InfixExprs, or something else, e.g.:
+    //   f(x+y,z) => [x+y, z] (only the first is an InfixExpr).
+    let argument_exprs = [];
+    let argument_expr = inner_args_expr.operand_exprs[0];
+    for(let i = 0; i < inner_args_expr.operator_exprs.length; i++) {
+      const operator_expr = inner_args_expr.operator_exprs[i];
+      if(operator_expr.is_expr_type('text') && operator_expr.text === ',') {
+        argument_exprs.push(argument_expr);
+        argument_expr = inner_args_expr.operand_exprs[i+1];
+      }
+      else
+        argument_expr = InfixExpr.combine_infix(
+          argument_expr, inner_args_expr.operand_exprs[i+1],
+          operator_expr);
+    }
+    argument_exprs.push(argument_expr);
+    return argument_exprs;
+  }
+
+  argument_count() {
+    return this.extract_argument_exprs().length;
+  }
+
+  evaluate(assignments) {
+    return null;
+  }
+}
+
+
 // Represents a postfix operation where the operator comes after the operand.
 // Currently this is only used for factorial and double-factorial notation.
 // Potentially this could be used for things like transpose and conjugate, but
@@ -1621,7 +1720,8 @@ class TextExpr extends Expr {
 // Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
 // If 'fused' is true, this will not be combined with other adjacent
 // sequences in Expr.combine_pair(), etc.  This can be used to group things
-// that functionally belong together like f(x), which matters for 'dissect' mode.
+// that functionally belong together like differentials 'dx', '\partial x',
+// which matters for 'dissect' mode.
 class SequenceExpr extends Expr {
   constructor(exprs, fused) {
     super();
@@ -1640,19 +1740,7 @@ class SequenceExpr extends Expr {
   }
 
   emit_latex(emitter) {
-    if(this.exprs.length === 2 && this.fused &&
-       this.exprs[1].is_expr_type('delimiter')) {
-      // Special case: Two-element "fused" SequenceExprs of the form
-      // [Expr, DelimiterExpr] automatically wrap the DelimiterExpr in an "empty"
-      // latex command (i.e., set of braces).
-      // For example: f(x) is [TextExpr('f'), DelimiterExpr('(', 'x', ')')]
-      // so this becomes f{(x)} instead of f(x).  This has the effect of tightening
-      // the spacing after f to better match normal function notation.
-      emitter.expr(this.exprs[0], 0);
-      emitter.grouped_expr(this.exprs[1], 'force', 1);
-    }
-    else
-      this.exprs.forEach((expr, index) => emitter.expr(expr, index));
+    this.exprs.forEach((expr, index) => emitter.expr(expr, index));
   }
 
   subexpressions() { return this.exprs; }
@@ -1666,10 +1754,6 @@ class SequenceExpr extends Expr {
 
   as_editable_string() {
     let pieces = this.exprs.map(expr => expr.as_editable_string());
-    // Special case: ['-', Expr]
-    if(pieces.length === 2 &&
-       this.exprs[0].is_expr_type('text') && this.exprs[0].text === '-')
-      pieces[0] = '-';  // just hack it into the list
     if(pieces.every(s => s !== null))
       return pieces.join('');
     else
@@ -1678,29 +1762,6 @@ class SequenceExpr extends Expr {
 
   dissolve() { return this.exprs; }
 
-  // Fused sequences of the form [f, args] where args is a DelimiterExpr
-  // are considered to represent function applications: f(x), f(x, y), etc.
-  // If this is the case, the number of arguments in the function call is
-  // returned (f(x,y,z) -> 3).  Otherwise, 0 is returned.
-  // TODO: maybe check for the degenerate case 'f()'.
-  // TODO: maybe consider ';' as an argument separator as well as ','.
-  analyze_function_application() {
-    if(this.fused && this.exprs.length === 2 &&
-       this.exprs[1].is_expr_type('delimiter')) {
-      // Looks like a function application; try to determine argument count
-      // by checking for an InfixExpr with ',' operators at the top level.
-      // NOTE: this doesn't count "parameter" style arguments like f(x | y).
-      const args_expr = this.exprs[1].inner_expr;
-      if(args_expr.is_expr_type('infix'))
-        return 1 + args_expr.operator_exprs.filter(
-          expr => expr.is_expr_type('command') && expr.command_name === ',');
-      else
-        return 1;  // no commas
-    }
-    else
-      return 0;
-  }
-
   as_bold() {
     return new SequenceExpr(
       this.exprs.map(expr => expr.as_bold()),
@@ -1708,17 +1769,7 @@ class SequenceExpr extends Expr {
   }
 
   evaluate(assignments) {
-    // Check for ['-', Expr] and ['+', Expr]
-    if(this.exprs.length >= 2 &&
-       this.exprs[0].is_expr_type('text')) {
-      let sign = null;
-      if(this.exprs[0].text === '+') sign = 1;
-      else if(this.exprs[0].text === '-') sign = -1;
-      if(sign !== null)
-        return sign * (new SequenceExpr(
-          this.exprs.slice(1), this.fused).evaluate(assignments));
-    }
-    // Consider anything else as implicit multiplications.
+    // Multiply all terms in the sequence together.
     let value = this.exprs[0].evaluate(assignments);
     if(value === null) return null;
     for(let i = 1; i < this.exprs.length; i++) {
@@ -1770,8 +1821,7 @@ class DelimiterExpr extends Expr {
 
   // expr is about to become the base of a SubscriptSuperscriptExpr.
   // The expression will be parenthesized if it is:
-  //   - any kind of InfixExpr
-  //   - a PrefixExpr, such as -x
+  //   - any kind of SequenceExpr, InfixExpr, PrefixExpr, or PostfixExpr
   //   - blank delimiters containing any kind of InfixExpr
   //   - any kind of SequenceExpr that is not a function application
   //     of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
@@ -1779,11 +1829,9 @@ class DelimiterExpr extends Expr {
   //   - a "primed" expression like f' (but not f'(x)).
   static parenthesize_for_power(expr, left_type, right_type) {
     const needs_parenthesization = (
-      // Any infix expression
-      expr.is_expr_type('infix') ||
-
-      // Any prefix expression (-x, etc)
-      expr.is_expr_type('prefix') ||
+      // Any sequence/infix/prefix/postfix expression
+      ['sequence', 'infix', 'prefix', 'postfix'
+      ].includes(expr.expr_type()) ||
 
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
@@ -1791,12 +1839,6 @@ class DelimiterExpr extends Expr {
        expr.left_type === '.' && expr.right_type === '.' &&
        expr.inner_expr.is_expr_type('infix')) ||
 
-      // Any SequenceExpr that is not [anything, DelimiterExpr]
-      // cf. SequenceExpr.emit_latex
-      (expr.is_expr_type('sequence') &&
-       !(expr.exprs.length === 2 &&
-         expr.exprs[1].is_expr_type('delimiter'))) ||
-        
       // \frac{x}{y}
       (expr.is_expr_type('command') &&
        expr.command_name === 'frac' &&
@@ -2514,7 +2556,7 @@ class ArrayExpr extends Expr {
 
 export {
   Expr, CommandExpr, FontExpr, InfixExpr,
-  PrefixExpr, PostfixExpr,
+  PrefixExpr, PostfixExpr, FunctionCallExpr,
   PlaceholderExpr, TextExpr, SequenceExpr,
   DelimiterExpr, SubscriptSuperscriptExpr,
   ArrayExpr

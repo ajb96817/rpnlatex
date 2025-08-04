@@ -74,19 +74,19 @@ const EditorKeymap = {
     'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x): same as [/][e]
     'Ctrl+i': "pop_to_document",
     'Ctrl+j': "extract_from_document",
-    'Ctrl+k': "infix \\,\\vert\\,;parenthesize;fuse",  // f(x|y): same as [/][k]
-    'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z): same as [/][K]
+    'Ctrl+k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f(x|y): same as [/][k]
+    'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K]
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
-    'Ctrl+o': "parenthesize;fuse",  // -> f(x): same as [/][o]
+    'Ctrl+o': "parenthesize;build_function_call",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
-    'Ctrl+r': "infix ,;parenthesize;fuse",  // -> f(x,y): same as [/][r]
-    'Ctrl+R': "infix ,;infix ,;parenthesize;fuse",  // f x y z -> f(x,y,z): same as [/][R]
+    'Ctrl+r': "infix ,;parenthesize;build_function_call",  // -> f(x,y): same as [/][r]
+    'Ctrl+R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z): same as [/][R]
     'Ctrl+s': "save_file",
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
     'Ctrl+w': "swap_floating_item",
-    'Ctrl+x': "push x;parenthesize;fuse",  // f -> f(x)
+    'Ctrl+x': "push x;parenthesize;build_function_call",  // f -> f(x)
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
@@ -389,41 +389,41 @@ const EditorKeymap = {
     'i': "mode integral_limits",
     'j': "mode integral_with_limits",
     //'J': "operator atop 2",  // not that useful
-    'k': "infix \\,\\vert\\,;parenthesize;fuse",  // f x y -> f(x|y)
-    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;fuse",  // f x y z -> f(x,y|z)
+    'k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y -> f(x|y)
+    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z)
     'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
     'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
-    'm': "parenthesize;push Im;typeface roman;swap;fuse",  // Im(x)
-    'M': "parenthesize;push Re;typeface roman;swap;fuse",  // Re(x)
+    'm': "parenthesize;push Im;typeface roman;swap;build_function_call",  // Im(x)
+    'M': "parenthesize;push Re;typeface roman;swap;build_function_call",  // Re(x)
     'n': "named_function ln",
     'N': "named_function log",
-    'o': "parenthesize;fuse",  // f x -> f(x)  "of" ('fuse' closes up the spacing after 'f')
+    'o': "parenthesize;build_function_call",  // f x -> f(x)  "[o]f"
     'O': "swap;operator overset 2",
-    'p': "parenthesize;push P;typeface blackboard;swap;fuse",  // P(X) (probability)
-    'P': "infix \\,\\vert\\,;parenthesize;push P;typeface blackboard;swap;fuse",  // P(y|x)
+    'p': "parenthesize;push P;typeface blackboard;swap;build_function_call",  // P(X) (probability)
+    'P': "infix \\,\\vert\\,;parenthesize;push P;typeface blackboard;swap;build_function_call",  // P(y|x)
     'q': "operator sqrt",
     'Q': "operator sqrt[3]",
-    'r': "infix ,;parenthesize;fuse",  // f x y -> f(x,y)
-    'R': "infix ,;infix ,;parenthesize;fuse",  // f x y z -> f(x,y,z)
+    'r': "infix ,;parenthesize;build_function_call",  // f x y -> f(x,y)
+    'R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z)
     's': "named_function sin",
     'S': "named_function sec",
     't': "named_function tan",
     'T': "named_function cot",
     'U': "swap;operator underset 2",
-    'v': "parenthesize [ ];push Var;typeface roman;swap;fuse",  // Var[x]
-    'V': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;fuse",  // Cov[x,y]
+    'v': "parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x]
+    'V': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x,y]
     'w': "swap_infix",
-    'x': "delimiters [ ];push E;typeface blackboard;swap;fuse",  // E[x] (expectation)
-    'X': "infix \\,\\vert\\,;delimiters [ ];push E;typeface blackboard;swap;fuse",  // E[y|x]
-    'y': "push E;typeface blackboard;swap;subscript;swap;delimiters [ ];fuse",  // E_x[y] (with subscript)
-    'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];fuse",  // E_x[z|y]
+    'x': "delimiters [ ];push E;typeface blackboard;swap;build_function_call",  // E[x] (expectation)
+    'X': "infix \\,\\vert\\,;delimiters [ ];push E;typeface blackboard;swap;build_function_call",  // E[y|x]
+    'y': "push E;typeface blackboard;swap;subscript;swap;delimiters [ ];build_function_call",  // E_x[y] (with subscript)
+    'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];build_function_call",  // E_x[z|y]
     'z': "dissolve",
     ' ': "swap;concat",
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "operator frac 2",
-    '[': "parenthesize [ ];fuse",  // f x -> f[x]
-    ']': "parenthesize \\{ \\};fuse",  // f x -> f{x}
+    '[': "parenthesize [ ];build_function_call",  // f x -> f[x]
+    ']': "parenthesize \\{ \\};build_function_call",  // f x -> f{x}
     '{': "swap;operator overbrace;swap;superscript",
     '}': "swap;operator underbrace;swap;subscript",
     '<': "extract_infix_side left",
@@ -832,17 +832,17 @@ const EditorKeymap = {
     'k': "typeface fraktur",
     'l': "push \\parallel;subscript",
     'm': "typeface typewriter",  // [m]onospace
-    'M': "push \\mp;swap;fuse",
+    'M': "prefix \\mp",
     'n': "apply_hat bar",
     'o': "operator overline",
     'p': "push \\perp;subscript",
-    'P': "push \\pm;swap;fuse",
-    'q': "push =;swap;fuse",
+    'P': "prefix \\pm",
+    'q': "prefix =",
     'r': "typeface roman",
     's': "typeface sans_serif",
     'S': "typeface sans_serif_italic",
-    't': "push \\to;swap;fuse",
-    'T': "push \\longrightarrow;swap;fuse",
+    't': "prefix \\to",
+    'T': "prefix \\longrightarrow",
     'u': "apply_hat breve",
     'U': "operator utilde",
     'v': "apply_hat vec",
@@ -860,7 +860,7 @@ const EditorKeymap = {
     "'": "autoparenthesize;prime",
     '*': "push *;superscript",
     '~': "apply_hat tilde",
-    '=': "push \\Rightarrow;swap;fuse",
+    '=': "prefix \\Rightarrow",
     '-': "autoparenthesize;negate",
     '+': "autoparenthesize;prefix +",
     '`': "push T;typeface roman;superscript",  // transpose

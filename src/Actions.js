@@ -5,7 +5,7 @@ import {
 } from './Models';
 
 import {
-  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr,
+  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr, FunctionCallExpr,
   PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
@@ -1019,13 +1019,20 @@ class InputContext {
   }
 
   // "Fuse" two expressions into a uncombinable SequenceExpr.
-  // This is used to create things like f(x) where it is to be treated
-  // as a unit and not merged into adjacent SequenceExprs.
-  // (This matters for purposes of selecting subexpressions in 'dissect' mode).
   do_fuse(stack) {
     const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
     const new_expr = new SequenceExpr([left_expr, right_expr], true);
     return new_stack.push_expr(new_expr);
+  }
+
+  // "Fuse" a function name and its argument tuple into a FunctionCallExpr.
+  // The arguments must already exist as a DelimiterExpr, e.g. (x,y).
+  do_build_function_call(stack) {
+    const [new_stack, fn_expr, args_expr] = stack.pop_exprs(2);
+    if(args_expr.is_expr_type('delimiter'))
+      return new_stack.push_expr(new FunctionCallExpr(fn_expr, args_expr));
+    else
+      return stack.type_error();
   }
 
   do_prefix(stack, operator_text) {
