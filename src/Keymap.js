@@ -205,6 +205,7 @@ const EditorKeymap = {
     'ArrowRight': "config stack_side right",
     'ArrowUp': "config stack_side top",
     'ArrowDown': "config stack_side bottom",
+    'C': "config toggle_hide_mouse_cursor",
     'E': "config eink_mode",
     'f': "fullscreen on",
     'F': "fullscreen off",

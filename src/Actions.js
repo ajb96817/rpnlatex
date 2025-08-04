@@ -1601,7 +1601,13 @@ class InputContext {
       break;
     case 'toggle_mode_indicator':
       settings.show_mode_indicator = !settings.show_mode_indicator;
-      this.notify("Mode indicator " + (settings.show_mode_indicator ? "enabled" : "disabled"));
+      this.notify("Mode indicator " +
+                  (settings.show_mode_indicator ? "enabled" : "disabled"));
+      break;
+    case 'toggle_hide_mouse_cursor':
+      settings.hide_mouse_cursor = !settings.hide_mouse_cursor;
+      this.notify("Mouse cursor now " +
+                  (settings.hide_mouse_cursor ? "hidden" : "visible"));
       break;
     case 'stack_side':
       layout.stack_side = value;

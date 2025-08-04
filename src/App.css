@@ -21,6 +21,7 @@ body.inverse_video { filter: invert(100%); }
 body.sepia { filter: sepia(15%) brightness(95%); }
 body.sepia #stack_panel { box-shadow: inset 0 0 1em 0 #ccc; }
 body.sepia #document_panel { box-shadow: inset 0 0 1em 0 #bbb; }
+body.hide_mouse_cursor { cursor: none; }
 
 #root {
   width: 100%;
@@ -184,8 +185,14 @@ div.tag_string {
 
 #panel_layout { height: 100%; }
 
-div.panel { background-color: #f8f8f8; }  /* this ends up being the stack panel color */
-body.sepia div.panel { background-color: #f0f0f0; /* for better contrast against document panel */ }
+div.panel {
+  /* This ends up being the stack panel color. */
+  background-color: #f8f8f8;
+}  
+body.sepia div.panel {
+  /* For better contrast against document panel. */
+  background-color: #f0f0f0;
+}
 
 #stack_panel.errorflash {
   animation-name: errorflash_stack;

@@ -68,6 +68,15 @@ const algebrite_function_translations = [
   ['log_{10}', 'log10']  // not yet implemented in the editor
 ];
 
+function translate_function_name(f, to_algebrite) {
+  const match = algebrite_function_translations.find(
+    pair => pair[to_algebrite ? 0 : 1] === f);
+  if(match)
+    return match[to_algebrite ? 1 : 0];
+  else return f;
+}
+
+
 // Check if a variable name is acceptable by Algebrite.
 function is_valid_variable_name(s, allow_initial_digit) {
   const regex = allow_initial_digit ?
@@ -75,6 +84,7 @@ function is_valid_variable_name(s, allow_initial_digit) {
         /^[a-zA-Z][a-zA-Z0-9_]*$/g;
   return s.match(regex) != null;
 }
+
 
 // If possible, convert an Expr to the corresponding Algebrite
 // variable name.  Greek letters and subscripted variables are
@@ -124,14 +134,6 @@ function text_or_command_as_variable_name(expr, allow_initial_digit) {
 
 
 class AlgebriteInterface {
-  static translate_function_name(f, to_algebrite) {
-    const match = algebrite_function_translations.find(
-      pair => pair[to_algebrite ? 0 : 1] === f);
-    if(match)
-      return match[to_algebrite ? 1 : 0];
-    else return f;
-  }
-  
   debug_print_list(p) {
     return new AlgebriteToExpr().print_list(p);
   }
@@ -185,26 +187,18 @@ class AlgebriteInterface {
 // Alegbrite-compatible input syntax.
 class AlgebriteNode {}
 
-// '-3.4', '2', etc
+// '2', '(-3.4)', etc.
+// If negative, it's expected to be enclosed by parentheses.
+// Usually, negative numbers will be represented as Prefix('-', '123'),
+// not a literal '-123', but there are some exceptions.
+// Fractions like '2/3' are also allowed here.
 class AlgebriteNumber extends AlgebriteNode {
   constructor(value_string) {
     super();
     this.value_string = value_string;
   }
 
-  is_negative() { return this.value_string.startsWith('-'); }
-
-  emit(emitter) {
-    // NOTE: Usually, negative numbers will be represented as Prefix('-', '123'),
-    // not a literal '-123', but there are some exceptions.
-    if(this.is_negative()) {
-      emitter.emit('(');
-      emitter.emit(this.value_string);
-      emitter.emit(')');
-    }
-    else
-      emitter.emit(this.value_string);
-  }
+  emit(emitter) { emitter.emit(this.value_string); }
 }
 
 // Contains a vector or matrix of other AlgebriteNodes.
@@ -251,10 +245,10 @@ class AlgebriteVariable extends AlgebriteNode {
     this.name = name;
   }
 
-  emit(emitter) {emitter.emit(this.name); }
+  emit(emitter) { emitter.emit(this.name); }
 }
 
-// functionname(arg1, ...)
+// fn_name(arg1, ...)
 class AlgebriteCall extends AlgebriteNode {
   constructor(fn_name, arg_nodes) {
     super();
@@ -479,8 +473,7 @@ class ExprToAlgebrite {
       command_name = expr.command_name;
     }
     // Translate ln -> log, etc.
-    const algebrite_command =
-          AlgebriteInterface.translate_function_name(command_name, true);
+    const algebrite_command = translate_function_name(command_name, true);
     if(command_name === 'frac' && nargs === 2) {
       // Reuse the InfixExpr logic to convert this into a
       // node like: multiply(numer, reciprocal(denom)).
@@ -496,7 +489,7 @@ class ExprToAlgebrite {
         return new AlgebriteCall(
           'power', [
             this.expr_to_node(args[0]),
-            new AlgebriteCall('reciprocal', [new AlgebriteNumber(expr.options)])]);
+            new AlgebriteNumber('1/' + expr.options)]);
       }
       else
         return new AlgebriteCall('sqrt', [this.expr_to_node(args[0])]);
@@ -735,9 +728,7 @@ class AlgebriteToExpr {
       return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
     else if(allowed_algebrite_unary_functions.has(f) && args.length === 1) {
       // "Built-in" unary LaTeX command like \sin{x}.
-      return new CommandExpr(
-        AlgebriteInterface.translate_function_name(f, false),
-        [arg_exprs[0]]);
+      return new CommandExpr(translate_function_name(f, false), [arg_exprs[0]]);
     }
     else {
       // Anything else becomes f(x,y,z).

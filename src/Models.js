@@ -53,6 +53,7 @@ class Settings {
       'popup_mode',
       'layout',
       'show_mode_indicator',
+      'hide_mouse_cursor',
       'autoparenthesize'
     ];
   }
@@ -64,6 +65,7 @@ class Settings {
     this.last_opened_filename = null;
     this.popup_mode = null;  // null, 'help', 'files'
     this.show_mode_indicator = true;
+    this.hide_mouse_cursor = false;
     this.autoparenthesize = true;
     this.layout = this.default_layout();
   }

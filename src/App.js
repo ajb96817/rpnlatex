@@ -158,6 +158,7 @@ class App extends React.Component {
     if(settings.filter === 'inverse_video') body_classes.push('inverse_video');
     if(settings.filter === 'sepia') body_classes.push('sepia');
     if(settings.eink_mode) body_classes.push('eink_mode');
+    if(settings.hide_mouse_cursor) body_classes.push('hide_mouse_cursor');
     document.getElementById('body').className = body_classes.join(' ');
 
     /* Set up stack position classes.  Currently these are only used to
