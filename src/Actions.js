@@ -781,7 +781,7 @@ class InputContext {
         is_roman === 'true' ? FontExpr.roman_text('d') : new TextExpr('d'),
         base_expr);
       if(is_negated)
-        d_expr = Expr.combine_pair(new TextExpr('-'), d_expr);
+        d_expr = PrefixExpr.unary_minus(d_expr);
       return d_expr;
     });
     if(ellipses === 'true') {

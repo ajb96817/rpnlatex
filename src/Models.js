@@ -1541,9 +1541,7 @@ class TextItemExprElement extends TextItemElement {
     if(export_mode) {
       // When "exporting", we're not in display-math mode (i.e. not within $$ ... $$).
       // So embedded Exprs need to explicitly enter inline-math mode ($ ... $).
-      return [
-        '$', this.expr.to_latex(null, true), '$'
-      ].join('');
+      return ['$', this.expr.to_latex(null, true), '$'].join('');
     }
     else {
       // In "display" mode, we're implicitly in math mode because it's being rendered

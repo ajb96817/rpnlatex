@@ -58,7 +58,6 @@ const EditorKeymap = {
     "\"": "start_text_entry text_entry",
     '|': "mode array",
     '_': "start_dissect_mode",
-    //'#': "mode evaluate",
     '#': "mode algebrite",
     '$': "mode config",
     '?': "toggle_popup help",
@@ -983,13 +982,13 @@ const EditorKeymap = {
     'T': "dissect_copy_selection trim"
   },
 
-  // [#] prefix: evaluate mode
-  evaluate: {
-    '#': "push \\#",
-    '=': "evaluate_to_equation false",
-    'Enter': "evaluate_to_equation true",
-    '|': "evaluate_with_variable_substitution"
-  },
+  // // [#] prefix: evaluate mode
+  // evaluate: {
+  //   '#': "push \\#",
+  //   '=': "evaluate_to_equation false",
+  //   'Enter': "evaluate_to_equation true",
+  //   '|': "evaluate_with_variable_substitution"
+  // },
 
   // [#] prefix: symbolic algebra mode
   algebrite: {
@@ -1004,6 +1003,8 @@ const EditorKeymap = {
     'F': "algebrite factor 2",
     'i': "algebrite integral 1 1",
     'I': "algebrite integral 2",
+    'j': "algebrite defint 3 1",
+    'J': "algebrite defint 4",
     'k': "algebrite circexp",  // TODO: better keybinding
     'p': "mode algebrite_polynomial",
     'P': "algebrite polar",

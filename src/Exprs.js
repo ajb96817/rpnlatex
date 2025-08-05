@@ -397,11 +397,11 @@ class Expr {
     // Try golden ratio-like factors
     result ||= this._try_rationalize_with_factor(
       value, 1+Math.sqrt(5),
-      new InfixExpr([make_text(1), make_sqrt(make_text(5))], [new TextExpr('+')]),
+      InfixExpr.combine_infix(make_text(1), make_sqrt(TextExpr.integer(5)), new TextExpr('+')),
       null);
     result ||= this._try_rationalize_with_factor(
       value, Math.sqrt(5)-1,  // NOTE: keep positive sign, 1-sqrt(5) is negative
-      new InfixExpr([make_sqrt(make_text(5)), make_text(1)], [new TextExpr('-')]),
+      InfixExpr.combine_infix(make_sqrt(TextExpr.integer(5)), make_text(1), new TextExpr('-')),
       null);
     // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
     // Finally, rationalize the number itself with no factors
@@ -435,12 +435,10 @@ class Expr {
         if(numer_factor_expr) {
           if(final_numer === 1) {
             if(sign < 0)
-              final_expr = Expr.combine_pair(new TextExpr('-'), numer_factor_expr);
-            else
-              final_expr = numer_factor_expr;
+              final_expr = PrefixExpr.unary_minus(numer_factor_expr);
+            else final_expr = numer_factor_expr;
           }
-          else
-            final_expr = Expr.combine_pair(base_expr, numer_factor_expr);
+          else final_expr = Expr.combine_pair(base_expr, numer_factor_expr);
         }
         else if(denom_factor_expr)
           final_expr = CommandExpr.frac(base_expr, denom_factor_expr);
@@ -461,7 +459,7 @@ class Expr {
           denom_expr = Expr.combine_pair(denom_expr, denom_factor_expr);
         let frac_expr = CommandExpr.frac(numer_expr, denom_expr);
         if(sign < 0)
-          final_expr = Expr.combine_pair(new TextExpr('-'), frac_expr);
+          final_expr = PrefixExpr.unary_minus(frac_expr);
         else final_expr = frac_expr;
       }
       return final_expr;
@@ -507,7 +505,7 @@ class Expr {
     else if(Math.abs(x) > 1e12)
       return this._float_to_expr(x);  // use scientific notation
     else
-      return new TextExpr(Math.round(x).toString());
+      return TextExpr.integer(Math.round(x));
   }
 
   _float_to_expr(x) {
@@ -522,15 +520,18 @@ class Expr {
       else {
         // Here, x is known to have a "reasonable" exponent so
         // that toString() will not output scientific notation.
-        return new TextExpr(x.toString());
+        if(x > 0)
+          return new TextExpr(x.toString());
+        else
+          return PrefixExpr.unary_minus((-x).toString());
       }
     }
     else {
       const infty_expr = new CommandExpr('infty');
       if(x > 0)
         return infty_expr;
-      else  // create 'fused' -\infty sequence
-        return new SequenceExpr([new TextExpr('-'), infty_expr], true);
+      else
+        return PrefixExpr.unary_minus(infty_expr);
     }
   }
 
@@ -552,7 +553,7 @@ class Expr {
     return InfixExpr.combine_infix(
       new TextExpr(coefficient_text),
       new SubscriptSuperscriptExpr(
-        new TextExpr('10'), null, new TextExpr(exponent_text)),
+        TextExpr.integer(10), null, new TextExpr(exponent_text)),
       new CommandExpr('times'));
   }
 }
@@ -1441,6 +1442,7 @@ class PrefixExpr extends Expr {
 
 // Represents a function call like: f(x,y,z)
 // Here fn_expr = f, args_expr = (x,y,z).
+// Note that "operator-style" functions like 'sin x' use CommandExpr, not this.
 class FunctionCallExpr extends Expr {
   constructor(fn_expr, args_expr) {
     super();

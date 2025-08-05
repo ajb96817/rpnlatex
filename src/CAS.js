@@ -1,4 +1,27 @@
 
+// Interface to Algebrite: http://algebrite.org/
+//
+// Algebrite uses Lisp-like data structures internally, so most of the code
+// here is involved with converting expressions between it and the editor.
+//
+// - Conversion of Expr structures into Algebrite's input syntax is handled
+//   by ExprToAlgebrite.  Expr trees are turned into an intermediate tree
+//   of AlgebriteNode objects and from there generate nested function calls
+//   like x^2+3 -> 'add(power(x, 2), 3)'.  Since everything is function calls,
+//   the Algebrite infix math syntax is hardly used.
+//
+// - Algebrite returns list structures that are converted back into
+//   Expr nodes by AlgebriteToExpr.  The Expr results are reformatted
+//   appropriately to improve readability: f'(x) instead of d(f(x), x),
+//   \sqrt{x} instead of x^(1/2), etc.
+//
+// - Since Algebrite only accepts alphanumeric symbol names, things like
+//   Greek letters, subscripted variables, and bold symbols have to be
+//   translated back and forth.  For example Expr(\alpha_0) becomes
+//   'alpha_0' in Algebrite, a FontExpr(x, bold=true) becomes 'bold_x', etc.
+//
+// - The overall exposed interface to this is in AlgebriteInterface.
+
 
 import {
   // TODO: may not need all these
@@ -60,7 +83,8 @@ const algebrite_function_translations = [
   ['sech^{-1}', 'arcsech'],
   ['csch^{-1}', 'arccsch'],
   ['coth^{-1}', 'arccoth'],
-  ['Tr', 'contract'],
+  ['Tr', 'contract'  /* TODO: 'trace' instead */],
+  // TODO: real(), imag()
   ['binom', 'choose'],
   ['ln', 'log'],
   ['log_2', 'log2'],
@@ -69,7 +93,7 @@ const algebrite_function_translations = [
 ];
 
 // 'to_algebrite'=true converts from editor commands to Algebrite
-// (binom->choose), false is the inverse.
+// (e.g. binom->choose); false is the inverse.
 function translate_function_name(f, to_algebrite) {
   const match = algebrite_function_translations.find(
     pair => pair[to_algebrite ? 0 : 1] === f);
@@ -86,8 +110,8 @@ function is_valid_variable_name(s, allow_initial_digit) {
 
 // If possible, convert an Expr to the corresponding Algebrite
 // variable name.  Greek letters and subscripted variables are
-// allowed.  For example: x_0, f_alpha.  Bolded expressions are
-// changed from, e.g. 'x_0' -> 'bold_x_0'.
+// allowed.  For example: x_0, f_alpha.  Bolded variables are
+// handled as, e.g. 'x_0' -> 'bold_x_0'.
 //
 // Certain "reserved" names are changed so they don't conflict.
 // For example, Gamma() is a function in Algebrite so a \Gamma
@@ -112,7 +136,8 @@ function expr_to_variable_name(expr, ignore_superscript=false,
     return unbolded_name ? ('bold_' + unbolded_name) : null;
   }
 
-  // Remove roman font if present.
+  // Remove (ignore) roman font if present.
+  // Other fonts like sans-serif are considered unconvertable.
   if(expr.is_expr_type('font') && expr.typeface === 'roman')
     expr = expr.expr;
 
@@ -197,14 +222,14 @@ function _variable_name_to_expr(pieces, allow_subscript) {
     // Algebrite uses '~' for 'e' (natural log base).
     // Convert it to the usual roman-font 'e'.
     // NOTE: Algebrite only gives '~' as output, but doesn't accept
-    // it in input: ~ is not allowed in variable names
+    // it in input: ~ is not allowed in variable names.
     base_expr = new FontExpr(new TextExpr('e'), 'roman');
   }
   else if(latex_letter_commands.has(base_name))
     base_expr = new CommandExpr(base_name);  // Greek letter, etc.
   else if(base_name.length === 1)
     base_expr = new TextExpr(base_name);  // one-letter variable
-  else // longer-than-one variables are rendered in Roman font
+  else  // longer-than-one variables are rendered in roman font
     base_expr = new FontExpr(new TextExpr(base_name), 'roman');
   if(bold)
     base_expr = base_expr.as_bold();
@@ -214,32 +239,51 @@ function _variable_name_to_expr(pieces, allow_subscript) {
   return base_expr;
 }
 
+
+// Scan an expression and try to find the variable to use for the
+// "implicit variable" Algebrite commands like [#][d] (derivative).
+// If no variable is found, or if there's more than one like in
+// sin(x*y) and therefore ambiguous, return null.
 function guess_variable_in_expr(expr) {
   let found_set = new Set();
   _guess_variable_in_expr(expr, found_set);
   if(found_set.size === 1)
     return [...found_set][0];
-  else return 'x'; // maybe should return null
+  else return null;
 }
 function _guess_variable_in_expr(expr, found_set) {
   const variable_name = expr_to_variable_name(expr, true);
   if(variable_name)
     found_set.add(variable_name);
-  let subexpressions = null;
+  // We don't necessarily want to look for variables in every possible
+  // subexpression; for example with x_a, the variable should be x_a as
+  // a whole, even though it has the subexpressions 'x' and 'a'.
+  let subexpressions = [];
   if(expr.is_expr_type('function_call'))
-    subexpressions = [expr.args_expr];
+    subexpressions.push(expr.args_expr);  // don't look at the function name itself
   else if(expr.is_expr_type('subscriptsuperscript')) {
-    let scratch = [];
-    if(expr.superscript_expr) scratch.push(expr.superscript_expr);
-    if(!expr.subscript_expr) scratch.push(expr.base_expr);
-    subexpressions = scratch;
+    // Never recurse into subscripts, and if there is a subscript, don't
+    // recurse into the base expression itself.  Always check superscripts though.
+    if(expr.superscript_expr)
+      subexpressions.push(expr.superscript_expr);
+    if(!expr.subscript_expr)
+      subexpressions.push(expr.base_expr);
   }
-  else subexpressions = expr.subexpressions();
+  else if(expr.is_expr_type('infix'))
+    subexpressions = expr.operand_exprs;  // don't look at the operators, only operands
+  else if(expr.is_expr_type('font')) {
+    // Don't look inside FontExprs; if it's \bold{x} we want 'bold_x',
+    // not the 'x' inside.  This will miss variables inside things like
+    // a bolded (x+y), however.
+  }
+  else
+    subexpressions = expr.subexpressions();
   subexpressions.forEach(
     subexpr => _guess_variable_in_expr(subexpr, found_set));
 }
 
 
+// This class is the only thing exported from this module.
 class AlgebriteInterface {
   debug_print_list(p) {
     return new AlgebriteToExpr().print_list(p);
@@ -328,6 +372,7 @@ class AlgebriteVariable extends AlgebriteNode {
 }
 
 // fn_name(arg1, ...)
+// Even things like addition and multiplication use this.
 class AlgebriteCall extends AlgebriteNode {
   constructor(fn_name, arg_nodes) {
     super();
@@ -434,6 +479,8 @@ class ExprToAlgebrite {
   }
 
   font_expr_to_node(expr) {
+    // If this is a valid bolded variable name, use that, otherwise
+    // ignore the font and convert the base expression.
     const variable_name = expr_to_variable_name(expr);
     if(variable_name)
       return new AlgebriteVariable(variable_name);
@@ -441,6 +488,9 @@ class ExprToAlgebrite {
       return this.expr_to_node(expr.expr);
   }
 
+  // InfixExprs are flat lists of operators and operands, so we have
+  // to "parse" the terms and take into account operator precedence.
+  // (x+y*z -> x+(y*z)).
   infix_expr_to_node(infix_expr) {
     // Gather operator precedence, etc, for all infix operators, and
     // check that all are supported in Algebrite.
@@ -448,8 +498,8 @@ class ExprToAlgebrite {
       operator_expr => this._infix_operator_expr_info(operator_expr) ||
         this.error('Invalid binary operator', operator_expr));
     const operand_exprs = infix_expr.operand_exprs;
-    let node_stack = [this.expr_to_node(operand_exprs[0])];
-    let operator_stack = [];  // stores operator info structures
+    const node_stack = [this.expr_to_node(operand_exprs[0])];
+    const operator_stack = [];  // stores operator info structures
     for(let i = 0; i < operator_infos.length; i++) {
       const operator_info = operator_infos[i];
       while(operator_stack.length > 0 &&
@@ -473,7 +523,8 @@ class ExprToAlgebrite {
       op_name = expr.command_name;  // times, cdot, etc
     if(op_name)
       return this._infix_op_info(op_name);
-    else return null;
+    else
+      return null;
   }
 
   // Take an operator and two nodes off the stacks, combining
@@ -532,19 +583,20 @@ class ExprToAlgebrite {
     const arg_count = arg_exprs.length;
     if(arg_count === 0)
       return this.error('Malformed function call', expr);
+    const variable_expr = arg_exprs[0];
     // Check for f'(x), f''(x).
     // Here, 'x' must be a simple variable name; f'(x^2) not allowed.
     const prime_count = fn_expr.is_expr_type('subscriptsuperscript') ?
           fn_expr.count_primes() : 0;
     if(arg_count === 1 && prime_count > 0 &&
-       expr_to_variable_name(arg_exprs[0])) {
+       expr_to_variable_name(variable_expr)) {
       // Remove one prime from the FunctionCallExpr, using that as the argument
       // to a d() call.  If there is more than one prime, this will
       // recurse until we arrive at f(x).  f''(x) -> d(d(f(x),x),x)
       return new AlgebriteCall('d', [
         this.expr_to_node(
           new FunctionCallExpr(fn_expr.remove_prime(), expr.args_expr)),
-        this.expr_to_node(arg_exprs[0]) /* the differentiation variable */]);
+        this.expr_to_node(variable_expr)]);
     }
     // The usual case (not f'(x)):
     const fn_name = expr_to_variable_name(fn_expr);
@@ -595,19 +647,15 @@ class ExprToAlgebrite {
       command_name = expr.command_name;
     }
 
-    if(command_name === 'frac' && nargs === 2) {
-      // Reuse the InfixExpr logic to convert this into a
-      // node like: multiply(numer, reciprocal(denom)).
-      // NOTE: if InfixExpr is ever changed to automatically merge other
-      // InfixExprs into it automatically, this logic will need to be changed
-      // (the full-size "fraction bar" is always the lowest possible precedence).
-      return this.expr_to_node(
-        new InfixExpr(expr.operand_exprs, [new TextExpr('/')]));
-    }
+    if(command_name === 'frac' && nargs === 2)
+      return new AlgebriteCall(
+        'multiply', [
+          this.expr_to_node(args[0]),
+          new AlgebriteCall('reciprocal', [this.expr_to_node(args[1])])]);
 
     if(command_name === 'sqrt' && nargs === 1) {
       if(expr.options) {
-        // sqrt[3], etc.
+        // sqrt[3], etc.  The option is assumed to be valid (positive integer).
         return new AlgebriteCall(
           'power', [
             this.expr_to_node(args[0]),
@@ -627,15 +675,13 @@ class ExprToAlgebrite {
     // having the command_name be a literal 'sin^2'.  This needs to be translated
     // as sin^2(x) -> sin(x)^2 for Algebrite.  Also, reciprocal trig functions
     // need to be translated as csc^2(x) -> sin(x)^(-2).
-    const squared_trig_substitutions = [
+    const match = [
       // [rpnlatex, algebrite_function, power]
-      ['sin^2', 'sin', 2],       ['cos^2', 'cos', 2],       ['tan^2', 'tan', 2],
-      ['sinh^2', 'sinh', 2],     ['cosh^2', 'cosh', 2],     ['tanh^2', 'tanh', 2],
-      ['sec^2', 'cos', -2],      ['csc^2', 'sin', -2],      ['cot^2', 'tan', -2],
-      ['sech^2', 'cosh', -2],    ['csch^2', 'sinh', -2],    ['coth^2', 'tanh', -2]
-    ];
-    const match = squared_trig_substitutions.find(
-      pair => command_name === pair[0]);
+      ['sin^2', 'sin', 2],    ['cos^2', 'cos', 2],    ['tan^2', 'tan', 2],
+      ['sinh^2', 'sinh', 2],  ['cosh^2', 'cosh', 2],  ['tanh^2', 'tanh', 2],
+      ['sec^2', 'cos', -2],   ['csc^2', 'sin', -2],   ['cot^2', 'tan', -2],
+      ['sech^2', 'cosh', -2], ['csch^2', 'sinh', -2], ['coth^2', 'tanh', -2]
+    ].find(pair => command_name === pair[0]);
     if(match && nargs === 1)
       return new AlgebriteCall('power', [
         new AlgebriteCall(match[1], [this.expr_to_node(args[0])]),
@@ -655,8 +701,6 @@ class ExprToAlgebrite {
   subscriptsuperscript_expr_to_node(expr) {
     const [base_expr, subscript_expr, superscript_expr] =
           [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
-
-    // TODO: check for integrals and summations
     
     // Check for subscripted variable names (x_1).
     // A possible superscript becomes the exponent.
@@ -709,11 +753,12 @@ class ExprToAlgebrite {
     return this.expr_to_node(base_expr);
   }
 
-  // NOTE: Adjacent matrix literals are converted into inner(M1, M2, ...)
+  // SequenceExprs are assumed to be implicit multiplications.
+  // Adjacent matrix literals are converted into inner(M1, M2, ...)
   // calls here without needing an explicit \cdot.
   sequence_expr_to_node(expr) {
     const exprs = expr.exprs;
-    let multiply_arg_nodes = [];  // arguments to a multiply(...) call
+    const term_nodes = [];  // arguments to a multiply(...) call
     for(let i = 0; i < exprs.length; i++) {
       // Look for chains of 2 or more adjacent matrices;
       // convert to inner(M1, M2, ...).
@@ -723,7 +768,7 @@ class ExprToAlgebrite {
           j++, matrix_count++)
         ;
       if(matrix_count >= 2) {
-        multiply_arg_nodes.push(
+        term_nodes.push(
           new AlgebriteCall(
             'inner',
             exprs.slice(i, i+matrix_count).map(
@@ -731,12 +776,12 @@ class ExprToAlgebrite {
         i += matrix_count-1;
       }
       else  // ordinary term
-        multiply_arg_nodes.push(this.expr_to_node(exprs[i]));
+        term_nodes.push(this.expr_to_node(exprs[i]));
     }
-    if(multiply_arg_nodes.length === 1)  // e.g. nothing but inner(M1, M2, ...)
-      return multiply_arg_nodes[0];
+    if(term_nodes.length === 1)  // e.g. nothing but inner(M1, M2, ...)
+      return term_nodes[0];
     else
-      return new AlgebriteCall('multiply', multiply_arg_nodes);
+      return new AlgebriteCall('multiply', term_nodes);
   }
 
   array_expr_to_node(expr) {
@@ -744,7 +789,14 @@ class ExprToAlgebrite {
       return this.error('Invalid matrix type', expr);
     const element_nodes = expr.element_exprs.map(row_exprs =>
       row_exprs.map(element_expr => this.expr_to_node(element_expr)));
-    return new AlgebriteTensor(expr.row_count, expr.column_count, element_nodes);
+    if(expr.row_count === 1 && expr.column_count === 1) {
+      // Decay 1x1 matrices into a scalar.
+      // This is to help avoid an Algebrite bug with inverting
+      // 1x1 symbolic matrices.
+      return element_nodes[0][0];
+    }
+    return new AlgebriteTensor(
+      expr.row_count, expr.column_count, element_nodes);
   }
 }
 
@@ -804,11 +856,13 @@ class AlgebriteToExpr {
     return elements;
   }
 
-  // debug utility
+  // Debug utility: cons list to string.
   print_list(p) {
     this.pieces = [];
     this._print_list(p);
-    return this.pieces.join('');
+    const result = this.pieces.join('');
+    this.pieces = null;
+    return result;
   }
   _print_list(p) {
     switch(this.utype(p)) {
@@ -840,6 +894,7 @@ class AlgebriteToExpr {
 
   functioncall_to_expr(f, arg_list) {
     const args = this.unpack_list(arg_list);
+    const nargs = args.length;
     const arg_exprs = args.map(arg => this.to_expr(arg));
 
     // Check "built-in" unary LaTeX command like \sin{x}.
@@ -855,16 +910,20 @@ class AlgebriteToExpr {
     case 'power':
       return this.power_to_expr(args);
     case 'derivative':
-      if(args.length === 2)  // should always be true
+      if(nargs === 2)
         return this.derivative_to_expr(...args);
     case 'factorial':
-      return this.factorial_to_expr(args[0]);
+      if(nargs === 1)
+        return this.factorial_to_expr(args[0]);
     case 'ceil':
-      return new DelimiterExpr("\\lceil", "\\rceil", arg_exprs[0]);
+      if(nargs === 1)
+        return new DelimiterExpr("\\lceil", "\\rceil", arg_exprs[0]);
     case 'floor':
-      return new DelimiterExpr("\\lfloor", "\\rfloor", arg_exprs[0]);
+      if(nargs === 1)
+        return new DelimiterExpr("\\lfloor", "\\rfloor", arg_exprs[0]);
     case 'abs':
-      return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
+      if(nargs === 1)
+        return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
     }
     
     // Anything else becomes f(x,y,z).
@@ -892,10 +951,10 @@ class AlgebriteToExpr {
 
   // (multiply x y z ...)
   // Algebrite uses negative powers a lot (x^(-1) instead of 1/x),
-  // so try here to convert them to more readable \frac{}{} commands instead.
+  // so try here to convert them to more readable \frac{}{} commands.
   multiply_to_expr(factors) {
-    let numerator_exprs = [];
-    let denominator_exprs = [];
+    const numerator_exprs = [];
+    const denominator_exprs = [];
     let unary_minus = false;  // set to true if the overall sign is negative
     // Scan through all the factors, splitting them into lists of Exprs
     // for the numerator and denominator of a (potential) \frac.
@@ -926,8 +985,8 @@ class AlgebriteToExpr {
         if(!exponent_term)  // shouldn't happen: (power x) with no 2nd arg
           numerator_exprs.push(base_term);
         else if(exponent_term && this.utype(exponent_term) === 'num') {
-          // x^n or x^(n/m) term.  Negative powers go into the denominator and
-          // everything else goes into the numerator.
+          // x^n or x^(n/m) term.  Negative powers go into the denominator,
+          // positive goes into the numerator.
           if(exponent_term.q.a.isNegative())
             denominator_exprs.push(
               this.power_to_expr(power_terms, true /* negate_exponent */));

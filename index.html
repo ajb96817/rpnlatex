@@ -2114,6 +2114,20 @@
           </code>.
         </li>
         <li>
+          <span class="keybinding">j</span>
+          Attempt to calculate a definite integral:
+          <code>f\enspace a\enspace b \to \int_a^b f{(x)}\,dx</code>.
+          The integration bounds can be symbolic expressions or rational numbers.
+          Currently, numerical integration (quadrature) is not supported,
+          and the integration bounds must be finite.
+          <code>\displaystyle{
+            \tan x \enspace 0 \enspace \pi/3 \to \ln 2}
+          </code>.
+          <span class="keybinding">J</span>
+          allows you to specify the integration variable explicitly:
+          <code>f\enspace z\enspace a\enspace b \to \int_a^b f{(z)}\,dz</code>.
+        </li>
+        <li>
           <span class="keybinding">t</span> and <span class="keybinding">T</span>
           Expand a function in Taylor series.  Lowercase <span class="keybinding">t</span>
           performs a default expansion about <code>x=0</code> to order 7:
