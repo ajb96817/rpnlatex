@@ -997,12 +997,12 @@ const EditorKeymap = {
     'A': "algebrite arg",
     'c': "algebrite erfc",
     'C': "algebrite expcos",
-    'd': "push x;algebrite derivative 2",
+    'd': "algebrite derivative 1 1",
     'D': "algebrite derivative 2",
     'e': "algebrite erf",
     'f': "algebrite factor 1 1",
     'F': "algebrite factor 2",
-    'i': "push x;algebrite integral 2",
+    'i': "algebrite integral 1 1",
     'I': "algebrite integral 2",
     'k': "algebrite circexp",  // TODO: better keybinding
     'p': "mode algebrite_polynomial",
@@ -1014,11 +1014,11 @@ const EditorKeymap = {
     't': "push x;push 7;push 0;algebrite taylor 4",
     'T': "algebrite taylor 4",
     'v': "evaluate_to_equation false",  // internal evaluate
-    'x': "algebrite expand",  // guess the variable
+    'x': "algebrite expand 1 1",
     'X': "algebrite expand 2",
-    'y': "push x;algebrite nroots 2",
+    'y': "algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]
     'Y': "algebrite nroots 2",
-    'z': "push x;algebrite roots 2", // z=zeroes
+    'z': "algebrite roots 1 1", // z=zeroes; TODO: display guessed variable
     'Z': "algebrite roots 2",
     '=': "algebrite float",
     '*': "algebrite conj"

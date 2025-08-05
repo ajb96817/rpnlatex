@@ -220,19 +220,19 @@ function guess_variable_in_expr(expr) {
   else return 'x'; // maybe should return null
 }
 function _guess_variable_in_expr(expr, found_set) {
-  const variable_name = expr_to_variable_name(expr);
+  const variable_name = expr_to_variable_name(expr, true);
   if(variable_name)
     found_set.add(variable_name);
   let subexpressions = null;
   if(expr.is_expr_type('function_call'))
     subexpressions = [expr.args_expr];
   else if(expr.is_expr_type('subscriptsuperscript')) {
-    if(expr.subscript_expr)
-      subexpressions = expr.superscript_expr ? [expr.superscript_expr] : [];
-    else subexpressions = expr.subexpressions();
+    let scratch = [];
+    if(expr.superscript_expr) scratch.push(expr.superscript_expr);
+    if(!expr.subscript_expr) scratch.push(expr.base_expr);
+    subexpressions = scratch;
   }
-  else
-    subexpressions = expr.subexpressions();
+  else subexpressions = expr.subexpressions();
   subexpressions.forEach(
     subexpr => _guess_variable_in_expr(subexpr, found_set));
 }
