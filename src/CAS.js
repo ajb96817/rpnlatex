@@ -119,7 +119,9 @@ function expr_to_variable_name(expr, ignore_superscript=false,
   // Check for expressions with a subscript.  Subscripted expressions
   // are converted to 'basename_subscriptname'.  Only one level of
   // subscripts is allowed (no x_a_b).
-  if(allow_subscript && expr.is_expr_type('subscriptsuperscript')) {
+  if(allow_subscript &&
+     expr.is_expr_type('subscriptsuperscript') &&
+     expr.subscript_expr) {
     if(expr.superscript_expr && !ignore_superscript)
       return null;  // something like x^2_a
     const base_name = expr_to_variable_name(expr.base_expr, false, false, true);
@@ -261,8 +263,7 @@ class AlgebriteInterface {
   // 'argument_strings' have already been converted into Algebrite syntax.
   call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
-    Algebrite.clearall();
-    this.define_extra_algebrite_functions();
+    this.setup_algebrite();
     const algebrite_method = Algebrite[function_name];
     const result = algebrite_method(...argument_strings);
     console.log('Output: ' + this.debug_print_list(result));
@@ -271,8 +272,7 @@ class AlgebriteInterface {
 
   call_function_guessing_variable(function_name, variable_arg_index, argument_exprs) {
     const variable_name = guess_variable_in_expr(argument_exprs[0]);
-    if(!variable_name)
-      return null;
+    if(!variable_name) return null;
     console.log('Guessed variable: ' + variable_name);
     let argument_strings = argument_exprs.map(
       expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
@@ -281,11 +281,11 @@ class AlgebriteInterface {
       function_name, argument_strings);
   }
 
-  // Add some missing math functions to Algebrite.
-  // This has to be re-run every evaluation because we clear the
-  // Algebrite context with clearall().
-  define_extra_algebrite_functions() {
-    [ 'sec(x) = 1/cos(x)',
+  // Initialize Algebrite's environment.
+  setup_algebrite() {
+    Algebrite.clearall();
+    [ //'autoexpand = 0',
+      'sec(x) = 1/cos(x)',
       'csc(x) = 1/sin(x)',
       'cot(x) = 1/tan(x)',
       'sech(x) = 1/cosh(x)',

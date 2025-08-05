@@ -151,7 +151,7 @@ const EditorKeymap = {
     '{': "scroll_to help_delimiters",
     '|': "scroll_to help_arrays",
     '_': "scroll_to help_dissect",
-    '#': "scroll_to help_evaluate",
+    '#': "scroll_to help_cas",
     ';': "scroll_to help_greek",
     ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
@@ -995,11 +995,11 @@ const EditorKeymap = {
   algebrite: {
     '#': "algebrite eval",
     'A': "algebrite arg",
-    'c': "algebrite erfc",
-    'C': "algebrite expcos",
+//    'c': "algebrite erfc",
+//    'C': "algebrite expcos",
     'd': "algebrite derivative 1 1",
     'D': "algebrite derivative 2",
-    'e': "algebrite erf",
+//    'e': "algebrite erf",
     'f': "algebrite factor 1 1",
     'F': "algebrite factor 2",
     'i': "algebrite integral 1 1",
@@ -1007,12 +1007,12 @@ const EditorKeymap = {
     'k': "algebrite circexp",  // TODO: better keybinding
     'p': "mode algebrite_polynomial",
     'P': "algebrite polar",
-    'r': "algebrite rationalize",  // f=frac
+    'r': "algebrite rationalize",
     'R': "algebrite rect",
     's': "algebrite simplify",
-    'S': "algebrite expsin",
-    't': "push x;push 7;push 0;algebrite taylor 4",
-    'T': "algebrite taylor 4",
+//    'S': "algebrite expsin",
+    't': "push 7;push 0;algebrite taylor 3 1",
+    'T': "swap;algebrite taylor 4",  // NOTE: last two arguments are swapped
     'v': "evaluate_to_equation false",  // internal evaluate
     'x': "algebrite expand 1 1",
     'X': "algebrite expand 2",
@@ -1025,10 +1025,10 @@ const EditorKeymap = {
   },
 
   algebrite_polynomial: {
-    'l': "push x;swap;algebrite legendre 2",
-    'L': "push x;unrot;algebrite legendre 3",
-    'g': "push x;swap;algebrite laguerre 2",
-    'G': "push x;unrot;algebrite laguerre 3",
+    'p': "push x;swap;algebrite legendre 2",
+    'P': "push x;unrot;algebrite legendre 3",
+    'l': "push x;swap;algebrite laguerre 2",
+    'L': "push x;unrot;algebrite laguerre 3",
     'h': "push x;swap;algebrite hermite 2",
     'j': "push x;swap;algebrite besselj 2",
     'y': "push x;swap;algebrite bessely 2"

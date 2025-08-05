@@ -862,7 +862,7 @@ class ItemComponent extends React.Component {
         fleqn: true,
         trust: true,
         strict: false,
-        minRuleThickness: 0.05  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
+        minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
       });
     }
     catch(e) {

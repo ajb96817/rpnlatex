@@ -156,7 +156,7 @@
         <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="keybinding">_</span> Manipulate subexpressions with <a href="#dissect">dissect</a> mode.</li>
-        <li><span class="keybinding">#</span> Numerically <a href="#evaluate">evaluate</a> expressions.</li>
+        <li><span class="keybinding">#</span> Perform <a href="#cas">symbolic algebra and calculus</a> operations.</li>
         <li><span class="keybinding">;</span> Insert <a href="#greek">lowercase Greek</a> letters.</li>
         <li><span class="keybinding">:</span> Insert <a href="#greek">uppercase Greek</a> letters.</li>
         <li id="help_insert_calligraphic"><span class="keybinding">@</span>
@@ -1998,67 +1998,174 @@
 
       <h2>
         <span class="keybinding">#</span>
-        <a name="evaluate" id="help_evaluate">Evaluate</a>
+        <a name="cas" id="help_cas">Symbolic Algebra</a>
       </h2>
       <p>
-        These commands attempt to numerically evaluate the expression on the stack top,
-        allowing the editor to operate as a simple calculator.
+        These commands perform symbolic algebra and calculus operations on expressions
+        using the <a href="http://algebrite.org">Algebrite</a> library.
       </p>
       <p>
-        Evaluation requires the expression to be composed only
-        of constant values and operations involving them.  For example,
-        <code>\sin(\pi/6)</code> can be evaluated but not <code>\sin(2\pi x)</code>,
-        although simple variable substitutions can be performed using the
-        <span class="keybinding">|</span> subcommand below.
+        Most of these commands come in two varieties: lowercase letters try to guess
+        the appropriate variable to use in the operation (for example,
+        <code>\displaystyle{y^2 - 1}</code> uses <code>y</code>), while uppercase
+        letters require the variable to be specified on the stack top.
       </p>
       <p>
-        The result of the evaluation will be a floating-point number.
-        However, if it can be closely approximated by a fraction, or
-        a factor of something like <code>\sqrt{2}</code>, the result will instead
-        be represented that way.
+        <strong>NOTE:</strong> Algebrite is a relatively simple and lightweight computer
+        algebra system, so not everything can be expected to work.
+        It's also easy to perform operations that are too large or
+        time-consuming, such as expanding <code>(x+1)^{10000}</code>, and the Algebrite
+        library itself has some bugs, so be careful using these commands and make sure to
+        save your work.  There is no way to interrupt a long-running computation other
+        than closing the browser tab itself.
       </p>
+
+      <p><strong>Algebra:</strong></p>
+      <ul class="keybindings">
+        <li>
+          <span class="keybinding">x</span> and <span class="keybinding">X</span>
+          Expand a polynomial or rational function, rewriting with partial fractions if possible:
+          <code>\displaystyle{
+            \frac{{\left(x+3\right)}^2}{\left(x+1\right)\left(x+2\right)}
+            \to 1+\frac{4}{x+1}-\frac{1}{x+2}}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">r</span>
+          Rationalize an expression by putting everything over a common denominator:
+          <code>\displaystyle{
+            \frac{1}{x+1}+\frac{1}{x-1}\to\frac{2x}{\left(x-1\right)\left(x+1\right)}}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">f</span> and <span class="keybinding">F</span>
+          Factor a polynomial over the integers:
+          <code>\displaystyle{
+            x^3-1 \to \left(x-1\right)\left(x^2+x+1\right)}
+          </code>.
+          Applied to a literal integer, factor into primes instead:
+          <code>123456 \to 2^6\cdot 3\cdot 643</code>.
+        </li>
+        <li>
+          <span class="keybinding">s</span> and <span class="keybinding">S</span>
+          Attempt to rewrite an expression in a simpler form.
+        </li>
+        <li>
+          <span class="keybinding">k</span>
+          Rewrite trigonometric functions using exponentials:
+          <code>\displaystyle{
+            \sin{x} \to \frac{i{\mathrm e}^{-2ix}}{2}-\frac{i{\mathrm e}^{2ix}}{2}}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">P</span> and <span class="keybinding">R</span>
+          Rewrite a complex value in <span class="keybinding">P</span> polar
+          or <span class="keybinding">R</span> rectangular form:
+          <code>
+            \displaystyle{
+              {\mathrm e}^{i\pi/3} \longleftrightarrow \frac{1}{2}+\frac{i\sqrt{3}}{2}}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">z</span> and <span class="keybinding">Z</span>
+          Find the (real or complex) exact roots of a polynomial if possible.
+          Multiple roots are displayed as a vector.
+          <code>\displaystyle{
+            x^2+2 \to
+            \begin{bmatrix}-i\sqrt{2}\\i\sqrt{2}\end{bmatrix}}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
+          Numerically find all (real or complex) roots of a polynomial.
+        </li>
+        <li>
+          <span class="keybinding">*</span>
+          Complex conjugation:
+          <code>\displaystyle{
+            {\mathrm e}^{2ix}\to{\mathrm e}^{-2ix}}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">=</span>
+          Evaluate constants with floating-point arithmetic:
+          <code>\pi^2/6 \to 1.644934</code>.
+        </li>
+      </ul>
+      
+      <p><strong>Calculus:</strong></p>
+      <ul class="keybindings">
+        <li>
+          <span class="keybinding">d</span> and <span class="keybinding">D</span>
+          Differentiate an expression:
+          <code>\displaystyle{x^2\sin{x} \to 2x\sin{x}+x^2\cos{x}}</code>.
+          Generic functions like <code>f{(x)}</code> can also be handled
+          and are shown with &quot;prime&quot; notation:
+          <code>\displaystyle{
+            f{\left(x\right)}g{\left(x\right)}
+            \to f^{\prime}{\left(x\right)}g{\left(x\right)}+g^{\prime}{\left(x\right)}f{\left(x\right)}}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">i</span> and <span class="keybinding">I</span>
+          Attempt to calculate the indefinite integral of an expression:
+          <code>\displaystyle{
+            2\sin{x}\cos{x} \to {\left(\sin{x}\right)}^2}
+          </code>.
+        </li>
+        <li>
+          <span class="keybinding">t</span> and <span class="keybinding">T</span>
+          Expand a function in Taylor series.  Lowercase <span class="keybinding">t</span>
+          performs a default expansion about <code>x=0</code> to order 7:
+          <code>\displaystyle{
+              \sin{2x} \to -\frac{8x^7}{315}+\frac{4x^5}{15}-\frac{4x^3}{3}+2x}
+          </code>.  Uppercase <span class="keybinding">T</span>
+          takes 4 arguments on the stack:
+          <code>f\enspace x\enspace a\enspace n</code> and calculates the expansion
+          about <code>f(x=a)</code> to order <code>n</code>.
+        </li>
+      </ul>
+
+      <p><strong>Special Functions:</strong></p>
       <p>
-        <strong>NOTE:</strong> This numerical evaluation feature is experimental and
-        not everything is guaranteed to be supported.
+        These commands generate special functions and polynomials that
+        occur frequently in mathematics.  They require the subprefix key
+        <span class="keybinding">p</span> to be pressed first.
+        The resulting generated functions always use <code>x</code> as the variable.
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">=</span>
-          Try to evaluate the expression on the stack top.
-          For example:
-          <ul>
-            <li><code>\sin\frac{\pi}{3} = \frac{\sqrt{3}}{2}</code></li>
-            <li><code>\sin(3) \approx 0.141120</code></li>
-          </ul>
-          A second application of <span class="keybinding">#</span><span class="keybinding">=</span>
-          will force a decimal approximation.
+          <span class="keybinding">p</span><span class="keybinding">p</span>
+          <code>n \to P_n{(x)}</code>: Legendre polynomial of degree <code>n</code>.
         </li>
         <li>
-          <span class="keybinding">Enter</span>
-          Like <span class="keybinding">=</span> but forces the decimal approximation right away.
+          <span class="keybinding">p</span><span class="keybinding">P</span>
+          <code>n\enspace m \to P_n^m{(x)}</code>: Associated Legendre function of order <code>(n,m)</code>.
         </li>
         <li>
-          <span class="keybinding">|</span>
-          Evaluate with a variable substitution.  Like <span class="keybinding">=</span>, but
-          an extra expression on the stack top of the form <code>z=123</code> is used to replace
-          a variable in the expression to be evaluated.  The variable defaults to <code>x</code>
-          if omitted.
-          <br />
-          <strong>NOTE:</strong> Currently the variable names must be single-letter only (Greek letters allowed),
-          and only one variable substitution per expression is supported.
+          <span class="keybinding">p</span><span class="keybinding">l</span>
+          <code>n \to L_n{(x)}</code>: Laguerre polynomial of degree <code>n</code>.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">L</span>
+          <code>n\enspace m \to L_n^{(m)}{(x)}</code>: Associated Laguerre polynomial of order <code>(n,m)</code>.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">h</span>
+          <code>n \to H_n{(x)}</code>: Hermite polynomial of degree <code>n</code>.
+          These use the &quot;physicist's&quot; scaling convention.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">j</span>
+          <code>\alpha \to J_{\alpha}{(x)}</code>: Bessel function of the first kind.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">y</span>
+          <code>\alpha \to Y_{\alpha}{(x)}</code>: Bessel function of the second kind.
         </li>
       </ul>
-      <p>
-        <strong>NOTE:</strong> Trigonometric functions use radians by default, but degrees
-        can be specified by a "degree marker" superscript using
-        <span class="keybinding">'</span><span class="keybinding">o</span><span class="keybinding">`</span>.
-        For example: <span class="keybinding">4</span><span class="keybinding">5</span><span class="keybinding">&nbsp;</span><span class="keybinding">'</span><span class="keybinding">o</span><span class="keybinding">`</span>
-        yields <code>{45}^\circ</code> and the sine of this can be calculated via:
-        <span class="keybinding">/</span><span class="keybinding">s</span><span class="keybinding">#</span><span class="keybinding">=</span>
-        <code>\to\sin{{45}^\circ} = \frac{\sqrt{2}}{2}</code>.
-        Also, <code>{45}^\circ\,\,</code><span class="keybinding">#</span><span class="keybinding">=</span><code>\to \frac{\pi}{4}</code>.
-      </p>
-      
+
+          
       <h2>
         <span class="keybinding">;</span>
         <span class="keybinding">:</span>
