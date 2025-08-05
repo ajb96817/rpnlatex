@@ -174,9 +174,8 @@ function _variable_name_to_expr(pieces, allow_subscript) {
     // Trailing '_' (e.g. 'Gamma_').
     // If this is one of the reserved names, remove the _,
     // otherwise this is considered invalid.
-    if(reserved_algebrite_symbols.has(base_name)) {
+    if(reserved_algebrite_symbols.has(base_name))
       pieces.shift();
-    }
     else
       return null;
   }
@@ -213,6 +212,31 @@ function _variable_name_to_expr(pieces, allow_subscript) {
   return base_expr;
 }
 
+function guess_variable_in_expr(expr) {
+  let found_set = new Set();
+  _guess_variable_in_expr(expr, found_set);
+  if(found_set.size === 1)
+    return [...found_set][0];
+  else return 'x'; // maybe should return null
+}
+function _guess_variable_in_expr(expr, found_set) {
+  const variable_name = expr_to_variable_name(expr);
+  if(variable_name)
+    found_set.add(variable_name);
+  let subexpressions = null;
+  if(expr.is_expr_type('function_call'))
+    subexpressions = [expr.args_expr];
+  else if(expr.is_expr_type('subscriptsuperscript')) {
+    if(expr.subscript_expr)
+      subexpressions = expr.superscript_expr ? [expr.superscript_expr] : [];
+    else subexpressions = expr.subexpressions();
+  }
+  else
+    subexpressions = expr.subexpressions();
+  subexpressions.forEach(
+    subexpr => _guess_variable_in_expr(subexpr, found_set));
+}
+
 
 class AlgebriteInterface {
   debug_print_list(p) {
@@ -230,6 +254,12 @@ class AlgebriteInterface {
   call_function(function_name, argument_exprs) {
     const argument_strings = argument_exprs.map(
       expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
+    return this.call_function_with_argument_strings(
+      function_name, argument_strings);
+  }
+
+  // 'argument_strings' have already been converted into Algebrite syntax.
+  call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
     Algebrite.clearall();
     this.define_extra_algebrite_functions();
@@ -237,6 +267,18 @@ class AlgebriteInterface {
     const result = algebrite_method(...argument_strings);
     console.log('Output: ' + this.debug_print_list(result));
     return result;
+  }
+
+  call_function_guessing_variable(function_name, variable_arg_index, argument_exprs) {
+    const variable_name = guess_variable_in_expr(argument_exprs[0]);
+    if(!variable_name)
+      return null;
+    console.log('Guessed variable: ' + variable_name);
+    let argument_strings = argument_exprs.map(
+      expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
+    argument_strings.splice(variable_arg_index, 0, variable_name);
+    return this.call_function_with_argument_strings(
+      function_name, argument_strings);
   }
 
   // Add some missing math functions to Algebrite.
@@ -831,7 +873,7 @@ class AlgebriteToExpr {
       operands_expr = InfixExpr.combine_infix(
         operands_expr, arg_exprs[i], new TextExpr(','));
     return new FunctionCallExpr(
-      this.sym_to_expr(f),
+      variable_name_to_expr(f),
       DelimiterExpr.parenthesize(operands_expr));
   }
 

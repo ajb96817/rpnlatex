@@ -1000,7 +1000,7 @@ const EditorKeymap = {
     'd': "push x;algebrite derivative 2",
     'D': "algebrite derivative 2",
     'e': "algebrite erf",
-    'f': "algebrite factor",  // assume variable is 'x'
+    'f': "algebrite factor 1 1",
     'F': "algebrite factor 2",
     'i': "push x;algebrite integral 2",
     'I': "algebrite integral 2",

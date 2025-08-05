@@ -315,11 +315,18 @@ class InputContext {
   do_undo() { this.perform_undo_or_redo = 'undo'; }
   do_redo() { this.perform_undo_or_redo = 'redo'; }
 
-  do_algebrite(stack, function_name, arg_count_string) {
+  do_algebrite(stack, function_name, arg_count_string, guess_variable_arg_index_string) {
     const arg_count = arg_count_string ? parseInt(arg_count_string) : 1;
     const [new_stack, ...argument_exprs] = stack.pop_exprs(arg_count);
     let algebrite = new AlgebriteInterface();
-    const result_node = algebrite.call_function(function_name, argument_exprs);
+    let result_node = null;
+    if(guess_variable_arg_index_string) {
+      const guess_variable_arg_index = parseInt(guess_variable_arg_index_string);
+      result_node = algebrite.call_function_guessing_variable(
+        function_name, guess_variable_arg_index, argument_exprs);
+    }
+    else
+      result_node = algebrite.call_function(function_name, argument_exprs);
     if(result_node) {
       const result_expr = algebrite.algebrite_node_to_expr(result_node);
       if(result_expr)
