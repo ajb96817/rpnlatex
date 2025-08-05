@@ -9,7 +9,8 @@ const EditorKeymap = {
     // Immediate action special keys
     'Enter': "subscript",
     'Shift+Enter': "edit_item",
-    // NOTE: ! receives special processing in do_concat (cf. Expr.combine_pair).
+    // NOTE: ! receives special processing in do_concat (cf. Expr.combine_pair),
+    //       becoming a PostfixExpr.
     '!': "autoparenthesize;push !;concat",
     '^': "superscript",
     'Backspace': "pop",
@@ -162,7 +163,7 @@ const EditorKeymap = {
     'default': "toggle_popup help"
   },
 
-  // Tab prefix: stack/misc operations
+  // [Tab] prefix: stack/misc operations
   stack: {
     '[digit]': "prefix_argument",
     '*': "prefix_argument",
@@ -197,7 +198,7 @@ const EditorKeymap = {
     'ArrowLeft': "scroll document_container horizontal -75"
   },
 
-  // $ prefix: configuration
+  // [$] prefix: configuration
   config: {
     '[digit]': "prefix_argument",
     '*': "prefix_argument",
@@ -249,14 +250,14 @@ const EditorKeymap = {
     'default': "append_text_entry"
   },
 
-  // " prefix (text entry)
+  // ["] prefix: text entry
   text_entry: {
     'Enter': "finish_text_entry text",
     'Shift+Enter': "finish_text_entry heading",
     'delegate': "_editor_commands"
   },
 
-  // \ prefix (math entry)
+  // [\] prefix: math entry
   math_entry: {
     'Enter': "finish_text_entry math",
     'Shift+Enter': "finish_text_entry roman_text",
@@ -264,7 +265,7 @@ const EditorKeymap = {
     'delegate': "_editor_commands"
   },
 
-  // double \ prefix (latex command)
+  // [\][\] prefix: latex command
   latex_entry: {
     'Enter': "finish_text_entry latex",
     'Shift+Enter': "finish_text_entry latex_unary",
@@ -273,20 +274,20 @@ const EditorKeymap = {
     'delegate': "_editor_commands"
   },
 
-  // [,]['] (custom conjunction)
+  // [,]['] prefix: custom conjunction
   conjunction_entry: {
     'Enter': "finish_text_entry conjunction",
     'Shift+Enter': "finish_text_entry bold_conjunction",
     'delegate': "_editor_commands"
   },
 
-  // [/][;] (equation tag)
+  // [/][;] prefix: equation tag
   tag_entry: {
     'Enter': "finish_text_entry tag",
     'delegate': "_editor_commands"
   },
 
-  // right-parenthesis prefix: special delimiters
+  // [)] prefix: special delimiters
   delimiters: {
     'b': "delimiters \\langle \\vert",  // <x| Dirac bra
     'c': "delimiters \\lceil \\rceil",
@@ -322,6 +323,7 @@ const EditorKeymap = {
     ' ': "delimiters . ."
   },
 
+  // [)][l] prefix: change left delimiter type
   modify_left: {
     'c': "modify_delimiter \\lceil left",
     'C': "modify_delimiter \\rceil left",
@@ -347,6 +349,7 @@ const EditorKeymap = {
     '|': "modify_delimiter \\vert left"
   },
 
+  // [)][r] prefix: change left delimiter type
   modify_right: {
     'c': "modify_delimiter \\lceil right",
     'C': "modify_delimiter \\rceil right",
@@ -372,7 +375,7 @@ const EditorKeymap = {
     '|': "modify_delimiter \\vert right"
   },
 
-  // forward-slash prefix: assorted functions/operators
+  // [/] prefix: assorted functions/operators
   operator: {
     '1': "integer 1;swap;operator frac 2",
     '2': "mode squared",
@@ -441,6 +444,7 @@ const EditorKeymap = {
     'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once
   },
 
+  // [/][f] prefix
   named_operator: {
     'a': "operator arg",
     'c': "operator gcd",
@@ -475,6 +479,7 @@ const EditorKeymap = {
     'X': "underset_operator max"
   },
 
+  // [/][h] prefix: hyperbolic trig functions
   // TODO: maybe make a more general way of doing these
   hyperbolic: {
     's': "named_function sinh",
@@ -486,6 +491,7 @@ const EditorKeymap = {
     '2': "mode squared_hyperbolic",
     '-': "mode inverse_hyperbolic"
   },
+  // [/][-] prefix
   inverse: {
     's': "named_function sin -1",
     'S': "named_function sec -1",
@@ -496,6 +502,7 @@ const EditorKeymap = {
     'h': "mode inverse_hyperbolic",
     '2': "mode squared"
   },
+  // [/][-][h] or [/][h][-] prefix
   inverse_hyperbolic: {
     's': "named_function sinh -1",
     'S': "named_function sech -1",
@@ -505,6 +512,7 @@ const EditorKeymap = {
     'T': "named_function coth -1",
     '2': "mode squared_hyperbolic"
   },
+  // [/][2] prefix
   squared: {
     's': "named_function sin 2",
     'S': "named_function sec 2",
@@ -517,6 +525,7 @@ const EditorKeymap = {
     'h': "mode squared_hyperbolic",
     '-': "mode inverse"
   },
+  // [/][2][h] or [/][h][2] prefix
   squared_hyperbolic: {
     's': "named_function sinh 2",
     'S': "named_function sech 2",
@@ -527,7 +536,7 @@ const EditorKeymap = {
     '-': "mode inverse_hyperbolic"
   },
 
-  // /i prefix
+  // [/][i] prefix - add limits to an existing integral sign
   integral_limits: {
     'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
     'n': "push \\infty;negate;subscript;integer 0;superscript",  // -oo..0 : [n]egative 
@@ -538,7 +547,7 @@ const EditorKeymap = {
     'T': "push \\pi;negate;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
   },
 
-  // /j prefix
+  // [/][j] prefix
   // (same as /i, but create the integral sign too)
   integral_with_limits: {
     'r': "push \\int;push \\infty;negate;subscript;push \\infty;superscript",
@@ -550,7 +559,7 @@ const EditorKeymap = {
     'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript"
   },
 
-  // /d prefix: derivative operations
+  // [/][d] prefix: derivative operations
   derivative: {
     // \partial y / \partial x
     'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;operator frac 2",
@@ -626,7 +635,7 @@ const EditorKeymap = {
     'delegate': "derivative"
   },
 
-  // comma prefix: combine two objects with an infix operation
+  // [,] prefix: combine two objects with an infix operation
   infix: {
     'a': "apply_infix",
     'b': "infix \\bullet",
@@ -683,7 +692,7 @@ const EditorKeymap = {
     'Tab': "infix \\quad"
   },
 
-  // = prefix: relational operators
+  // [=] prefix: relational operators
   relational: {
     '2': "mode variant_relational",
     'a': "infix \\approx",
@@ -726,7 +735,7 @@ const EditorKeymap = {
     '?': "push ?;push =;operator overset 2;apply_infix"
   },
 
-  // =2 prefix
+  // [=][2] prefix
   variant_relational: {
     's': "infix \\sqsubset",
     'S': "infix \\sqsubseteq",
@@ -742,7 +751,7 @@ const EditorKeymap = {
     ']': "infix \\succeq"
   },
 
-  // apostrophe prefix: assorted standalone math symbols
+  // ['] prefix: assorted standalone math symbols
   symbol: {
     '0': "push \\varnothing",
     '1': "integer -1",
@@ -810,7 +819,7 @@ const EditorKeymap = {
     'ArrowRight': "push \\rightarrow"
   },
 
-  // . prefix: expression decorators (fonts, hats, etc)
+  // [.] prefix: expression decorators (fonts, hats, etc)
   decoration: {
     '0': "integer 0;subscript",
     '1': "integer -1;superscript",
@@ -876,7 +885,7 @@ const EditorKeymap = {
     'Tab': "push \\quad;swap;concat false"
   },
 
-  // | prefix: array/matrix operations
+  // [|] prefix: array/matrix operations
   array: {
     '[digit]': "prefix_argument",
     '*': "prefix_argument",
@@ -940,7 +949,7 @@ const EditorKeymap = {
     '{': "change_matrix_type Bmatrix"
   },
 
-  // _ prefix: dissect mode
+  // [_] prefix: dissect mode
   // NOTE: The duplicate keybindings here are for the user's convenience
   // (e.g., capitals so they don't have to release the Shift key).
   dissect: {
@@ -974,7 +983,7 @@ const EditorKeymap = {
     'T': "dissect_copy_selection trim"
   },
 
-  // # prefix: evaluate mode
+  // [#] prefix: evaluate mode
   evaluate: {
     '#': "push \\#",
     '=': "evaluate_to_equation false",
@@ -982,6 +991,7 @@ const EditorKeymap = {
     '|': "evaluate_with_variable_substitution"
   },
 
+  // [#] prefix: symbolic algebra mode
   algebrite: {
     '#': "algebrite eval",
     'A': "algebrite arg",
@@ -1024,26 +1034,26 @@ const EditorKeymap = {
     'y': "push x;swap;algebrite bessely 2"
   },
 
-  // @ prefix
+  // [@] prefix
   calligraphic: {
     '[alpha]': "self_push;to_case uppercase;typeface calligraphic",
     '@': "push @"  // undocumented
   },
 
-  // % prefix
+  // [%] prefix
   blackboard: {
     '[alpha]': "self_push;to_case uppercase;typeface blackboard",
     'k': "push k;typeface blackboard",  // there's (only) a lowercase k in LaTeX (aka \Bbbk).
     '%': "push \\%"  // undocumented
   },
 
-  // & prefix
+  // [&] prefix
   script: {
     '[alpha]': "self_push;to_case uppercase;typeface script",
     '&': "push \\&"  // undocumented
   },
 
-  // ; prefix: lowercase Greek letters
+  // [;] prefix: lowercase Greek letters
   lowercase_greek: {
     'a': "push \\alpha",     'b': "push \\beta",
     'c': "push \\chi",       'd': "push \\delta",
@@ -1063,7 +1073,7 @@ const EditorKeymap = {
     ';': "infix semicolon"
   },
 
-  // : prefix: uppercase Greek letters
+  // [:] prefix: uppercase Greek letters
   uppercase_greek: {
     'd': "push \\Delta",     'e': "push \\varepsilon",
     'f': "push \\Phi",       'g': "push \\Gamma",
@@ -1092,7 +1102,8 @@ const EditorKeymap = {
     ':': "infix \\colon"
   },
 
-  // "variant" uppercase Greek letters - these are italic versions of the normal ones
+  // [:][;] prefix: "variant" uppercase Greek letters
+  // (these are italic versions of the normal ones)
   variant_greek: {
     'd': "push \\varDelta",    'D': "push \\varDelta",
     'f': "push \\varPhi",      'F': "push \\varPhi",
