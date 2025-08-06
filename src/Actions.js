@@ -1,7 +1,8 @@
 
 import {
   AppState, Document, Stack,
-  ExprPath, ExprParser, ExprItem, TextItem, CodeItem
+  ExprPath, ExprParser, RationalizeToExpr,
+  ExprItem, TextItem, CodeItem
 } from './Models';
 
 import {
@@ -318,19 +319,32 @@ class InputContext {
   do_algebrite(stack, function_name, arg_count_string, guess_variable_arg_index_string) {
     const arg_count = arg_count_string ? parseInt(arg_count_string) : 1;
     const [new_stack, ...argument_exprs] = stack.pop_exprs(arg_count);
-    let algebrite = new AlgebriteInterface();
     let result_node = null;
     if(guess_variable_arg_index_string) {
       const guess_variable_arg_index = parseInt(guess_variable_arg_index_string);
-      result_node = algebrite.call_function_guessing_variable(
+      result_node = AlgebriteInterface.call_function_guessing_variable(
         function_name, guess_variable_arg_index, argument_exprs);
     }
     else
-      result_node = algebrite.call_function(function_name, argument_exprs);
+      result_node = AlgebriteInterface.call_function(
+        function_name, argument_exprs);
     if(result_node) {
-      const result_expr = algebrite.algebrite_node_to_expr(result_node);
+      const result_expr = AlgebriteInterface.algebrite_node_to_expr(result_node);
       if(result_expr)
         return new_stack.push_expr(result_expr);
+    }
+    return this.error_flash_stack();
+  }
+
+  do_rationalize(stack) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    if(expr.is_expr_type('text')) {
+      const float_value = parseFloat(expr.text);
+      if(!isNaN(float_value)) {
+        const rationalized_expr = RationalizeToExpr.rationalize(float_value);
+        if(rationalized_expr)
+          return new_stack.push_expr(rationalized_expr);
+      }
     }
     return this.error_flash_stack();
   }

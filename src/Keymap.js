@@ -993,6 +993,8 @@ const EditorKeymap = {
   // [#] prefix: symbolic algebra mode
   algebrite: {
     '#': "algebrite eval",
+    '~': "algebrite float",
+    '=': "rationalize",  // not part of Algebrite
     'A': "algebrite arg",
 //    'c': "algebrite erfc",
 //    'C': "algebrite expcos",
@@ -1014,14 +1016,13 @@ const EditorKeymap = {
 //    'S': "algebrite expsin",
     't': "push 7;push 0;algebrite taylor 3 1",
     'T': "swap;algebrite taylor 4",  // NOTE: last two arguments are swapped
-    'v': "evaluate_to_equation false",  // internal evaluate
     'x': "algebrite expand 1 1",
     'X': "algebrite expand 2",
     'y': "algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]
     'Y': "algebrite nroots 2",
     'z': "algebrite roots 1 1", // z=zeroes; TODO: display guessed variable
     'Z': "algebrite roots 2",
-    '=': "algebrite float",
+//    '=': "algebrite float",
     '*': "algebrite conj"
   },
 

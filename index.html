@@ -2086,11 +2086,6 @@
             {\mathrm e}^{2ix}\to{\mathrm e}^{-2ix}}
           </code>.
         </li>
-        <li>
-          <span class="keybinding">=</span>
-          Evaluate constants with floating-point arithmetic:
-          <code>\pi^2/6 \to 1.644934</code>.
-        </li>
       </ul>
       
       <p><strong>Calculus:</strong></p>
@@ -2137,6 +2132,22 @@
           takes 4 arguments on the stack:
           <code>f\enspace x\enspace a\enspace n</code> and calculates the expansion
           about <code>f(x=a)</code> to order <code>n</code>.
+        </li>
+      </ul>
+
+      <p><strong>Numerical Approximation:</strong></p>
+      <ul class="keybindings">
+        <li>
+          <span class="keybinding">~</span>
+          Evaluate constants in an expression, replacing them with
+          numerical values:
+          <code>(\ln{2})^3 \to 0.33302465198892944</code>
+        </li>
+        <li>
+          <span class="keybinding">=</span>
+          Given a decimal number, try to find a close rational approximation to the number.
+          Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
+          be detected: <code>1.6449340668482262 \to \pi^2/6</code>.
         </li>
       </ul>
 

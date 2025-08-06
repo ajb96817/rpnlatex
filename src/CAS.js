@@ -384,19 +384,19 @@ function double_to_scientific_notation_expr(x) {
 
 // This class is the only thing exported from this module.
 class AlgebriteInterface {
-  debug_print_list(p) {
+  static debug_print_list(p) {
     return new AlgebriteToExpr().print_list(p);
   }
   
-  expr_to_algebrite_string(expr) {
+  static expr_to_algebrite_string(expr) {
     return new ExprToAlgebrite().expr_to_algebrite_string(expr);
   }
 
-  algebrite_node_to_expr(p) {
+  static algebrite_node_to_expr(p) {
     return new AlgebriteToExpr().to_expr(p);
   }
 
-  call_function(function_name, argument_exprs) {
+  static call_function(function_name, argument_exprs) {
     const argument_strings = argument_exprs.map(
       expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
     return this.call_function_with_argument_strings(
@@ -404,7 +404,7 @@ class AlgebriteInterface {
   }
 
   // 'argument_strings' have already been converted into Algebrite syntax.
-  call_function_with_argument_strings(function_name, argument_strings) {
+  static call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
     this.setup_algebrite();
     const algebrite_method = Algebrite[function_name];
@@ -413,7 +413,7 @@ class AlgebriteInterface {
     return result;
   }
 
-  call_function_guessing_variable(function_name, variable_arg_index, argument_exprs) {
+  static call_function_guessing_variable(function_name, variable_arg_index, argument_exprs) {
     const variable_name = guess_variable_in_expr(argument_exprs[0]);
     if(!variable_name) return null;
     console.log('Guessed variable: ' + variable_name);
@@ -425,7 +425,7 @@ class AlgebriteInterface {
   }
 
   // Initialize Algebrite's environment.
-  setup_algebrite() {
+  static setup_algebrite() {
     Algebrite.clearall();
     [ //'autoexpand = 0',
       'sec(x) = 1/cos(x)',
