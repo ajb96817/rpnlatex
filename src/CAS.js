@@ -283,6 +283,105 @@ function _guess_variable_in_expr(expr, found_set) {
 }
 
 
+// Number formatting routines.
+// Algebrite numbers are either rationals (type=NUM) with BigInt
+// numerator and denominator, or else double precision floats
+// (type=DOUBLE).
+
+function format_bigint(x) {
+  // Use scientific notation for large integers.
+  if(x.abs().greater(1e12))
+    return format_double(x.toJSNumber());
+  else
+    return x.toString();
+}
+
+function format_double(x) { return x.toString(); }
+
+// Convert an Algebrite rational to a corresponding Expr.
+// Note that 'numerator' and 'denominator' are BigInt values here.
+// If 'inline_fraction' is true, it's rendered as an infix 'x/y'.
+// Otherwise, it's a full-size \frac{x}{y}.
+function rational_to_expr(numerator, denominator, inline_fraction) {
+  if(denominator.equals(1))
+    return bigint_to_expr(numerator);
+  const js_value = numerator.toJSNumber() / denominator.toJSNumber();
+  if(Math.abs(js_value) > 1e12)
+    return double_to_scientific_notation_expr(js_value);
+  let expr = null;
+  if(inline_fraction)
+    expr = InfixExpr.combine_infix(
+      bigint_to_expr(numerator.abs()),
+      bigint_to_expr(denominator),
+      new TextExpr('/'));
+  else
+    expr = new CommandExpr(
+      'frac', [
+        bigint_to_expr(numerator.abs()),
+        bigint_to_expr(denominator)]);
+  return numerator.isNegative() ?
+    PrefixExpr.unary_minus(expr) : expr;
+}
+
+function bigint_to_expr(x) {
+  if(x.compareAbs(1e12) > 0)
+    return double_to_scientific_notation_expr(x.toJSNumber());
+  const expr = TextExpr.integer(format_bigint(x.abs()));
+  if(x.isNegative())
+    return PrefixExpr.unary_minus(expr);
+  else return expr;
+}
+
+function double_to_expr(x) {
+  if(isNaN(x))
+    return FontExpr.roman_text('NaN');
+  else if(isFinite(x)) {
+    const abs_x = Math.abs(x);
+    if(abs_x < 1e-30)
+      return new TextExpr('0.0');
+    if(abs_x < 1e-8 || abs_x > 1e9)
+      return double_to_scientific_notation_expr(x);
+    else {
+      // Here, x is known to have a "reasonable" exponent so
+      // that toString() will not output scientific notation.
+      const expr = new TextExpr(abs_x.toString());
+      if(x < 0.0)
+        return PrefixExpr.unary_minus(expr);
+      else return expr;
+    }
+  }
+  else {
+    const infty_expr = new CommandExpr('infty');
+    if(x < 0.0)
+      return PrefixExpr.unary_minus(infty_expr);
+    else return infty_expr;
+  }
+}
+
+function double_to_scientific_notation_expr(x) {
+  const exp_string = x.toExponential();  // "3e+4", or else "Infinity", "NaN", etc.
+  // Split on e+ and e- both explicitly, in case e.g. "Infinity" happened to have an "e" in it.
+  const [pieces_positive, pieces_negative] =
+        [exp_string.split('e+'), exp_string.split('e-')];
+  const [coefficient_text, exponent_text, exponent_is_negative] =
+        pieces_positive.length === 2 ?
+        [...pieces_positive, false] : [...pieces_negative, true];
+  const coefficient_is_negative = coefficient_text.startsWith('-');
+  let coefficient_expr = new TextExpr(
+    coefficient_is_negative ? coefficient_text.slice(1) : coefficient_text);
+  if(coefficient_is_negative)
+    coefficient_expr = PrefixExpr.unary_minus(coefficient_expr);
+  let exponent_expr = new TextExpr(exponent_text);
+  if(exponent_is_negative)
+    exponent_expr = PrefixExpr.unary_minus(exponent_expr);
+  return InfixExpr.combine_infix(
+    coefficient_expr,
+    new SubscriptSuperscriptExpr(
+      TextExpr.integer(10), null, exponent_expr),
+    new CommandExpr('cdot'));
+}
+
+
 // This class is the only thing exported from this module.
 class AlgebriteInterface {
   debug_print_list(p) {
@@ -358,7 +457,8 @@ class AlgebriteNode {}
 // If negative, it's expected to be enclosed by parentheses.
 // Usually, negative numbers will be represented as Prefix('-', '123'),
 // not a literal '-123', but there are some exceptions.
-// Fractions like '2/3' are also allowed here.
+// Fractions like '2/3' are also allowed here, and scientific notation
+// like '2.4e-17'.
 class AlgebriteNumber extends AlgebriteNode {
   constructor(value_string) { super(); this.value_string = value_string; }
   emit(emitter) { emitter.emit(this.value_string); }
@@ -834,18 +934,6 @@ class AlgebriteToExpr {
 
   is_nil(p) { return this.is_sym(p, 'nil'); }
 
-  to_expr(p) {
-    switch(this.utype(p)) {
-    case 'cons': return this.cons_to_expr(p);
-    case 'num': return this.num_to_expr(p.q.a, p.q.b);
-    case 'double': return this.double_to_expr(p.d);
-    case 'str': return this.str_to_expr(p);
-    case 'tensor': return this.tensor_to_expr(p.tensor);
-    case 'sym': return this.sym_to_expr(p);
-    default: return null;
-    }
-  }
-
   // Convert cons list to a flat Javascript array.
   unpack_list(p) {
     let elements = [];
@@ -875,15 +963,27 @@ class AlgebriteToExpr {
       }
       this.pieces.push(')');
       break;
-    case 'num': this.pieces.push(p.q.a, '/', p.q.b); break;
-    case 'double': this.pieces.push(p.d); break;
+    case 'num': this.pieces.push(format_bigint(p.q.a), '/', format_bigint(p.q.b)); break;
+    case 'double': this.pieces.push(format_double(p.d)); break;
     case 'str': this.pieces.push("\"", p.str, "\"");
     case 'sym': this.pieces.push(p.printname); break;
     case 'tensor': this.pieces.push('{tensor}'); break;
     default: this.pieces.push(this.utype(p)); break;
     }
   }
-  
+
+  to_expr(p) {
+    switch(this.utype(p)) {
+    case 'cons': return this.cons_to_expr(p);
+    case 'num': return rational_to_expr(p.q.a, p.q.b);
+    case 'double': return double_to_expr(p.d);
+    case 'str': return this.str_to_expr(p);
+    case 'tensor': return this.tensor_to_expr(p.tensor);
+    case 'sym': return this.sym_to_expr(p);
+    default: return null;
+    }
+  }
+
   cons_to_expr(p) {
     const head = this.car(p);
     if(this.is_sym(head))
@@ -969,12 +1069,12 @@ class AlgebriteToExpr {
           // (but only when it comes first in the factors list).
           unary_minus = true;
           if(!q.a.equals(-1))  // keep out unnecessary factors of 1
-            numerator_exprs.push(TextExpr.integer(q.a.multiply(-1).toString()));
+            numerator_exprs.push(bigint_to_expr(q.a.multiply(-1)));
         }
         else if(!q.a.equals(1))
-          numerator_exprs.push(TextExpr.integer(q.a.toString()));
+          numerator_exprs.push(bigint_to_expr(q.a));
         if(!q.b.equals(1))
-          denominator_exprs.push(TextExpr.integer(q.b.toString()));
+          denominator_exprs.push(bigint_to_expr(q.b));
       }
       else if(this.utype(factor) === 'cons' &&
               this.utype(this.car(factor)) === 'sym' &&
@@ -1074,7 +1174,7 @@ class AlgebriteToExpr {
           TextExpr.integer(1),
           SubscriptSuperscriptExpr.build_subscript_superscript(
             base_expr,
-            this.num_to_expr(numer.multiply(-1), denom),
+            rational_to_expr(numer.multiply(-1), denom),
             true, /* is_superscript */
             true /* autoparenthesize */)]);
       // x^(1/2) -> sqrt(x)
@@ -1097,9 +1197,7 @@ class AlgebriteToExpr {
       // For fractional n/m, render it as an inline fraction rather than using \frac.
       return SubscriptSuperscriptExpr.build_subscript_superscript(
         base_expr,
-        this.num_to_expr(
-          numer, denom,
-          true /* inline_fraction */),
+        rational_to_expr(numer, denom, true /* inline_fraction */),
         true, /* is_superscript */
         true /* autoparenthesize */);
     }
@@ -1164,39 +1262,6 @@ class AlgebriteToExpr {
   factorial_to_expr(base_p) {
     const base_expr = this.to_expr(base_p);
     return PostfixExpr.factorial_expr(base_expr, 1);
-  }
-
-  // If 'inline_fraction' is true, it's rendered as an infix 'x/y'.
-  // Otherwise, it's a full-size \frac{x}{y}.
-  num_to_expr(numerator, denominator, inline_fraction) {
-    const is_negative = numerator.isNegative();
-    let expr = null;
-    if(denominator.equals(1))
-      expr = TextExpr.integer(numerator.toString());
-    else if(inline_fraction) {
-      expr = InfixExpr.combine_infix(
-        TextExpr.integer(numerator.abs().toString()),
-        TextExpr.integer(denominator.toString()),
-        new TextExpr('/'));
-      if(is_negative)
-        expr = PrefixExpr.unary_minus(expr);
-    }
-    else {
-      expr = new CommandExpr(
-        'frac', [
-          TextExpr.integer(numerator.abs().toString()),
-          TextExpr.integer(denominator.toString())]);
-      if(is_negative)
-        expr = PrefixExpr.unary_minus(expr);
-    }
-    return expr;
-  }
-
-  double_to_expr(d) {
-    if(d < 0.0)
-      return PrefixExpr.unary_minus(new TextExpr(Math.abs(d).toString()));
-    else
-      return new TextExpr(d.toString());
   }
 
   // We don't use Algebrite strings for anything (yet).

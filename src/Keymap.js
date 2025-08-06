@@ -436,7 +436,7 @@ const EditorKeymap = {
     '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
     '+': "infix \\ge;push \\sum;swap;subscript",
     '|': "swap;delimiters . \\vert;swap;subscript",  // y|_{x} ('where')
-    '^': "integer 10;swap;superscript;infix \\times",  // scientific notation: 1.23 x 10^-19
+    '^': "integer 10;swap;superscript;infix \\cdot",  // scientific notation: 1.23 x 10^-19
     "'": "substitute_placeholder",
     "\"": "toggle_is_heading",
     '%': "substitute",  // % is from Emacs' Esc-% search and replace command

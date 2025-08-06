@@ -1106,7 +1106,7 @@ class ExprParser {
           lhs.exprs[0],
           new SubscriptSuperscriptExpr(
             TextExpr.integer(10), null, TextExpr.integer(exponent_text)),
-          new CommandExpr('times'));
+          new CommandExpr('cdot'));
       }
       else result_expr = InfixExpr.combine_infix(
         lhs, rhs, Expr.text_or_command(binary_token.text));
@@ -1138,7 +1138,7 @@ class ExprParser {
       // Combining rules for implicit multiplication:
       //   number1 number2      -> number1 \cdot number2
       //   number1 a \cdot b    -> number1 \cdot a \cdot b
-      //   number1 E|e number2  -> number1 \times 10^number2 (scientific notation)
+      //   number1 E|e number2  -> number1 \cdot 10^number2 (scientific notation)
       // Any other pair just concatenates.
       const cdot = Expr.text_or_command("\\cdot");
       if(lhs.is_expr_type('text') && lhs.looks_like_number() &&
@@ -1158,7 +1158,7 @@ class ExprParser {
         return InfixExpr.combine_infix(
           lhs,
           new SubscriptSuperscriptExpr(TextExpr.integer(10), null, rhs.exprs[1]),
-          new CommandExpr('times'));
+          new CommandExpr('cdot'));
       }
       else
         return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);

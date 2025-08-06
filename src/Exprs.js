@@ -499,6 +499,8 @@ class Expr {
   // try to show it without any decimal part with _int_to_expr.
   // Very large or small-but-nonzero values are shown in scientific notation.
 
+  // TODO: these have been moved to CAS.js (double_to_expr etc)
+
   _int_to_expr(x) {
     if(isNaN(x))
       return FontExpr.roman_text('NaN');
@@ -554,7 +556,7 @@ class Expr {
       new TextExpr(coefficient_text),
       new SubscriptSuperscriptExpr(
         TextExpr.integer(10), null, new TextExpr(exponent_text)),
-      new CommandExpr('times'));
+      new CommandExpr('cdot'));
   }
 }
 
@@ -1237,31 +1239,39 @@ class InfixExpr extends Expr {
     else return null;
   }
 
-  // If this expression is "scientific notation" such as 3 \times 10^-2,
+  // If this expression is "scientific notation" such as 3 \cdot 10^-2,
   // return [coefficient_text, exponent_text] (e.g. ['3', '-2'] in this case).
   // The expression must be of this exact form, with literal numbers for the
   // coefficient and exponent.  Return null if it's not of this form.
   _unparse_scientific_notation() {
     if(!(this.operator_exprs.length === 1 &&
          this.operator_exprs[0].is_expr_type('command') &&
-         this.operator_exprs[0].command_name === 'times'))
+         this.operator_exprs[0].command_name === 'cdot'))
       return null;
     const [lhs, rhs] = this.operand_exprs;
     if(lhs.is_expr_type('text') && lhs.looks_like_number() &&
        rhs.is_expr_type('subscriptsuperscript') &&
        rhs.base_expr.is_expr_type('text') && rhs.base_expr.text === '10' &&
-       !rhs.subscript_expr && rhs.superscript_expr &&
-       rhs.superscript_expr.is_expr_type('text') &&
-       rhs.superscript_expr.looks_like_number())
-      return [lhs.text, rhs.superscript_expr.text];
-    else
-      return null;
+       !rhs.subscript_expr && rhs.superscript_expr) {
+      const exponent_expr = rhs.superscript_expr;
+      let exponent_text = null;
+      if(exponent_expr.is_expr_type('text') && exponent_expr.looks_like_number())
+        exponent_text = exponent_expr.text;
+      else if(exponent_expr.is_expr_type('prefix') &&
+              exponent_expr.is_unary_minus() &&
+              exponent_expr.base_expr.is_expr_type('text') &&
+              exponent_expr.base_expr.looks_like_number())
+        exponent_text = '-' + exponent_expr.base_expr.text;
+      if(exponent_text !== null)
+        return [lhs.text, exponent_text];
+    }
+    return null;
   }
 
   as_editable_string() {
     // Special case: unparse scientific notation for infix expressions
-    // like 3 \times 10^-2 -> 3e-2
-    // NOTE: Expressions like 1 + 3 \times 10^-2 are flattened into
+    // like 3 \cdot 10^-2 -> 3e-2
+    // NOTE: Expressions like 1 + 3 \cdot 10^-2 are flattened into
     // larger InfixExprs so this unparsing will not work in that case.
     const scientific_notation_pieces = this._unparse_scientific_notation();
     if(scientific_notation_pieces)
