@@ -320,14 +320,23 @@ class InputContext {
     const arg_count = arg_count_string ? parseInt(arg_count_string) : 1;
     const [new_stack, ...argument_exprs] = stack.pop_exprs(arg_count);
     let result_node = null;
+
     if(guess_variable_arg_index_string) {
       const guess_variable_arg_index = parseInt(guess_variable_arg_index_string);
-      result_node = AlgebriteInterface.call_function_guessing_variable(
-        function_name, guess_variable_arg_index, argument_exprs);
+      const [guessed_variable_name, guessed_variable_expr] =
+            AlgebriteInterface.guess_variable(argument_exprs[0]);
+      if(guessed_variable_expr) {
+        console.log('Guessed variable: ' + guessed_variable_name);
+        argument_exprs.splice(guess_variable_arg_index, 0, guessed_variable_expr);
+      }
+      else {
+        this.notify('Could not guess variable');
+        return this.error_flash_stack();
+      }
     }
-    else
-      result_node = AlgebriteInterface.call_function(
-        function_name, argument_exprs);
+    
+    result_node = AlgebriteInterface.call_function(
+      function_name, argument_exprs);
     if(result_node) {
       const result_expr = AlgebriteInterface.algebrite_node_to_expr(result_node);
       if(result_expr)

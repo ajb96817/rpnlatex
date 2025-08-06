@@ -242,19 +242,22 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 
 // Scan an expression and try to find the variable to use for the
 // "implicit variable" Algebrite commands like [#][d] (derivative).
+// Returns [variable_name_string, variable_expr].
 // If no variable is found, or if there's more than one like in
-// sin(x*y) and therefore ambiguous, return null.
+// sin(x*y) and therefore ambiguous, returns [null, null].
 function guess_variable_in_expr(expr) {
-  let found_set = new Set();
-  _guess_variable_in_expr(expr, found_set);
-  if(found_set.size === 1)
-    return [...found_set][0];
-  else return null;
+  const var_map = {};
+  _guess_variable_in_expr(expr, var_map);
+  const var_names = Object.getOwnPropertyNames(var_map);
+  if(var_names.length === 1)
+    return [var_names[0], var_map[var_names[0]]];
+  else
+    return [null, null];
 }
-function _guess_variable_in_expr(expr, found_set) {
+function _guess_variable_in_expr(expr, var_map) {
   const variable_name = expr_to_variable_name(expr, true);
   if(variable_name)
-    found_set.add(variable_name);
+    var_map[variable_name] = expr;
   // We don't necessarily want to look for variables in every possible
   // subexpression; for example with x_a, the variable should be x_a as
   // a whole, even though it has the subexpressions 'x' and 'a'.
@@ -279,7 +282,7 @@ function _guess_variable_in_expr(expr, found_set) {
   else
     subexpressions = expr.subexpressions();
   subexpressions.forEach(
-    subexpr => _guess_variable_in_expr(subexpr, found_set));
+    subexpr => _guess_variable_in_expr(subexpr, var_map));
 }
 
 
@@ -387,9 +390,22 @@ class AlgebriteInterface {
   static debug_print_list(p) {
     return new AlgebriteToExpr().print_list(p);
   }
-  
+
+  // Returns:
+  //    [string, null, null] - successful conversion
+  //    [null, error_message, offending_subexpr] - on failure
   static expr_to_algebrite_string(expr) {
-    return new ExprToAlgebrite().expr_to_algebrite_string(expr);
+    const result = null;
+    try {
+      const result_string = new ExprToAlgebrite().expr_to_algebrite_string(expr);
+      result = [result_string, null, null];
+    } catch(e) {
+      if(e instanceof ExprToAlgebriteError)
+        result = [null, e.message, e.offending_expr];
+      else
+        result = [null, e.message, expr];
+    }
+    return result;
   }
 
   static algebrite_node_to_expr(p) {
@@ -413,15 +429,8 @@ class AlgebriteInterface {
     return result;
   }
 
-  static call_function_guessing_variable(function_name, variable_arg_index, argument_exprs) {
-    const variable_name = guess_variable_in_expr(argument_exprs[0]);
-    if(!variable_name) return null;
-    console.log('Guessed variable: ' + variable_name);
-    let argument_strings = argument_exprs.map(
-      expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
-    argument_strings.splice(variable_arg_index, 0, variable_name);
-    return this.call_function_with_argument_strings(
-      function_name, argument_strings);
+  static guess_variable(expr) {
+    return guess_variable_in_expr(expr);
   }
 
   // Initialize Algebrite's environment.
@@ -538,10 +547,17 @@ class AlgebriteEmitter {
 }
 
 
+class ExprToAlgebriteError extends Error {
+  constructor(message, offending_expr) {
+    super(message);
+    this.offending_expr = offending_expr;
+  }
+}
+
+
 class ExprToAlgebrite {
   error(message, offending_expr) {
-    alert(message);
-    throw new Error('Algebrite: ' + message);
+    throw new ExprToAlgebriteError(message, offending_expr);
   }
 
   expr_to_algebrite_string(expr) {
@@ -1041,7 +1057,6 @@ class AlgebriteToExpr {
   // (add x y z ...)
   add_to_expr(terms) {
     const exprs = terms.map(term => this.to_expr(term));
-    console.log(exprs);
     return exprs.reduce((result_expr, expr) => {
       if(expr.is_expr_type('prefix') && expr.is_unary_minus())
         return InfixExpr.combine_infix(
