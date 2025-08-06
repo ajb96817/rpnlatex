@@ -750,7 +750,7 @@ class InputContext {
       funcname = [funcname, sup_or_sub, superscript_text].join('');
     }
     if(this.settings.autoparenthesize)
-      arg_expr = DelimiterExpr.autoparenthesize(arg_expr);
+      arg_expr = DelimiterExpr.parenthesize_for_argument(arg_expr);
     // \sech and \csch are are missing in LaTeX for some reason so they need to be special cased here.
     let expr;
     if(orig_funcname === 'sech' || orig_funcname === 'csch')

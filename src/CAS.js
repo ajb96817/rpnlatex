@@ -999,7 +999,9 @@ class AlgebriteToExpr {
 
     // Check "built-in" unary LaTeX command like \sin{x}.
     if(allowed_algebrite_unary_functions.has(f) && args.length === 1)
-      return new CommandExpr(translate_function_name(f, false), [arg_exprs[0]]);
+      return new CommandExpr(
+        translate_function_name(f, false),
+        [DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
 
     // Check forms that have special Expr representations.
     switch(f) {
@@ -1039,10 +1041,20 @@ class AlgebriteToExpr {
   // (add x y z ...)
   add_to_expr(terms) {
     const exprs = terms.map(term => this.to_expr(term));
+    console.log(exprs);
     return exprs.reduce((result_expr, expr) => {
       if(expr.is_expr_type('prefix') && expr.is_unary_minus())
         return InfixExpr.combine_infix(
           result_expr, expr.base_expr, new TextExpr('-'));
+      else if(expr.is_expr_type('sequence') &&
+              expr.exprs[0].is_expr_type('prefix') &&
+              expr.exprs[0].is_unary_minus()) {
+        // e.g. add(x, -4y); the -4y is a SequenceExpr[-4, y]
+        const new_sequence_expr = new SequenceExpr(
+          [expr.exprs[0].base_expr, ...expr.exprs.slice(1)]);
+        return InfixExpr.combine_infix(
+          result_expr, new_sequence_expr, new TextExpr('-'));
+      }
       else
         return InfixExpr.combine_infix(
           result_expr, expr, new TextExpr('+'));

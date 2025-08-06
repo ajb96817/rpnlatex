@@ -1835,8 +1835,6 @@ class DelimiterExpr extends Expr {
   // The expression will be parenthesized if it is:
   //   - any kind of SequenceExpr, InfixExpr, PrefixExpr, or PostfixExpr
   //   - blank delimiters containing any kind of InfixExpr
-  //   - any kind of SequenceExpr that is not a function application
-  //     of the form [anything, DelimiterExpr] (we want to still have f(x)^3 etc.)
   //   - a normal fraction like \frac{x}{y}
   //   - a "primed" expression like f' (but not f'(x)).
   static parenthesize_for_power(expr, left_type, right_type) {
@@ -1866,7 +1864,43 @@ class DelimiterExpr extends Expr {
        expr.count_primes() > 0)
     );
     if(needs_parenthesization)
-      return DelimiterExpr.parenthesize(expr, left_type, right_type);
+      return DelimiterExpr.parenthesize_if_not_already(
+        expr, left_type, right_type);
+    else
+      return expr;
+  }
+
+  // expr is about to become the argument of a (unary) function call
+  // like \sin.  We want to have 'sin(x+1)' but also 'sin 2x', etc.
+  // The logic is similar to, but not quite the same as, parenthesize_for_power().
+  static parenthesize_for_argument(expr, left_type, right_type) {
+    const needs_parenthesization = (
+      // NOTE: Only parenthesize SequenceExprs if they don't start
+      // with a PrefixExpr: sin 2x, but sin(-2x)
+      ['infix', 'prefix', 'postfix'
+      ].includes(expr.expr_type()) ||
+
+      (expr.is_expr_type('sequence') && expr.exprs[0].is_expr_type('prefix')) ||
+
+      // Any infix expression inside "blank" delimiters
+      // (e.g. \left. x+y+z \right.)
+      (expr.is_expr_type('delimiter') &&
+       expr.left_type === '.' && expr.right_type === '.' &&
+       expr.inner_expr.is_expr_type('infix')) ||
+
+      // \frac{x}{y}
+      (expr.is_expr_type('command') &&
+       expr.command_name === 'frac' &&
+       expr.operand_count() === 2) ||
+      
+      // \sin{x}, \ln{x}, etc.
+      (expr.is_expr_type('command') &&
+       expr.operand_count() === 1 &&
+       !expr.operand_exprs[0].is_expr_type('delimiter'))
+    );
+    if(needs_parenthesization)
+      return DelimiterExpr.parenthesize_if_not_already(
+        expr, left_type, right_type);
     else
       return expr;
   }
