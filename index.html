@@ -2067,6 +2067,13 @@
           </code>.
         </li>
         <li>
+          <span class="keybinding">*</span>
+          Complex conjugation:
+          <code>\displaystyle{
+            {\mathrm e}^{2ix}\to{\mathrm e}^{-2ix}}
+          </code>.
+        </li>
+        <li>
           <span class="keybinding">z</span> and <span class="keybinding">Z</span>
           Find the (real or complex) exact roots of a polynomial if possible.
           Multiple roots are displayed as a vector.
@@ -2076,15 +2083,22 @@
           </code>.
         </li>
         <li>
-          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
-          Numerically find all (real or complex) roots of a polynomial.
+          <span class="keybinding">m</span>
+          <code>f\enspace a\enspace b \to \displaystyle{\sum_{x=a}^b f{(x)}}</code>
+          or
+          <span class="keybinding">M</span>
+          <code>f\enspace x\enspace a\enspace b \to \displaystyle{\sum_{x=a}^b f{(x)}}</code>:
+          Sum <code>f{(x)}</code> for values of the variable
+          ranging from <code>a</code> to <code>b</code>;
+          <code>a</code> and <code>b</code> must be finite integers.
         </li>
         <li>
-          <span class="keybinding">*</span>
-          Complex conjugation:
-          <code>\displaystyle{
-            {\mathrm e}^{2ix}\to{\mathrm e}^{-2ix}}
-          </code>.
+          <span class="keybinding">o</span>
+          <code>f\enspace a\enspace b \to \displaystyle{\prod_{x=a}^b f{(x)}}</code>
+          or
+          <span class="keybinding">O</span>
+          <code>f\enspace x\enspace a\enspace b \to \displaystyle{\prod_{x=a}^b f{(x)}}</code>:
+          Product of <code>f{(x)}</code> values.
         </li>
       </ul>
       
@@ -2148,6 +2162,10 @@
           Given a decimal number, try to find a close rational approximation to the number.
           Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
           be detected: <code>1.6449340668482262 \to \pi^2/6</code>.
+        </li>
+        <li>
+          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
+          Numerically find all (real or complex) roots of a polynomial.
         </li>
       </ul>
 

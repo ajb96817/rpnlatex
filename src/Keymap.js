@@ -1008,6 +1008,10 @@ const EditorKeymap = {
     'j': "algebrite defint 3 1",
     'J': "algebrite defint 4",
     'k': "algebrite circexp",  // TODO: better keybinding
+    'm': "algebrite sum 3 1",
+    'M': "algebrite sum 4",
+    'o': "algebrite product 3 1",
+    'O': "algebrite product 4",
     'p': "mode algebrite_polynomial",
     'P': "algebrite polar",
     'r': "algebrite rationalize",
