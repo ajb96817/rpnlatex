@@ -982,14 +982,6 @@ const EditorKeymap = {
     'T': "dissect_copy_selection trim"
   },
 
-  // // [#] prefix: evaluate mode
-  // evaluate: {
-  //   '#': "push \\#",
-  //   '=': "evaluate_to_equation false",
-  //   'Enter': "evaluate_to_equation true",
-  //   '|': "evaluate_with_variable_substitution"
-  // },
-
   // [#] prefix: symbolic algebra mode
   algebrite: {
     '#': "algebrite eval",

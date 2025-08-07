@@ -818,26 +818,13 @@ class ExprToAlgebrite {
     const [base_expr, subscript_expr, superscript_expr] =
           [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
     
-    // Check for subscripted variable names (x_1).
-    // A possible superscript becomes the exponent.
-    if(subscript_expr) {
-      const variable_name = expr_to_variable_name(expr, true /* ignore_superscript */);
-      if(!variable_name)
-        return this.error('Invalid variable', expr);
-      if(superscript_expr)
-        return new AlgebriteCall(
-          'power', [
-            new AlgebriteVariable(variable_name),
-            this.expr_to_node(superscript_expr)]);
-      else
-        return new AlgebriteVariable(variable_name);
-    }
-    
-    // Check for for "where" expressions of the form: f|_(x=y).
+    // Check for for "where" expressions of the form: f|_{x=y}.
     if(base_expr.is_expr_type('delimiter') &&
        base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
        subscript_expr && subscript_expr.is_expr_type('infix') &&
        subscript_expr.operator_text_at(0) === '=') {
+      if(superscript_expr)
+        return this.error('Cannot use superscript here', expr);
       const lhs = subscript_expr.operand_exprs[0];
       const rhs = subscript_expr.extract_side_at(0, 'right');
       return new AlgebriteCall(
@@ -847,6 +834,21 @@ class ExprToAlgebrite {
           this.expr_to_node(rhs)]);
     }
 
+    // Check for subscripted variable names (x_1).
+    // A possible superscript becomes the exponent.
+    if(subscript_expr) {
+      const variable_name = expr_to_variable_name(expr, true /* ignore_superscript */);
+      if(!variable_name)
+        return this.error('Invalid variable subscript', expr);
+      if(superscript_expr)
+        return new AlgebriteCall(
+          'power', [
+            new AlgebriteVariable(variable_name),
+            this.expr_to_node(superscript_expr)]);
+      else
+        return new AlgebriteVariable(variable_name);
+    }
+    
     // Anything else with a subscript isn't allowed.
     if(subscript_expr)
       return this.error('Cannot use subscript here', expr);
