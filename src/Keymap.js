@@ -998,6 +998,8 @@ const EditorKeymap = {
 //    'S': "algebrite expsin",
     't': "push 7;push 0;algebrite taylor 3 1",
     'T': "swap;algebrite taylor 4",  // NOTE: last two arguments are swapped
+    'v': "algebrite eigenval",
+    'V': "algebrite eigenvec;transpose_matrix",
     'x': "algebrite expand 1 1",
     'X': "algebrite expand 2",
     'y': "algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]

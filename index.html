@@ -2147,7 +2147,7 @@
         <li>
           <span class="keybinding">~</span>
           Evaluate constants in an expression, replacing them with
-          numerical values:
+          decimal numerical values:
           <code>(\ln{2})^3 \to 0.33302465198892944</code>
         </li>
         <li>
@@ -2155,6 +2155,16 @@
           Given a decimal number, try to find a close rational approximation to the number.
           Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
           be detected: <code>1.6449340668482262 \to \pi^2/6</code>.
+        </li>
+        <li>
+          <span class="keybinding">v</span>
+          Compute numerical eigenvalues of a matrix.  The matrix must be real, symmetrical, and contain
+          only numeric values (no symbols).  A diagonal matrix containing the eigenvalues is
+          returned.
+        </li>
+        <li>
+          <span class="keybinding">V</span>
+          Compute numerical eigenvectors of a matrix.  A matrix containing the eigenvectors as its columns is returned.
         </li>
         <li>
           <span class="keybinding">y</span> and <span class="keybinding">Y</span>
