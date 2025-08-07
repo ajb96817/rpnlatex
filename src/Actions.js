@@ -722,7 +722,7 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
-  // Pop arity_string items (default 1) and turn them into an Command expr.
+  // Pop arity_string items (default 1) and turn them into an CommandExpr.
   do_operator(stack, opname, arity_string = '1') {
     const arity = parseInt(arity_string);
     const [new_stack, ...popped_exprs] = stack.pop_exprs(arity);
@@ -815,23 +815,6 @@ class InputContext {
     const form_expr = d_exprs.reduce((form_expr, d_expr) =>
       InfixExpr.combine_infix(form_expr, d_expr, new CommandExpr('wedge')));
     return new_stack.push_expr(form_expr);
-  }
-
-  // opname == 'argmax': y x -> \argmax\limits_{x} y
-  do_underset_operator(stack, opname) {
-    const [new_stack, argument_expr, sub_expr] = stack.pop_exprs(2);
-    let command_expr;
-    if(make_operatorname)
-      command_expr = new CommandExpr('operatorname', [new TextExpr(opname)]);
-    else
-      command_expr = new CommandExpr(opname);
-    const limits_expr = new SubscriptSuperscriptExpr(
-      new CommandExpr('limits'), sub_expr);
-    const no_parenthesize = !this.settings.autoparenthesize;
-    const new_expr = Expr.combine_pair(
-      Expr.combine_pair(command_expr, limits_expr, no_parenthesize),
-      argument_expr, no_parenthesize);
-    return new_stack.push_expr(new_expr);
   }
 
   // Similar to do_operator, except:
@@ -1558,6 +1541,14 @@ class InputContext {
         items.map(item => DelimiterExpr.autoparenthesize(item.expr)));
     else
       return stack;
+  }
+
+  // Parenthesize an expression if needed, assuming it's going to be the argument
+  // to a function like sin(x).  See DelimiterExpr.parenthesize_for_argument().
+  do_parenthesize_argument(stack) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    return new_stack.push_expr(
+      DelimiterExpr.parenthesize_for_argument(expr));
   }
 
   // Combine command name and arguments from the stack into a CommandExpr.

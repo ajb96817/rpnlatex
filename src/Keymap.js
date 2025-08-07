@@ -445,37 +445,25 @@ const EditorKeymap = {
 
   // [/][f] prefix
   named_operator: {
-    'a': "operator arg",
-    'c': "operator gcd",
-    'd': "operator dim",
-    'e': "operator deg",
-    'f': "operator liminf",
-    'g': "operator argmax",
+    // NOTE: Only some commands autoparenthesize, depending on the
+    // traditional mathematical notation of the operator.
+    'a': "parenthesize_argument;operator arg",
+    'd': "parenthesize_argument;operator dim",
+    'D': "operator deg",
+    'e': "parenthesize_argument;push erf;swap;operator operatorname 2",
+    'E': "parenthesize_argument;push erfc;swap;operator operatorname 2",
+    'g': "parenthesize_argument;operator gcd",
     'h': "operator hom",
     'i': "operator inf",
-    'k': "operator ker",
+    'I': "operator liminf",
+    'k': "parenthesize_argument;operator ker",
     'l': "operator lim",
-    'm': "operator min",
-    'n': "operator argmin",
+    'm': "parenthesize_argument;operator min",
+    'M': "operator argmin",
     's': "operator sup",
-    'u': "operator limsup",
-    'x': "operator max",
-
-    'A': "underset_operator arg",
-    'C': "underset_operator gcd",
-    'D': "underset_operator dim",
-    'E': "underset_operator deg",
-    'F': "underset_operator liminf",
-    'G': "underset_operator argmax",
-    'H': "underset_operator hom",
-    'I': "underset_operator inf",
-    'K': "underset_operator ker",
-    'L': "underset_operator lim",
-    'M': "underset_operator min",
-    'N': "underset_operator argmin",
-    'S': "underset_operator sup",
-    'U': "underset_operator limsup",
-    'X': "underset_operator max"
+    'S': "operator limsup",
+    'x': "parenthesize_argument;operator max",
+    'X': "operator argmax"
   },
 
   // [/][h] prefix: hyperbolic trig functions
@@ -643,6 +631,7 @@ const EditorKeymap = {
     'e': "infix ,\\dots,",
     'f': "conjunction if",
     'F': "conjunction iff",
+    'j': "infix \\Join",
     'g': "infix \\gets",
     'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
     '|': "infix \\,\\vert\\,",  // (alias for k)
@@ -703,7 +692,6 @@ const EditorKeymap = {
     'G': "infix \\gg",
     'i': "infix \\in",
     'I': "infix \\in;negate_infix",
-    'j': "infix \\Join",
     'l': "infix <",
     'L': "infix \\ll",
     'm': "infix \\mapsto",
@@ -902,7 +890,7 @@ const EditorKeymap = {
     'm': "build_matrix_row matrix",
     ' ': "build_matrix_row matrix",
     'p': "build_infix_list +;push \\cdots;push +;apply_infix",
-    'r': "push Tr;swap;operator operatorname 2",
+    'r': "autoparenthesize;push Tr;swap;operator operatorname 2",
     's': "split_array",
     't': "mode change_matrix_type",
     'T': "transpose_matrix",
@@ -988,11 +976,9 @@ const EditorKeymap = {
     '~': "algebrite float",
     '=': "rationalize",  // not part of Algebrite
     'A': "algebrite arg",
-//    'c': "algebrite erfc",
 //    'C': "algebrite expcos",
     'd': "algebrite derivative 1 1",
     'D': "algebrite derivative 2",
-//    'e': "algebrite erf",
     'f': "algebrite factor 1 1",
     'F': "algebrite factor 2",
     'i': "algebrite integral 1 1",
@@ -1018,7 +1004,6 @@ const EditorKeymap = {
     'Y': "algebrite nroots 2",
     'z': "algebrite roots 1 1", // z=zeroes; TODO: display guessed variable
     'Z': "algebrite roots 2",
-//    '=': "algebrite float",
     '*': "algebrite conj"
   },
 

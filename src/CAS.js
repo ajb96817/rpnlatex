@@ -59,6 +59,7 @@ const allowed_algebrite_unary_functions = new Set([
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
   'log', 'choose', 'contract', 'det', 'curl', 'div',
   'add', 'multiply', 'quotient', 'cross', 'inner',
+  'arg', 'erf', 'erfc',
   
   // Custom functions added to Algebrite by rpnlatex:
   'sec', 'csc', 'cot', 'sech', 'csch', 'coth',
@@ -746,7 +747,7 @@ class ExprToAlgebrite {
 
   command_expr_to_node(expr) {
     // Some built-in commands use \operatorname{fn}{x} (a 2-argument CommandExpr).
-    // These include: Tr(), sech(), csch(), which aren't present in LaTeX.
+    // These include: Tr(), sech(), csch(), erf(), erfc(), which aren't present in LaTeX.
     // For these cases, the command name and argument to use are extracted
     // from the \operatorname command.
     let args, nargs, command_name;
