@@ -334,7 +334,8 @@ class InputContext {
         return this.error_flash_stack();
       }
     }
-    
+
+    AlgebriteInterface.setup_algebrite();
     result_node = AlgebriteInterface.call_function(
       function_name, argument_exprs);
     if(result_node) {
@@ -343,6 +344,28 @@ class InputContext {
         return new_stack.push_expr(result_expr);
     }
     return this.error_flash_stack();
+  }
+
+  // full_arguments=false: check a single expression from the stack
+  // full_arguments=true: take f, x, a, b from the stack; check
+  //                      f(x) with values from a..b.
+  do_algebrite_check(stack, full_arguments) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    const result = AlgebriteInterface.check_relation(expr, 2.0 /* time limit */);
+
+    const pieces = ['Result: **', result.result, '**.'];
+    if(result.message) {
+      pieces.push(' ');
+      pieces.push(result.message);
+    }
+    if(!result.exact && result.tries) {
+      pieces.push(' Tried ');
+      pieces.push(result.tries.toString());
+      pieces.push(' time' + (result.tries === 1 ? '' : 's'));
+      pieces.push('.');
+    }
+    const result_text = TextItem.parse_string(pieces.join(''));
+    return new_stack.push(result_text);
   }
 
   do_rationalize(stack) {

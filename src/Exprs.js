@@ -70,9 +70,9 @@ class Expr {
   }
 
   // Helper routines for from_json
-  static _expr(json) { return json ? Expr.from_json(json) : null; }
-  static _list(json_array) { return json_array.map(expr_json => Expr.from_json(expr_json)); }
-  static _list2d(json_array) { return json_array.map(row_exprs => Expr._list(row_exprs)); }
+  static _expr(json) { return json ? this.from_json(json) : null; }
+  static _list(json_array) { return json_array.map(expr_json => this.from_json(expr_json)); }
+  static _list2d(json_array) { return json_array.map(row_exprs => this._list(row_exprs)); }
   
   // Concatenate two Exprs into one.  This will merge Exprs into adjacent SequenceExprs
   // when possible, instead of creating nested SequenceExprs.
@@ -1031,7 +1031,7 @@ class InfixExpr extends Expr {
   // return [coefficient_text, exponent_text] (e.g. ['3', '-2'] in this case).
   // The expression must be of this exact form, with literal numbers for the
   // coefficient and exponent.  Return null if it's not of this form.
-  _unparse_scientific_notation() {
+  unparse_scientific_notation() {
     if(!(this.operator_exprs.length === 1 &&
          this.operator_exprs[0].is_expr_type('command') &&
          this.operator_exprs[0].command_name === 'cdot'))
@@ -1061,7 +1061,7 @@ class InfixExpr extends Expr {
     // like 3 \cdot 10^-2 -> 3e-2
     // NOTE: Expressions like 1 + 3 \cdot 10^-2 are flattened into
     // larger InfixExprs so this unparsing will not work in that case.
-    const scientific_notation_pieces = this._unparse_scientific_notation();
+    const scientific_notation_pieces = this.unparse_scientific_notation();
     if(scientific_notation_pieces)
       return scientific_notation_pieces.join('e');
     const operator_strings = this.operator_exprs.map(

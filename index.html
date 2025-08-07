@@ -1957,7 +1957,7 @@
         <li>
           <span class="keybinding">u</span> or <span class="keybinding">U</span> or <span class="keybinding">&uarr;</span>
           Ascend the tree structure if possible, selecting a larger expression containing the current selection.
-          Note that the top-level expression itself as a whole cannot be selected in <em>dissect</em> mode.
+          Note that the top-level expression itself as a whole cannot be selected.
         </li>
         <li>
           <span class="keybinding">x</span> or <span class="keybinding">X</span> or <span class="keybinding">&#39;</span>
@@ -2040,7 +2040,7 @@
           <code>123456 \to 2^6\cdot 3\cdot 643</code>.
         </li>
         <li>
-          <span class="keybinding">s</span> and <span class="keybinding">S</span>
+          <span class="keybinding">s</span>
           Attempt to rewrite an expression in a simpler form.
         </li>
         <li>
@@ -2147,7 +2147,7 @@
         <li>
           <span class="keybinding">~</span>
           Evaluate constants in an expression, replacing them with
-          decimal numerical values:
+          decimal approximations:
           <code>(\ln{2})^3 \to 0.33302465198892944</code>
         </li>
         <li>
@@ -2155,6 +2155,10 @@
           Given a decimal number, try to find a close rational approximation to the number.
           Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
           be detected: <code>1.6449340668482262 \to \pi^2/6</code>.
+        </li>
+        <li>
+          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
+          Numerically find all (real or complex) roots of a polynomial.
         </li>
         <li>
           <span class="keybinding">v</span>
@@ -2165,10 +2169,6 @@
         <li>
           <span class="keybinding">V</span>
           Compute numerical eigenvectors of a matrix.  A matrix containing the eigenvectors as its columns is returned.
-        </li>
-        <li>
-          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
-          Numerically find all (real or complex) roots of a polynomial.
         </li>
       </ul>
 

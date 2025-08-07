@@ -396,8 +396,8 @@ const EditorKeymap = {
     'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z)
     'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
     'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
-    'm': "parenthesize;push Im;typeface roman;swap;build_function_call",  // Im(x)
-    'M': "parenthesize;push Re;typeface roman;swap;build_function_call",  // Re(x)
+    'm': "parenthesize_argument;push Im;swap;operator operatorname 2",  // Im(x)
+    'M': "parenthesize_argument;push Re;swap;operator operatorname 2",  // Re(x)
     'n': "named_function ln",
     'N': "named_function log",
     'o': "parenthesize;build_function_call",  // f x -> f(x)  "[o]f"
@@ -992,6 +992,8 @@ const EditorKeymap = {
     'O': "algebrite product 4",
     'p': "mode algebrite_polynomial",
     'P': "algebrite polar",
+    'q': "algebrite_check false",
+    'Q': "algebrite_check true",
     'r': "algebrite rationalize",
     'R': "algebrite rect",
     's': "algebrite simplify",

@@ -59,7 +59,7 @@ const allowed_algebrite_unary_functions = new Set([
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
   'log', 'choose', 'contract', 'det', 'curl', 'div',
   'add', 'multiply', 'quotient', 'cross', 'inner',
-  'arg', 'erf', 'erfc',
+  'arg', 'erf', 'erfc', 'real', 'imag',
   
   // Custom functions added to Algebrite by rpnlatex:
   'sec', 'csc', 'cot', 'sech', 'csch', 'coth',
@@ -69,8 +69,9 @@ const allowed_algebrite_unary_functions = new Set([
   // Custom functions for handling - and /:
   'negative', 'reciprocal'
 ]);
-  
-// [rpnlatex_command, algebrite_command]
+
+// Translations between internal command names and Algebrite functions.
+// [rpnlatex_command, algebrite_function]
 const algebrite_function_translations = [
   ['sin^{-1}', 'arcsin'],
   ['cos^{-1}', 'arccos'],
@@ -85,7 +86,8 @@ const algebrite_function_translations = [
   ['csch^{-1}', 'arccsch'],
   ['coth^{-1}', 'arccoth'],
   ['Tr', 'contract'  /* TODO: 'trace' instead */],
-  // TODO: real(), imag()
+  ['Re', 'real'],
+  ['Im', 'imag'],
   ['binom', 'choose'],
   ['ln', 'log'],
   ['log_2', 'log2'],
@@ -242,7 +244,7 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 
 
 // Scan an expression and try to find the variable to use for the
-// "implicit variable" Algebrite commands like [#][d] (derivative).
+// "implicit variable" for Algebrite commands like [#][d] (derivative).
 // Returns [variable_name_string, variable_expr].
 // If no variable is found, or if there's more than one like in
 // sin(x*y) and therefore ambiguous, returns [null, null].
@@ -396,7 +398,7 @@ class AlgebriteInterface {
   //    [string, null, null] - successful conversion
   //    [null, error_message, offending_subexpr] - on failure
   static expr_to_algebrite_string(expr) {
-    const result = null;
+    let result = null;
     try {
       const result_string = new ExprToAlgebrite().expr_to_algebrite_string(expr);
       result = [result_string, null, null];
@@ -423,7 +425,7 @@ class AlgebriteInterface {
   // 'argument_strings' have already been converted into Algebrite syntax.
   static call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
-    this.setup_algebrite();
+//    this.setup_algebrite();
     const algebrite_method = Algebrite[function_name];
     const result = algebrite_method(...argument_strings);
     console.log('Output: ' + this.debug_print_list(result));
@@ -432,6 +434,143 @@ class AlgebriteInterface {
 
   static guess_variable(expr) {
     return guess_variable_in_expr(expr);
+  }
+
+  static analyze_relation(expr) {
+    if(!expr.is_expr_type('infix'))
+      return null;
+    const relation_types = {
+      '=':  'testeq',
+      '<':  'testlt',
+      'le': 'testle',
+      '>':  'testgt',
+      'ge': 'testge'
+    };
+    let relation_index = null;
+    let relation_type = null;
+    for(let i = 0; i < expr.operator_exprs.length; i++) {
+      const operator_text = expr.operator_text_at(i);
+      if(relation_types[operator_text]) {
+        if(relation_type)
+          return null;  // more than 1 relational operator
+        relation_type = relation_types[operator_text];
+        relation_index = i;
+      }
+    }
+    if(relation_index === null)
+      return null;  // no relational operator
+    return [
+      expr.extract_side_at(relation_index, 'left'),
+      expr.extract_side_at(relation_index, 'right'),
+      relation_type];
+  }
+
+  static check_relation(expr, time_limit) {
+    const scratch = this.analyze_relation(expr);
+    if(!scratch)
+      return new TextExpr('no relation operator');
+    const [lhs_expr, rhs_expr, relation_type] = scratch;
+    const result = this.call_function(relation_type, [lhs_expr, rhs_expr]);
+    if(result.k === 1) {
+      if(result.q.a.equals(1) && result.q.b.equals(1))
+        return {'result': 'True', 'exact': true};
+      else if(result.q.a.equals(0))
+        return {'result': 'False', 'exact': false};
+    }
+    const [variable_name, variable_expr] = guess_variable_in_expr(expr);
+    if(!variable_name)
+      return {
+        'result': 'Inconclusive',
+        'message': 'Could not determine variable',
+        'exact': true
+      };
+    return this.check_relation_numerically(
+      lhs_expr, rhs_expr, variable_name, relation_type, time_limit);
+  }
+
+  static define_function(fn_name, variable_name, body_expr) {
+    const body_result = this.expr_to_algebrite_string(body_expr);
+    if(!body_result[0]) {
+      // TODO
+      alert('define_function failed');
+      return;
+    }
+    const def_string = [
+      fn_name,
+      '(',
+      variable_name,
+      ') = ',
+      body_result[0]
+    ].join('');
+    Algebrite.run(def_string);
+  }
+
+  static check_relation_numerically(lhs_expr, rhs_expr, variable_name, relation_type, time_limit) {
+    this.define_function('lhs_expr', variable_name, lhs_expr);
+    this.define_function('rhs_expr', variable_name, rhs_expr);
+    let iter = 0;
+    for(; iter < 30; iter++) {
+      console.log('iteration ' + iter);
+      const variable_value = 10.0*(Math.random()-0.5);
+      const variable_value_string = variable_value.toString();
+      const result = this.check_relation_numerically_once(
+        variable_name, variable_value_string, relation_type);
+      if(result === null) {
+        // Could not evaluate.
+        return {
+          'result': 'Inconclusive',
+          'message': 'Could not evaluate numerically',
+          'exact': false,
+          'tries': iter
+        };
+      }
+      else if(result === false) {
+        return {
+          'result': 'False',
+          'exact': false,
+          'tries': iter+1
+        };
+      }
+    }
+    return {
+      'result': 'True',
+      'exact': false,
+      'tries': iter
+    };
+  }
+
+  static check_relation_numerically_once(variable_name, variable_value_string, relation_type) {
+    const lhs_result = this.call_function_with_argument_strings(
+      'eval', [
+        ['float(lhs_expr(', variable_name, '))'].join(''),
+        variable_name, variable_value_string]);
+    const rhs_result = this.call_function_with_argument_strings(
+      'eval', [
+        ['float(rhs_expr(', variable_name, '))'].join(''),
+        variable_name, variable_value_string]);
+    if(lhs_result.k === 2 && rhs_result.k === 2) {
+      const lhs_float = lhs_result.d;
+      const rhs_float = rhs_result.d;
+      if(this.check_numerical_relation_result(lhs_result.d, rhs_result.d, relation_type))
+        return true;
+    }
+    return false;
+  }
+
+  static check_numerical_relation_result(lhs, rhs, relation_type) {
+    console.log('lhs=' + lhs + ' rhs=' + rhs, ' rel=' + relation_type);
+    switch(relation_type) {
+    case 'testeq': return this.approx_equal(lhs, rhs);
+    case 'testlt': return lhs < rhs;
+    case 'testle': return lhs <= rhs;
+    case 'testgt': return lhs > rhs;
+    case 'testge': return lhs >= rhs;
+    default: return false;
+    }
+  }
+
+  approx_equal(x, y) {
+    return Math.abs(x-y) <= 1e-7;
   }
 
   // Initialize Algebrite's environment.
@@ -454,7 +593,7 @@ class AlgebriteInterface {
       'log10(x) = log(x)/log(10)',  // not yet implemented in the editor
       'negative(x) = -x',  // used for infix '-': x-y -> add(x, negative(y))
       'reciprocal(x) = 1/x'  // used for infix '/' and fractions
-    ].forEach(s => Algebrite.eval(s));
+    ].forEach(s => Algebrite.eval(s) /* TODO: .run() */);
   }
 }
 
@@ -730,9 +869,9 @@ class ExprToAlgebrite {
     const [left, right] = [expr.left_type, expr.right_type];
     const inner_node = this.expr_to_node(expr.inner_expr);
     if((left === '.' && right === '.') ||
-            (left === '(' && right === ')') ||
-            (left === '[' && right === ']') ||
-            (left === "\\{" && right === "\\}"))
+       (left === '(' && right === ')') ||
+       (left === '[' && right === ']') ||
+       (left === "\\{" && right === "\\}"))
       return inner_node;
     else if(left === "\\lceil" && right === "\\rceil")
       return new AlgebriteCall('ceiling', [inner_node]);
@@ -783,7 +922,7 @@ class ExprToAlgebrite {
     }
 
     // Check for unary functions like sin(x).
-    // Translate 'Tr' -> 'contract', etc. as needed.
+    // Translate 'Tr' -> 'contract', etc. if needed.
     const algebrite_command = translate_function_name(command_name, true);
     if(allowed_algebrite_unary_functions.has(algebrite_command) && nargs === 1)
       return new AlgebriteCall(algebrite_command, [this.expr_to_node(args[0])]);
@@ -1067,7 +1206,7 @@ class AlgebriteToExpr {
       else if(expr.is_expr_type('sequence') &&
               expr.exprs[0].is_expr_type('prefix') &&
               expr.exprs[0].is_unary_minus()) {
-        // e.g. add(x, -4y); the -4y is a SequenceExpr[-4, y]
+        // e.g. add(x, -4y); the -4y is a SequenceExpr[PrefixExpr[-, 4], y]
         const new_sequence_expr = new SequenceExpr(
           [expr.exprs[0].base_expr, ...expr.exprs.slice(1)]);
         return InfixExpr.combine_infix(
