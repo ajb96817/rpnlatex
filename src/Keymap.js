@@ -973,8 +973,8 @@ const EditorKeymap = {
   // [#] prefix: symbolic algebra mode
   algebrite: {
     '#': "algebrite eval",
-    '~': "algebrite float",
     '=': "rationalize",  // not part of Algebrite
+    '*': "algebrite conj",
     'A': "algebrite arg",
     'd': "algebrite derivative 1 1",
     'D': "algebrite derivative 2",
@@ -1003,11 +1003,10 @@ const EditorKeymap = {
     'V': "algebrite eigenvec;transpose_matrix",
     'x': "algebrite expand 1 1",
     'X': "algebrite expand 2",
-    'y': "algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]
-    'Y': "algebrite nroots 2",
-    'z': "algebrite roots 1 1",  // z=zeroes; TODO: display guessed variable
-    'Z': "algebrite roots 2",
-    '*': "algebrite conj"
+    'y': "all_on_left true;algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]
+    'Y': "swap;all_on_left true;swap;algebrite nroots 2",
+    'z': "all_on_left true;algebrite roots 1 1",  // z=zeroes; TODO: display guessed variable
+    'Z': "swap;all_on_left true;swap;algebrite roots 2"
   },
 
   algebrite_polynomial: {

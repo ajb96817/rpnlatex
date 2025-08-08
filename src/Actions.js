@@ -1186,6 +1186,47 @@ class InputContext {
     return stack.type_error();
   }
 
+  // For an equation or relational expression like x^2 + x < 3,
+  // subtract the right hand side from the left, leaving x^2 + x - 3 < 0.
+  // If the expression is not an equation, it's left alone.
+  // If 'drop_rhs' is set, leave out the "< 0" part.
+  do_all_on_left(stack, drop_rhs) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    if(!expr.is_expr_type('infix'))
+      return stack;
+    let relation_index = null;
+    let relational_op_expr = null;
+    let more_than_one_relational_op = false;
+    expr.operator_exprs.forEach((operator_expr, i) => {
+      if(['=', '<', '>', 'ne', 'le', 'ge'
+         ].includes(expr.operator_text_at(i))) {
+        if(relation_index == null) {
+          relation_index = i;
+          relational_op_expr = operator_expr;
+        }
+        else
+          more_than_one_relational_op = true;
+      }
+    });
+    if(more_than_one_relational_op || relation_index === null)
+      return stack;
+    const lhs = expr.extract_side_at(relation_index, 'left');
+    const rhs = expr.extract_side_at(relation_index, 'right');
+    if(rhs.is_expr_type('text') && rhs.text === '0') {
+      // Already in the form x=0.
+      if(drop_rhs === 'true')
+        return new_stack.push_expr(lhs);
+      else
+        return stack;
+    }
+    const new_lhs = InfixExpr.combine_infix(lhs, rhs, new TextExpr('-'));
+    const new_expr = (drop_rhs === 'true') ? new_lhs :
+          InfixExpr.combine_infix(
+            new_lhs, TextExpr.integer(0),
+            relational_op_expr);
+    return new_stack.push_expr(new_expr);
+  }
+
   // Take apart an Expr and put all its elements on the stack.
   do_dissolve(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);

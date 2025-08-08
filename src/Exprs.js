@@ -1295,7 +1295,7 @@ class PostfixExpr extends Expr {
 }
 
 
-// Represents a snippet of LaTeX code; these are the "leaves" of Expr-trees.
+// Represents a snippet of LaTeX source text.
 class TextExpr extends Expr {
   static blank() { return new this(''); }
 
