@@ -425,7 +425,6 @@ class AlgebriteInterface {
   // 'argument_strings' have already been converted into Algebrite syntax.
   static call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
-//    this.setup_algebrite();
     const algebrite_method = Algebrite[function_name];
     const result = algebrite_method(...argument_strings);
     console.log('Output: ' + this.debug_print_list(result));
@@ -436,19 +435,79 @@ class AlgebriteInterface {
     return guess_variable_in_expr(expr);
   }
 
+  // Check a relational expression like 'x=y' for truth.
+  // The relational operator can be one of: =, !=, <, >, <=, >=.
+  // This check "symbolically" first using the Algebrite
+  // testxx(eq) functions, then falls back to sampling points
+  // in a given range and evaluating numerically.
+  //
+  // Currently, the variable to test is "guessed" from the equation.
+  //
+  // 'params': {
+  //   'time_limit': stop checking after this many milliseconds
+  //   'iteration_limit': stop checking after this many evaluations
+  //   'lower_bound', 'upper_bound': check variable values within this range
+  // }
+  //
+  // Returns: {
+  //   'result': 'True', 'False', 'Inconclusive' (if time ran out), etc.
+  //   'message': optional message to display about the results
+  //   'exact': true if the relation could be checked symbolically,
+  //            false if we had to resort to a numerical check
+  //   'tries': number of numerical evaluations that were attempted
+  // }
+  static check_relation(expr, params) {
+    this.setup_algebrite();
+    const scratch = this.analyze_relation(expr);
+    if(!scratch)
+      return {
+        'result': 'inconclusive',
+        'message': 'No relational operator',
+        'exact': true
+      };
+    const [lhs_expr, rhs_expr, relation_type] = scratch;
+    // Try checking "symbolically" with Algebrite.
+    // It will return 1 or 0 for true/false, otherwise the result
+    // will just be a "testeq(...)" call.
+    const result = this.call_function(relation_type, [lhs_expr, rhs_expr]);
+    if(result.k === 1 /* NUM */) {
+      if(result.q.a.equals(1) && result.q.b.equals(1))
+        return {'result': 'True', 'exact': true};
+      else if(result.q.a.equals(0))
+        return {'result': 'False', 'exact': false};
+    }
+    // Symbolic check failed.  Test it out numerically instead.
+    const [variable_name, variable_expr] = guess_variable_in_expr(expr);
+    if(!variable_name)
+      return {
+        'result': 'inconclusive',
+        'message': 'Could not determine variable',
+        'exact': true
+      };
+    return this.check_relation_numerically(
+      lhs_expr, rhs_expr, variable_name, relation_type, params);
+  }
+
+  // Check for an equation like x^2 = sin(x).
+  // Return [left_expr, right_expr, relation_type] if found;
+  // relation_type is an Algebrite test function name.
+  // Return null if the expression is not an equation
+  // (or has multiple relational operators).
   static analyze_relation(expr) {
     if(!expr.is_expr_type('infix'))
       return null;
     const relation_types = {
       '=':  'testeq',
       '<':  'testlt',
-      'le': 'testle',
       '>':  'testgt',
+      'ne': 'testneq',
+      'le': 'testle',
       'ge': 'testge'
     };
+    // Scan for a relational operator in the infix expression.
     let relation_index = null;
     let relation_type = null;
-    for(let i = 0; i < expr.operator_exprs.length; i++) {
+    expr.operator_exprs.forEach((operator_expr, i) => {
       const operator_text = expr.operator_text_at(i);
       if(relation_types[operator_text]) {
         if(relation_type)
@@ -456,7 +515,7 @@ class AlgebriteInterface {
         relation_type = relation_types[operator_text];
         relation_index = i;
       }
-    }
+    });
     if(relation_index === null)
       return null;  // no relational operator
     return [
@@ -465,55 +524,20 @@ class AlgebriteInterface {
       relation_type];
   }
 
-  static check_relation(expr, time_limit) {
-    const scratch = this.analyze_relation(expr);
-    if(!scratch)
-      return new TextExpr('no relation operator');
-    const [lhs_expr, rhs_expr, relation_type] = scratch;
-    const result = this.call_function(relation_type, [lhs_expr, rhs_expr]);
-    if(result.k === 1) {
-      if(result.q.a.equals(1) && result.q.b.equals(1))
-        return {'result': 'True', 'exact': true};
-      else if(result.q.a.equals(0))
-        return {'result': 'False', 'exact': false};
-    }
-    const [variable_name, variable_expr] = guess_variable_in_expr(expr);
-    if(!variable_name)
-      return {
-        'result': 'Inconclusive',
-        'message': 'Could not determine variable',
-        'exact': true
-      };
-    return this.check_relation_numerically(
-      lhs_expr, rhs_expr, variable_name, relation_type, time_limit);
-  }
-
-  static define_function(fn_name, variable_name, body_expr) {
-    const body_result = this.expr_to_algebrite_string(body_expr);
-    if(!body_result[0]) {
-      // TODO
-      alert('define_function failed');
-      return;
-    }
-    const def_string = [
-      fn_name,
-      '(',
-      variable_name,
-      ') = ',
-      body_result[0]
-    ].join('');
-    Algebrite.run(def_string);
-  }
-
-  static check_relation_numerically(lhs_expr, rhs_expr, variable_name, relation_type, time_limit) {
+  static check_relation_numerically(lhs_expr, rhs_expr, variable_name, relation_type, params) {
+    // Set up function definitions for efficiency.
     this.define_function('lhs_expr', variable_name, lhs_expr);
     this.define_function('rhs_expr', variable_name, rhs_expr);
+    const start_time = Date.now();
     let iter = 0;
-    for(; iter < 30; iter++) {
-      console.log('iteration ' + iter);
-      const variable_value = 10.0*(Math.random()-0.5);
+    while(iter < params.iteration_limit &&
+          Date.now() - start_time < params.time_limit) {
+      iter++;
+      // Sample 'x' uniformly within the given bounds.
+      const variable_value = params.lower_bound +
+            Math.random()*(params.upper_bound - params.lower_bound);
       const variable_value_string = variable_value.toString();
-      const result = this.check_relation_numerically_once(
+      const result = this._check_relation_numerically_once(
         variable_name, variable_value_string, relation_type);
       if(result === null) {
         // Could not evaluate.
@@ -528,39 +552,38 @@ class AlgebriteInterface {
         return {
           'result': 'False',
           'exact': false,
-          'tries': iter+1
+          'tries': iter
         };
       }
     }
     return {
-      'result': 'True',
+      'result': 'Probably true',
       'exact': false,
       'tries': iter
     };
   }
 
-  static check_relation_numerically_once(variable_name, variable_value_string, relation_type) {
-    const lhs_result = this.call_function_with_argument_strings(
-      'eval', [
-        ['float(lhs_expr(', variable_name, '))'].join(''),
-        variable_name, variable_value_string]);
-    const rhs_result = this.call_function_with_argument_strings(
-      'eval', [
-        ['float(rhs_expr(', variable_name, '))'].join(''),
-        variable_name, variable_value_string]);
-    if(lhs_result.k === 2 && rhs_result.k === 2) {
+  static _check_relation_numerically_once(variable_name, variable_value_string, relation_type) {
+    const lhs_result = Algebrite.eval(
+      ['float(lhs_expr(', variable_name, '))'].join(''),
+      variable_name, variable_value_string);
+    const rhs_result = Algebrite.eval(
+      ['float(rhs_expr(', variable_name, '))'].join(''),
+      variable_name, variable_value_string);
+    if(lhs_result.k === 2 /* DOUBLE */ && rhs_result.k === 2) {
       const lhs_float = lhs_result.d;
       const rhs_float = rhs_result.d;
-      if(this.check_numerical_relation_result(lhs_result.d, rhs_result.d, relation_type))
+      //console.log('lhs=' + lhs_float + ' rhs=' + rhs_float);
+      if(this._check_numerical_relation_result(lhs_result.d, rhs_result.d, relation_type))
         return true;
     }
     return false;
   }
 
-  static check_numerical_relation_result(lhs, rhs, relation_type) {
-    console.log('lhs=' + lhs + ' rhs=' + rhs, ' rel=' + relation_type);
+  static _check_numerical_relation_result(lhs, rhs, relation_type) {
     switch(relation_type) {
     case 'testeq': return this.approx_equal(lhs, rhs);
+    case 'testneq': return !this.approx_equal(lhs, rhs);
     case 'testlt': return lhs < rhs;
     case 'testle': return lhs <= rhs;
     case 'testgt': return lhs > rhs;
@@ -569,8 +592,23 @@ class AlgebriteInterface {
     }
   }
 
-  approx_equal(x, y) {
+  static approx_equal(x, y) {
     return Math.abs(x-y) <= 1e-7;
+  }
+
+  static define_function(fn_name, variable_name, body_expr) {
+    const body_result = this.expr_to_algebrite_string(body_expr);
+    if(!body_result[0]) {
+      // TODO
+      alert('define_function failed');
+      return;
+    }
+    const def_string = [
+      fn_name,
+      '(', variable_name, ') = ',
+      body_result[0]
+    ].join('');
+    Algebrite.run(def_string);
   }
 
   // Initialize Algebrite's environment.
@@ -592,7 +630,8 @@ class AlgebriteInterface {
       'log2(x) = log(x)/log(2)',
       'log10(x) = log(x)/log(10)',  // not yet implemented in the editor
       'negative(x) = -x',  // used for infix '-': x-y -> add(x, negative(y))
-      'reciprocal(x) = 1/x'  // used for infix '/' and fractions
+      'reciprocal(x) = 1/x',  // used for infix '/' and fractions
+      'testneq(x) = not(testeq(x))'  // to support checking x \neq y equations
     ].forEach(s => Algebrite.eval(s) /* TODO: .run() */);
   }
 }

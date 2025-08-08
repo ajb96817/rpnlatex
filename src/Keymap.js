@@ -976,7 +976,6 @@ const EditorKeymap = {
     '~': "algebrite float",
     '=': "rationalize",  // not part of Algebrite
     'A': "algebrite arg",
-//    'C': "algebrite expcos",
     'd': "algebrite derivative 1 1",
     'D': "algebrite derivative 2",
     'f': "algebrite factor 1 1",
@@ -992,12 +991,11 @@ const EditorKeymap = {
     'O': "algebrite product 4",
     'p': "mode algebrite_polynomial",
     'P': "algebrite polar",
-    'q': "algebrite_check false",
+    'q': "algebrite_check",
     'Q': "algebrite_check true",
     'r': "algebrite rationalize",
     'R': "algebrite rect",
     's': "algebrite simplify",
-//    'S': "algebrite expsin",
     't': "push 7;push 0;algebrite taylor 3 1",
     'T': "swap;algebrite taylor 4",  // NOTE: last two arguments are swapped
     'v': "algebrite eigenval",
@@ -1006,7 +1004,7 @@ const EditorKeymap = {
     'X': "algebrite expand 2",
     'y': "algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]
     'Y': "algebrite nroots 2",
-    'z': "algebrite roots 1 1", // z=zeroes; TODO: display guessed variable
+    'z': "algebrite roots 1 1",  // z=zeroes; TODO: display guessed variable
     'Z': "algebrite roots 2",
     '*': "algebrite conj"
   },
