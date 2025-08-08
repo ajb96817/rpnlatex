@@ -1777,7 +1777,7 @@ class SubscriptSuperscriptExpr extends Expr {
 // Arrayed structures; these are all 2-dimensional grids of expressions.
 // Currently supported "array types" are:
 //   - Matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
-//   - Aligned environments: gathered, gather, cases, rcases, substack
+//   - Alignment environments: gathered, gather, cases, rcases, substack
 class ArrayExpr extends Expr {
   // element_exprs is a nested array of length 'row_count', each of which is
   // an array of 'column_count' Exprs.

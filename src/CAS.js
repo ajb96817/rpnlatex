@@ -253,12 +253,19 @@ function guess_variable_in_expr(expr) {
   const var_names = Object.getOwnPropertyNames(var_map);
   if(var_names.length === 1)
     return [var_names[0], var_map[var_names[0]]];
+  // Always use x or t if it's there, even if there are other
+  // potential variables present (unless x and t are both present).
+  else if(var_map['x'] && !var_map['t'])
+    return ['x', var_map['x']];
+  else if(var_map['t'])
+    return ['t', var_map['t']];
   else
     return [null, null];
 }
 function _guess_variable_in_expr(expr, var_map) {
   const variable_name = expr_to_variable_name(expr, true);
-  if(variable_name)
+  if(variable_name &&
+     !['e', 'pi', 'i'].includes(variable_name))
     var_map[variable_name] = expr;
   // We don't necessarily want to look for variables in every possible
   // subexpression; for example with x_a, the variable should be x_a as
@@ -496,7 +503,7 @@ class AlgebriteInterface {
     if(!variable_name)
       return {
         'result': 'Inconclusive',
-        'message': 'Could not determine variable',
+        'message': 'Could not determine the variable',
         'exact': true
       };
     return this.check_relation_numerically(
@@ -579,6 +586,7 @@ class AlgebriteInterface {
     }
     return {
       'result': 'Probably true',
+      'message': (iter < params.iteration_limit ? 'Evaluation took too long' : null),
       'exact': false,
       'tries': iter,
       'variable': variable_expr

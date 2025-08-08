@@ -986,6 +986,7 @@ const EditorKeymap = {
     'j': "algebrite defint 3 1",
     'J': "algebrite defint 4",
     'm': "algebrite sum 3 1",
+    'n': "algebrite float",
     'M': "algebrite sum 4",
     'o': "algebrite product 3 1",
     'O': "algebrite product 4",
