@@ -1478,75 +1478,75 @@ class RationalizeToExpr {
 }
 
 
-class SpecialFunctions {
-  static factorial(x) {
-    if(x >= 0 && this.is_integer(x)) {
-      if(x <= 1) return 1;
-      if(x > 20) return Infinity;
-      let value = 1;
-      for(let i = 2; i <= x; i++)
-        value *= i;
-      return value;
-    }
-    else
-      return this.gamma(x+1);
-  }
+// class SpecialFunctions {
+//   static factorial(x) {
+//     if(x >= 0 && this.is_integer(x)) {
+//       if(x <= 1) return 1;
+//       if(x > 20) return Infinity;
+//       let value = 1;
+//       for(let i = 2; i <= x; i++)
+//         value *= i;
+//       return value;
+//     }
+//     else
+//       return this.gamma(x+1);
+//   }
 
-  static gamma(x) {
-    const g = 7;
-    const C = [
-      0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-      771.32342877765313, -176.61502916214059, 12.507343278686905,
-      -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
-    if(x <= 0)
-      return NaN;
-    if(x < 0.5)
-      return Math.PI / (Math.sin(Math.PI*x) * this.gamma(1-x));
-    x -= 1;
-    let y = C[0];
-    for(let i = 1; i < g+2; i++)
-      y += C[i] / (x + i);
-    const t = x + g + 0.5;
-    const result = Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
-    return isNaN(result) ? Infinity : result;
-  }
+//   static gamma(x) {
+//     const g = 7;
+//     const C = [
+//       0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+//       771.32342877765313, -176.61502916214059, 12.507343278686905,
+//       -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+//     if(x <= 0)
+//       return NaN;
+//     if(x < 0.5)
+//       return Math.PI / (Math.sin(Math.PI*x) * this.gamma(1-x));
+//     x -= 1;
+//     let y = C[0];
+//     for(let i = 1; i < g+2; i++)
+//       y += C[i] / (x + i);
+//     const t = x + g + 0.5;
+//     const result = Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
+//     return isNaN(result) ? Infinity : result;
+//   }
 
-  // Basic iterative evaluation of double factorial.
-  // 7!! = 7*5*3*1, 8!! = 8*6*4*2, 0!! = 1
-  // x must be a nonnegative integer and its magnitude is limited to something reasonable
-  // to avoid long loops or overflow.
-  static double_factorial(x) {
-    if(!this.is_integer(x) || x < 0) return NaN;
-    if(x > 100) return Infinity;
-    let result = 1;
-    while(x > 1) {
-      result *= x;
-      x -= 2;
-    }
-    return result;
-  }
+//   // Basic iterative evaluation of double factorial.
+//   // 7!! = 7*5*3*1, 8!! = 8*6*4*2, 0!! = 1
+//   // x must be a nonnegative integer and its magnitude is limited to something reasonable
+//   // to avoid long loops or overflow.
+//   static double_factorial(x) {
+//     if(!this.is_integer(x) || x < 0) return NaN;
+//     if(x > 100) return Infinity;
+//     let result = 1;
+//     while(x > 1) {
+//       result *= x;
+//       x -= 2;
+//     }
+//     return result;
+//   }
 
-  static is_integer(x) {
-    return x === Math.floor(x);
-  }
+//   static is_integer(x) {
+//     return x === Math.floor(x);
+//   }
 
-  static binom(n, k) {
-    // k must be a nonnegative integer, but n can be anything
-    if(!this.is_integer(k) || k < 0) return null;
-    if(k > 1000) return NaN;  // Limit loop length below
-    // Use falling factorial-based algorithm n_(k) / k!
-    let value = 1;
-    for(let i = 1; i <= k; i++)
-      value *= (n + 1 - i) / i;
-    if(this.is_integer(n)) {
-      // Resulting quotient is an integer mathematically if n is,
-      // but round it because of the limited floating point precision.
-      return Math.round(value);
-    }
-    else
-      return value;
-  }
-}
+//   static binom(n, k) {
+//     // k must be a nonnegative integer, but n can be anything
+//     if(!this.is_integer(k) || k < 0) return null;
+//     if(k > 1000) return NaN;  // Limit loop length below
+//     // Use falling factorial-based algorithm n_(k) / k!
+//     let value = 1;
+//     for(let i = 1; i <= k; i++)
+//       value *= (n + 1 - i) / i;
+//     if(this.is_integer(n)) {
+//       // Resulting quotient is an integer mathematically if n is,
+//       // but round it because of the limited floating point precision.
+//       return Math.round(value);
+//     }
+//     else
+//       return value;
+//   }
+// }
 
 
 // Represents an entry in the stack or document.
@@ -2275,7 +2275,7 @@ class Document {
 export {
   Keymap, Settings, LatexEmitter, AppState, UndoStack,
   DocumentStorage, ImportExportState, FileManagerState,
-  ExprPath, ExprParser, SpecialFunctions, RationalizeToExpr,
+  ExprPath, ExprParser, RationalizeToExpr,
   Item, ExprItem, TextItem, CodeItem,
   Stack, Document
 };

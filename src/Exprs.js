@@ -1,6 +1,6 @@
 
 import {
-  LatexEmitter, SpecialFunctions, ExprPath, RationalizeToExpr
+  LatexEmitter, ExprPath, RationalizeToExpr
 } from './Models';
 
 
@@ -296,39 +296,6 @@ class Expr {
     return found_expr_path;
   }
 
-  // Attempt to evaluate this Expr numerically, returning a floating-point value.
-  // Return null if evaluation is not possible; subclasses can override.
-  // The evaluation might raise errors, so the caller should use an exception handler.
-  //
-  // 'assignments' is a key-value table mapping variable names to (floating-point) values to
-  // substitute in this expression.  Using this can allow things like sin(x) to be evaluated.
-  // Aside from any assignments, everything else in the expression must be constants, or
-  // combinations/functions of constants.
-  evaluate(assignments) { return null; }
-
-  // Attempt to evaluate this Expr numerically.
-  // Returns: [expr, exact_flag] or null on failure,
-  // where 'expr' is an Expr representing the result, and 'exact_flag'
-  // is true if the result can be considered "exact".
-  // rationalize=true here attempts to pull out factors of common
-  // values like sqrt(2) or pi.  These will be multiplied into the output
-  // if found.  Rationalize=false always returns a decimal TextExpr.
-  // TODO: exception handler around evaluate()
-  evaluate_to_expr(assignments, rationalize) {
-    const value = this.evaluate(assignments);
-    if(value === null) return null;
-    if(rationalize) {
-      const result = RationalizeToExpr.rationalize(value);
-      if(result)
-        return [result, true];
-    }
-    // Return an approximate floating-point value instead.
-    // It's considered "exact" if it's small enough in magnitude and
-    // with a decimal part close enough to zero.
-    const is_exact = Math.abs(value) < 1e9 && Math.abs(value % 1.0) <= 1e-6
-    return [this._float_to_expr(value), is_exact];
-  }
-
   // "Dissolve" this expression into its component parts as appropriate.
   // Returns an array of the Expr components.
   dissolve() { return [this]; }
@@ -423,91 +390,6 @@ class CommandExpr extends Expr {
       this.operand_exprs.map(
         (operand_expr, op_index) => op_index === index ? new_expr : operand_expr),
       this.options);
-  }
-
-  evaluate(assignments) {
-    const c = this.command_name;
-    // NOTE: 'sech' and 'csch' are special cases (along with their inverse and squared variants);
-    // see do_named_function().  These are wrapped in \operatorname{sech}{...} commands.
-    // Check for these cases and synthesize a "fake" CommandExpr temporarily for the evaluation.
-    if(c === 'operatorname' &&
-       this.operand_count() === 2 &&
-       this.operand_exprs[0].is_expr_type('text')) {
-      const funcname = this.operand_exprs[0].text;
-      const arg_expr = this.operand_exprs[1];
-      const fake_command = new CommandExpr(funcname, [arg_expr]);
-      return fake_command.evaluate(assignments);
-    }
-    if(this.operand_count() === 0) {
-      // Check for "greek" letters in assignments.
-      const assigned_val = assignments[c];
-      if(assigned_val !== undefined && assigned_val !== null)
-        return assigned_val;
-      if(c === 'pi') return Math.PI;
-      if(c === 'infty') return Infinity;
-    }
-    if(this.operand_count() === 1) {
-      // Unary functions
-      const x = this.operand_exprs[0].evaluate(assignments);
-      if(x === null) return null;
-      if(c === 'sin') return Math.sin(x);
-      if(c === 'cos') return Math.cos(x);
-      if(c === 'sec') return 1/Math.cos(x);
-      if(c === 'csc') return 1/Math.sin(x);
-      if(c === 'tan') return Math.tan(x);
-      if(c === 'cot') return 1/Math.tan(x);
-      if(c === 'sinh') return Math.sinh(x);
-      if(c === 'cosh') return Math.cosh(x);
-      if(c === 'sech') return 1/Math.cosh(x);
-      if(c === 'csch') return 1/Math.sinh(x);
-      if(c === 'tanh') return Math.tanh(x);
-      if(c === 'coth') return 1/Math.tanh(x);
-      if(c === 'sqrt') {
-        if(this.options === '3')
-          return Math.cbrt(x);
-        else if(this.options)
-          return null;  // anything other than sqrt and cbrt unsupported
-        else
-          return Math.sqrt(x);
-      }
-      // Hacky inverse and squared trig functions.  See Actions.js do_named_function().
-      if(c === 'sin^{-1}') return Math.asin(x);
-      if(c === 'cos^{-1}') return Math.acos(x);
-      if(c === 'sec^{-1}') return Math.acos(1/x);
-      if(c === 'csc^{-1}') return Math.asin(1/x);
-      if(c === 'tan^{-1}') return Math.atan(x);
-      if(c === 'cot^{-1}') return Math.atan(1/x);
-      if(c === 'sinh^{-1}') return Math.asinh(x);
-      if(c === 'cosh^{-1}') return Math.acosh(x);
-      if(c === 'sech^{-1}') return Math.acosh(1/x);
-      if(c === 'csch^{-1}') return Math.asinh(1/x);
-      if(c === 'tanh^{-1}') return Math.atanh(x);
-      if(c === 'coth^{-1}') return Math.atanh(1/x);
-      if(c === 'sin^2') return Math.pow(Math.sin(x), 2);
-      if(c === 'cos^2') return Math.pow(Math.cos(x), 2);
-      if(c === 'sec^2') return Math.pow(Math.cos(x), -2);
-      if(c === 'csc^2') return Math.pow(Math.sin(x), -2);
-      if(c === 'tan^2') return Math.pow(Math.tan(x), 2);
-      if(c === 'cot^2') return Math.pow(Math.tan(x), -2);
-      if(c === 'sinh^2') return Math.pow(Math.sinh(x), 2);
-      if(c === 'cosh^2') return Math.pow(Math.cosh(x), 2);
-      if(c === 'sech^2') return Math.pow(Math.cosh(x), -2);
-      if(c === 'csch^2') return Math.pow(Math.sinh(x), -2);
-      if(c === 'tanh^2') return Math.pow(Math.tanh(x), 2);
-      if(c === 'coth^2') return Math.pow(Math.tanh(x), -2);
-      if(c === 'log_2' || c === 'lg') return Math.log2(x);
-      if(c === 'ln' || c === 'log') return Math.log(x);
-      if(c === 'exp') return Math.exp(x);
-    }
-    if(this.operand_count() === 2) {
-      // Binary functions
-      const x = this.operand_exprs[0].evaluate(assignments);
-      const y = this.operand_exprs[1].evaluate(assignments);
-      if(x === null || y === null) return null;
-      if(c === 'frac') return x/y;
-      if(c === 'binom') return SpecialFunctions.binom(x, y);
-    }
-    return null;
   }
 
   as_editable_string() {
@@ -1093,40 +975,8 @@ class InfixExpr extends Expr {
       this.linebreaks_at);
   }
 
-  evaluate(assignments) {
-    // Evaluate taking into account the binary operator precedences.
-    const operand_values = this.operand_exprs.map(
-      expr => expr.evaluate(assignments));
-    const operator_infos = this.operator_exprs.map(
-      expr => this._operator_info(this.operator_text(expr)));
-    if(operand_values.some(value => value === null) ||
-       operator_infos.some(info => info === null))
-      return null;  // give up if anything is non-evaluable
-    // NOTE: There are really only 2 precedences involved here
-    // (+- and /*) so this could be simplified to not need the stack stuff.
-    let value_stack = [operand_values[0]];
-    let op_stack = [];  // stores _operator_info structures
-    let eval_stack_op = () => {
-      const stack_op_info = op_stack.pop();
-      const rhs = value_stack.pop();
-      const lhs = value_stack.pop();
-      value_stack.push(stack_op_info.fn(lhs, rhs));
-    };
-    for(let i = 0; i < this.operator_exprs.length; i++) {
-      const op_info = operator_infos[i];
-      while(op_stack.length > 0 &&
-            op_stack[op_stack.length-1].prec >= op_info.prec)
-        eval_stack_op();
-      op_stack.push(op_info);
-      value_stack.push(operand_values[i+1]);
-    }
-    while(op_stack.length > 0)
-      eval_stack_op();
-    return value_stack.pop();
-  }
-
   // Return {precedence, eval_fn}, or null if the operator can't be evaluated.
-  // TODO: also return associativity if ^ (power) is added.
+  // TODO: remove this
   _operator_info(op) {
     switch(op) {
     case '+':     return {prec:1, fn:(x,y) => x+y};
@@ -1225,16 +1075,6 @@ class PrefixExpr extends Expr {
       this.base_expr.as_bold(),
       this.operator_expr.as_bold());
   }
-
-  evaluate(assignments) {
-    const value = this.base_expr.evaluate(assignments);
-    switch(this.operator_text()) {
-    case '-': return -value;
-    case '+': return +value;
-    case 'neg': return value === 0.0 ? 0 : 1;
-    default: return value;
-    }
-  }
 }
 
 
@@ -1327,10 +1167,6 @@ class FunctionCallExpr extends Expr {
   argument_count() {
     return this.extract_argument_exprs().length;
   }
-
-  evaluate(assignments) {
-    return null;
-  }
 }
 
 
@@ -1411,25 +1247,6 @@ class PostfixExpr extends Expr {
     }
     return [base_expr, factorial_signs_count];
   }
-
-  // Currently the only PostfixExprs that can be evaluated are single and double factorials.
-  // i.e. 3! = 3*2*1;  7!! = 7*5*3*1.
-  // Double factorial arguments must be integers, while single factorials can be
-  // real numbers evaluated via the Gamma function.
-  evaluate(assignments) {
-    let [base_expr, factorial_signs_count] = this.analyze_factorial();
-    if(!(factorial_signs_count === 1 || factorial_signs_count === 2))
-      return null;
-    const value = base_expr.evaluate(assignments);
-    if(value === null) return null;
-    if(factorial_signs_count === 1)
-      return SpecialFunctions.factorial(value);
-    else if(factorial_signs_count === 2) {
-      const result = SpecialFunctions.double_factorial(value);
-      return isNaN(result) ? null : result;
-    }
-    return null;
-  }
 }
 
 
@@ -1486,32 +1303,8 @@ class TextExpr extends Expr {
     return /^-\d*\.?\d+$/.test(this.text);
   }
 
-  // Check for single-letter variable names.
-  // Used by do_evaluate_with_variable_substitution()
-  // and by Algebrite.
-  looks_like_variable_name() {
-    return /^\w$/.test(this.text);
-  }
-
   as_editable_string() {
     return LatexEmitter.latex_unescape(this.text);
-  }
-
-  evaluate(assignments) {
-    const s = this.text;
-    const assigned_val = assignments[s];
-    if(assigned_val !== undefined && assigned_val !== null)
-      return assigned_val;
-    // Check for known constants.
-    // Note though that these are typically CommandExprs
-    // (CommandExpr also checks for known constants).
-    if(s === "\\pi") return Math.PI;
-    if(s === "\\infty") return Infinity;
-    const val = parseFloat(s);
-    if(isNaN(val))
-      return null;
-    else
-      return val;
   }
 }
 
@@ -1566,19 +1359,6 @@ class SequenceExpr extends Expr {
     return new SequenceExpr(
       this.exprs.map(expr => expr.as_bold()),
       this.fused);
-  }
-
-  evaluate(assignments) {
-    // Multiply all terms in the sequence together.
-    let value = this.exprs[0].evaluate(assignments);
-    if(value === null) return null;
-    for(let i = 1; i < this.exprs.length; i++) {
-      const rhs = this.exprs[i].evaluate(assignments);
-      if(rhs === null) return null;
-      value *= rhs;
-      if(isNaN(value)) return null;
-    }
-    return value;
   }
 }
 
@@ -1797,10 +1577,6 @@ class DelimiterExpr extends Expr {
     else
       return [this.inner_expr];
   }
-
-  evaluate(assignments) {
-    return this.inner_expr.evaluate(assignments);
-  }
 }
 
 
@@ -1946,68 +1722,6 @@ class SubscriptSuperscriptExpr extends Expr {
         this.base_expr, this.subscript_expr,
         new SequenceExpr(
           new Array(prime_count-1).fill(new CommandExpr('prime'))));
-  }
-  
-  evaluate(assignments) {
-    const base_expr = this.base_expr;
-    const sub_expr = this.subscript_expr;
-    const sup_expr = this.superscript_expr;
-
-    // Check for expressions of the form f(x) |_ {x=val}
-    // i.e., a "where" clause formed by something like [/][|].
-    if(sub_expr && !sup_expr &&
-       base_expr.is_expr_type('delimiter') &&
-       base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
-       sub_expr.is_expr_type('infix') &&
-       sub_expr.operator_text_at(0) === '=') {
-      // Subscript expression should be of the form x=(something).
-      // Also try to handle \alpha=(something).  In this case the left side
-      // is a CommandExpr with a 0-argument command.
-      const lhs = sub_expr.extract_side_at(0, 'left');
-      const rhs = sub_expr.extract_side_at(0, 'right');
-      if((lhs.is_expr_type('text') && lhs.looks_like_variable_name()) ||
-         (lhs.is_expr_type('command') && lhs.operand_count() === 0)) {
-        const subst_value = rhs.evaluate(assignments);
-        if(subst_value !== null) {
-          let new_assignments = Object.assign({}, assignments);  // shallow copy
-          if(lhs.is_expr_type('text'))
-            new_assignments[lhs.text] = subst_value;
-          else if(lhs.is_expr_type('command'))
-            new_assignments[lhs.command_name] = subst_value;
-          return base_expr.inner_expr.evaluate(new_assignments);
-        }
-      }
-    }
-
-    // Anything else with a subscript can't be evaluated.
-    if(sub_expr !== null) return null;
-
-    // Check for e^x notation created by [/][e].
-    if(base_expr.is_expr_type('font') && base_expr.typeface === 'roman' &&
-       base_expr.expr.is_expr_type('text') && base_expr.expr.text === 'e') {
-      const exponent_value = sup_expr.evaluate(assignments);
-      if(exponent_value === null) return null;
-      const value = Math.exp(exponent_value);
-      return isNaN(value) ? null : value;
-    }
-
-    const base_value = base_expr.evaluate(assignments);
-
-    // Check for "degrees" notation.
-    if(base_value !== null &&
-       sup_expr.is_expr_type('command') &&
-       sup_expr.operand_count() === 0 &&
-       sup_expr.command_name === 'circ') {
-      const radians = base_value * Math.PI / 180.0;
-      return radians;
-    }
-
-    // Assume it's a regular x^y power expression.
-    if(base_value === null) return null;
-    const exponent_value = sup_expr.evaluate(assignments);
-    if(exponent_value === null) return null;
-    const value = Math.pow(base_value, exponent_value);
-    return isNaN(value) ? null : value;
   }
 }
 
