@@ -102,7 +102,7 @@ class Expr {
     //   - Concatenating a non-'!' expression to such a sequence should yield
     //     the double-factorial x!!, which is a nested PostfixExpr.
     //   - Any amount of ! symbols can be used, although only x! and x!! have meaning here.
-    const excl_count = expr => {
+    const factorial_count = expr => {
       // Count number of exclamation points, for both TextExprs and SequenceExprs.
       if(expr.is_expr_type('text') && expr.text === '!')
         return 1;
@@ -113,18 +113,20 @@ class Expr {
       else
         return 0;
     };
-    const left_excl_count = excl_count(left);
-    const right_excl_count = excl_count(right);
-    if(right_excl_count > 0) {
-      if(left_excl_count === 0) {
+    const left_factorial_count = factorial_count(left);
+    const right_factorial_count = factorial_count(right);
+    console.log(left_factorial_count + ', ' + right_factorial_count);
+    if(right_factorial_count > 0) {
+      if(left_factorial_count === 0) {
         // Concatenating a "normal" expression to 1 or more ! signs.
-        return PostfixExpr.factorial_expr(
-          autoparenthesize(left), right_excl_count);
+        return PostfixExpr.factorial_expr(left, right_factorial_count);
       }
       else {
         // Concatenating groups (1 or more) of ! signs together.
         return new SequenceExpr(
-          new Array(left_excl_count + right_excl_count).fill(new TextExpr('!')));
+          new Array(
+            left_factorial_count + right_factorial_count
+          ).fill(new TextExpr('!')));
       }
     }
     // Sequence + Sequence
@@ -147,7 +149,28 @@ class Expr {
     if(left_type === 'text' && left.looks_like_number() &&
        right_type === 'text' && right.looks_like_number())
       return new TextExpr(left.text + right.text);
-    // NonSequence + NonSequence => Sequence
+
+    // NonSequence + NonSequence => Sequence (the typical case)
+
+    // Parenthesization of factorial notation is a little tricky.
+    // We want the results:
+    //   2 x!      =>  2(x!)
+    //   2 (x+1)!  =>  2(x+1)!  (so not parenthesizing the (x+1)! again)
+    //   (x+1) y!  =>  (x+1)y!
+    //   x! y!     =>  x!y!
+    //   x! !      =>  x!!  (not (x!)!)
+    const left_expr = autoparenthesize(left);
+    let parenthesize_right = right.is_expr_type('infix');
+    if(right.is_expr_type('postfix') && right.factorial_signs_count() > 0) {
+      if(!right.base_expr.is_expr_type('delimiter'))
+        parenthesize_right = true;  // handle 2(x!) and 2(x+1)!
+      if(left.is_expr_type('postfix') && left.factorial_signs_count() > 0)
+        parenthesize_right = false;  // x!y!
+    }
+    if(!no_parenthesize)
+      parenthesize_right = false;
+    const right_expr = parenthesize_right ? DelimiterExpr.parenthesize(right) : right;
+
     // Adjacent FontExprs of the same type can be merged into a single
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
     // (This renders better in some cases.)
@@ -155,13 +178,12 @@ class Expr {
     // will not do this merging.  AB -> bold -> \bold{A}\bold{B}.
     // This could be implemented if needed (by coalescing adjacent FontExprs
     // within a SequenceExpr).
-    const left_expr = autoparenthesize(left);
-    const right_expr = autoparenthesize(right);
     if(left_expr.is_expr_type('font') && right_expr.is_expr_type('font') &&
-       FontExpr.font_exprs_compatible(left_expr, right_expr))
+       FontExpr.font_exprs_compatible(left_expr, right_expr)) {
       return new FontExpr(
         new SequenceExpr([left_expr.expr, right_expr.expr]),
         left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
+    }
     else
       return new SequenceExpr([left_expr, right_expr]);
   }
@@ -1254,6 +1276,8 @@ class PostfixExpr extends Expr {
     }
     return [base_expr, factorial_signs_count];
   }
+
+  factorial_signs_count() { return this.analyze_factorial()[1]; }
 }
 
 
