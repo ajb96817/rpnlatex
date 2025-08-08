@@ -1174,15 +1174,22 @@ class FunctionCallExpr extends Expr {
 // Currently this is only used for factorial and double-factorial notation.
 // Potentially this could be used for things like transpose and conjugate, but
 // those are currently treated as SubscriptSuperscriptExprs.
-// The main use case for PostfixExpr currently is for representing and evaluating things
+// The main use case for PostfixExpr currently is for representing things
 // like '3!4!' (= 144) which would otherwise be a SequenceExpr['3', '!', '4', '!'].
 // NOTE: Double factorials (x!!) are actually represented as
 //       PostfixExpr(PostfixExpr(x, '!'), '!') instead of PostfixExpr(x, '!!').
 class PostfixExpr extends Expr {
   // Create a factorial expression with 'factorial_depth' exclamation points.
   static factorial_expr(base_expr, factorial_depth) {
+    return this._factorial_expr(
+      // Parenthesization: we want (x+1)! but not (x!)!
+      base_expr.is_expr_type('postfix') ? base_expr :
+        DelimiterExpr.parenthesize_for_power(base_expr),
+      factorial_depth);
+  }
+  static _factorial_expr(base_expr, factorial_depth) {
     if(factorial_depth > 1)
-      base_expr = PostfixExpr.factorial_expr(base_expr, factorial_depth-1);
+      base_expr = PostfixExpr._factorial_expr(base_expr, factorial_depth-1);
     return new PostfixExpr(base_expr, new TextExpr('!'));
   }
 

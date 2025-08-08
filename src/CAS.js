@@ -88,7 +88,6 @@ const algebrite_function_translations = [
   ['Tr', 'contract'  /* TODO: 'trace' instead */],
   ['Re', 'real'],
   ['Im', 'imag'],
-  ['binom', 'choose'],
   ['ln', 'log'],
   ['log_2', 'log2'],
   ['lg', 'log2'],
@@ -886,9 +885,9 @@ class ExprToAlgebrite {
   // Only single-! factorial is supported.
   postfix_expr_to_node(postfix_expr) {
     const [base_expr, factorial_signs_count] = postfix_expr.analyze_factorial();
-    if(factorial_signs_count === 0)
-      return new AlgebriteCall('factorial', this.expr_to_node(base_expr));
-    else if(factorial_signs_count > 0)
+    if(factorial_signs_count === 1)
+      return new AlgebriteCall('factorial', [this.expr_to_node(base_expr)]);
+    else if(factorial_signs_count > 1)
       return this.error('Multiple factorial not supported', postfix_expr);
     else
       return this.error('Invalid postfix operator', postfix_expr);
@@ -987,6 +986,12 @@ class ExprToAlgebrite {
     const algebrite_command = translate_function_name(command_name, true);
     if(allowed_algebrite_unary_functions.has(algebrite_command) && nargs === 1)
       return new AlgebriteCall(algebrite_command, [this.expr_to_node(args[0])]);
+
+    // Special case for \binom{n}{m}; this is the only two-argument
+    // function used with Algebrite.
+    if(command_name === 'binom' && nargs === 2)
+      return new AlgebriteCall('choose', [
+        this.expr_to_node(args[0]), this.expr_to_node(args[1])]);
 
     // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
     // having the command_name be a literal 'sin^2'.  This needs to be translated
