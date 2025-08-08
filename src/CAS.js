@@ -450,7 +450,8 @@ class AlgebriteInterface {
   // }
   //
   // Returns: {
-  //   'result': 'True', 'False', 'Inconclusive' (if time ran out), etc.
+  //   'result': 'True', 'Probably true', 'False',
+  //             'Inconclusive' (e.g. if time ran out)
   //   'message': optional message to display about the results
   //   'exact': true if the relation could be checked symbolically,
   //            false if we had to resort to a numerical check
@@ -473,12 +474,23 @@ class AlgebriteInterface {
     // Try checking "symbolically" with Algebrite.
     // It will return 1 or 0 for true/false, otherwise the result
     // will just be a "testeq(...)" call.
-    const result = this.call_function(relation_type, [lhs_expr, rhs_expr]);
+    const result = this.call_function(
+      // NOTE: there is no 'testneq()' function in Algebrite, so negate the
+      // result of testeq() instead as a hack.
+      relation_type === 'testneq' ? 'testeq' : relation_type,
+      [lhs_expr, rhs_expr]);
     if(result.k === 1 /* NUM */) {
+      let is_true = null;
       if(result.q.a.equals(1) && result.q.b.equals(1))
-        return {'result': 'True', 'exact': true};
+        is_true = true;
       else if(result.q.a.equals(0))
-        return {'result': 'False', 'exact': false};
+        is_true = false;
+      if(relation_type === 'testneq')
+        is_true = !is_true;
+      return {
+        'result': is_true ? 'True' : 'False',
+        'exact': true
+      };
     }
     // Symbolic check failed.  Test it out numerically instead.
     const [variable_name, variable_expr] = guess_variable_in_expr(expr);
@@ -506,7 +518,7 @@ class AlgebriteInterface {
       '=':  'testeq',
       '<':  'testlt',
       '>':  'testgt',
-      'ne': 'testneq',
+      'ne': 'testneq',  // special case
       'le': 'testle',
       'ge': 'testge'
     };
@@ -585,9 +597,9 @@ class AlgebriteInterface {
       const rhs_float = rhs_result.d;
       // console.log('lhs=' + lhs_float + ' rhs=' + rhs_float);
       if(this._check_numerical_relation_result(lhs_result.d, rhs_result.d, relation_type))
-        return true;
+        return relation_type === 'testneq' ? false : true;
     }
-    return false;
+    return relation_type === 'testneq' ? true : false;
   }
 
   static _check_numerical_relation_result(lhs, rhs, relation_type) {

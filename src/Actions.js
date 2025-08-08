@@ -367,6 +367,10 @@ class InputContext {
       };
       lower_bound = get_value(exprs[1]);
       upper_bound = get_value(exprs[2]);
+      if(lower_bound === null || upper_bound === null)
+        return this.error_flash_stack();
+      if(lower_bound > upper_bound)
+        [lower_bound, upper_bound] = [upper_bound, lower_bound];
     }
     else
       [new_stack, expr] = stack.pop_exprs(1);
@@ -378,7 +382,8 @@ class InputContext {
         'upper_bound': upper_bound
       });
     const result_text = this._format_algebrite_check_result(result);
-    return new_stack.push(result_text);
+    //return new_stack.push(result_text);
+    return stack.push(result_text);  // leave the equation on the stack
   }
 
   _format_algebrite_check_result(result) {
@@ -393,6 +398,7 @@ class InputContext {
       pieces.push(' Checked ');
       pieces.push(result.tries.toString());
       pieces.push(' point' + (result.tries === 1 ? '' : 's'));
+      // TODO: show 'where -10 < x < 10' maybe
       pieces.push('.');
       if(result.false_for !== undefined && result.variable !== undefined) {
         pieces.push(' False for [] = ');
