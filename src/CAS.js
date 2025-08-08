@@ -455,13 +455,17 @@ class AlgebriteInterface {
   //   'exact': true if the relation could be checked symbolically,
   //            false if we had to resort to a numerical check
   //   'tries': number of numerical evaluations that were attempted
+  //   'variable': the Expr that was used as the independent variable,
+  //               if available
+  //   'false_for': the value of the independent variable for which the
+  //                equation was found to be false
   // }
   static check_relation(expr, params) {
     this.setup_algebrite();
     const scratch = this.analyze_relation(expr);
     if(!scratch)
       return {
-        'result': 'inconclusive',
+        'result': 'Inconclusive',
         'message': 'No relational operator',
         'exact': true
       };
@@ -480,12 +484,14 @@ class AlgebriteInterface {
     const [variable_name, variable_expr] = guess_variable_in_expr(expr);
     if(!variable_name)
       return {
-        'result': 'inconclusive',
+        'result': 'Inconclusive',
         'message': 'Could not determine variable',
         'exact': true
       };
     return this.check_relation_numerically(
-      lhs_expr, rhs_expr, variable_name, relation_type, params);
+      lhs_expr, rhs_expr,
+      variable_name, variable_expr,
+      relation_type, params);
   }
 
   // Check for an equation like x^2 = sin(x).
@@ -524,7 +530,7 @@ class AlgebriteInterface {
       relation_type];
   }
 
-  static check_relation_numerically(lhs_expr, rhs_expr, variable_name, relation_type, params) {
+  static check_relation_numerically(lhs_expr, rhs_expr, variable_name, variable_expr, relation_type, params) {
     // Set up function definitions for efficiency.
     this.define_function('lhs_expr', variable_name, lhs_expr);
     this.define_function('rhs_expr', variable_name, rhs_expr);
@@ -545,21 +551,25 @@ class AlgebriteInterface {
           'result': 'Inconclusive',
           'message': 'Could not evaluate numerically',
           'exact': false,
-          'tries': iter
+          'tries': iter,
+          'variable': variable_expr
         };
       }
       else if(result === false) {
         return {
           'result': 'False',
           'exact': false,
-          'tries': iter
+          'tries': iter,
+          'variable': variable_expr,
+          'false_for': variable_value
         };
       }
     }
     return {
       'result': 'Probably true',
       'exact': false,
-      'tries': iter
+      'tries': iter,
+      'variable': variable_expr
     };
   }
 
@@ -573,7 +583,7 @@ class AlgebriteInterface {
     if(lhs_result.k === 2 /* DOUBLE */ && rhs_result.k === 2) {
       const lhs_float = lhs_result.d;
       const rhs_float = rhs_result.d;
-      //console.log('lhs=' + lhs_float + ' rhs=' + rhs_float);
+      // console.log('lhs=' + lhs_float + ' rhs=' + rhs_float);
       if(this._check_numerical_relation_result(lhs_result.d, rhs_result.d, relation_type))
         return true;
     }

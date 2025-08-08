@@ -382,6 +382,7 @@ class InputContext {
   }
 
   _format_algebrite_check_result(result) {
+    let show_variable_value = false;
     const pieces = ['**', result.result, '**.'];
     if(result.message) {
       pieces.push(' ');
@@ -393,8 +394,17 @@ class InputContext {
       pieces.push(result.tries.toString());
       pieces.push(' point' + (result.tries === 1 ? '' : 's'));
       pieces.push('.');
+      if(result.false_for !== undefined && result.variable !== undefined) {
+        pieces.push(' False for [] = ');
+        pieces.push(result.false_for.toString());
+        pieces.push('.');
+        show_variable_value = true;
+      }
     }
-    return TextItem.parse_string(pieces.join(''));
+    let result_item = TextItem.parse_string(pieces.join(''));
+    if(show_variable_value)
+      result_item = result_item.try_substitute_placeholder(result.variable);
+    return result_item;
   }
 
   do_rationalize(stack) {
