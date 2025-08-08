@@ -115,7 +115,6 @@ class Expr {
     };
     const left_factorial_count = factorial_count(left);
     const right_factorial_count = factorial_count(right);
-    console.log(left_factorial_count + ', ' + right_factorial_count);
     if(right_factorial_count > 0) {
       if(left_factorial_count === 0) {
         // Concatenating a "normal" expression to 1 or more ! signs.
@@ -129,18 +128,23 @@ class Expr {
           ).fill(new TextExpr('!')));
       }
     }
+
     // Sequence + Sequence
     if(left_type === 'sequence' && !left.fused && right_type === 'sequence' && !right.fused)
       return new SequenceExpr(left.exprs.concat(right.exprs));
+
     // Sequence + NonSequence
     if(left_type === 'sequence' && !left.fused && right_type !== 'sequence')
       return new SequenceExpr(left.exprs.concat([autoparenthesize(right)]));
+
     // NonSequence + Sequence
     if(right_type === 'sequence' && !right.fused && left_type !== 'sequence')
       return new SequenceExpr([autoparenthesize(left)].concat(right.exprs));
+
     // Some types of Command can be combined in special ways
     if(left_type === 'command' && right_type === 'command')
       return Expr.combine_command_pair(left, right);
+
     // Special case: combine 123 456 => 123456 if both sides are numeric.
     // This can lead to things like "1.2" + "3.4" -> "1.23.4" but that's
     // considered OK because the main use for this is to build numbers from
@@ -149,6 +153,7 @@ class Expr {
     if(left_type === 'text' && left.looks_like_number() &&
        right_type === 'text' && right.looks_like_number())
       return new TextExpr(left.text + right.text);
+    // TODO: convert '123' + '-456' into an infix subtraction
 
     // NonSequence + NonSequence => Sequence (the typical case)
 
@@ -158,7 +163,7 @@ class Expr {
     //   2 (x+1)!  =>  2(x+1)!  (so not parenthesizing the (x+1)! again)
     //   (x+1) y!  =>  (x+1)y!
     //   x! y!     =>  x!y!
-    //   x! !      =>  x!!  (not (x!)!)
+    //   x! !      =>  x!!  (not (x!)!) - this is handled by the logic above
     const left_expr = autoparenthesize(left);
     let parenthesize_right = right.is_expr_type('infix');
     if(right.is_expr_type('postfix') && right.factorial_signs_count() > 0) {
@@ -169,7 +174,8 @@ class Expr {
     }
     if(!no_parenthesize)
       parenthesize_right = false;
-    const right_expr = parenthesize_right ? DelimiterExpr.parenthesize(right) : right;
+    const right_expr = parenthesize_right ?
+          DelimiterExpr.parenthesize(right) : right;
 
     // Adjacent FontExprs of the same type can be merged into a single
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
@@ -178,7 +184,8 @@ class Expr {
     // will not do this merging.  AB -> bold -> \bold{A}\bold{B}.
     // This could be implemented if needed (by coalescing adjacent FontExprs
     // within a SequenceExpr).
-    if(left_expr.is_expr_type('font') && right_expr.is_expr_type('font') &&
+    if(left_expr.is_expr_type('font') &&
+       right_expr.is_expr_type('font') &&
        FontExpr.font_exprs_compatible(left_expr, right_expr)) {
       return new FontExpr(
         new SequenceExpr([left_expr.expr, right_expr.expr]),
@@ -188,7 +195,7 @@ class Expr {
       return new SequenceExpr([left_expr, right_expr]);
   }
 
-  // Combine two CommandExprs with some special-casing for some particular command pairs.
+  // Combine two CommandExprs with special-casing for some particular command pairs.
   static combine_command_pair(left, right) {
     const left_name = left.command_name, right_name = right.command_name;
 
@@ -209,7 +216,8 @@ class Expr {
     return new SequenceExpr([left, right]);
   }
 
-  // Combine two Exprs with the given conjunction phrase between them, with largish spacing.
+  // Combine two Exprs with the given conjunction phrase between them,
+  // with largish spacing.
   // For example "X  iff  Y" as in the [,][F] command.
   // is_bold will make the conjunction phrase bolded.
   static combine_with_conjunction(left, right, phrase, is_bold) {
@@ -280,10 +288,8 @@ class Expr {
     const [this_subexpressions, expr_subexpressions] =
           [this.subexpressions(), expr.subexpressions()];
     if(this_subexpressions.length != expr_subexpressions.length) return false;
-    for(let i = 0; i < this_subexpressions.length; i++)
-      if(!this_subexpressions[i].matches(expr_subexpressions[i]))
-        return false;
-    return true;
+    return this_subexpressions.every((this_subexpression, i) =>
+      this_subexpression.matches(expr_subexpressions[i]));
   }
 
   // Substitute anything matching 'search_expr' with 'substitution_expr'.
@@ -449,7 +455,7 @@ class CommandExpr extends Expr {
 
 
 // FontExpr wraps another existing Expr and adds typeface/font information to it.
-// A FontExpr sets independently the overall typeface (normal math, upright roman, etc)
+// A FontExpr sets both the overall typeface (normal math, upright roman, etc)
 // and a flag indicating bold/normal, plus an optional size adjustment that changes the
 // size of the expression.
 class FontExpr extends Expr {
@@ -478,16 +484,16 @@ class FontExpr extends Expr {
     if(expr.is_expr_type('font'))
       return expr;
     else
-      return new FontExpr(expr, 'normal', false, 0);
+      return new this(expr, 'normal', false, 0);
   }
 
   // Wrap 'expr' in a Roman typeface FontExpr.
   static roman(expr) {
-    return FontExpr.wrap(expr).with_typeface('roman');
+    return this.wrap(expr).with_typeface('roman');
   }
 
   static roman_text(str) {
-    return FontExpr.roman(new TextExpr(LatexEmitter.latex_escape(str)));
+    return this.roman(new TextExpr(LatexEmitter.latex_escape(str)));
   }
 
   // Return true when the two expressions are both FontExprs with the same font parameters.
@@ -563,7 +569,8 @@ class FontExpr extends Expr {
   emit_latex(emitter) {
     // If there is a size adjustment, emit the \large, etc, and then render
     // inside without the size adjustment.
-    const size_adjustment_command = this.size_adjustment_command(this.size_adjustment);
+    const size_adjustment_command =
+          this.size_adjustment_command(this.size_adjustment);
     if(size_adjustment_command)  {
       // Size commands are stateful, so they need to be enclosed in their own group
       // so that the size adjustment does not continue beyond this expression.
@@ -633,6 +640,11 @@ class FontExpr extends Expr {
 
 // Represents two or more expressions joined by infix operators (like + or \wedge).
 // This includes relational operators like = or <.
+//
+// NOTE: Infix expressions are "flat", unless terms are explicitly parenthesized.
+// 'x + y * z' is a three-term expression, rather than being a tree structure
+// like x + (y * z).  Operator precedence and associativity are not handled here.
+//
 // operand_exprs: The x,y,z in 'x + y - z'.  There must be at least 2.
 // operator_exprs: The +,- in 'x + y - z'.  Length must be 1 less than operand_exprs.
 // split_at_index: Index of the operator_expr that is considered the 'split point'
@@ -839,7 +851,8 @@ class InfixExpr extends Expr {
       this.linebreaks_at.concat([new_index]));
   }
 
-  // Swap everything to the left of operator_index with everything to the right of operator_index.
+  // Swap everything to the left of operator_index with everything
+  // to the right of operator_index.
   swap_sides_at(operator_index) {
     const new_operand_exprs =
           this.operand_exprs.slice(operator_index+1).concat(
@@ -904,7 +917,7 @@ class InfixExpr extends Expr {
       new_expr = expr.exprs[1];
     }
     else if(expr.is_expr_type('text')) {
-      // Check the special cases for "plain text" operators
+      // Check the special cases for "plain text" operators (not LaTeX \commands).
       const pair = special_pairs.find(pair => pair[0] === expr.text);
       if(pair)
         new_expr = new CommandExpr(pair[1]);
@@ -1012,7 +1025,8 @@ class InfixExpr extends Expr {
 }
 
 
-// Represents a "placeholder marker" that can be used with the 'substitute_placeholder' command.
+// Represents a "placeholder marker" that can be used with the
+// 'substitute_placeholder' command.
 class PlaceholderExpr extends Expr {
   expr_type() { return 'placeholder'; }
 
@@ -1034,10 +1048,10 @@ class PlaceholderExpr extends Expr {
 }
 
 
-// Prefix unary operators such as: +x, -x, \neg x
+// Prefixed unary expressions such as: +x, -x, \neg x
 class PrefixExpr extends Expr {
   static unary_minus(expr) {
-    return new PrefixExpr(expr, new TextExpr('-'));
+    return new this(expr, new TextExpr('-'));
   }
 
   constructor(base_expr, operator_expr) {
@@ -1212,7 +1226,7 @@ class PostfixExpr extends Expr {
   static _factorial_expr(base_expr, factorial_depth) {
     if(factorial_depth > 1)
       base_expr = PostfixExpr._factorial_expr(base_expr, factorial_depth-1);
-    return new PostfixExpr(base_expr, new TextExpr('!'));
+    return new this(base_expr, new TextExpr('!'));
   }
 
   constructor(base_expr, operator_expr) {
@@ -1283,14 +1297,16 @@ class PostfixExpr extends Expr {
 
 // Represents a snippet of LaTeX code; these are the "leaves" of Expr-trees.
 class TextExpr extends Expr {
-  static blank() { return new TextExpr(''); }
+  static blank() { return new this(''); }
 
+  // Generally, we want to make sure negative numbers are
+  // represented with PrefixExpr rather than a TextExpr('-123').
   static integer(int_or_str) {
     const s = int_or_str.toString();
     if(s.startsWith('-'))
-      return PrefixExpr.unary_minus(new TextExpr(s.slice(1)));
+      return PrefixExpr.unary_minus(new this(s.slice(1)));
     else
-      return new TextExpr(s);
+      return new this(s);
   }
   
   constructor(text) {
@@ -1314,9 +1330,10 @@ class TextExpr extends Expr {
       emitter.grouped(() => null, true);
     }
     else {
-      // Check explicitly for '-123'.
-      // These need to be enclosed in latex braces to get the proper
-      // spacing in things like x+-3.
+      // Check explicitly for '-123'.  These need to be enclosed in
+      // a LaTeX group to get the proper spacing in things like x+-3.
+      // Normally this doesn't occur because negative numbers should
+      // use PrefixExpr.
       emitter.text(this.text, this.looks_like_negative_number());
     }
   }
@@ -1417,7 +1434,7 @@ class DelimiterExpr extends Expr {
     while(expr.is_expr_type('delimiter') &&
        expr.left_type === '.' && expr.right_type === '.')
       expr = expr.inner_expr;
-    return new DelimiterExpr(left_type || '(', right_type || ')', expr);
+    return new this(left_type || '(', right_type || ')', expr);
   }
 
   static parenthesize_if_not_already(expr, left_type, right_type) {
@@ -1463,7 +1480,7 @@ class DelimiterExpr extends Expr {
        expr.count_primes() > 0)
     );
     if(needs_parenthesization)
-      return DelimiterExpr.parenthesize_if_not_already(
+      return this.parenthesize_if_not_already(
         expr, left_type, right_type);
     else
       return expr;
@@ -1498,7 +1515,7 @@ class DelimiterExpr extends Expr {
        !expr.operand_exprs[0].is_expr_type('delimiter'))
     );
     if(needs_parenthesization)
-      return DelimiterExpr.parenthesize_if_not_already(
+      return this.parenthesize_if_not_already(
         expr, left_type, right_type);
     else
       return expr;
@@ -1507,7 +1524,7 @@ class DelimiterExpr extends Expr {
   // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
   static autoparenthesize(expr, left_type, right_type) {
     if(expr.is_expr_type('infix') && expr.needs_autoparenthesization())
-      return DelimiterExpr.parenthesize(expr, left_type, right_type);
+      return this.parenthesize(expr, left_type, right_type);
     else
       return expr;
   }
@@ -1629,7 +1646,7 @@ class SubscriptSuperscriptExpr extends Expr {
        ((!base_expr.subscript_expr && !is_superscript) ||
         (!base_expr.superscript_expr && is_superscript))) {
       // There's "room" for it in this expr.
-      return new SubscriptSuperscriptExpr(
+      return new this(
         base_expr.base_expr,
         (is_superscript ? base_expr.subscript_expr : child_expr),
         (is_superscript ? child_expr : base_expr.superscript_expr));
@@ -1638,7 +1655,7 @@ class SubscriptSuperscriptExpr extends Expr {
       // Create a new expr instead, parenthesizing the base if needed.
       if(autoparenthesize)
         base_expr = DelimiterExpr.parenthesize_for_power(base_expr);
-      return new SubscriptSuperscriptExpr(
+      return new this(
         base_expr,
         (is_superscript ? null : child_expr),
         (is_superscript ? child_expr : null));
@@ -1759,8 +1776,8 @@ class SubscriptSuperscriptExpr extends Expr {
 
 // Arrayed structures; these are all 2-dimensional grids of expressions.
 // Currently supported "array types" are:
-//   matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
-//   non-matrices (alignment environments): gathered, gather, cases, rcases, substack
+//   - Matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
+//   - Aligned environments: gathered, gather, cases, rcases, substack
 class ArrayExpr extends Expr {
   // element_exprs is a nested array of length 'row_count', each of which is
   // an array of 'column_count' Exprs.
@@ -1784,7 +1801,7 @@ class ArrayExpr extends Expr {
   static vstack_arrays(expr1, expr2) {
     if(expr1.column_count !== expr2.column_count)
       return null;
-    return new ArrayExpr(
+    return new this(
       expr1.array_type,
       expr1.row_count + expr2.row_count,
       expr1.column_count,
@@ -1801,7 +1818,7 @@ class ArrayExpr extends Expr {
     let new_element_exprs = [];
     for(let i = 0; i < expr1.row_count; i++)
       new_element_exprs.push(expr1.element_exprs[i].concat(expr2.element_exprs[i]));
-    return new ArrayExpr(
+    return new this(
       expr1.array_type,
       expr1.row_count,
       expr1.column_count + expr2.column_count,
@@ -1949,7 +1966,8 @@ class ArrayExpr extends Expr {
       new_row_count++;
     }
     // TODO: preserve row/column separators
-    return new ArrayExpr(this.array_type, new_row_count, new_column_count, new_element_exprs);
+    return new ArrayExpr(
+      this.array_type, new_row_count, new_column_count, new_element_exprs);
   }
 
   // Return a new ArrayExpr with rows and columns interchanged.

@@ -541,7 +541,8 @@ class AlgebriteInterface {
       relation_type];
   }
 
-  static check_relation_numerically(lhs_expr, rhs_expr, variable_name, variable_expr, relation_type, params) {
+  static check_relation_numerically(lhs_expr, rhs_expr, variable_name,
+                                    variable_expr, relation_type, params) {
     // Set up function definitions for efficiency.
     this.define_function('lhs_expr', variable_name, lhs_expr);
     this.define_function('rhs_expr', variable_name, rhs_expr);

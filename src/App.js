@@ -287,6 +287,10 @@ class App extends React.Component {
     if(event.altKey)
       return;
     const key = this._keyname_from_event(event);
+    // Pass through Alt+3, etc. to avoid interfering with browser tab
+    // switching shortcuts.  Ctrl+digit is still allowed.
+    if(event.metaKey && /^\d$/.test(event.key))
+      return;
     if(key === 'Meta' || key === 'Ctrl+Control')
       return;
     let app_state = this.state.app_state;
