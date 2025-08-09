@@ -1042,7 +1042,7 @@ const EditorKeymap = {
   // [;] prefix: lowercase Greek letters
   lowercase_greek: {
     'a': "push \\alpha",     'b': "push \\beta",
-    'c': "push \\chi",       'd': "push \\delta",
+    'c': "push \\xi",        'd': "push \\delta",
     'e': "push \\epsilon",   'f': "push \\phi",
     'g': "push \\gamma",     'h': "push \\eta",
     'i': "push \\iota",      'j': "push \\varphi",
@@ -1052,7 +1052,7 @@ const EditorKeymap = {
     'q': "push \\vartheta",  'r': "push \\rho",
     's': "push \\sigma",     't': "push \\tau",
     'u': "push \\upsilon",   'v': "push \\theta",
-    'w': "push \\omega",     'x': "push \\xi",
+    'w': "push \\omega",     'x': "push \\chi",
     'y': "push \\psi",       'z': "push \\zeta",
 
     ':': "mode variant_greek",
@@ -1061,29 +1061,35 @@ const EditorKeymap = {
 
   // [:] prefix: uppercase Greek letters
   uppercase_greek: {
-    'd': "push \\Delta",     'e': "push \\varepsilon",
-    'f': "push \\Phi",       'g': "push \\Gamma",
-    'k': "push \\varkappa",  'l': "push \\Lambda",
-    'm': "push \\varpi",     'o': "push \\Omega",
-    'p': "push \\Pi",        'q': "push \\vartheta",
-    'r': "push \\varrho",    's': "push \\Sigma",
-    't': "push \\varsigma",  'u': "push \\Upsilon",
-    'v': "push \\Theta",     'w': "push \\Omega",
-    'x': "push \\Xi",        'y': "push \\Psi",
+    'a': "push A",            'b': "push B",
+    'c': "push \\Xi",         'd': "push \\Delta",
+    'e': "push \\varepsilon", 'f': "push \\Phi",
+    'g': "push \\Gamma",      'h': "push \\mho",
+    'i': "push I",            'j': "push \\Phi",
+    'k': "push \\varkappa",   'l': "push \\Lambda",
+    'm': "push \\varpi",      'n': "push \\nabla",
+    'o': "push \\Omega",      'p': "push \\Pi",
+    'q': "push \\Theta",      'r': "push \\varrho",
+    's': "push \\Sigma",      't': "push \\varsigma",
+    'u': "push \\Upsilon",    'v': "push \\Theta",
+    'w': "push \\Omega",      'x': "push X",
+    'y': "push \\Psi",        'z': "push Z",
     /*'6': "push \\digamma",   '^': "push \\digamma",*/
-    'h': "push \\mho",       'n': "push \\nabla",
 
     // TODO: support for case-insensitive keybindings in general
-    'D': "push \\Delta",     'E': "push \\varepsilon",
-    'F': "push \\Phi",       'G': "push \\Gamma",
-    'K': "push \\varkappa",  'L': "push \\Lambda",
-    'M': "push \\varpi",     'O': "push \\Omega",
-    'P': "push \\Pi",        'Q': "push \\vartheta",
-    'R': "push \\varrho",    'S': "push \\Sigma",
-    'T': "push \\varsigma",  'U': "push \\Upsilon",
-    'V': "push \\Theta",     'W': "push \\Omega",
-    'X': "push \\Xi",        'Y': "push \\Psi",
-    'N': "push \\nabla",     'H': "push \\mho",
+    'A': "push A",            'B': "push B",
+    'C': "push \\Xi",         'D': "push \\Delta",
+    'E': "push \\varepsilon", 'F': "push \\Phi",
+    'G': "push \\Gamma",      'H': "push \\mho",
+    'I': "push I",            'J': "push \\Phi",
+    'K': "push \\varkappa",   'L': "push \\Lambda",
+    'M': "push \\varpi",      'N': "push \\nabla",
+    'O': "push \\Omega",      'P': "push \\Pi",
+    'Q': "push \\Theta",      'R': "push \\varrho",
+    'S': "push \\Sigma",      'T': "push \\varsigma",
+    'U': "push \\Upsilon",    'V': "push \\Theta",
+    'W': "push \\Omega",      'X': "push X",
+    'Y': "push \\Psi",        'Z': "push Z",
 
     ':': "infix \\colon"
   },
@@ -1091,6 +1097,7 @@ const EditorKeymap = {
   // [:][;] prefix: "variant" uppercase Greek letters
   // (these are italic versions of the normal ones)
   variant_greek: {
+    'c': "push \\varXi",       'C': "push \\varXi",
     'd': "push \\varDelta",    'D': "push \\varDelta",
     'f': "push \\varPhi",      'F': "push \\varPhi",
     'g': "push \\varGamma",    'G': "push \\varGamma",
@@ -1100,7 +1107,6 @@ const EditorKeymap = {
     'q': "push \\varTheta",    'Q': "push \\varTheta",
     's': "push \\varSigma",    'S': "push \\varSigma",
     'u': "push \\varUpsilon",  'U': "push \\varUpsilon",
-    'x': "push \\varXi",       'X': "push \\varXi",
     'y': "push \\varPsi",      'Y': "push \\varPsi"
   }
 };
