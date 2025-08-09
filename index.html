@@ -2227,6 +2227,73 @@
         </li>
       </ul>
 
+      <p><strong>Matrix/Vector Operations:</strong></p>
+      <p>
+        Algebrite also supports some operations on matrices and vectors.
+        These operations are performed by entering the &quot;usual&quot;
+        math syntax directly, applied to a matrix or vector created with
+        the <span class="keybinding">|</span> commands.
+        Evaluating the expression with
+        <span class="keybinding">#</span><span class="keybinding">#</span>
+        will then execute the matrix or vector operation(s).
+        <strong>NOTE:</strong> the matrices or vectors must be &quot;literal&quot;
+        matrices, not generic variables like <code>M</code>.  However,
+        they can contain symbolic expressions as their elements.
+      </p>
+      <ul class="keybindings">
+        <li>
+          <code>A\cdot B</code> or <code>AB</code>:
+          Matrix product or vector inner product.
+          Vector products must be a row vector times a column vector.
+        </li>
+        <li>
+          <code>A + B</code> or <code>A - B:</code>
+          Matrix or vector sum or difference.
+        </li>
+        <li>
+          <code>A^{-1}</code>:
+          Matrix inverse:
+          <code>
+            {\begin{bmatrix}a & b\\c & d\end{bmatrix}}^{-1}
+            = \begin{bmatrix}
+              \frac{d}{ad-bc} & -\frac{b}{ad-bc}\\
+              -\frac{c}{ad-bc} & \frac{a}{ad-bc}
+            \end{bmatrix}
+          </code>
+        </li>
+        <li>
+          <code>A^n</code>: Matrix power (<code>n</code> integer).
+        </li>
+        <li>
+          <code>A^{\mathrm{T}}</code>: Matrix/vector transpose.
+          <strong>NOTE:</strong> the
+          <span class="keybinding">|</span><span class="keybinding">T</span>
+          command also performs transpose directly.
+        </li>
+        <li>
+          <code>\det A</code>:
+          Determinant <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">t</span>
+          of a square matrix:
+          <code>
+            \det{\begin{bmatrix}a & b\\c & d\end{bmatrix}} =
+            ad-bc
+          </code>
+        </li>
+        <li>
+          <code>\operatorname{Tr} A</code>:
+          Trace <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">r</span>
+          of a square matrix:
+          <code>
+            \operatorname{Tr}{\begin{bmatrix}a & b\\c & d\end{bmatrix}} =
+            a+d
+          </code>
+        </li>
+        <li>
+          <code>\boldsymbol x \times \boldsymbol y</code>:
+          Cross product of two vectors; both must be three-element column vectors.
+        </li>
+      </ul>
+
           
       <h2>
         <span class="keybinding">;</span>

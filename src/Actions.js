@@ -1877,8 +1877,17 @@ class InputContext {
   }
 
   do_transpose_matrix(stack) {
-    const [new_stack, matrix_expr] = stack.pop_matrices(1);
-    return new_stack.push_expr(matrix_expr.transposed());
+    const [new_stack, expr] = stack.pop_exprs(1);
+    if(expr.is_expr_type('array') && expr.is_matrix()) {
+      // Transpose a matrix "literal" directly.
+      return new_stack.push_expr(expr.transposed());
+    }
+    else {
+      // Put a transpose symbol on a generic expression.
+      const new_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
+        expr, FontExpr.roman_text('T'), true, true);
+      return new_stack.push_expr(new_expr);
+    }
   }
 
   // Change a matrix bracket type, e.g. to 'pmatrix'.

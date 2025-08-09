@@ -924,7 +924,13 @@ class ExprToAlgebrite {
         this.expr_to_node(variable_expr)]);
     }
     // The usual case (not f'(x)):
-    const fn_name = expr_to_variable_name(fn_expr);
+    let fn_name = expr_to_variable_name(fn_expr);
+    if(fn_name === 'Gamma_') {
+      // Special case for \Gamma{(x)}, which exists in Algebrite as a
+      // function (but implemented in a limited way), so use 'Gamma' when
+      // called as as function, but 'Gamma_' when used as a variable.
+      fn_name = 'Gamma';
+    }
     if(fn_name)
       return new AlgebriteCall(
         fn_name, arg_exprs.map(arg_expr => this.expr_to_node(arg_expr)));
@@ -1067,6 +1073,17 @@ class ExprToAlgebrite {
     // Anything else with a subscript isn't allowed.
     if(subscript_expr)
       return this.error('Cannot use subscript here', expr);
+
+    // Check for matrix_expr^{\textrm{T}} (transpose).
+    // Perform the transpose internally rather than calling
+    // transpose(A) with Algebrite.
+    if(superscript_expr &&
+       base_expr.is_expr_type('array') && base_expr.is_matrix() &&
+       ((superscript_expr.is_expr_type('text') && superscript_expr.text === 'T') ||
+        (superscript_expr.is_expr_type('font') && superscript_expr.typeface === 'roman' &&
+         superscript_expr.expr.is_expr_type('text') && superscript_expr.expr.text === 'T'))) {
+      return this.expr_to_node(base_expr.transposed());
+    }
 
     // Check for e^x (both roman and normal 'e').
     if(superscript_expr &&
