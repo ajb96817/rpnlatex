@@ -431,8 +431,9 @@ class AlgebriteInterface {
   // 'argument_strings' have already been converted into Algebrite syntax.
   static call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
-    const algebrite_method = Algebrite[function_name];
-    const result = algebrite_method(...argument_strings);
+    // const algebrite_method = Algebrite[function_name];
+    // const result = algebrite_method(...argument_strings);
+    const result = Algebrite.exec(function_name, ...argument_strings);
     console.log('Output: ' + this.debug_print_list(result));
     return result;
   }

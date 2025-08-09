@@ -1002,6 +1002,8 @@ const EditorKeymap = {
     'T': "swap;algebrite taylor 4",  // NOTE: last two arguments are swapped
     'v': "algebrite eigenval",
     'V': "algebrite eigenvec;transpose_matrix",
+    'w': "algebrite eval 2 1",
+    'W': "algebrite eval 3",
     'x': "algebrite expand 1 1",
     'X': "algebrite expand 2",
     'y': "all_on_left true;algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]

@@ -316,11 +316,18 @@ class InputContext {
   do_undo() { this.perform_undo_or_redo = 'undo'; }
   do_redo() { this.perform_undo_or_redo = 'redo'; }
 
-  do_algebrite(stack, function_name, arg_count_string, guess_variable_arg_index_string) {
+  // function_name:
+  //   Algebrite function to call.
+  // arg_count_string:
+  //   Number of arguments to pop from the stack (default 1).
+  // guess_variable_arg_index_string:
+  //   If given, guess the variable in the first argument expression
+  //   and splice it into the Algebrite function call args list at the
+  //   given position (e.g. '1' will put it as the second arg).
+  do_algebrite(stack, function_name, arg_count_string,
+               guess_variable_arg_index_string) {
     const arg_count = arg_count_string ? parseInt(arg_count_string) : 1;
     const [new_stack, ...argument_exprs] = stack.pop_exprs(arg_count);
-    let result_node = null;
-
     if(guess_variable_arg_index_string) {
       const guess_variable_arg_index = parseInt(guess_variable_arg_index_string);
       const [guessed_variable_name, guessed_variable_expr] =
@@ -334,9 +341,8 @@ class InputContext {
         return this.error_flash_stack();
       }
     }
-
     AlgebriteInterface.setup_algebrite();
-    result_node = AlgebriteInterface.call_function(
+    const result_node = AlgebriteInterface.call_function(
       function_name, argument_exprs);
     if(result_node) {
       const result_expr = AlgebriteInterface.algebrite_node_to_expr(result_node);

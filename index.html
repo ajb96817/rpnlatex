@@ -2017,18 +2017,17 @@
       <p><strong>Algebra:</strong></p>
       <ul class="keybindings">
         <li>
+          <span class="keybinding">#</span>
+          &quot;Run&quot; an expression through Algebrite, evaluating any indicated
+          operations like <code>5^2</code> and converting the expression to
+          Algebrite's standard form.
+        </li>
+        <li>
           <span class="keybinding">x</span> and <span class="keybinding">X</span>
           Expand a polynomial or rational function, rewriting with partial fractions if possible:
           <code>\displaystyle{
             \frac{{\left(x+3\right)}^2}{\left(x+1\right)\left(x+2\right)}
             \to 1+\frac{4}{x+1}-\frac{1}{x+2}}
-          </code>
-        </li>
-        <li>
-          <span class="keybinding">r</span>
-          Rationalize an expression by putting everything over a common denominator:
-          <code>\displaystyle{
-            \frac{1}{x+1}+\frac{1}{x-1}\to\frac{2x}{\left(x-1\right)\left(x+1\right)}}
           </code>
         </li>
         <li>
@@ -2041,12 +2040,31 @@
           <code>123456 \to 2^6\cdot 3\cdot 643</code>
         </li>
         <li>
+          <span class="keybinding">r</span>
+          Rationalize an expression by putting everything over a common denominator:
+          <code>\displaystyle{
+            \frac{1}{x+1}+\frac{1}{x-1}\to\frac{2x}{\left(x-1\right)\left(x+1\right)}}
+          </code>
+        </li>
+        <li>
           <span class="keybinding">s</span>
           Attempt to rewrite an expression in a simpler form:
           <code>\displaystyle{
             \frac{\left(x+2\right)!}{x!} \to
             \left(x+1\right)\left(x+2\right)}
           </code>
+        </li>
+        <li>
+          <span class="keybinding">w</span> and <span class="keybinding">W</span>
+          <em>(<strong>w</strong>here)</em>
+          Substitute a value for a variable in an expression:
+          <span class="keybinding">w</span>
+          <code>x^2\enspace 10 \to 100</code>
+          or <span class="keybinding">W</span>
+          <code>x+y\enspace y\enspace 10 \to x+10</code>.
+          Note that with <span class="keybinding">W</span>, the &quot;variable&quot;
+          can be any arbitrary expression:
+          <code>3\mathrm{e}^x\enspace \mathrm{e}^x\enspace y\to 3y</code>.
         </li>
         <li>
           <span class="keybinding">e</span>
