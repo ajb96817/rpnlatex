@@ -460,8 +460,10 @@ const EditorKeymap = {
     'l': "operator lim",
     'm': "parenthesize_argument;operator min",
     'M': "operator argmin",
+    'r': "autoparenthesize;push Tr;swap;operator operatorname 2",
     's': "operator sup",
     'S': "operator limsup",
+    't': "named_function det",
     'x': "parenthesize_argument;operator max",
     'X': "operator argmax"
   },
@@ -879,7 +881,6 @@ const EditorKeymap = {
     'a': "build_align aligned",
     'c': "build_align cases",
     'C': "build_align rcases",
-    'd': "named_function det",
     'e': "build_infix_list ,;push \\dots;push ,;apply_infix",
     'E': "insert_matrix_ellipses",
     'f': "build_align cases_if",

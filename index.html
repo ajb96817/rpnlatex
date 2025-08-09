@@ -1208,7 +1208,7 @@
           <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
         </li>
         <li>
-          <span class="keybinding">^</span> <code>x\times{10}^y</code>
+          <span class="keybinding">^</span> <code>x\enspace y \to x\cdot{10}^y</code>
           &nbsp;&nbsp;Scientific notation, for example:
           <code>1.23\cdot{10}^{-4}</code>
         </li>
@@ -1493,12 +1493,21 @@
           </tr>
           <tr>
             <td><span class="keybinding">M</span> <code>\argmin</code></td>
+            <td>
+              <span class="keybinding">r</span> <code>\operatorname{Tr}</code>
+              <em>(t<strong>r</strong>ace)</em>
+            </td>
             <td><span class="keybinding">s</span> <code>\sup</code></td>
-            <td><span class="keybinding">S</span> <code>\limsup</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">S</span> <code>\limsup</code></td>
+            <td><span class="keybinding">t</span> <code>\det</code>
+              <em>(de<strong>t</strong>erminant)</em></td>
             <td><span class="keybinding">x</span> <code>\max</code></td>
+          </tr>
+          <tr>
             <td><span class="keybinding">X</span> <code>\argmax</code></td>
+            <td></td>
             <td></td>
           </tr>
       </tbody></table>
@@ -1766,14 +1775,6 @@
         These commands operate on existing matrices.
       </p>
       <ul class="keybindings">
-        <li>
-          <span class="keybinding">d</span>
-          <code>x \to \det{x}\enspace</code> <em>(determinant)</em>
-        </li>
-        <li>
-          <span class="keybinding">r</span>
-          <code>x \to \operatorname{Tr}{x}\enspace</code> <em>(t<strong>r</strong>ace)</em>
-        </li>
         <li>
           <span class="keybinding">E</span>
           Insert spaces and ellipses before the last row and column in a matrix,
@@ -2146,7 +2147,7 @@
         </li>
       </ul>
 
-      <p><strong>Numerical Approximation:</strong></p>
+      <p><strong>Numerical Operations:</strong></p>
       <ul class="keybindings">
         <li>
           <span class="keybinding">n</span>
@@ -2156,7 +2157,7 @@
         </li>
         <li>
           <span class="keybinding">=</span>
-          Given a decimal number, try to find a close rational approximation to the number.
+          Given a decimal number, try to find a close rational approximation to that number.
           Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
           be detected: <code>1.6449340668482262 \to \pi^2/6</code>
         </li>
