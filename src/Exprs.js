@@ -244,6 +244,7 @@ class Expr {
   is_font_expr() { return this.expr_type() === 'font'; }
   is_infix_expr() { return this.expr_type() === 'infix'; }
   is_prefix_expr() { return this.expr_type() === 'prefix'; }
+  is_postfix_expr() { return this.expr_type() === 'postfix'; }
   is_function_call_expr() { return this.expr_type() === 'function_call'; }
   is_placeholder_expr() { return this.expr_type() === 'placeholder'; }
   is_text_expr() { return this.expr_type() === 'text'; }
@@ -251,6 +252,12 @@ class Expr {
   is_delimiter_expr() { return this.expr_type() === 'delimiter'; }
   is_subscriptsuperscript_expr() { return this.expr_type() === 'subscriptsuperscript'; }
   is_array_expr() { return this.expr_type() === 'array'; }
+
+  is_command_expr_with(operand_count, command_name) {
+    return this.is_command_expr() &&
+      this.operand_count() === operand_count &&
+      (command_name === undefined || this.command_name === command_name);
+  }
 
   to_latex(selected_expr_path, export_mode) {
     let emitter = new LatexEmitter(this, selected_expr_path);
@@ -734,7 +741,7 @@ class InfixExpr extends Expr {
   // If 'op_expr' is omitted, check only the operator at the split_at point.
   operator_text(op_expr) {
     op_expr ||= this.operator_exprs[this.split_at_index];
-    if(op_expr.is_command_expr() && op_expr.operand_count() === 0)
+    if(op_expr.is_command_expr_with(0))
       return op_expr.command_name;
     else if(op_expr.is_text_expr())
       return op_expr.text;
@@ -803,7 +810,7 @@ class InfixExpr extends Expr {
     let new_text = null;
     if(expr.is_text_expr() && expr.text === '/')
       new_text = "\\middle/";
-    else if(expr.is_command_expr() && expr.operand_count() === 0) {
+    else if(expr.is_command_expr_with(0)) {
       const command = expr.command_name;
       if(command === ",\\vert\\," || command === 'vert')
         new_text = "\\,\\middle\\vert\\,";
@@ -920,8 +927,7 @@ class InfixExpr extends Expr {
     const expr = this.operator_exprs[operator_index];
     let new_expr = null;
     if(expr.is_sequence_expr() && expr.exprs.length === 2 &&
-       expr.exprs[0].is_command_expr() && expr.exprs[0].operand_count() === 0 &&
-       expr.exprs[0].command_name === 'not') {
+       expr.exprs[0].is_command_expr_with(0, 'not')) {
       // \not\le -> \le
       new_expr = expr.exprs[1];
     }
@@ -931,7 +937,7 @@ class InfixExpr extends Expr {
       if(pair)
         new_expr = new CommandExpr(pair[1]);
     }
-    else if(expr.is_command_expr() && expr.operand_count() === 0) {
+    else if(expr.is_command_expr_with(0)) {
       // Check special cases to convert:  \nless -> <
       const pair = special_pairs.find(pair => pair[1] === expr.command_name);
       if(pair)
@@ -959,8 +965,7 @@ class InfixExpr extends Expr {
   // coefficient and exponent.  Return null if it's not of this form.
   unparse_scientific_notation() {
     if(!(this.operator_exprs.length === 1 &&
-         this.operator_exprs[0].is_command_expr() &&
-         this.operator_exprs[0].command_name === 'cdot'))
+         this.operator_exprs[0].is_command_expr_with(0, 'cdot')))
       return null;
     const [lhs, rhs] = this.operand_exprs;
     if(lhs.is_text_expr() && lhs.looks_like_number() &&
@@ -1089,8 +1094,7 @@ class PrefixExpr extends Expr {
   operator_text() {
     if(this.operator_expr.is_text_expr())
       return this.operator_expr.text;
-    else if(this.operator_expr.is_command_expr() &&
-            this.operator_expr.operand_count() === 0)
+    else if(this.operator_expr.is_command_expr_with(0))
       return this.operator_expr.command_name;
     else
       return '';  // shouldn't happen
@@ -1475,13 +1479,10 @@ class DelimiterExpr extends Expr {
        expr.inner_expr.is_infix_expr()) ||
 
       // \frac{x}{y}
-      (expr.is_command_expr() &&
-       expr.command_name === 'frac' &&
-       expr.operand_count() === 2) ||
+      expr.is_command_expr_with(2, 'frac') ||
 
       // \sin{x}, \ln{x}, etc.
-      (expr.is_command_expr() &&
-       expr.operand_count() === 1 &&
+      (expr.is_command_expr_with(1) &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
 
       // f', f'', but not f'(x)
@@ -1514,13 +1515,10 @@ class DelimiterExpr extends Expr {
        expr.inner_expr.is_infix_expr()) ||
 
       // \frac{x}{y}
-      (expr.is_command_expr() &&
-       expr.command_name === 'frac' &&
-       expr.operand_count() === 2) ||
+      expr.is_command_expr_with(2, 'frac') ||
       
       // \sin{x}, \ln{x}, etc.
-      (expr.is_command_expr() &&
-       expr.operand_count() === 1 &&
+      (expr.is_command_expr_with(1) &&
        !expr.operand_exprs[0].is_delimiter_expr())
     );
     if(needs_parenthesization)
@@ -1738,9 +1736,7 @@ class SubscriptSuperscriptExpr extends Expr {
   // count the number of \primes present (otherwise return 0).
   count_primes() {
     const is_prime_command = expr =>
-          expr.is_command_expr() &&
-          expr.operand_count() === 0 &&
-          expr.command_name === 'prime';
+          expr.is_command_expr_with(0, 'prime');
     const superscript_expr = this.superscript_expr;
     if(!superscript_expr) return 0;
     if(is_prime_command(superscript_expr)) return 1;
@@ -1994,12 +1990,10 @@ class ArrayExpr extends Expr {
   // When transposing a matrix, we generally want to flip vertical and horizontal ellipses
   // within the cells.
   _transpose_cell(cell_expr) {
-    if(cell_expr.is_command_expr() && cell_expr.operand_count() === 0) {
-      if(cell_expr.command_name === 'vdots')
-        return new CommandExpr('cdots');
-      if(cell_expr.command_name === 'cdots')
-        return new CommandExpr('vdots');
-    }
+    if(cell_expr.is_command_expr_with(0, 'vdots'))
+      return new CommandExpr('cdots');
+    if(cell_expr.is_command_expr_with(0, 'cdots'))
+      return new CommandExpr('vdots');
     return cell_expr;
   }
 

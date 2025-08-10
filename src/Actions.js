@@ -929,9 +929,7 @@ class InputContext {
   do_html_class(stack, class_name, class_name_2) {
     let [new_stack, expr] = stack.pop_exprs(1);
     let new_class_name = null;
-    if(expr.is_command_expr() &&
-       expr.command_name === 'htmlClass' &&
-       expr.operand_count() === 2 &&
+    if(expr.is_command_expr_with(2, 'htmlClass') &&
        expr.operand_exprs[0].is_text_expr()) {
       // It's already wrapped in \htmlClass
       if(expr.operand_exprs[0].text === class_name)
@@ -1058,9 +1056,7 @@ class InputContext {
     let new_expr = null;
     if(expr.is_infix_expr())
       new_expr = expr.swap_sides_at(expr.split_at_index);
-    else if(expr.is_command_expr() &&
-            expr.operand_count() === 2 &&
-            expr.command_name === 'frac') {
+    else if(expr.is_command_expr_with(2, 'frac')) {
       // "Normal" fraction.
       new_expr = CommandExpr.frac(
         expr.operand_exprs[1],
@@ -1167,9 +1163,7 @@ class InputContext {
     let extracted_expr = null;
     if(expr.is_infix_expr())
       extracted_expr = expr.extract_side_at(expr.split_at_index, which_side);
-    else if(expr.is_command_expr() &&
-            expr.operand_count() === 2 &&
-            expr.command_name === 'frac')
+    else if(expr.is_command_expr_with(2, 'frac'))
       extracted_expr = expr.operand_exprs[which_side === 'right' ? 1 : 0];
     else if(expr.is_delimiter_expr() && expr.is_flex_inline_fraction())
       extracted_expr = expr.inner_expr.operand_exprs[which_side === 'right' ? 1 : 0];
@@ -1447,7 +1441,7 @@ class InputContext {
     }
     else if(item.is_expr_item()) {
       let expr = item.expr;
-      if(expr.is_command_expr() && expr.operand_count() === 0) {
+      if(expr.is_command_expr_with(0)) {
         // LaTeX command with no arguments, e.g. \circledast
         this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
         this.text_entry.edited_item = item;
@@ -1671,7 +1665,7 @@ class InputContext {
   do_apply_operator(stack, arg_count_string) {
     const arg_count = parseInt(arg_count_string);
     const [new_stack, command_expr, ...operand_exprs] = stack.pop_exprs(arg_count+1);
-    if(command_expr.is_command_expr() && command_expr.operand_count() === 0)
+    if(command_expr.is_command_expr_with(0))
       return new_stack.push_expr(
         new CommandExpr(command_expr.command_name, operand_exprs));
     else

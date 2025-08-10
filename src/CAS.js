@@ -167,8 +167,7 @@ function expr_to_variable_name(expr, ignore_superscript=false,
     // unless it's in the subscript (x_0 is ok but not 0_x).
     variable_name = expr.text;
   }
-  else if(expr.is_command_expr() &&
-          expr.operand_count() === 0 &&
+  else if(expr.is_command_expr_with(0) &&
           latex_letter_commands.has(expr.command_name)) {
     // Unary CommandExpr for things like Greek letters.
     // These are spelled out as 'alpha', etc.
@@ -844,8 +843,7 @@ class ExprToAlgebrite {
     let op_name = null;
     if(expr.is_text_expr())
       op_name = expr.text;  // something like + or /
-    else if(expr.is_command_expr() &&
-            expr.operand_count() === 0)
+    else if(expr.is_command_expr_with(0))
       op_name = expr.command_name;  // times, cdot, etc
     if(op_name)
       return this._infix_op_info(op_name);
@@ -1116,9 +1114,7 @@ class ExprToAlgebrite {
       // If the operator name is a valid Algebrite function, convert
       // the two-Expr sequence into a function call.
       if(i < exprs.length-1 &&
-         exprs[i].is_command_expr() &&
-         exprs[i].command_name === 'operatorname' &&
-         exprs[i].operand_count() === 1 &&
+         exprs[i].is_command_expr_with(1, 'operatorname') &&
          exprs[i].operand_exprs[0].is_text_expr()) {
         const algebrite_command = translate_function_name(
           exprs[i].operand_exprs[0].text, true);
