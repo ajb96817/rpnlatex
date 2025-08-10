@@ -172,7 +172,7 @@ class Expr {
       if(left.is_postfix_expr() && left.factorial_signs_count() > 0)
         parenthesize_right = false;  // x!y!
     }
-    if(!no_parenthesize)
+    if(no_parenthesize)
       parenthesize_right = false;
     const right_expr = parenthesize_right ?
           DelimiterExpr.parenthesize(right) : right;
