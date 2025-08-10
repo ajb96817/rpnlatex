@@ -1267,12 +1267,6 @@ class AlgebriteToExpr {
     const nargs = args.length;
     const arg_exprs = args.map(arg => this.to_expr(arg));
 
-    // Check "built-in" unary LaTeX command like \sin{x}.
-    if(allowed_algebrite_unary_functions.has(f) && args.length === 1)
-      return new CommandExpr(
-        translate_function_name(f, false),
-        [DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
-
     // Check forms that have special Expr representations.
     switch(f) {
     case 'multiply':
@@ -1296,8 +1290,19 @@ class AlgebriteToExpr {
     case 'abs':
       if(nargs === 1)
         return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
+    case 'erf': case 'erfc':
+      if(nargs === 1)
+        return new SequenceExpr([
+          new CommandExpr('operatorname', [new TextExpr(f)]),
+          arg_exprs[0]]);
     }
     
+    // Check "built-in" unary LaTeX command like \sin{x}.
+    if(allowed_algebrite_unary_functions.has(f) && args.length === 1)
+      return new CommandExpr(
+        translate_function_name(f, false),
+        [DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
+
     // Anything else becomes f(x,y,z).
     let operands_expr = arg_exprs[0];
     for(let i = 1; i < args.length; i++)
