@@ -365,7 +365,7 @@ class InputContext {
       [new_stack, ...exprs] = stack.pop_exprs(3);
       expr = exprs[0];
       const get_value = expr => {
-        if(expr.is_expr_type('text') && expr.looks_like_number()) {
+        if(expr.is_text_expr() && expr.looks_like_number()) {
           const x = parseFloat(expr.text);
           return isNaN(x) ? null : x;
         }
@@ -421,7 +421,7 @@ class InputContext {
 
   do_rationalize(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_expr_type('text')) {
+    if(expr.is_text_expr()) {
       const float_value = parseFloat(expr.text);
       if(!isNaN(float_value)) {
         const rationalized_expr = RationalizeToExpr.rationalize(float_value);
@@ -789,7 +789,7 @@ class InputContext {
     };
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr;
-    if(expr.is_expr_type('text'))
+    if(expr.is_text_expr())
       new_expr = new TextExpr(convert_fn(expr.text));
     else
       new_expr = expr;
@@ -869,8 +869,8 @@ class InputContext {
       let is_negated = false;
       let base_expr = expr;
       // Check for a unary minus sign.
-      if(expr.is_expr_type('sequence') && expr.exprs.length > 1 &&
-         expr.exprs[0].is_expr_type('text') && expr.exprs[0].text === '-') {
+      if(expr.is_sequence_expr() && expr.exprs.length > 1 &&
+         expr.exprs[0].is_text_expr() && expr.exprs[0].text === '-') {
         is_negated = true;
         base_expr = expr.exprs.length === 2 ? expr.exprs[1] : new SequenceExpr(expr.exprs.slice(1));
       }
@@ -902,18 +902,18 @@ class InputContext {
   }
 
   _do_apply_hat(expr, hat_op) {
-    if(expr.is_expr_type('subscriptsuperscript'))
+    if(expr.is_subscriptsuperscript_expr())
       return new SubscriptSuperscriptExpr(
         this._do_apply_hat(expr.base_expr, hat_op),
         expr.subscript_expr,
         expr.superscript_expr);
-    if(expr.is_expr_type('text') &&
+    if(expr.is_text_expr() &&
        (expr.text === 'i' || expr.text === 'j'))
       expr = new CommandExpr(expr.text === 'i' ? 'imath' : 'jmath');
-    else if(expr.is_expr_type('font') && expr.typeface === 'normal' && expr.is_bold) {
+    else if(expr.is_font_expr() && expr.typeface === 'normal' && expr.is_bold) {
       // Check for bolded literal i/j
       const inner_expr = expr.expr;
-      if(inner_expr.is_expr_type('text') &&
+      if(inner_expr.is_text_expr() &&
          (inner_expr.text === 'i' || inner_expr.text === 'j'))
         expr = new FontExpr(
           new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'),
@@ -929,10 +929,10 @@ class InputContext {
   do_html_class(stack, class_name, class_name_2) {
     let [new_stack, expr] = stack.pop_exprs(1);
     let new_class_name = null;
-    if(expr.is_expr_type('command') &&
+    if(expr.is_command_expr() &&
        expr.command_name === 'htmlClass' &&
        expr.operand_count() === 2 &&
-       expr.operand_exprs[0].is_expr_type('text')) {
+       expr.operand_exprs[0].is_text_expr()) {
       // It's already wrapped in \htmlClass
       if(expr.operand_exprs[0].text === class_name)
         new_class_name = class_name_2;  // might be null
@@ -957,7 +957,7 @@ class InputContext {
   do_modify_delimiter(stack, delimiter_type, side) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr = expr;
-    if(expr.is_expr_type('delimiter')) {
+    if(expr.is_delimiter_expr()) {
       new_expr = new DelimiterExpr(
         side === 'left' ? delimiter_type : expr.left_type,
         side === 'right' ? delimiter_type : expr.right_type,
@@ -980,7 +980,7 @@ class InputContext {
 
   do_toggle_fixed_size_delimiters(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_expr_type('delimiter'))
+    if(expr.is_delimiter_expr())
       return new_stack.push_expr(expr.as_fixed_size(!expr.fixed_size));
     else
       stack.type_error();
@@ -988,7 +988,7 @@ class InputContext {
 
   do_remove_delimiters(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_expr_type('delimiter'))
+    if(expr.is_delimiter_expr())
       return new_stack.push_expr(expr.inner_expr);
     else
       return stack;  // not considered an error
@@ -1033,7 +1033,7 @@ class InputContext {
   //   - Line break before the operator
   do_infix_linebreak(stack) {
     const [new_stack, infix_expr] = stack.pop_exprs(1);
-    if(!infix_expr.is_expr_type('infix')) {
+    if(!infix_expr.is_infix_expr()) {
       this.error_flash_stack();
       return;
     }
@@ -1056,9 +1056,9 @@ class InputContext {
   do_swap_infix(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr = null;
-    if(expr.is_expr_type('infix'))
+    if(expr.is_infix_expr())
       new_expr = expr.swap_sides_at(expr.split_at_index);
-    else if(expr.is_expr_type('command') &&
+    else if(expr.is_command_expr() &&
             expr.operand_count() === 2 &&
             expr.command_name === 'frac') {
       // "Normal" fraction.
@@ -1066,7 +1066,7 @@ class InputContext {
         expr.operand_exprs[1],
         expr.operand_exprs[0]);
     }
-    else if(expr.is_expr_type('delimiter') && expr.is_flex_inline_fraction()) {
+    else if(expr.is_delimiter_expr() && expr.is_flex_inline_fraction()) {
       // Flex-mode inline fraction.
       new_expr = new DelimiterExpr(
         '.', '.',
@@ -1116,7 +1116,7 @@ class InputContext {
   // The arguments must already exist as a DelimiterExpr, e.g. (x,y).
   do_build_function_call(stack) {
     const [new_stack, fn_expr, args_expr] = stack.pop_exprs(2);
-    if(args_expr.is_expr_type('delimiter'))
+    if(args_expr.is_delimiter_expr())
       return new_stack.push_expr(new FunctionCallExpr(fn_expr, args_expr));
     else
       return stack.type_error();
@@ -1165,13 +1165,13 @@ class InputContext {
   do_extract_infix_side(stack, which_side) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let extracted_expr = null;
-    if(expr.is_expr_type('infix'))
+    if(expr.is_infix_expr())
       extracted_expr = expr.extract_side_at(expr.split_at_index, which_side);
-    else if(expr.is_expr_type('command') &&
+    else if(expr.is_command_expr() &&
             expr.operand_count() === 2 &&
             expr.command_name === 'frac')
       extracted_expr = expr.operand_exprs[which_side === 'right' ? 1 : 0];
-    else if(expr.is_expr_type('delimiter') && expr.is_flex_inline_fraction())
+    else if(expr.is_delimiter_expr() && expr.is_flex_inline_fraction())
       extracted_expr = expr.inner_expr.operand_exprs[which_side === 'right' ? 1 : 0];
     else
       return stack.type_error();
@@ -1184,7 +1184,7 @@ class InputContext {
   // TODO: Allow negating literal operators on the stack (not part of an infix expression).
   do_negate_infix(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_expr_type('infix')) {
+    if(expr.is_infix_expr()) {
       const new_expr = expr.negate_operator_at(expr.split_at_index);
       if(new_expr)
         return new_stack.push_expr(new_expr);
@@ -1198,7 +1198,7 @@ class InputContext {
   // If 'drop_rhs' is set, leave out the "< 0" part.
   do_all_on_left(stack, drop_rhs) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(!expr.is_expr_type('infix'))
+    if(!expr.is_infix_expr())
       return stack;
     let relation_index = null;
     let relational_op_expr = null;
@@ -1218,7 +1218,7 @@ class InputContext {
       return stack;
     const lhs = expr.extract_side_at(relation_index, 'left');
     const rhs = expr.extract_side_at(relation_index, 'right');
-    if(rhs.is_expr_type('text') && rhs.text === '0') {
+    if(rhs.is_text_expr() && rhs.text === '0') {
       // Already in the form x=0.
       if(drop_rhs === 'true')
         return new_stack.push_expr(lhs);
@@ -1447,7 +1447,7 @@ class InputContext {
     }
     else if(item.is_expr_item()) {
       let expr = item.expr;
-      if(expr.is_expr_type('command') && expr.operand_count() === 0) {
+      if(expr.is_command_expr() && expr.operand_count() === 0) {
         // LaTeX command with no arguments, e.g. \circledast
         this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
         this.text_entry.edited_item = item;
@@ -1625,7 +1625,7 @@ class InputContext {
     // Special case: if the stack top is already a DelimiterExpr with "blank" delimiters
     // we can just rebuild a new DelimiterExpr with the specified delimiters instead,
     // without wrapping it in another DelimiterExpr.
-    if(inner_expr.is_expr_type('delimiter') &&
+    if(inner_expr.is_delimiter_expr() &&
        inner_expr.left_type === '.' && inner_expr.right_type === '.')
       return new_stack.push_expr(new DelimiterExpr(
         left, right, inner_expr.inner_expr));
@@ -1671,7 +1671,7 @@ class InputContext {
   do_apply_operator(stack, arg_count_string) {
     const arg_count = parseInt(arg_count_string);
     const [new_stack, command_expr, ...operand_exprs] = stack.pop_exprs(arg_count+1);
-    if(command_expr.is_expr_type('command') && command_expr.operand_count() === 0)
+    if(command_expr.is_command_expr() && command_expr.operand_count() === 0)
       return new_stack.push_expr(
         new CommandExpr(command_expr.command_name, operand_exprs));
     else
@@ -1884,7 +1884,7 @@ class InputContext {
 
   do_transpose_matrix(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_expr_type('array') && expr.is_matrix()) {
+    if(expr.is_array_expr() && expr.is_matrix()) {
       // Transpose a matrix "literal" directly.
       return new_stack.push_expr(expr.transposed());
     }

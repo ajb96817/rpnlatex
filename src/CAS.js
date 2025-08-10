@@ -131,7 +131,7 @@ const reserved_algebrite_symbols =
 function expr_to_variable_name(expr, ignore_superscript=false,
                                allow_subscript=true, allow_bold=true) {
   // Prepend 'bold_' if bolded.
-  if(allow_bold && expr.is_expr_type('font') && expr.is_bold &&
+  if(allow_bold && expr.is_font_expr() && expr.is_bold &&
      (expr.typeface === 'normal' || expr.typeface === 'roman')) {
     const unbolded_name = expr_to_variable_name(
       expr.expr, ignore_superscript, allow_subscript, false);
@@ -140,14 +140,14 @@ function expr_to_variable_name(expr, ignore_superscript=false,
 
   // Remove (ignore) roman font if present.
   // Other fonts like sans-serif are considered unconvertable.
-  if(expr.is_expr_type('font') && expr.typeface === 'roman')
+  if(expr.is_font_expr() && expr.typeface === 'roman')
     expr = expr.expr;
 
   // Check for expressions with a subscript.  Subscripted expressions
   // are converted to 'basename_subscriptname'.  Only one level of
   // subscripts is allowed (no x_a_b).
   if(allow_subscript &&
-     expr.is_expr_type('subscriptsuperscript') &&
+     expr.is_subscriptsuperscript_expr() &&
      expr.subscript_expr) {
     if(expr.superscript_expr && !ignore_superscript)
       return null;  // something like x^2_a
@@ -160,14 +160,14 @@ function expr_to_variable_name(expr, ignore_superscript=false,
   }
 
   let variable_name = null;
-  if(expr.is_expr_type('text') &&
+  if(expr.is_text_expr() &&
      is_valid_variable_name(expr.text, !allow_subscript)) {
     // Basic variable name like 'x'.
     // The name has to be alphanumeric, and an initial digit is disallowed
     // unless it's in the subscript (x_0 is ok but not 0_x).
     variable_name = expr.text;
   }
-  else if(expr.is_expr_type('command') &&
+  else if(expr.is_command_expr() &&
           expr.operand_count() === 0 &&
           latex_letter_commands.has(expr.command_name)) {
     // Unary CommandExpr for things like Greek letters.
@@ -271,9 +271,9 @@ function _guess_variable_in_expr(expr, var_map) {
   // subexpression; for example with x_a, the variable should be x_a as
   // a whole, even though it has the subexpressions 'x' and 'a'.
   let subexpressions = [];
-  if(expr.is_expr_type('function_call'))
+  if(expr.is_function_call_expr())
     subexpressions.push(expr.args_expr);  // don't look at the function name itself
-  else if(expr.is_expr_type('subscriptsuperscript')) {
+  else if(expr.is_subscriptsuperscript_expr()) {
     // Never recurse into subscripts, and if there is a subscript, don't
     // recurse into the base expression itself.  Always check superscripts though.
     if(expr.superscript_expr)
@@ -281,9 +281,9 @@ function _guess_variable_in_expr(expr, var_map) {
     if(!expr.subscript_expr)
       subexpressions.push(expr.base_expr);
   }
-  else if(expr.is_expr_type('infix'))
+  else if(expr.is_infix_expr())
     subexpressions = expr.operand_exprs;  // don't look at the operators, only operands
-  else if(expr.is_expr_type('font')) {
+  else if(expr.is_font_expr()) {
     // Don't look inside FontExprs; if it's \bold{x} we want 'bold_x',
     // not the 'x' inside.  This will miss variables inside things like
     // a bolded (x+y), however.
@@ -519,7 +519,7 @@ class AlgebriteInterface {
   // Return null if the expression is not an equation
   // (or has multiple relational operators).
   static analyze_relation(expr) {
-    if(!expr.is_expr_type('infix'))
+    if(!expr.is_infix_expr())
       return null;
     const relation_types = {
       '=':  'testeq',
@@ -842,9 +842,9 @@ class ExprToAlgebrite {
 
   _infix_operator_expr_info(expr) {
     let op_name = null;
-    if(expr.is_expr_type('text'))
+    if(expr.is_text_expr())
       op_name = expr.text;  // something like + or /
-    else if(expr.is_expr_type('command') &&
+    else if(expr.is_command_expr() &&
             expr.operand_count() === 0)
       op_name = expr.command_name;  // times, cdot, etc
     if(op_name)
@@ -882,7 +882,7 @@ class ExprToAlgebrite {
 
   // Only '+' and '-' prefix operators are supported (and + is disregarded).
   prefix_expr_to_node(prefix_expr) {
-    if(prefix_expr.operator_expr.is_expr_type('text')) {
+    if(prefix_expr.operator_expr.is_text_expr()) {
       switch(prefix_expr.operator_expr.text) {
       case '-': return new AlgebriteCall(
         'negative', [this.expr_to_node(prefix_expr.base_expr)]);
@@ -912,7 +912,7 @@ class ExprToAlgebrite {
     const variable_expr = arg_exprs[0];
     // Check for f'(x), f''(x).
     // Here, 'x' must be a simple variable name; f'(x^2) not allowed.
-    const prime_count = fn_expr.is_expr_type('subscriptsuperscript') ?
+    const prime_count = fn_expr.is_subscriptsuperscript_expr() ?
           fn_expr.count_primes() : 0;
     if(arg_count === 1 && prime_count > 0 &&
        expr_to_variable_name(variable_expr)) {
@@ -968,7 +968,7 @@ class ExprToAlgebrite {
     let args, nargs, command_name;
     if(expr.command_name === 'operatorname' &&
        expr.operand_count() === 2 &&
-       expr.operand_exprs[0].is_expr_type('text')) {
+       expr.operand_exprs[0].is_text_expr()) {
       args = expr.operand_exprs.slice(1);
       nargs = expr.operand_count()-1;
       command_name = expr.operand_exprs[0].text;
@@ -1041,9 +1041,9 @@ class ExprToAlgebrite {
           [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
     
     // Check for for "where" expressions of the form: f|_{x=y}.
-    if(base_expr.is_expr_type('delimiter') &&
+    if(base_expr.is_delimiter_expr() &&
        base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
-       subscript_expr && subscript_expr.is_expr_type('infix') &&
+       subscript_expr && subscript_expr.is_infix_expr() &&
        subscript_expr.operator_text_at(0) === '=') {
       if(superscript_expr)
         return this.error('Cannot use superscript here', expr);
@@ -1079,18 +1079,18 @@ class ExprToAlgebrite {
     // Perform the transpose internally rather than calling
     // transpose(A) with Algebrite.
     if(superscript_expr &&
-       base_expr.is_expr_type('array') && base_expr.is_matrix() &&
-       ((superscript_expr.is_expr_type('text') && superscript_expr.text === 'T') ||
-        (superscript_expr.is_expr_type('font') && superscript_expr.typeface === 'roman' &&
-         superscript_expr.expr.is_expr_type('text') && superscript_expr.expr.text === 'T'))) {
+       base_expr.is_array_expr() && base_expr.is_matrix() &&
+       ((superscript_expr.is_text_expr() && superscript_expr.text === 'T') ||
+        (superscript_expr.is_font_expr() && superscript_expr.typeface === 'roman' &&
+         superscript_expr.expr.is_text_expr() && superscript_expr.expr.text === 'T'))) {
       return this.expr_to_node(base_expr.transposed());
     }
 
     // Check for e^x (both roman and normal 'e').
     if(superscript_expr &&
-       ((base_expr.is_expr_type('text') && base_expr.text === 'e') ||
-        (base_expr.is_expr_type('font') && base_expr.typeface === 'roman' &&
-         base_expr.expr.is_expr_type('text') && base_expr.expr.text === 'e')))
+       ((base_expr.is_text_expr() && base_expr.text === 'e') ||
+        (base_expr.is_font_expr() && base_expr.typeface === 'roman' &&
+         base_expr.expr.is_text_expr() && base_expr.expr.text === 'e')))
       return new AlgebriteCall('exp', [this.expr_to_node(superscript_expr)]);
 
     // x^y with no subscript on x.
@@ -1116,10 +1116,10 @@ class ExprToAlgebrite {
       // If the operator name is a valid Algebrite function, convert
       // the two-Expr sequence into a function call.
       if(i < exprs.length-1 &&
-         exprs[i].is_expr_type('command') &&
+         exprs[i].is_command_expr() &&
          exprs[i].command_name === 'operatorname' &&
          exprs[i].operand_count() === 1 &&
-         exprs[i].operand_exprs[0].is_expr_type('text')) {
+         exprs[i].operand_exprs[0].is_text_expr()) {
         const algebrite_command = translate_function_name(
           exprs[i].operand_exprs[0].text, true);
         if(allowed_algebrite_unary_functions.has(algebrite_command)) {
@@ -1133,7 +1133,7 @@ class ExprToAlgebrite {
       // without needing an explicit \cdot.
       let matrix_count = 0;
       for(let j = i; j < exprs.length &&
-              exprs[j].is_expr_type('array') && exprs[j].is_matrix();
+              exprs[j].is_array_expr() && exprs[j].is_matrix();
           j++, matrix_count++)
         ;
       if(matrix_count >= 2) {
@@ -1317,11 +1317,11 @@ class AlgebriteToExpr {
   add_to_expr(terms) {
     const exprs = terms.map(term => this.to_expr(term));
     return exprs.reduce((result_expr, expr) => {
-      if(expr.is_expr_type('prefix') && expr.is_unary_minus())
+      if(expr.is_prefix_expr() && expr.is_unary_minus())
         return InfixExpr.combine_infix(
           result_expr, expr.base_expr, new TextExpr('-'));
-      else if(expr.is_expr_type('sequence') &&
-              expr.exprs[0].is_expr_type('prefix') &&
+      else if(expr.is_sequence_expr() &&
+              expr.exprs[0].is_prefix_expr() &&
               expr.exprs[0].is_unary_minus()) {
         // e.g. add(x, -4y); the -4y is a SequenceExpr[PrefixExpr[-, 4], y]
         const new_sequence_expr = new SequenceExpr(
@@ -1420,12 +1420,12 @@ class AlgebriteToExpr {
       // term with \cdot instead of just implicit multiplication.
       const is_integer_expr =
             // n
-            (expr.is_expr_type('text') && expr.looks_like_number()) ||
+            (expr.is_text_expr() && expr.looks_like_number()) ||
             // n^m
-            (expr.is_expr_type('subscriptsuperscript') &&
-             expr.base_expr.is_expr_type('text') && expr.base_expr.looks_like_number() &&
+            (expr.is_subscriptsuperscript_expr() &&
+             expr.base_expr.is_text_expr() && expr.base_expr.looks_like_number() &&
              expr.superscript_expr && !expr.subscript_expr &&
-             expr.superscript_expr.is_expr_type('text') &&
+             expr.superscript_expr.is_text_expr() &&
              expr.superscript_expr.looks_like_number());
       if(is_integer_expr)
         return InfixExpr.combine_infix(
@@ -1508,7 +1508,7 @@ class AlgebriteToExpr {
     //   - there must only be one function argument; we can't have f'(x, y)
     //   - the argument to f must match the derivative variable
     //       e.g. not things like d(f(x^2), x)
-    if(base_expr.is_expr_type('function_call') &&
+    if(base_expr.is_function_call_expr() &&
        base_expr.argument_count() === 1) {
       const fn_expr = base_expr.fn_expr;
       const args_expr = base_expr.args_expr;  // the DelimiterExpr
@@ -1517,7 +1517,7 @@ class AlgebriteToExpr {
       // NOTE: f'(x) is assumed to be OK no matter what 'f' is, because it
       // must have come from a nested d(f(x), x) expression to begin with.
       if((expr_to_variable_name(fn_expr) ||
-          (fn_expr.is_expr_type('subscriptsuperscript') && fn_expr.count_primes() > 0)) &&
+          (fn_expr.is_subscriptsuperscript_expr() && fn_expr.count_primes() > 0)) &&
          expr_to_variable_name(args_expr.inner_expr) === variable_name)
         return new FunctionCallExpr(fn_expr.with_prime(), args_expr);
     }

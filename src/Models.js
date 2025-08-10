@@ -1095,11 +1095,11 @@ class ExprParser {
       // into scientific notation.
       // Nonnegative exponents are instead parsed as 4e3 -> 4 (e3) and
       // are handled in parse_term.
-      if(lhs.is_expr_type('sequence') && lhs.exprs.length === 2 &&
+      if(lhs.is_sequence_expr() && lhs.exprs.length === 2 &&
          lhs.exprs[0].looks_like_number() &&
-         lhs.exprs[1].is_expr_type('text') &&
+         lhs.exprs[1].is_text_expr() &&
          ['e', 'E'].includes(lhs.exprs[1].text) &&
-         rhs.is_expr_type('text') && rhs.looks_like_number()) {
+         rhs.is_text_expr() && rhs.looks_like_number()) {
         // NOTE: 3e+4 (explicit +) is allowed here for completeness.
         const exponent_text = binary_token.text === '-' ? ('-' + rhs.text) : rhs.text;
         result_expr = InfixExpr.combine_infix(
@@ -1141,18 +1141,18 @@ class ExprParser {
       //   number1 E|e number2  -> number1 \cdot 10^number2 (scientific notation)
       // Any other pair just concatenates.
       const cdot = Expr.text_or_command("\\cdot");
-      if(lhs.is_expr_type('text') && lhs.looks_like_number() &&
-         rhs.is_expr_type('text') && rhs.looks_like_number())
+      if(lhs.is_text_expr() && lhs.looks_like_number() &&
+         rhs.is_text_expr() && rhs.looks_like_number())
         return InfixExpr.combine_infix(lhs, rhs, cdot);
-      else if(rhs.is_expr_type('infix') &&
+      else if(rhs.is_infix_expr() &&
               rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
         return InfixExpr.combine_infix(lhs, rhs, cdot);
-      else if(rhs.is_expr_type('sequence') &&
+      else if(rhs.is_sequence_expr() &&
               rhs.exprs.length === 2 &&
-              rhs.exprs[1].is_expr_type('text') && rhs.exprs[1].looks_like_number() &&
-              rhs.exprs[0].is_expr_type('text') &&
+              rhs.exprs[1].is_text_expr() && rhs.exprs[1].looks_like_number() &&
+              rhs.exprs[0].is_text_expr() &&
               ['e', 'E'].includes(rhs.exprs[0].text) &&
-              lhs.is_expr_type('text') && lhs.looks_like_number()) {
+              lhs.is_text_expr() && lhs.looks_like_number()) {
         // Scientific notation with nonnegative exponent (e.g. prepending a number to "e4").
         // Negative exponents are handled in parse_expr instead.
         return InfixExpr.combine_infix(
@@ -2009,7 +2009,7 @@ class TextItem extends Item {
       }
       else if(elt.is_expr()) {
         // Only top-level PlaceholderExprs are allowed.
-        if(elt.expr.is_expr_type('placeholder'))
+        if(elt.expr.is_placeholder_expr())
           pieces.push('[]');
         else return null;
       }
@@ -2138,7 +2138,7 @@ class Stack {
 
   pop_arrays(n) {
     const [new_stack, ...exprs] = this.pop_exprs(n);
-    if(exprs.every(expr => expr.is_expr_type('array')))
+    if(exprs.every(expr => expr.is_array_expr()))
       return [new_stack, ...exprs];
     else this.type_error();
   }

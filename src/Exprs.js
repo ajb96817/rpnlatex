@@ -83,7 +83,7 @@ class Expr {
     const left_type = left.expr_type(), right_type = right.expr_type();
     const autoparenthesize = expr => {
       // Parenthesize InfixExprs before combining unless specified not to.
-      if(expr.is_expr_type('infix') && !no_parenthesize)
+      if(expr.is_infix_expr() && !no_parenthesize)
         return DelimiterExpr.parenthesize(expr);
       else
         return expr;
@@ -104,11 +104,11 @@ class Expr {
     //   - Any amount of ! symbols can be used, although only x! and x!! have meaning here.
     const factorial_count = expr => {
       // Count number of exclamation points, for both TextExprs and SequenceExprs.
-      if(expr.is_expr_type('text') && expr.text === '!')
+      if(expr.is_text_expr() && expr.text === '!')
         return 1;
-      else if(expr.is_expr_type('sequence') &&
-              expr.exprs.every(subexpr => subexpr.is_expr_type('text') &&
-                               subexpr.text === '!'))
+      else if(expr.is_sequence_expr() &&
+              expr.exprs.every(
+                subexpr => subexpr.is_text_expr() && subexpr.text === '!'))
         return expr.exprs.length;
       else
         return 0;
@@ -165,11 +165,11 @@ class Expr {
     //   x! y!     =>  x!y!
     //   x! !      =>  x!!  (not (x!)!) - this is handled by the logic above
     const left_expr = autoparenthesize(left);
-    let parenthesize_right = right.is_expr_type('infix');
-    if(right.is_expr_type('postfix') && right.factorial_signs_count() > 0) {
-      if(!right.base_expr.is_expr_type('delimiter'))
+    let parenthesize_right = right.is_infix_expr();
+    if(right.is_postfix_expr() && right.factorial_signs_count() > 0) {
+      if(!right.base_expr.is_delimiter_expr())
         parenthesize_right = true;  // handle 2(x!) and 2(x+1)!
-      if(left.is_expr_type('postfix') && left.factorial_signs_count() > 0)
+      if(left.is_postfix_expr() && left.factorial_signs_count() > 0)
         parenthesize_right = false;  // x!y!
     }
     if(!no_parenthesize)
@@ -184,8 +184,7 @@ class Expr {
     // will not do this merging.  AB -> bold -> \bold{A}\bold{B}.
     // This could be implemented if needed (by coalescing adjacent FontExprs
     // within a SequenceExpr).
-    if(left_expr.is_expr_type('font') &&
-       right_expr.is_expr_type('font') &&
+    if(left_expr.is_font_expr() && right_expr.is_font_expr() &&
        FontExpr.font_exprs_compatible(left_expr, right_expr)) {
       return new FontExpr(
         new SequenceExpr([left_expr.expr, right_expr.expr]),
@@ -239,9 +238,19 @@ class Expr {
       return new TextExpr(s);
   }
   
-  expr_type() { return '???'; }
+  expr_type() { return '???'; }  // subclasses override
 
-  is_expr_type(s) { return s === this.expr_type(); }
+  is_command_expr() { return this.expr_type() === 'command'; }
+  is_font_expr() { return this.expr_type() === 'font'; }
+  is_infix_expr() { return this.expr_type() === 'infix'; }
+  is_prefix_expr() { return this.expr_type() === 'prefix'; }
+  is_function_call_expr() { return this.expr_type() === 'function_call'; }
+  is_placeholder_expr() { return this.expr_type() === 'placeholder'; }
+  is_text_expr() { return this.expr_type() === 'text'; }
+  is_sequence_expr() { return this.expr_type() === 'sequence'; }
+  is_delimiter_expr() { return this.expr_type() === 'delimiter'; }
+  is_subscriptsuperscript_expr() { return this.expr_type() === 'subscriptsuperscript'; }
+  is_array_expr() { return this.expr_type() === 'array'; }
 
   to_latex(selected_expr_path, export_mode) {
     let emitter = new LatexEmitter(this, selected_expr_path);
@@ -425,7 +434,7 @@ class CommandExpr extends Expr {
     // This may have been created with Tab from math entry mode.
     if(this.command_name === 'operatorname' &&
        this.operand_count() === 1 &&
-       this.operand_exprs[0].is_expr_type('text'))
+       this.operand_exprs[0].is_text_expr())
       return this.operand_exprs[0].text;
     // Other commands are not considered 'editable' (yet).
     return null;
@@ -481,7 +490,7 @@ class FontExpr extends Expr {
   // Wrap an expression in FontExpr if it's not already.
   // This allows the FontExpr methods like with_typeface() to be used to add further styles.
   static wrap(expr) {
-    if(expr.is_expr_type('font'))
+    if(expr.is_font_expr())
       return expr;
     else
       return new this(expr, 'normal', false, 0);
@@ -498,7 +507,7 @@ class FontExpr extends Expr {
 
   // Return true when the two expressions are both FontExprs with the same font parameters.
   static font_exprs_compatible(left_expr, right_expr) {
-    return left_expr.is_expr_type('font') && right_expr.is_expr_type('font') &&
+    return left_expr.is_font_expr() && right_expr.is_font_expr() &&
       left_expr.typeface === right_expr.typeface &&
       left_expr.is_bold === right_expr.is_bold &&
       left_expr.size_adjustment === right_expr.size_adjustment;
@@ -676,7 +685,7 @@ class InfixExpr extends Expr {
     let new_operator_exprs = [];
     let new_linebreaks_at = [];
     let linebreaks_midpoint = null;
-    if(left_expr.is_expr_type('infix')) {
+    if(left_expr.is_infix_expr()) {
       new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
       new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
       new_linebreaks_at = new_linebreaks_at.concat(left_expr.linebreaks_at);
@@ -691,7 +700,7 @@ class InfixExpr extends Expr {
     // do_infix_linebreak() apply at.
     const split_at_index = new_operator_exprs.length;
     new_operator_exprs.push(op_expr);
-    if(right_expr.is_expr_type('infix')) {
+    if(right_expr.is_infix_expr()) {
       new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
       new_operator_exprs = new_operator_exprs.concat(right_expr.operator_exprs);
       new_linebreaks_at = new_linebreaks_at.concat(
@@ -725,9 +734,9 @@ class InfixExpr extends Expr {
   // If 'op_expr' is omitted, check only the operator at the split_at point.
   operator_text(op_expr) {
     op_expr ||= this.operator_exprs[this.split_at_index];
-    if(op_expr.is_expr_type('command') && op_expr.operand_count() === 0)
+    if(op_expr.is_command_expr() && op_expr.operand_count() === 0)
       return op_expr.command_name;
-    else if(op_expr.is_expr_type('text'))
+    else if(op_expr.is_text_expr())
       return op_expr.text;
     else
       return null;
@@ -792,9 +801,9 @@ class InfixExpr extends Expr {
 
   _convert_to_flex_delimiter(expr) {
     let new_text = null;
-    if(expr.is_expr_type('text') && expr.text === '/')
+    if(expr.is_text_expr() && expr.text === '/')
       new_text = "\\middle/";
-    else if(expr.is_expr_type('command') && expr.operand_count() === 0) {
+    else if(expr.is_command_expr() && expr.operand_count() === 0) {
       const command = expr.command_name;
       if(command === ",\\vert\\," || command === 'vert')
         new_text = "\\,\\middle\\vert\\,";
@@ -910,19 +919,19 @@ class InfixExpr extends Expr {
     ];
     const expr = this.operator_exprs[operator_index];
     let new_expr = null;
-    if(expr.is_expr_type('sequence') && expr.exprs.length === 2 &&
-       expr.exprs[0].is_expr_type('command') && expr.exprs[0].operand_count() === 0 &&
+    if(expr.is_sequence_expr() && expr.exprs.length === 2 &&
+       expr.exprs[0].is_command_expr() && expr.exprs[0].operand_count() === 0 &&
        expr.exprs[0].command_name === 'not') {
       // \not\le -> \le
       new_expr = expr.exprs[1];
     }
-    else if(expr.is_expr_type('text')) {
+    else if(expr.is_text_expr()) {
       // Check the special cases for "plain text" operators (not LaTeX \commands).
       const pair = special_pairs.find(pair => pair[0] === expr.text);
       if(pair)
         new_expr = new CommandExpr(pair[1]);
     }
-    else if(expr.is_expr_type('command') && expr.operand_count() === 0) {
+    else if(expr.is_command_expr() && expr.operand_count() === 0) {
       // Check special cases to convert:  \nless -> <
       const pair = special_pairs.find(pair => pair[1] === expr.command_name);
       if(pair)
@@ -950,21 +959,21 @@ class InfixExpr extends Expr {
   // coefficient and exponent.  Return null if it's not of this form.
   unparse_scientific_notation() {
     if(!(this.operator_exprs.length === 1 &&
-         this.operator_exprs[0].is_expr_type('command') &&
+         this.operator_exprs[0].is_command_expr() &&
          this.operator_exprs[0].command_name === 'cdot'))
       return null;
     const [lhs, rhs] = this.operand_exprs;
-    if(lhs.is_expr_type('text') && lhs.looks_like_number() &&
-       rhs.is_expr_type('subscriptsuperscript') &&
-       rhs.base_expr.is_expr_type('text') && rhs.base_expr.text === '10' &&
+    if(lhs.is_text_expr() && lhs.looks_like_number() &&
+       rhs.is_subscriptsuperscript_expr() &&
+       rhs.base_expr.is_text_expr() && rhs.base_expr.text === '10' &&
        !rhs.subscript_expr && rhs.superscript_expr) {
       const exponent_expr = rhs.superscript_expr;
       let exponent_text = null;
-      if(exponent_expr.is_expr_type('text') && exponent_expr.looks_like_number())
+      if(exponent_expr.is_text_expr() && exponent_expr.looks_like_number())
         exponent_text = exponent_expr.text;
-      else if(exponent_expr.is_expr_type('prefix') &&
+      else if(exponent_expr.is_prefix_expr() &&
               exponent_expr.is_unary_minus() &&
-              exponent_expr.base_expr.is_expr_type('text') &&
+              exponent_expr.base_expr.is_text_expr() &&
               exponent_expr.base_expr.looks_like_number())
         exponent_text = '-' + exponent_expr.base_expr.text;
       if(exponent_text !== null)
@@ -1078,9 +1087,9 @@ class PrefixExpr extends Expr {
   subexpressions() { return [this.operator_expr, this.base_expr]; }
 
   operator_text() {
-    if(this.operator_expr.is_expr_type('text'))
+    if(this.operator_expr.is_text_expr())
       return this.operator_expr.text;
-    else if(this.operator_expr.is_expr_type('command') &&
+    else if(this.operator_expr.is_command_expr() &&
             this.operator_expr.operand_count() === 0)
       return this.operator_expr.command_name;
     else
@@ -1175,10 +1184,10 @@ class FunctionCallExpr extends Expr {
   // Something like f(x+y,z-w) returns [x+y, z-w].
   // TODO: maybe consider ';' as an argument separator as well as ','.
   extract_argument_exprs() {
-    if(!this.args_expr.is_expr_type('delimiter'))
+    if(!this.args_expr.is_delimiter_expr())
       return [];  // shouldn't normally happen
     const inner_args_expr = this.args_expr.inner_expr;
-    if(!inner_args_expr.is_expr_type('infix'))
+    if(!inner_args_expr.is_infix_expr())
       return [inner_args_expr];  // single argument
     // Break up the InfixExpr into pieces according to where the commas are.
     // These pieces may be other InfixExprs, or something else, e.g.:
@@ -1187,7 +1196,7 @@ class FunctionCallExpr extends Expr {
     let argument_expr = inner_args_expr.operand_exprs[0];
     for(let i = 0; i < inner_args_expr.operator_exprs.length; i++) {
       const operator_expr = inner_args_expr.operator_exprs[i];
-      if(operator_expr.is_expr_type('text') && operator_expr.text === ',') {
+      if(operator_expr.is_text_expr() && operator_expr.text === ',') {
         argument_exprs.push(argument_expr);
         argument_expr = inner_args_expr.operand_exprs[i+1];
       }
@@ -1219,7 +1228,7 @@ class PostfixExpr extends Expr {
   static factorial_expr(base_expr, factorial_depth) {
     return this._factorial_expr(
       // Parenthesization: we want (x+1)! but not (x!)!
-      base_expr.is_expr_type('postfix') ? base_expr :
+      base_expr.is_postfix_expr() ? base_expr :
         DelimiterExpr.parenthesize_for_power(base_expr),
       factorial_depth);
   }
@@ -1283,8 +1292,8 @@ class PostfixExpr extends Expr {
   // Non-factorial postfix expressions will return factorial_signs_count=0.
   analyze_factorial() {
     let [base_expr, factorial_signs_count] = [this.base_expr, 0];
-    if(this.operator_expr.is_expr_type('text') && this.operator_expr.text === '!') {
-      if(this.base_expr.is_expr_type('postfix'))
+    if(this.operator_expr.is_text_expr() && this.operator_expr.text === '!') {
+      if(this.base_expr.is_postfix_expr())
         [base_expr, factorial_signs_count] = base_expr.analyze_factorial();
       factorial_signs_count++;
     }
@@ -1431,17 +1440,17 @@ class DelimiterExpr extends Expr {
   // Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
   // the blank delimiters are removed first.
   static parenthesize(expr, left_type, right_type) {
-    while(expr.is_expr_type('delimiter') &&
+    while(expr.is_delimiter_expr() &&
        expr.left_type === '.' && expr.right_type === '.')
       expr = expr.inner_expr;
     return new this(left_type || '(', right_type || ')', expr);
   }
 
   static parenthesize_if_not_already(expr, left_type, right_type) {
-    while(expr.is_expr_type('delimiter') &&
+    while(expr.is_delimiter_expr() &&
        expr.left_type === '.' && expr.right_type === '.')
       expr = expr.inner_expr;
-    if(expr.is_expr_type('delimiter'))
+    if(expr.is_delimiter_expr())
       return expr;
     else
       return this.parenthesize(expr, left_type, right_type);
@@ -1461,22 +1470,22 @@ class DelimiterExpr extends Expr {
 
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
-      (expr.is_expr_type('delimiter') &&
+      (expr.is_delimiter_expr() &&
        expr.left_type === '.' && expr.right_type === '.' &&
-       expr.inner_expr.is_expr_type('infix')) ||
+       expr.inner_expr.is_infix_expr()) ||
 
       // \frac{x}{y}
-      (expr.is_expr_type('command') &&
+      (expr.is_command_expr() &&
        expr.command_name === 'frac' &&
        expr.operand_count() === 2) ||
 
       // \sin{x}, \ln{x}, etc.
-      (expr.is_expr_type('command') &&
+      (expr.is_command_expr() &&
        expr.operand_count() === 1 &&
-       !expr.operand_exprs[0].is_expr_type('delimiter')) ||
+       !expr.operand_exprs[0].is_delimiter_expr()) ||
 
       // f', f'', but not f'(x)
-      (expr.is_expr_type('subscriptsuperscript') &&
+      (expr.is_subscriptsuperscript_expr() &&
        expr.count_primes() > 0)
     );
     if(needs_parenthesization)
@@ -1496,23 +1505,23 @@ class DelimiterExpr extends Expr {
       ['infix', 'prefix', 'postfix'
       ].includes(expr.expr_type()) ||
 
-      (expr.is_expr_type('sequence') && expr.exprs[0].is_expr_type('prefix')) ||
+      (expr.is_sequence_expr() && expr.exprs[0].is_prefix_expr()) ||
 
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
-      (expr.is_expr_type('delimiter') &&
+      (expr.is_delimiter_expr() &&
        expr.left_type === '.' && expr.right_type === '.' &&
-       expr.inner_expr.is_expr_type('infix')) ||
+       expr.inner_expr.is_infix_expr()) ||
 
       // \frac{x}{y}
-      (expr.is_expr_type('command') &&
+      (expr.is_command_expr() &&
        expr.command_name === 'frac' &&
        expr.operand_count() === 2) ||
       
       // \sin{x}, \ln{x}, etc.
-      (expr.is_expr_type('command') &&
+      (expr.is_command_expr() &&
        expr.operand_count() === 1 &&
-       !expr.operand_exprs[0].is_expr_type('delimiter'))
+       !expr.operand_exprs[0].is_delimiter_expr())
     );
     if(needs_parenthesization)
       return this.parenthesize_if_not_already(
@@ -1523,7 +1532,7 @@ class DelimiterExpr extends Expr {
 
   // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
   static autoparenthesize(expr, left_type, right_type) {
-    if(expr.is_expr_type('infix') && expr.needs_autoparenthesization())
+    if(expr.is_infix_expr() && expr.needs_autoparenthesization())
       return this.parenthesize(expr, left_type, right_type);
     else
       return expr;
@@ -1612,7 +1621,7 @@ class DelimiterExpr extends Expr {
   // is in some cases treated like a \frac{x}{y} command.
   is_flex_inline_fraction() {
     return this.left_type === '.' && this.right_type === '.' &&
-      this.inner_expr.is_expr_type('infix') &&
+      this.inner_expr.is_infix_expr() &&
       this.inner_expr.operator_exprs.length === 1 &&
       this.inner_expr.operator_text_at(0) === '/';
   }
@@ -1642,7 +1651,7 @@ class SubscriptSuperscriptExpr extends Expr {
   // is created.  A similar rule applies if is_superscript is false.
   static build_subscript_superscript(base_expr, child_expr, is_superscript, autoparenthesize) {
     // Check to see if we can put the child into an empty sub/superscript "slot".
-    if(base_expr.is_expr_type('subscriptsuperscript') &&
+    if(base_expr.is_subscriptsuperscript_expr() &&
        ((!base_expr.subscript_expr && !is_superscript) ||
         (!base_expr.superscript_expr && is_superscript))) {
       // There's "room" for it in this expr.
@@ -1678,7 +1687,7 @@ class SubscriptSuperscriptExpr extends Expr {
     // If the base_expr is a command, don't put it inside grouping braces.
     // This accounts for attaching subscripts or superscripts to commands
     // with arguments such as \underbrace{xyz}_{abc}.
-    if(this.base_expr.is_expr_type('command'))
+    if(this.base_expr.is_command_expr())
       emitter.expr(this.base_expr, 0);
     else
       emitter.grouped_expr(this.base_expr, false, 0);
@@ -1729,13 +1738,13 @@ class SubscriptSuperscriptExpr extends Expr {
   // count the number of \primes present (otherwise return 0).
   count_primes() {
     const is_prime_command = expr =>
-          expr.is_expr_type('command') &&
+          expr.is_command_expr() &&
           expr.operand_count() === 0 &&
           expr.command_name === 'prime';
     const superscript_expr = this.superscript_expr;
     if(!superscript_expr) return 0;
     if(is_prime_command(superscript_expr)) return 1;
-    if(superscript_expr.is_expr_type('sequence') &&
+    if(superscript_expr.is_sequence_expr() &&
        superscript_expr.exprs.every(is_prime_command))
       return superscript_expr.exprs.length;
     else
@@ -1842,7 +1851,7 @@ class ArrayExpr extends Expr {
     // of the colon (so we don't get a useless column of empty TextExprs).
     if(split_mode === 'colon' &&
        element_exprs.every(row =>
-         row.length === 2 && row[1].is_expr_type('text') && row[1].text === ''))
+         row.length === 2 && row[1].is_text_expr() && row[1].text === ''))
       return element_exprs.map(row => [row[0]]);
     else
       return element_exprs;
@@ -1854,7 +1863,7 @@ class ArrayExpr extends Expr {
     case 'none':
       return [expr];
     case 'infix':
-      if(expr.is_expr_type('infix')) {
+      if(expr.is_infix_expr()) {
         // Left side will be the left "side" of the infix at its split_at_index point.
         // Right side will be the right "side", but we have to insert a new initial "fake"
         // blank operand to give it the right structure.
@@ -1868,14 +1877,14 @@ class ArrayExpr extends Expr {
       else
         return [expr, TextExpr.blank()];
     case 'colon':
-      if(expr.is_expr_type('infix') && expr.operator_text() === ':')
+      if(expr.is_infix_expr() && expr.operator_text() === ':')
         return [
           expr.extract_side_at(expr.split_at_index, 'left'),
           expr.extract_side_at(expr.split_at_index, 'right')];
       else
         return [expr, TextExpr.blank()];
     case 'colon_if':
-      if(expr.is_expr_type('infix') && expr.operator_text() === ':')
+      if(expr.is_infix_expr() && expr.operator_text() === ':')
         return [
           expr.extract_side_at(expr.split_at_index, 'left'),
           Expr.combine_pair(
@@ -1985,7 +1994,7 @@ class ArrayExpr extends Expr {
   // When transposing a matrix, we generally want to flip vertical and horizontal ellipses
   // within the cells.
   _transpose_cell(cell_expr) {
-    if(cell_expr.is_expr_type('command') && cell_expr.operand_count() === 0) {
+    if(cell_expr.is_command_expr() && cell_expr.operand_count() === 0) {
       if(cell_expr.command_name === 'vdots')
         return new CommandExpr('cdots');
       if(cell_expr.command_name === 'cdots')
