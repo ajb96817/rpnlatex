@@ -967,7 +967,7 @@ class ExprToAlgebrite {
     // from the \operatorname command.
     let args, nargs, command_name;
     if(expr.command_name === 'operatorname' &&
-       expr.operand_count() == 2 &&
+       expr.operand_count() === 2 &&
        expr.operand_exprs[0].is_expr_type('text')) {
       args = expr.operand_exprs.slice(1);
       nargs = expr.operand_count()-1;
@@ -1104,15 +1104,33 @@ class ExprToAlgebrite {
     return this.expr_to_node(base_expr);
   }
 
-  // SequenceExprs are assumed to be implicit multiplications.
-  // Adjacent matrix literals are converted into inner(M1, M2, ...)
-  // calls here without needing an explicit \cdot.
+  // SequenceExprs are mostly assumed to be implicit multiplications.
   sequence_expr_to_node(expr) {
     const exprs = expr.exprs;
     const term_nodes = [];  // arguments to a multiply(...) call
     for(let i = 0; i < exprs.length; i++) {
-      // Look for chains of 2 or more adjacent matrices;
-      // convert to inner(M1, M2, ...).
+      // Look for \operatorname{something} followed by another expression,
+      // assumed to be the operator's argument.  Sequences like this could
+      // created by [/][f] commands (like 'erf'), or by finishing math
+      // entry mode with [Tab] to create an operatorname.
+      // If the operator name is a valid Algebrite function, convert
+      // the two-Expr sequence into a function call.
+      if(i < exprs.length-1 &&
+         exprs[i].is_expr_type('command') &&
+         exprs[i].command_name === 'operatorname' &&
+         exprs[i].operand_count() === 1 &&
+         exprs[i].operand_exprs[0].is_expr_type('text')) {
+        const algebrite_command = translate_function_name(
+          exprs[i].operand_exprs[0].text, true);
+        if(allowed_algebrite_unary_functions.has(algebrite_command)) {
+          term_nodes.push(new AlgebriteCall(algebrite_command, [this.expr_to_node(exprs[i+1])]));
+          i++;
+          continue;
+        }
+      }
+      // Look for chains of 2 or more adjacent matrices literals;
+      // these are converted into inner(M1, M2, ...) calls here
+      // without needing an explicit \cdot.
       let matrix_count = 0;
       for(let j = i; j < exprs.length &&
               exprs[j].is_expr_type('array') && exprs[j].is_matrix();
@@ -1125,9 +1143,10 @@ class ExprToAlgebrite {
             exprs.slice(i, i+matrix_count).map(
               arg_expr => this.expr_to_node(arg_expr))));
         i += matrix_count-1;
+        continue;
       }
-      else  // ordinary term
-        term_nodes.push(this.expr_to_node(exprs[i]));
+      // Ordinary term.
+      term_nodes.push(this.expr_to_node(exprs[i]));
     }
     if(term_nodes.length === 1)  // e.g. nothing but inner(M1, M2, ...)
       return term_nodes[0];

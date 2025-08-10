@@ -2019,8 +2019,8 @@
         <li>
           <span class="keybinding">#</span>
           &quot;Run&quot; an expression through Algebrite, evaluating any indicated
-          operations like <code>5^2</code> and converting the expression to
-          Algebrite's standard form.
+          operations like <code>5^2</code> and performing default simplifications
+          such as combining like terms.
         </li>
         <li>
           <span class="keybinding">x</span> and <span class="keybinding">X</span>
@@ -2165,92 +2165,11 @@
         </li>
       </ul>
 
-      <p><strong>Numerical Operations:</strong></p>
-      <ul class="keybindings">
-        <li>
-          <span class="keybinding">n</span>
-          Evaluate constants in an expression, replacing them with
-          decimal approximations:
-          <code>(\ln{2})^3 \to 0.33302465198892944</code>
-        </li>
-        <li>
-          <span class="keybinding">=</span>
-          Given a decimal number, try to find a close rational approximation to that number.
-          Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
-          be detected: <code>1.6449340668482262 \to \pi^2/6</code>
-        </li>
-        <li>
-          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
-          Numerically find all (real or complex) roots of a polynomial.
-        </li>
-        <li>
-          <span class="keybinding">q</span> and <span class="keybinding">Q</span>
-          Check whether an equation or inequality like
-          <code>x^2 &gt; \sin x</code> is true or not.
-          If this can be determined algebraically, it will be; otherwise,
-          the expression will be evaluated randomly at several points in the
-          range <code>(-10, 10)</code> to test for likely truth or falsehood.
-          <span class="keybinding">Q</span>
-          <code>(f \enspace a\enspace b)</code>
-          allows you to specify the <code>(a, b)</code> range to test explicitly.
-        </li>
-        <li>
-          <span class="keybinding">v</span>
-          Compute numerical eigenvalues of a matrix.  The matrix must be real, symmetrical, and contain
-          only numeric values (no symbols).  A diagonal matrix containing the eigenvalues is
-          returned.
-        </li>
-        <li>
-          <span class="keybinding">V</span>
-          Compute numerical eigenvectors of a matrix.  A matrix containing the eigenvectors as its columns is returned.
-        </li>
-      </ul>
-
-      <p><strong>Special Functions:</strong></p>
+      <p><strong>Linear Algebra:</strong></p>
       <p>
-        These commands generate special functions and polynomials that
-        occur frequently in mathematics.  They require the subprefix key
-        <span class="keybinding">p</span> to be pressed first.
-        The resulting generated functions always use <code>x</code> as the variable.
-      </p>
-      <ul class="keybindings">
-        <li>
-          <span class="keybinding">p</span><span class="keybinding">p</span>
-          <code>n \to P_n{(x)}</code>: Legendre polynomial of degree <code>n</code>.
-        </li>
-        <li>
-          <span class="keybinding">p</span><span class="keybinding">P</span>
-          <code>n\enspace m \to P_n^m{(x)}</code>: Associated Legendre function of order <code>(n,m)</code>.
-        </li>
-        <li>
-          <span class="keybinding">p</span><span class="keybinding">l</span>
-          <code>n \to L_n{(x)}</code>: Laguerre polynomial of degree <code>n</code>.
-        </li>
-        <li>
-          <span class="keybinding">p</span><span class="keybinding">L</span>
-          <code>n\enspace m \to L_n^{(m)}{(x)}</code>: Associated Laguerre polynomial of order <code>(n,m)</code>.
-        </li>
-        <li>
-          <span class="keybinding">p</span><span class="keybinding">h</span>
-          <code>n \to H_n{(x)}</code>: Hermite polynomial of degree <code>n</code>.
-          These use the &quot;physicist's&quot; scaling convention.
-        </li>
-        <li>
-          <span class="keybinding">p</span><span class="keybinding">j</span>
-          <code>\alpha \to J_{\alpha}{(x)}</code>: Bessel function of the first kind.
-        </li>
-        <li>
-          <span class="keybinding">p</span><span class="keybinding">y</span>
-          <code>\alpha \to Y_{\alpha}{(x)}</code>: Bessel function of the second kind.
-        </li>
-      </ul>
-
-      <p><strong>Matrix/Vector Operations:</strong></p>
-      <p>
-        Algebrite also supports some operations on matrices and vectors.
-        These operations are performed by entering the &quot;usual&quot;
-        math syntax directly, applied to a matrix or vector created with
-        the <span class="keybinding">|</span> commands.
+        These operations are performed by applying the &quot;usual&quot;
+        math syntax to matrices or vectors created with the
+        <span class="keybinding">|</span> commands.
         Evaluating the expression with
         <span class="keybinding">#</span><span class="keybinding">#</span>
         will then execute the matrix or vector operation(s).
@@ -2261,8 +2180,10 @@
       <ul class="keybindings">
         <li>
           <code>A\cdot B</code> or <code>AB</code>:
-          Matrix product or vector inner product.
-          Vector products must be a row vector times a column vector.
+          Matrix product.  A row vector times a column vector
+          yields the inner product (a scalar), while a column
+          vector times a row vector yields the outer product
+          (a rank-1 matrix).
         </li>
         <li>
           <code>A + B</code> or <code>A - B:</code>
@@ -2309,6 +2230,88 @@
         <li>
           <code>\boldsymbol x \times \boldsymbol y</code>:
           Cross product of two vectors; both must be three-element column vectors.
+        </li>
+      </ul>
+
+      <p><strong>Numerical Operations:</strong></p>
+      <ul class="keybindings">
+        <li>
+          <span class="keybinding">n</span>
+          Evaluate constants in an expression, replacing them with
+          decimal approximations:
+          <code>(\ln{2})^3 \to 0.33302465198892944</code>
+        </li>
+        <li>
+          <span class="keybinding">=</span>
+          Given a decimal number, try to find a close rational approximation to that number.
+          Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
+          be detected: <code>1.6449340668482262 \to \pi^2/6</code>
+        </li>
+        <li>
+          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
+          Numerically find all (real or complex) roots of a polynomial.
+        </li>
+        <li>
+          <span class="keybinding">q</span> and <span class="keybinding">Q</span>
+          Check whether an equation or inequality like
+          <code>x^2 &gt; \sin x</code> is true or not.
+          If this can be determined algebraically, it will be; otherwise,
+          the expression will be evaluated randomly at several points in the
+          range <code>(-10, 10)</code> to test for likely truth or falsehood.
+          <span class="keybinding">Q</span>
+          <code>(f \enspace a\enspace b)</code>
+          allows you to specify the <code>(a, b)</code> range to test explicitly.
+        </li>
+        <li>
+          <span class="keybinding">v</span>
+          Compute numerical eigenvalues of a matrix.  The matrix must be real, symmetrical, and contain
+          only numeric values (no symbols).  A diagonal matrix containing the eigenvalues is
+          returned.
+        </li>
+        <li>
+          <span class="keybinding">V</span>
+          Compute numerical eigenvectors of a matrix.  A matrix containing the eigenvectors as its columns is returned.
+        </li>
+      </ul>
+
+      <p><strong>Special Functions:</strong></p>
+      <p>
+        These commands generate special functions and polynomials that
+        occur frequently in mathematics.  They require the subprefix key
+        <span class="keybinding">p</span> to be pressed first.
+        The resulting generated functions always use <code>x</code> as the variable
+        (though this can be changed to something else using the
+        <span class="keybinding">#</span><span class="keybinding">w</span> command).
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">p</span>
+          <code>n \to P_n{(x)}</code>: Legendre polynomial of degree <code>n</code>.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">P</span>
+          <code>n\enspace m \to P_n^m{(x)}</code>: Associated Legendre function of order <code>(n,m)</code>.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">l</span>
+          <code>n \to L_n{(x)}</code>: Laguerre polynomial of degree <code>n</code>.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">L</span>
+          <code>n\enspace m \to L_n^{(m)}{(x)}</code>: Associated Laguerre polynomial of order <code>(n,m)</code>.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">h</span>
+          <code>n \to H_n{(x)}</code>: Hermite polynomial of degree <code>n</code>.
+          These use the &quot;physicist's&quot; scaling convention.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">j</span>
+          <code>\alpha \to J_{\alpha}{(x)}</code>: Bessel function of the first kind.
+        </li>
+        <li>
+          <span class="keybinding">p</span><span class="keybinding">y</span>
+          <code>\alpha \to Y_{\alpha}{(x)}</code>: Bessel function of the second kind.
         </li>
       </ul>
 

@@ -978,6 +978,7 @@ const EditorKeymap = {
     '*': "algebrite conj",
     'A': "algebrite arg",
     'd': "algebrite derivative 1 1",
+    //'c': "algebrite clock",  // R * i^(angle) "clock" form
     'D': "algebrite derivative 2",
     'e': "algebrite circexp",
     'f': "algebrite factor 1 1",
