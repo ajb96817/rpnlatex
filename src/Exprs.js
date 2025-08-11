@@ -687,7 +687,12 @@ class InfixExpr extends Expr {
   // 'op_expr' as the infix operator.
   // If one or both of the expressions are already InfixExprs, they are
   // flattened into a larger InfixExpr.
-  static combine_infix(left_expr, right_expr, op_expr) {
+  static combine_infix(left_expr, right_expr, op_expr,
+                       check_special_cases=true) {
+    if(check_special_cases) {
+      if(op_expr.is_text_expr_with('+'))
+         return this.add_exprs(left_expr, right_expr);
+    }
     let new_operand_exprs = [];
     let new_operator_exprs = [];
     let new_linebreaks_at = [];
@@ -722,23 +727,52 @@ class InfixExpr extends Expr {
       new_linebreaks_at);
   }
 
+  // Combining with infix + has some special cases that should be
+  // handled if combining x+y where y involves a prefix unary minus.
+  // TODO: Maybe have subtract_exprs() as well.
   static add_exprs(left_expr, right_expr) {
-    if(right_expr.is_prefix_expr() && right_expr.is_unary_minus())
+    if(right_expr.is_prefix_expr() &&
+       right_expr.is_unary_minus()) {
+      // x + (-y)  ->  x - y
       return this.combine_infix(
-        left_expr, right_expr.base_expr, new TextExpr('-'));
+        left_expr, right_expr.base_expr,
+        new TextExpr('-'), false);
+    }
     else if(right_expr.is_infix_expr() &&
             right_expr.operand_exprs[0].is_prefix_expr() &&
-            right_expr.operand_exprs[0].is_unary_minus()) {
-      // Adding left_expr to another InfixExpr where the first term is negated.
+            right_expr.operand_exprs[0].is_unary_minus() &&
+            (right_expr.operator_exprs[0].is_text_expr_with('+') ||
+             right_expr.operator_exprs[0].is_text_expr_with('-'))) {
+      // Adding left_expr to an InfixExpr where the first term is negated
+      // and then added to something else:
+      //   x + (-y + z)  ->  x - y + z
+      // (but x + (-y / z) stays as is).
+      // We also allow x + (-y - z) -> x - y - z, though.
       return this.combine_infix(
         left_expr, new InfixExpr(
-          [right_expr.operand_exprs[0].base_expr, ...right_expr.operand_exprs.slice(1)],
-          right_expr.operator_exprs, right_expr.split_at_index, right_expr.linebreaks_at),
-        new TextExpr('-'));
+          [right_expr.operand_exprs[0].base_expr,
+           ...right_expr.operand_exprs.slice(1)],
+          right_expr.operator_exprs,
+          right_expr.split_at_index,
+          right_expr.linebreaks_at),
+        new TextExpr('-'), false);
+    }
+    else if(right_expr.is_sequence_expr() &&
+            right_expr.exprs.length >= 2 &&
+            right_expr.exprs[0].is_prefix_expr() &&
+            right_expr.exprs[0].is_unary_minus()) {
+      // Adding left_expr to a SequenceExpr where the first term is negated.
+      return this.combine_infix(
+        left_expr,
+        new SequenceExpr([
+          right_expr.exprs[0].base_expr,
+          ...right_expr.exprs.slice(1)]),
+        new TextExpr('-'), false);
     }
     else
       return this.combine_infix(
-        left_expr, right_expr, new TextExpr('+'));
+        left_expr, right_expr,
+        new TextExpr('+'), false);
   }
 
   expr_type() { return 'infix'; }
