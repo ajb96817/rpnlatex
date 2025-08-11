@@ -1260,19 +1260,57 @@ class ExprParser {
 
 
 class RationalizeToExpr {
+  // Scan all subexpressions in 'expr', replacing rationalized
+  // versions of any floating-point values encountered.
+  static rationalize_expr(expr, full_size_fraction=true) {
+    return new RationalizeToExpr(
+      full_size_fraction).rationalize_expr(expr);
+  }
+  
   static rationalize(value, full_size_fraction=true) {
     return new RationalizeToExpr(
-      full_size_fraction).rationalize_to_expr(value);
+      full_size_fraction).value_to_expr(value);
   }
 
   constructor(full_size_fraction) {
     this.full_size_fraction = full_size_fraction;
   }
   
+  rationalize_expr(expr) {
+    const rationalized_expr = this._try_rationalize_real_expr(expr);
+    if(rationalized_expr)
+      return rationalized_expr;
+    else {
+      // Check subexpressions recursively.
+      const subexpressions = expr.subexpressions();
+      for(let i = 0; i < subexpressions.length; i++)
+        expr = expr.replace_subexpression(
+          i, this.rationalize_expr(subexpressions[i]));
+      return expr;
+    }
+  }
+
+  _try_rationalize_real_expr(expr) {
+    let negated = false;
+    if(expr.is_unary_minus_expr()) {
+      negated = true;
+      expr = expr.base_expr;
+    }
+    if(expr.is_text_expr_with_number()) {
+      let value = parseFloat(expr.text);
+      if(!isNaN(value)) {
+        if(negated)
+          value *= 1.0;
+        return this.value_to_expr(value);
+      }
+    }
+    return null;
+  }
+  
   // Try to find a close rational approximation to a floating-point
   // value, or up to a factor of some common constants like sqrt(2) or pi.
   // Return an Expr if successful, otherwise null.
-  rationalize_to_expr(value) {
+  value_to_expr(value) {
     let result = null;
     const make_text = n => this._int_to_expr(n);
     const make_sqrt = expr => new CommandExpr('sqrt', [expr]);

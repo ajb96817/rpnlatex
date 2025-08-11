@@ -254,6 +254,8 @@ class Expr {
   is_array_expr() { return this.expr_type() === 'array'; }
   is_text_expr_with(text) { return this.is_text_expr() && this.text === text; }
   is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
+  is_unary_minus_expr() { return this.is_prefix_expr() && this.is_unary_minus(); }
+  
   is_command_expr_with(operand_count, command_name) {
     return this.is_command_expr() &&
       this.operand_count() === operand_count &&
@@ -733,16 +735,14 @@ class InfixExpr extends Expr {
   // though, since we want to have x - ((-y) - z) -> x + y + z,
   // and it's "better" to just parethesize: x - (-y - z).
   static add_exprs(left_expr, right_expr) {
-    if(right_expr.is_prefix_expr() &&
-       right_expr.is_unary_minus()) {
+    if(right_expr.is_unary_minus_expr()) {
       // x + (-y)  ->  x - y
       return this.combine_infix(
         left_expr, right_expr.base_expr,
         new TextExpr('-'), false);
     }
     else if(right_expr.is_infix_expr() &&
-            right_expr.operand_exprs[0].is_prefix_expr() &&
-            right_expr.operand_exprs[0].is_unary_minus() &&
+            right_expr.operand_exprs[0].is_unary_minus_expr() &&
             (right_expr.operator_exprs[0].is_text_expr_with('+') ||
              right_expr.operator_exprs[0].is_text_expr_with('-'))) {
       // Adding left_expr to an InfixExpr where the first term is negated
@@ -761,8 +761,7 @@ class InfixExpr extends Expr {
     }
     else if(right_expr.is_sequence_expr() &&
             right_expr.exprs.length >= 2 &&
-            right_expr.exprs[0].is_prefix_expr() &&
-            right_expr.exprs[0].is_unary_minus()) {
+            right_expr.exprs[0].is_unary_minus_expr()) {
       // Adding left_expr to a SequenceExpr where the first term is negated.
       return this.combine_infix(
         left_expr,
@@ -824,7 +823,7 @@ class InfixExpr extends Expr {
   // x - (expr) or not.
   needs_autoparenthesization() {
     return this.operator_exprs.some(op_expr =>
-      (op_expr.is_prefix_expr() && op_expr.is_unary_minus()) ||
+      op_expr.is_unary_minus_expr() ||
         op_expr.is_text_expr_with('+') ||
         op_expr.is_text_expr_with('-'));
   }
@@ -1031,8 +1030,7 @@ class InfixExpr extends Expr {
       let exponent_text = null;
       if(exponent_expr.is_text_expr_with_number())
         exponent_text = exponent_expr.text;
-      else if(exponent_expr.is_prefix_expr() &&
-              exponent_expr.is_unary_minus() &&
+      else if(exponent_expr.is_unary_minus_expr() &&
               exponent_expr.base_expr.is_text_expr_with_number())
         exponent_text = '-' + exponent_expr.base_expr.text;
       if(exponent_text !== null)
@@ -1145,8 +1143,8 @@ class PrefixExpr extends Expr {
 
   replace_subexpression(index, new_expr) {
     return new PrefixExpr(
-      index === 0 ? new_expr : this.operator_expr,
-      index === 1 ? new_expr : this.base_expr);
+      index === 1 ? new_expr : this.base_expr,
+      index === 0 ? new_expr : this.operator_expr);
   }
 
   as_editable_string() {

@@ -446,27 +446,10 @@ class InputContext {
     return result_item;
   }
 
-  // TODO: handle complex expressions: 3+4j etc
-  // Move all this logic into ExprToRational.rationalize_expr()
   do_rationalize(stack) {
     let [new_stack, expr] = stack.pop_exprs(1);
-    let negative = false;
-    if(expr.is_prefix_expr() && expr.is_unary_minus()) {
-      negative = true;
-      expr = expr.base_expr;
-    }
-    let float_value = null;
-    if(expr.is_text_expr_with_number())
-      float_value = parseFloat(expr.text);
-    if(negative)
-      float_value *= -1.0;
-    if(!isNaN(float_value)) {
-      const rationalized_expr =
-            RationalizeToExpr.rationalize(float_value, true);
-      if(rationalized_expr)
-        return new_stack.push_expr(rationalized_expr);
-    }
-    return this.error_flash_stack();
+    const result_expr = RationalizeToExpr.rationalize_expr(expr);
+    return new_stack.push_expr(result_expr);
   }
 
   // Change the output of an Algebrite roots() or nroots() command
@@ -476,28 +459,19 @@ class InputContext {
     if(!(roots_matrix_expr.is_array_expr() && roots_matrix_expr.is_matrix() &&
          roots_matrix_expr.column_count === 1))
       return roots_matrix_expr;  // shouldn't happen
-    // TODO: handle complex values (_analyze_complex_value_expr()?)
     const output_exprs = [];
     for(let row = 0; row < roots_matrix_expr.row_count; row++) {
       let root_expr = roots_matrix_expr.element_exprs[row][0];
-      if(root_expr.is_text_expr_with_number()) {
-        // Try to rationalize floating-point values.
-        const root_float = parseFloat(root_expr.text);
-        if(!isNaN(root_float)) {
-          const rationalized_expr =
-                RationalizeToExpr.rationalize(root_float, false);
-          if(rationalized_expr)
-            root_expr = rationalized_expr;
-        }
-      }
-      const root_name_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
-        variable_expr, TextExpr.integer(row+1), false, false);
       output_exprs.push(InfixExpr.combine_infix(
-        root_name_expr, root_expr, new TextExpr('=')));
+        SubscriptSuperscriptExpr.build_subscript_superscript(
+          variable_expr, TextExpr.integer(row+1), false, false),
+        RationalizeToExpr.rationalize_expr(root_expr, false),
+        new TextExpr('=')));
     }
-    const output_element_exprs = ArrayExpr.split_elements(output_exprs, 'infix');
     return new ArrayExpr(
-      'aligned', output_exprs.length, 3,
+      'aligned',
+      ArrayExpr.split_elements(output_exprs, 'infix'),
+      output_exprs.length, 3,
       output_element_exprs);
   }
 
@@ -937,8 +911,7 @@ class InputContext {
     let d_exprs = exprs.map(expr => {
       let is_negated = false;
       let base_expr = expr;
-      // Check for a unary minus sign.
-      if(expr.is_prefix_expr() && expr.is_unary_minus()) {
+      if(expr.is_unary_minus_expr()) {
         is_negated = true;
         base_expr = expr.base_expr;
       }
