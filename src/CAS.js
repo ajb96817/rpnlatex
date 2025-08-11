@@ -736,7 +736,7 @@ class AlgebriteNode {}
 // '2', '(-3.4)', etc.  Must be an actual string, not a number.
 // If negative, it's expected to be enclosed by parentheses.
 // Usually, negative numbers will be represented as Prefix('-', '123'),
-// not a literal '-123', but there are some exceptions.
+// not a literal '(-123)', but there are some exceptions.
 // Fractions like '2/3' are also allowed here, and scientific notation
 // like '2.4e-17'.
 class AlgebriteNumber extends AlgebriteNode {
@@ -784,6 +784,8 @@ class AlgebriteTensor extends AlgebriteNode {
     this.column_count = column_count;
     this.element_nodes = element_nodes;
   }
+
+  // TODO: emit_as_vector
 
   emit(emitter) {
     const is_vector = this.column_count === 1;
@@ -1180,7 +1182,21 @@ class ExprToAlgebrite {
         const algebrite_command = translate_function_name(
           exprs[i].operand_exprs[0].text, true);
         if(allowed_algebrite_unary_functions.has(algebrite_command)) {
-          term_nodes.push(new AlgebriteCall(algebrite_command, [this.expr_to_node(exprs[i+1])]));
+          term_nodes.push(new AlgebriteCall(
+            algebrite_command, [this.expr_to_node(exprs[i+1])]));
+          i++;
+          continue;
+        }
+      }
+      // Look for d/dx f(x) (two adjacent terms in a SequenceExpr).
+      // Convert to d(f(x), x) calls.  Any parentheses around the
+      // f(x) part are stripped: d/dx (arg x) -> d(arg(x), x)
+      if(i < exprs.length-1) {
+        const variable_expr = this._analyze_derivative(exprs[i]);
+        if(variable_expr) {
+          term_nodes.push(new AlgebriteCall(
+            'd', [this.expr_to_node(exprs[i+1]),
+                  this.expr_to_node(variable_expr)]));
           i++;
           continue;
         }
@@ -1209,6 +1225,26 @@ class ExprToAlgebrite {
       return term_nodes[0];
     else
       return new AlgebriteCall('multiply', term_nodes);
+  }
+
+  // Check for 'd/dx' notation (as output by derivative_to_expr()).
+  // Return null if expr is not this notation, otherwise return
+  // the differentiation variable.
+  // TODO: Currently, only simple first-order derivatives are supported.
+  //       Should also look for d^2/dx^2 etc (maybe).
+  _analyze_derivative(expr) {
+    if(!expr.is_command_expr_with(2, 'frac'))
+      return null;
+    const [numer_expr, denom_expr] = expr.operand_exprs;
+    // Numerator must be a literal 'd';
+    // denominator must be a fused sequence of ['d', variable_expr].
+    // (NOTE: currently roman-d is not generated, only normal italic).
+    if(!numer_expr.is_text_expr_with('d'))
+      return null;
+    if(!(denom_expr.is_sequence_expr() && denom_expr.exprs.length === 2 &&
+         denom_expr.fused))
+      return null;
+    return denom_expr.exprs[1];
   }
 
   array_expr_to_node(expr) {
@@ -1562,11 +1598,6 @@ class AlgebriteToExpr {
          expr_to_variable_name(args_expr.inner_expr) === variable_name)
         return new FunctionCallExpr(fn_expr.with_prime(), args_expr);
     }
-
-    // TODO: if the variable is 't', maybe use the conversion
-    // d(y(t), t) ==> \dot y
-    // This would need to be done in the Expr->Algebrite direction as well.
-
     // TODO: See if we can use partial derivative notation for things like
     // d(f(x, y), y):
     //   - f has to be a simple variable name (possibly with a subscript)
@@ -1583,7 +1614,8 @@ class AlgebriteToExpr {
       'frac', [
         new TextExpr('d'),
         new SequenceExpr([new TextExpr('d'), variable_expr], true)]);
-    return Expr.combine_pair(d_dx_expr, base_expr);
+    return Expr.combine_pair(
+      d_dx_expr, DelimiterExpr.parenthesize_for_argument(base_expr));
   }
 
   factorial_to_expr(base_p) {
