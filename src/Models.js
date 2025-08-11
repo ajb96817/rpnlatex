@@ -1314,7 +1314,7 @@ class RationalizeToExpr {
     // Try golden ratio-like factors
     result ||= this._try_rationalize_with_factor(
       value, 1+Math.sqrt(5),
-      InfixExpr.combine_infix(make_text(1), make_sqrt(TextExpr.integer(5)), new TextExpr('+')),
+      InfixExpr.add_exprs(make_text(1), make_sqrt(TextExpr.integer(5))),
       null);
     result ||= this._try_rationalize_with_factor(
       value, Math.sqrt(5)-1,  // NOTE: keep positive sign, 1-sqrt(5) is negative

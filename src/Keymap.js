@@ -977,8 +977,9 @@ const EditorKeymap = {
     '=': "rationalize",  // not part of Algebrite
     '*': "algebrite conj",
     'A': "algebrite arg",
+    'c': "algebrite_completesquare true",
+    'C': "algebrite_completesquare false",
     'd': "algebrite derivative 1 1",
-    //'c': "algebrite clock",  // R * i^(angle) "clock" form
     'D': "algebrite derivative 2",
     'e': "algebrite circexp",
     'f': "algebrite factor 1 1",

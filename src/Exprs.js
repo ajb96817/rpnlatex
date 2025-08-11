@@ -722,6 +722,25 @@ class InfixExpr extends Expr {
       new_linebreaks_at);
   }
 
+  static add_exprs(left_expr, right_expr) {
+    if(right_expr.is_prefix_expr() && right_expr.is_unary_minus())
+      return this.combine_infix(
+        left_expr, right_expr.base_expr, new TextExpr('-'));
+    else if(right_expr.is_infix_expr() &&
+            right_expr.operand_exprs[0].is_prefix_expr() &&
+            right_expr.operand_exprs[0].is_unary_minus()) {
+      // Adding left_expr to another InfixExpr where the first term is negated.
+      return this.combine_infix(
+        left_expr, new InfixExpr(
+          [right_expr.operand_exprs[0].base_expr, ...right_expr.operand_exprs.slice(1)],
+          right_expr.operator_exprs, right_expr.split_at_index, right_expr.linebreaks_at),
+        new TextExpr('-'));
+    }
+    else
+      return this.combine_infix(
+        left_expr, right_expr, new TextExpr('+'));
+  }
+
   expr_type() { return 'infix'; }
 
   to_json() {

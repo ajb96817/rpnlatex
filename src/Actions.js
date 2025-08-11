@@ -345,11 +345,33 @@ class InputContext {
     const result_node = AlgebriteInterface.call_function(
       function_name, argument_exprs);
     if(result_node) {
-      const result_expr = AlgebriteInterface.algebrite_node_to_expr(result_node);
+      const result_expr = AlgebriteInterface.algebrite_result_to_expr(result_node);
       if(result_expr)
         return new_stack.push_expr(result_expr);
     }
     return this.error_flash_stack();
+  }
+  
+  // NOTE: This has to be done specially because otherwise Algebrite will
+  // automatically just resimplify the "factored" result.
+  do_algebrite_completesquare(stack, guess_variable) {
+    let [new_stack, expr, variable_expr] = [null, null, null];
+    if(guess_variable === 'true') {
+      [new_stack, expr] = stack.pop_exprs(1);
+      const [guessed_variable_name, guessed_variable_expr] =
+            AlgebriteInterface.guess_variable(expr);
+      variable_expr = guessed_variable_expr;
+      if(!variable_expr) {
+        this.notify('Could not guess variable');
+        return this.error_flash_stack();
+      }
+    }
+    else
+      [new_stack, expr, variable_expr] = stack.pop_exprs(2);
+    AlgebriteInterface.setup_algebrite();
+    const result_expr =
+          AlgebriteInterface.complete_square(expr, variable_expr);
+    return new_stack.push_expr(result_expr);
   }
 
   // Try to verify an equality or other relational expression

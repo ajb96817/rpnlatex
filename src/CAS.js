@@ -416,7 +416,7 @@ class AlgebriteInterface {
     return result;
   }
 
-  static algebrite_node_to_expr(p) {
+  static algebrite_result_to_expr(p) {
     return new AlgebriteToExpr().to_expr(p);
   }
 
@@ -439,6 +439,69 @@ class AlgebriteInterface {
 
   static guess_variable(expr) {
     return guess_variable_in_expr(expr);
+  }
+
+  // "Complete the square" in expr with respect to variable_expr.
+  // expr: ax^2 + bx + c + other_terms
+  // result: a(x + b/2a)^2 + (c - b^2/4a + other_terms)
+  // NOTE: expr may contain other terms like x^3 or sin(x), which
+  //       are left alone.
+  // NOTE: variable_expr may be a more complex expression like x^2,
+  //       it doesn't have to be a simple variable name.
+  // NOTE: Algebrite can't handle this easily, so the resulting
+  //       expression needs to be put together mostly "by hand", but we
+  //       use Algebrite to extract coefficients and do some of the steps.
+  static complete_square(expr, variable_expr) {
+    const A = Algebrite;
+    const testeq = (x, y) => {
+      const result = A.testeq(x, y);
+      if(result.k === 1)
+        return result.q.a.equals(1) ? true : false;
+      else return false;
+    };
+
+    // Extract quadratic, linear, constant terms.
+    const [a, b, c] = [2, 1, 0].map(
+      n => this.call_function(
+        'coeff', [expr, variable_expr, TextExpr.integer(n)]));
+    if(testeq(a, 0))
+      return expr;  // no quadratic term; nothing to do
+
+    // Build square expr part: a*(x + b/2a)^2
+    const shift_term = A.multiply(b, A.power(A.multiply(2, a), -1));
+    let shifted_var_expr = testeq(shift_term, 0) ?
+        variable_expr :
+        InfixExpr.add_exprs(
+          variable_expr,
+          this.algebrite_result_to_expr(shift_term));
+    let square_part_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
+      shifted_var_expr, TextExpr.integer(2), true, true);
+    if(!testeq(a, 1))  // multiply the quadratic coefficient if needed
+      square_part_expr = Expr.combine_pair(
+        this.algebrite_result_to_expr(a), square_part_expr);
+
+    // Determine what is left over in the expression aside from
+    // the now "perfect" square term (linear term should no longer
+    // be present in what is left).
+    const expr_result = A.eval(new ExprToAlgebrite().expr_to_algebrite_string(expr));
+    const var_result = A.eval(new ExprToAlgebrite().expr_to_algebrite_string(variable_expr));
+    // a*x^2 + b*x + c
+    const quadratic_polynomial_part =
+          A.add(A.multiply(a, A.power(var_result, 2)),
+                A.multiply(b, var_result),
+                c);
+    // c - b^2/4a
+    const extra_constant_part = A.add(
+      c, A.multiply(A.power(b, 2),
+                    A.power(A.multiply(-4, a), -1)));
+    const remainder_part = A.add(
+      expr_result, extra_constant_part,
+      A.multiply(quadratic_polynomial_part, -1));
+    const remainder_part_expr = this.algebrite_result_to_expr(remainder_part);
+    let final_expr = square_part_expr;
+    if(!testeq(remainder_part, 0))
+      final_expr = InfixExpr.add_exprs(final_expr, remainder_part_expr);
+    return final_expr;
   }
 
   // Check a relational expression like 'x=y' for truth.
@@ -644,8 +707,7 @@ class AlgebriteInterface {
   // Initialize Algebrite's environment.
   static setup_algebrite() {
     Algebrite.clearall();
-    [ //'autoexpand = 0',
-      'sec(x) = 1/cos(x)',
+    [ 'sec(x) = 1/cos(x)',
       'csc(x) = 1/sin(x)',
       'cot(x) = 1/tan(x)',
       'sech(x) = 1/cosh(x)',
@@ -1312,23 +1374,8 @@ class AlgebriteToExpr {
   // (add x y z ...)
   add_to_expr(terms) {
     const exprs = terms.map(term => this.to_expr(term));
-    return exprs.reduce((result_expr, expr) => {
-      if(expr.is_prefix_expr() && expr.is_unary_minus())
-        return InfixExpr.combine_infix(
-          result_expr, expr.base_expr, new TextExpr('-'));
-      else if(expr.is_sequence_expr() &&
-              expr.exprs[0].is_prefix_expr() &&
-              expr.exprs[0].is_unary_minus()) {
-        // e.g. add(x, -4y); the -4y is a SequenceExpr[PrefixExpr[-, 4], y]
-        const new_sequence_expr = new SequenceExpr(
-          [expr.exprs[0].base_expr, ...expr.exprs.slice(1)]);
-        return InfixExpr.combine_infix(
-          result_expr, new_sequence_expr, new TextExpr('-'));
-      }
-      else
-        return InfixExpr.combine_infix(
-          result_expr, expr, new TextExpr('+'));
-    });
+    return exprs.reduce((result_expr, expr) =>
+      InfixExpr.add_exprs(result_expr, expr));
   }
 
   // (multiply x y z ...)
