@@ -19,7 +19,7 @@ const EditorKeymap = {
     '<': "infix <",
     '>': "infix >",
     '+': "infix +",
-    '-': "infix -",
+    '-': "autoparenthesize;infix -",
     ']': "make_bold",
     '[': "delimiters [ ]",
     '(': "delimiters ( )",

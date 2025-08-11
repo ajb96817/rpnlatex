@@ -729,7 +729,9 @@ class InfixExpr extends Expr {
 
   // Combining with infix + has some special cases that should be
   // handled if combining x+y where y involves a prefix unary minus.
-  // TODO: Maybe have subtract_exprs() as well.
+  // TODO: Maybe have subtract_exprs() as well.  That's not the same
+  // though, since we want to have x - ((-y) - z) -> x + y + z,
+  // and it's "better" to just parethesize: x - (-y - z).
   static add_exprs(left_expr, right_expr) {
     if(right_expr.is_prefix_expr() &&
        right_expr.is_unary_minus()) {
@@ -817,14 +819,14 @@ class InfixExpr extends Expr {
       return null;
   }
   
-  // Check if this is a low-precedence infix expression like x+y
-  // This is mostly for convenience so it doesn't need to be that precise.
-  // TODO: reduce or eliminate the need for this; there is probably a cleaner way
+  // Check if this is a "low-precedence" infix expression like x+y.
+  // This determines if things like x - expr should convert to
+  // x - (expr) or not.
   needs_autoparenthesization() {
-    return this.operator_exprs.some(op_expr => {
-      const op = this.operator_text(op_expr);
-      return op && this._operator_info(op) && this._operator_info(op).prec <= 1;
-    });
+    return this.operator_exprs.some(op_expr =>
+      (op_expr.is_prefix_expr() && op_expr.is_unary_minus()) ||
+        op_expr.is_text_expr_with('+') ||
+        op_expr.is_text_expr_with('-'));
   }
 
   // 'inside_delimiters' is set to true when this InfixExpr is rendered
@@ -1074,19 +1076,6 @@ class InfixExpr extends Expr {
       this.operator_exprs,
       this.split_at_index,
       this.linebreaks_at);
-  }
-
-  // Return {precedence, eval_fn}, or null if the operator can't be evaluated.
-  // TODO: remove this
-  _operator_info(op) {
-    switch(op) {
-    case '+':     return {prec:1, fn:(x,y) => x+y};
-    case '-':     return {prec:1, fn:(x,y) => x-y};
-    case 'cdot':  return {prec:2, fn:(x,y) => x*y};
-    case 'times': return {prec:2, fn:(x,y) => x*y};
-    case '/':     return {prec:2, fn:(x,y) => x/y};
-    default: return null;
-    }
   }
 }
 
