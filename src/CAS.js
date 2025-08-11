@@ -451,6 +451,7 @@ class AlgebriteInterface {
   // NOTE: Algebrite can't handle this easily, so the resulting
   //       expression needs to be put together mostly "by hand", but we
   //       use Algebrite to extract coefficients and do some of the steps.
+  // TODO: If given a relational equation lhs=rhs, complete squares on both sides
   static complete_square(expr, variable_expr) {
     const A = Algebrite;
     const testeq = (x, y) => {
@@ -469,11 +470,11 @@ class AlgebriteInterface {
 
     // Build square expr part: a*(x + b/2a)^2
     const shift_term = A.multiply(b, A.power(A.multiply(2, a), -1));
-    let shifted_var_expr = testeq(shift_term, 0) ?
-        variable_expr :
-        InfixExpr.add_exprs(
-          variable_expr,
-          this.algebrite_result_to_expr(shift_term));
+    const shifted_var_expr = testeq(shift_term, 0) ?
+          variable_expr /* basically b=0 */ :
+          InfixExpr.add_exprs(
+            variable_expr,
+            this.algebrite_result_to_expr(shift_term));
     let square_part_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
       shifted_var_expr, TextExpr.integer(2), true, true);
     if(!testeq(a, 1))  // multiply the quadratic coefficient if needed
@@ -506,7 +507,7 @@ class AlgebriteInterface {
 
   // Check a relational expression like 'x=y' for truth.
   // The relational operator can be one of: =, !=, <, >, <=, >=.
-  // This check "symbolically" first using the Algebrite
+  // This checks "symbolically" first using the Algebrite
   // testxx(eq) functions, then falls back to sampling points
   // in a given range and evaluating numerically.
   //
@@ -555,7 +556,7 @@ class AlgebriteInterface {
       else if(result.q.a.equals(0))
         is_true = false;
       if(relation_type === 'testneq')
-        is_true = !is_true;
+        is_true = !is_true;  // hack
       return {
         'result': is_true ? 'True' : 'False',
         'exact': true
@@ -666,7 +667,6 @@ class AlgebriteInterface {
     if(lhs_result.k === 2 /* DOUBLE */ && rhs_result.k === 2) {
       const lhs_float = lhs_result.d;
       const rhs_float = rhs_result.d;
-      // console.log('lhs=' + lhs_float + ' rhs=' + rhs_float);
       if(this._check_numerical_relation_result(lhs_result.d, rhs_result.d, relation_type))
         return relation_type === 'testneq' ? false : true;
     }
@@ -686,7 +686,8 @@ class AlgebriteInterface {
   }
 
   static approx_equal(x, y) {
-    return Math.abs(x-y) <= 1e-7;
+    // TODO: maybe make this more sophisticated
+    return Math.abs(x-y) < 1e-6;
   }
 
   static define_function(fn_name, variable_name, body_expr) {
@@ -722,8 +723,7 @@ class AlgebriteInterface {
       'log2(x) = log(x)/log(2)',
       'log10(x) = log(x)/log(10)',  // not yet implemented in the editor
       'negative(x) = -x',  // used for infix '-': x-y -> add(x, negative(y))
-      'reciprocal(x) = 1/x',  // used for infix '/' and fractions
-      'testneq(x) = not(testeq(x))'  // to support checking x \neq y equations
+      'reciprocal(x) = 1/x'  // used for infix '/' and fractions
     ].forEach(s => Algebrite.eval(s) /* TODO: .run() */);
   }
 }
@@ -932,7 +932,7 @@ class ExprToAlgebrite {
     switch(op_name) {
     case '*': return {fn:'multiply', prec:2};
     case '/': return {fn:'multiply', modifier_fn: 'reciprocal', prec:2};
-    case 'times': return {fn:'cross', prec:2};
+    case 'times': return {fn:'cross', prec:2};  // TODO: revisit, should only apply this to literal vector pairs
     case 'cdot': return {fn:'inner', prec:2};
     case '+': return {fn:'add', prec:1};
     case '-': return {fn:'add', modifier_fn:'negative', prec:1};
@@ -1026,8 +1026,7 @@ class ExprToAlgebrite {
     // For these cases, the command name and argument to use are extracted
     // from the \operatorname command.
     let args, nargs, command_name;
-    if(expr.command_name === 'operatorname' &&
-       expr.operand_count() === 2 &&
+    if(expr.is_command_expr_with(2, 'operatorname') &&
        expr.operand_exprs[0].is_text_expr()) {
       args = expr.operand_exprs.slice(1);
       nargs = expr.operand_count()-1;
@@ -1140,17 +1139,17 @@ class ExprToAlgebrite {
     // transpose(A) with Algebrite.
     if(superscript_expr &&
        base_expr.is_array_expr() && base_expr.is_matrix() &&
-       ((superscript_expr.is_text_expr() && superscript_expr.text === 'T') ||
+       (superscript_expr.is_text_expr_with('T') ||
         (superscript_expr.is_font_expr() && superscript_expr.typeface === 'roman' &&
-         superscript_expr.expr.is_text_expr() && superscript_expr.expr.text === 'T'))) {
+         superscript_expr.expr.is_text_expr_with('T')))) {
       return this.expr_to_node(base_expr.transposed());
     }
 
     // Check for e^x (both roman and normal 'e').
     if(superscript_expr &&
-       ((base_expr.is_text_expr() && base_expr.text === 'e') ||
+       (base_expr.is_text_expr_with('e') ||
         (base_expr.is_font_expr() && base_expr.typeface === 'roman' &&
-         base_expr.expr.is_text_expr() && base_expr.expr.text === 'e')))
+         base_expr.expr.is_text_expr_with('e'))))
       return new AlgebriteCall('exp', [this.expr_to_node(superscript_expr)]);
 
     // x^y with no subscript on x.
@@ -1463,13 +1462,12 @@ class AlgebriteToExpr {
       // term with \cdot instead of just implicit multiplication.
       const is_integer_expr =
             // n
-            (expr.is_text_expr() && expr.looks_like_number()) ||
+            expr.is_text_expr_with_number() ||
             // n^m
             (expr.is_subscriptsuperscript_expr() &&
-             expr.base_expr.is_text_expr() && expr.base_expr.looks_like_number() &&
+             expr.base_expr.is_text_expr_with_number() &&
              expr.superscript_expr && !expr.subscript_expr &&
-             expr.superscript_expr.is_text_expr() &&
-             expr.superscript_expr.looks_like_number());
+             expr.superscript_expr.is_text_expr_with_number());
       if(is_integer_expr)
         return InfixExpr.combine_infix(
           result_expr, expr, new CommandExpr('cdot'));

@@ -104,11 +104,11 @@ class Expr {
     //   - Any amount of ! symbols can be used, although only x! and x!! have meaning here.
     const factorial_count = expr => {
       // Count number of exclamation points, for both TextExprs and SequenceExprs.
-      if(expr.is_text_expr() && expr.text === '!')
+      if(expr.is_text_expr_with('!'))
         return 1;
       else if(expr.is_sequence_expr() &&
               expr.exprs.every(
-                subexpr => subexpr.is_text_expr() && subexpr.text === '!'))
+                subexpr => subexpr.is_text_expr_with('!')))
         return expr.exprs.length;
       else
         return 0;
@@ -252,7 +252,8 @@ class Expr {
   is_delimiter_expr() { return this.expr_type() === 'delimiter'; }
   is_subscriptsuperscript_expr() { return this.expr_type() === 'subscriptsuperscript'; }
   is_array_expr() { return this.expr_type() === 'array'; }
-
+  is_text_expr_with(text) { return this.is_text_expr() && this.text === text; }
+  is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
   is_command_expr_with(operand_count, command_name) {
     return this.is_command_expr() &&
       this.operand_count() === operand_count &&
@@ -439,8 +440,7 @@ class CommandExpr extends Expr {
   as_editable_string() {
     // \operatorname{...} with a TextExpr inside.
     // This may have been created with Tab from math entry mode.
-    if(this.command_name === 'operatorname' &&
-       this.operand_count() === 1 &&
+    if(this.is_command_expr_with(1, 'operatorname') &&
        this.operand_exprs[0].is_text_expr())
       return this.operand_exprs[0].text;
     // Other commands are not considered 'editable' (yet).
@@ -827,7 +827,7 @@ class InfixExpr extends Expr {
 
   _convert_to_flex_delimiter(expr) {
     let new_text = null;
-    if(expr.is_text_expr() && expr.text === '/')
+    if(expr.is_text_expr_with('/'))
       new_text = "\\middle/";
     else if(expr.is_command_expr_with(0)) {
       const command = expr.command_name;
@@ -987,18 +987,17 @@ class InfixExpr extends Expr {
          this.operator_exprs[0].is_command_expr_with(0, 'cdot')))
       return null;
     const [lhs, rhs] = this.operand_exprs;
-    if(lhs.is_text_expr() && lhs.looks_like_number() &&
+    if(lhs.is_text_expr_with_number() &&
        rhs.is_subscriptsuperscript_expr() &&
-       rhs.base_expr.is_text_expr() && rhs.base_expr.text === '10' &&
+       rhs.base_expr.is_text_expr_with('10') &&
        !rhs.subscript_expr && rhs.superscript_expr) {
       const exponent_expr = rhs.superscript_expr;
       let exponent_text = null;
-      if(exponent_expr.is_text_expr() && exponent_expr.looks_like_number())
+      if(exponent_expr.is_text_expr_with_number())
         exponent_text = exponent_expr.text;
       else if(exponent_expr.is_prefix_expr() &&
               exponent_expr.is_unary_minus() &&
-              exponent_expr.base_expr.is_text_expr() &&
-              exponent_expr.base_expr.looks_like_number())
+              exponent_expr.base_expr.is_text_expr_with_number())
         exponent_text = '-' + exponent_expr.base_expr.text;
       if(exponent_text !== null)
         return [lhs.text, exponent_text];
@@ -1219,7 +1218,7 @@ class FunctionCallExpr extends Expr {
     let argument_expr = inner_args_expr.operand_exprs[0];
     for(let i = 0; i < inner_args_expr.operator_exprs.length; i++) {
       const operator_expr = inner_args_expr.operator_exprs[i];
-      if(operator_expr.is_text_expr() && operator_expr.text === ',') {
+      if(operator_expr.is_text_expr_with(',')) {
         argument_exprs.push(argument_expr);
         argument_expr = inner_args_expr.operand_exprs[i+1];
       }
@@ -1315,7 +1314,7 @@ class PostfixExpr extends Expr {
   // Non-factorial postfix expressions will return factorial_signs_count=0.
   analyze_factorial() {
     let [base_expr, factorial_signs_count] = [this.base_expr, 0];
-    if(this.operator_expr.is_text_expr() && this.operator_expr.text === '!') {
+    if(this.operator_expr.is_text_expr_with('!')) {
       if(this.base_expr.is_postfix_expr())
         [base_expr, factorial_signs_count] = base_expr.analyze_factorial();
       factorial_signs_count++;
@@ -1866,7 +1865,7 @@ class ArrayExpr extends Expr {
     // of the colon (so we don't get a useless column of empty TextExprs).
     if(split_mode === 'colon' &&
        element_exprs.every(row =>
-         row.length === 2 && row[1].is_text_expr() && row[1].text === ''))
+         row.length === 2 && row[1].is_text_expr_with('')))
       return element_exprs.map(row => [row[0]]);
     else
       return element_exprs;

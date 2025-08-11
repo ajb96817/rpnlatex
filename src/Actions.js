@@ -387,7 +387,7 @@ class InputContext {
       [new_stack, ...exprs] = stack.pop_exprs(3);
       expr = exprs[0];
       const get_value = expr => {
-        if(expr.is_text_expr() && expr.looks_like_number()) {
+        if(expr.is_text_expr_with_number()) {
           const x = parseFloat(expr.text);
           return isNaN(x) ? null : x;
         }
@@ -891,10 +891,9 @@ class InputContext {
       let is_negated = false;
       let base_expr = expr;
       // Check for a unary minus sign.
-      if(expr.is_sequence_expr() && expr.exprs.length > 1 &&
-         expr.exprs[0].is_text_expr() && expr.exprs[0].text === '-') {
+      if(expr.is_prefix_expr() && expr.is_unary_minus()) {
         is_negated = true;
-        base_expr = expr.exprs.length === 2 ? expr.exprs[1] : new SequenceExpr(expr.exprs.slice(1));
+        base_expr = expr.base_expr;
       }
       let d_expr = Expr.combine_pair(
         is_roman === 'true' ? FontExpr.roman_text('d') : new TextExpr('d'),
@@ -929,14 +928,15 @@ class InputContext {
         this._do_apply_hat(expr.base_expr, hat_op),
         expr.subscript_expr,
         expr.superscript_expr);
-    if(expr.is_text_expr() &&
-       (expr.text === 'i' || expr.text === 'j'))
-      expr = new CommandExpr(expr.text === 'i' ? 'imath' : 'jmath');
+    if(expr.is_text_expr_with('i'))
+      expr = new CommandExpr('imath');
+    else if(expr.is_text_expr_with('j'))
+      expr = new CommandExpr('jmath');
     else if(expr.is_font_expr() && expr.typeface === 'normal' && expr.is_bold) {
       // Check for bolded literal i/j
       const inner_expr = expr.expr;
-      if(inner_expr.is_text_expr() &&
-         (inner_expr.text === 'i' || inner_expr.text === 'j'))
+      if(inner_expr.is_text_expr_with('i') ||
+         inner_expr.is_text_expr_with('j'))
         expr = new FontExpr(
           new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'),
           expr.typeface, expr.is_bold, expr.size_adjustment);
@@ -1234,7 +1234,7 @@ class InputContext {
       return stack;
     const lhs = expr.extract_side_at(relation_index, 'left');
     const rhs = expr.extract_side_at(relation_index, 'right');
-    if(rhs.is_text_expr() && rhs.text === '0') {
+    if(rhs.is_text_expr_with('0')) {
       // Already in the form x=0.
       if(drop_rhs === 'true')
         return new_stack.push_expr(lhs);
