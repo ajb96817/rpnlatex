@@ -60,6 +60,7 @@ const allowed_algebrite_unary_functions = new Set([
   'log', 'choose', 'contract', 'det', 'curl', 'div',
   'add', 'multiply', 'quotient', 'cross', 'inner',
   'arg', 'erf', 'erfc', 'real', 'imag',
+  'sgn', 'dirac',
   
   // Custom functions added to Algebrite by rpnlatex:
   'sec', 'csc', 'cot', 'sech', 'csch', 'coth',
@@ -68,6 +69,16 @@ const allowed_algebrite_unary_functions = new Set([
 
   // Custom functions for handling - and /:
   'negative', 'reciprocal'
+]);
+
+// Among the functions in allowed_algebrite_unary_functions,
+// these are the ones with corresponding built-in LaTeX commands
+// like \sin.  Other functions are represented by two-argument
+// commands like \operatorname{sgn}{x}.
+const algebrite_unary_operators = new Set([
+  'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
+  'sec', 'csc', 'cot', 'coth',
+  'log', 'det', 'arg'
 ]);
 
 // Translations between internal command names and Algebrite functions.
@@ -1390,10 +1401,19 @@ class AlgebriteToExpr {
     }
     
     // Check "built-in" unary LaTeX command like \sin{x}.
-    if(allowed_algebrite_unary_functions.has(f) && args.length === 1)
-      return new CommandExpr(
-        translate_function_name(f, false),
-        [DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
+    if(allowed_algebrite_unary_functions.has(f) && args.length === 1) {
+      const command_name = translate_function_name(f, false);
+      // Use LaTeX built-in commands when possible, otherwise
+      // use \operatorname{f}{x}.
+      if(algebrite_unary_operators.has(f)) 
+        return new CommandExpr(
+          command_name,
+          [DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
+      else
+        return new CommandExpr('operatorname', [
+          new TextExpr(command_name),
+          DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
+    }
 
     // Anything else becomes f(x,y,z).
     let operands_expr = arg_exprs[0];
