@@ -252,6 +252,7 @@ class Expr {
   is_delimiter_expr() { return this.expr_type() === 'delimiter'; }
   is_subscriptsuperscript_expr() { return this.expr_type() === 'subscriptsuperscript'; }
   is_array_expr() { return this.expr_type() === 'array'; }
+  is_matrix_expr() { return this.is_array_expr() && this.is_matrix(); }
   is_text_expr_with(text) { return this.is_text_expr() && this.text === text; }
   is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
   is_unary_minus_expr() { return this.is_prefix_expr() && this.is_unary_minus(); }
@@ -1394,18 +1395,14 @@ class TextExpr extends Expr {
     return super.matches(expr) && this.text === expr.text;
   }
 
-  looks_like_number() {
-    // cf. ExprParser.tokenize()
-    return /^-?\d*\.?\d+$/.test(this.text);
-  }
-
-  looks_like_negative_number() {
-    return /^-\d*\.?\d+$/.test(this.text);
-  }
-
   as_editable_string() {
     return LatexEmitter.latex_unescape(this.text);
   }
+
+  // cf. ExprParser.tokenize()
+  looks_like_number() { return /^-?\d*\.?\d+$/.test(this.text); }
+  looks_like_floating_point() { return !isNaN(parseFloat(this.text)); }
+  looks_like_negative_number() { return /^-\d*\.?\d+$/.test(this.text); }
 }
 
 

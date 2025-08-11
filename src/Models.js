@@ -1296,7 +1296,7 @@ class RationalizeToExpr {
       negated = true;
       expr = expr.base_expr;
     }
-    if(expr.is_text_expr_with_number()) {
+    if(expr.is_text_expr() && expr.looks_like_floating_point()) {
       let value = parseFloat(expr.text);
       if(!isNaN(value)) {
         if(negated)
@@ -2194,9 +2194,9 @@ class Stack {
   }
 
   pop_matrices(n) {
-    const [new_stack, ...array_exprs] = this.pop_arrays(n);
-    if(array_exprs.every(expr => expr.is_matrix()))
-      return [new_stack, ...array_exprs];
+    const [new_stack, ...exprs] = this.pop_exprs(n);
+    if(exprs.every(expr => expr.is_matrix_expr()))
+      return [new_stack, ...exprs];
     else this.type_error();
   }
 

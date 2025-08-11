@@ -357,6 +357,27 @@ class InputContext {
     return this.error_flash_stack();
   }
   
+  // Change the output of an Algebrite roots() or nroots() command
+  // from a vector of root values to a more descriptive aligned
+  // environment array expression.
+  _format_algebrite_roots_result(variable_expr, roots_matrix_expr) {
+    if(!(roots_matrix_expr.is_matrix_expr() &&
+         roots_matrix_expr.column_count === 1))
+      return roots_matrix_expr;  // shouldn't happen
+    const output_exprs = [];
+    for(let row = 0; row < roots_matrix_expr.row_count; row++) {
+      let root_expr = roots_matrix_expr.element_exprs[row][0];
+      output_exprs.push(InfixExpr.combine_infix(
+        SubscriptSuperscriptExpr.build_subscript_superscript(
+          variable_expr, TextExpr.integer(row+1), false, false),
+        RationalizeToExpr.rationalize_expr(root_expr, false),
+        new TextExpr('=')));
+    }
+    return new ArrayExpr(
+      'aligned', output_exprs.length, 3,
+      ArrayExpr.split_elements(output_exprs, 'infix'));
+  }
+
   // NOTE: This has to be done specially because otherwise Algebrite will
   // automatically just resimplify the "factored" result.
   do_algebrite_completesquare(stack, guess_variable) {
@@ -450,29 +471,6 @@ class InputContext {
     let [new_stack, expr] = stack.pop_exprs(1);
     const result_expr = RationalizeToExpr.rationalize_expr(expr);
     return new_stack.push_expr(result_expr);
-  }
-
-  // Change the output of an Algebrite roots() or nroots() command
-  // from a vector of root values to a more descriptive aligned
-  // environment array expression.
-  _format_algebrite_roots_result(variable_expr, roots_matrix_expr) {
-    if(!(roots_matrix_expr.is_array_expr() && roots_matrix_expr.is_matrix() &&
-         roots_matrix_expr.column_count === 1))
-      return roots_matrix_expr;  // shouldn't happen
-    const output_exprs = [];
-    for(let row = 0; row < roots_matrix_expr.row_count; row++) {
-      let root_expr = roots_matrix_expr.element_exprs[row][0];
-      output_exprs.push(InfixExpr.combine_infix(
-        SubscriptSuperscriptExpr.build_subscript_superscript(
-          variable_expr, TextExpr.integer(row+1), false, false),
-        RationalizeToExpr.rationalize_expr(root_expr, false),
-        new TextExpr('=')));
-    }
-    return new ArrayExpr(
-      'aligned',
-      ArrayExpr.split_elements(output_exprs, 'infix'),
-      output_exprs.length, 3,
-      output_element_exprs);
   }
 
   do_prefix_argument() {
@@ -1920,7 +1918,7 @@ class InputContext {
 
   do_transpose_matrix(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_array_expr() && expr.is_matrix()) {
+    if(expr.is_matrix_expr()) {
       // Transpose a matrix "literal" directly.
       return new_stack.push_expr(expr.transposed());
     }

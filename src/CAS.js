@@ -1140,7 +1140,7 @@ class ExprToAlgebrite {
     // Perform the transpose internally rather than calling
     // transpose(A) with Algebrite.
     if(superscript_expr &&
-       base_expr.is_array_expr() && base_expr.is_matrix() &&
+       base_expr.is_matrix_expr() &&
        (superscript_expr.is_text_expr_with('T') ||
         (superscript_expr.is_font_expr() && superscript_expr.typeface === 'roman' &&
          superscript_expr.expr.is_text_expr_with('T')))) {
@@ -1205,8 +1205,7 @@ class ExprToAlgebrite {
       // these are converted into inner(M1, M2, ...) calls here
       // without needing an explicit \cdot.
       let matrix_count = 0;
-      for(let j = i; j < exprs.length &&
-              exprs[j].is_array_expr() && exprs[j].is_matrix();
+      for(let j = i; j < exprs.length && exprs[j].is_matrix_expr();
           j++, matrix_count++)
         ;
       if(matrix_count >= 2) {
