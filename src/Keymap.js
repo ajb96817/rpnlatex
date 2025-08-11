@@ -1008,9 +1008,9 @@ const EditorKeymap = {
     'W': "algebrite eval 3",
     'x': "algebrite expand 1 1",
     'X': "algebrite expand 2",
-    'y': "all_on_left true;algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...]
+    'y': "all_on_left true;algebrite nroots 1 1",  // TODO: display the guessed variable: x=[...] (for roots() too)
     'Y': "swap;all_on_left true;swap;algebrite nroots 2",
-    'z': "all_on_left true;algebrite roots 1 1",  // z=zeroes; TODO: display guessed variable
+    'z': "all_on_left true;algebrite roots 1 1",
     'Z': "swap;all_on_left true;swap;algebrite roots 2"
   },
 

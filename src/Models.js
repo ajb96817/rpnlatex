@@ -1260,8 +1260,13 @@ class ExprParser {
 
 
 class RationalizeToExpr {
-  static rationalize(value) {
-    return new RationalizeToExpr().rationalize_to_expr(value);
+  static rationalize(value, full_size_fraction=true) {
+    return new RationalizeToExpr(
+      full_size_fraction).rationalize_to_expr(value);
+  }
+
+  constructor(full_size_fraction) {
+    this.full_size_fraction = full_size_fraction;
   }
   
   // Try to find a close rational approximation to a floating-point
@@ -1409,6 +1414,13 @@ class RationalizeToExpr {
       return [c, d];
     else
       return [a, b];
+  }
+
+  _make_fraction(numer_expr, denom_expr) {
+    if(this.full_size_fraction)
+      return CommandExpr.frac(numer_expr, denom_expr);
+    else
+      return InfixExpr.combine_infix(numer_expr, denom_expr, '/');
   }
 
   // Number formatting routines.
