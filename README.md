@@ -1,5 +1,8 @@
 # rpnlatex - RPN style mathematical scratchpad
 
+  * **Current release version**: `1.3.2` - ([live build](https://ajb96817.github.io/rpnlatex/)) - ([alternative site](https://andrewbrault.com/rpnlatex/))
+  * **Development version**: `1.4.0` - ([live build](https://andrewbrault.com/rpnlatex_dev/)) - ([source code](https://github.com/ajb96817/rpnlatex))
+
 This is a browser-based editor meant for quickly entering and manipulating equations.
 It can be used as a scratchpad for solving math problems, as an alternative to pen and
 paper.  It has some limited document-preparation capabilities but for a full mathematical
@@ -13,12 +16,13 @@ browser and runs completely on your local hardware.  There is no server-side sto
 
 ## Features
 
-  * Cross-platform, with a simple and flexible interface suited for mobile or desktop.
+  * Open source and cross-platform, with a simple and flexible interface suited for mobile or desktop.
   * Print-quality, instantaneous rendering of math formulas as you edit.
   * Operates entirely from the keyboard; no mouse actions or menu items to select.
   * Generates LaTeX-compatible code but does not require knowledge of LaTeX.
   * Almost everything normally found in mathematical books and papers can be quickly typeset with the built-in keybindings.
   * Build up formulas piece by piece in an intuitive way using a stack-based method.
+  * Symbolic algebra and calculus operations and numerical facilities are provided.
   * Math formulas can be intermixed with normal text, with font styles, section headers, etc., and arranged into a document structure.
   * Documents can be kept in local browser storage, or saved to files.
   * Comprehensive user manual included.
