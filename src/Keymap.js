@@ -460,6 +460,7 @@ const EditorKeymap = {
     'l': "operator lim",
     'm': "parenthesize_argument;operator min",
     'M': "operator argmin",
+    'n': "parenthesize_argument;push sgn;swap;operator operatorname 2",
     'r': "autoparenthesize;push Tr;swap;operator operatorname 2",
     's': "operator sup",
     'S': "operator limsup",

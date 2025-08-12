@@ -229,13 +229,25 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
   font-size: 120%;
 }
 #stack_panel div.indicator span.notification {
-  color: #060;
+  color: #151;
   background-color: #ffe;
   padding: 0.1em 0.2em;
-  border: 1px solid #888;
+  border: 1px solid #cca;
 }
 #stack_panel div.indicator span.highlighted { color: #393; font-weight: bold; font-family: monospace; }
 #stack_panel div.indicator span.mode { color: #888; font-family: monospace; }
+
+#stack_panel div.error_message {
+  float: right;
+  clear: right;
+  background-color: #fdd;
+  padding: 0.1em 0.2em;
+  margin-right: 0.25em;
+  margin-top: 0.25em;
+  border: 1px solid #cbb;
+  font-weight: bold;
+  color: #800;
+}
 
 #stack_panel div.floating_item {
   float: right;

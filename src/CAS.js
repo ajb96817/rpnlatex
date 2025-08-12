@@ -410,21 +410,8 @@ class AlgebriteInterface {
     return new AlgebriteToExpr().print_list(p);
   }
 
-  // Returns:
-  //    [string, null, null] - successful conversion
-  //    [null, error_message, offending_subexpr] - on failure
   static expr_to_algebrite_string(expr) {
-    let result = null;
-    try {
-      const result_string = new ExprToAlgebrite().expr_to_algebrite_string(expr);
-      result = [result_string, null, null];
-    } catch(e) {
-      if(e instanceof ExprToAlgebriteError)
-        result = [null, e.message, e.offending_expr];
-      else
-        result = [null, e.message, expr];
-    }
-    return result;
+    return new ExprToAlgebrite().expr_to_algebrite_string(expr);
   }
 
   static algebrite_result_to_expr(p) {
@@ -433,7 +420,7 @@ class AlgebriteInterface {
 
   static call_function(function_name, argument_exprs) {
     const argument_strings = argument_exprs.map(
-      expr => new ExprToAlgebrite().expr_to_algebrite_string(expr));
+      expr => this.expr_to_algebrite_string(expr));
     return this.call_function_with_argument_strings(
       function_name, argument_strings);
   }
@@ -472,6 +459,11 @@ class AlgebriteInterface {
       else return false;
     };
 
+    // For now, disallow more complex expressions like x^2 as the
+    // "variable".  This doesn't quite work right yet.
+    if(!expr_to_variable_name(variable_expr))
+      throw new ExprToAlgebriteError('Invalid variable', variable_expr);
+
     // Extract quadratic, linear, constant terms.
     const [a, b, c] = [2, 1, 0].map(
       n => this.call_function(
@@ -495,8 +487,8 @@ class AlgebriteInterface {
     // Determine what is left over in the expression aside from
     // the now "perfect" square term (linear term should no longer
     // be present in what is left).
-    const expr_result = A.eval(new ExprToAlgebrite().expr_to_algebrite_string(expr));
-    const var_result = A.eval(new ExprToAlgebrite().expr_to_algebrite_string(variable_expr));
+    const expr_result = A.eval(this.expr_to_algebrite_string(expr));
+    const var_result = A.eval(this.expr_to_algebrite_string(variable_expr));
     // a*x^2 + b*x + c
     const quadratic_polynomial_part =
           A.add(A.multiply(a, A.power(var_result, 2)),
@@ -702,16 +694,12 @@ class AlgebriteInterface {
   }
 
   static define_function(fn_name, variable_name, body_expr) {
-    const body_result = this.expr_to_algebrite_string(body_expr);
-    if(!body_result[0]) {
-      // TODO
-      alert('define_function failed');
-      return;
-    }
+    // TODO: catch exceptions here and put out a better error message
+    const body_string = this.expr_to_algebrite_string(body_expr);
     const def_string = [
       fn_name,
       '(', variable_name, ') = ',
-      body_result[0]
+      body_string
     ].join('');
     Algebrite.run(def_string);
   }

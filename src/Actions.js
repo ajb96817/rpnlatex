@@ -109,6 +109,8 @@ class InputContext {
     // the stack area.  Cleared after every keypress.
     this.notification_text = null;
 
+    this.error_message = null;
+
     // Special indicator to help control the undo stack:
     //   null - save state to undo stack after this action as normal
     //   'undo' - request an undo
@@ -207,6 +209,7 @@ class InputContext {
         this.preserve_prefix_argument = false;
 
         this.notification_text = null;
+        this.error_message = null;
 
         // Execute the handler and assemble the new state.
         const new_stack = (handler_function.bind(this))(app_state.stack, ...parameters);
@@ -226,15 +229,23 @@ class InputContext {
         if(!this.preserve_prefix_argument)
           this.prefix_argument = null;
       } catch(e) {
+        this.error_flash_stack();
+        this.perform_undo_or_redo = null;
+        this.mode = 'base';
+        this.prefix_argument = null;
         if(['stack_underflow', 'stack_type_error',
-            'prefix_argument_required'].includes(e.message)) {
-          this.error_flash_stack();
-          this.perform_undo_or_redo = null;
-          this.mode = 'base';
-          this.prefix_argument = null;
+            'prefix_argument_required'].includes(e.message))
+          return null;
+        else {
+          // May be error from Algebrite, or a random internal
+          // Javascript exception.
+          this.error_message = {
+            message: e.toString(),
+            offending_expr: e.offending_expr
+          };
           return null;
         }
-        else throw e;
+        //else throw e;
       }
       finally {
         // Avoid holding references longer than needed.
@@ -337,6 +348,7 @@ class InputContext {
         argument_exprs.splice(guess_variable_arg_index, 0, guessed_variable_expr);
       }
       else {
+        // TODO: maybe this.error_message()
         this.notify('Could not guess variable');
         return this.error_flash_stack();
       }

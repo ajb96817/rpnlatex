@@ -245,6 +245,13 @@ class App extends React.Component {
           app_state: app_state,
           input_context: input_context
         }));
+    if(input_context.error_message)
+      stack_panel_components.push(
+        $e(ErrorMessageComponent, {
+          app_state: app_state,
+          error_message: input_context.error_message.message,
+          offending_expr: input_context.offending_expr
+        }));
     stack_panel_components.push(
       $e(StackItemsComponent, {
         settings: settings,
@@ -401,6 +408,18 @@ class ModeIndicatorComponent extends React.Component {
         'span', {className: 'mode'},
         input_mode.replaceAll('_', ' '));
     return $e('div', {className: 'indicator'}, indicator_item);
+  }
+}
+
+
+class ErrorMessageComponent extends React.Component {
+  // TODO: show offending_expr
+  render() {
+    const error_message = this.props.error_message;
+    const offending_expr = this.props.offending_expr;
+    return $e(
+      'div', {className: 'error_message'},
+      error_message);
   }
 }
 
