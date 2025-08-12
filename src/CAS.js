@@ -58,7 +58,7 @@ const allowed_algebrite_unary_functions = new Set([
   'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
   'log', 'choose', 'contract', 'det', 'curl', 'div',
-  'add', 'multiply', 'quotient', 'cross', 'inner',
+  'add', 'multiply', 'quotient', /*'cross',*/ 'inner',
   'arg', 'erf', 'erfc', 'real', 'imag',
   'sgn', 'dirac',
   
@@ -791,24 +791,20 @@ class AlgebriteTensor extends AlgebriteNode {
     this.element_nodes = element_nodes;
   }
 
-  // TODO: emit_as_vector
+  // TODO: emit_as_vector (for cross())
 
   emit(emitter) {
-    const is_vector = this.column_count === 1;
     emitter.emit('[');
     for(let row = 0; row < this.row_count; row++) {
-      if(!is_vector) emitter.emit('[');
+      emitter.emit('[');
       for(let column = 0; column < this.column_count; column++) {
         this.element_nodes[row][column].emit(emitter);
-        if((is_vector && row < this.row_count-1) ||
-           (!is_vector && column < this.column_count-1))
+        if(column < this.column_count-1)
           emitter.emit(',');
       }
-      if(!is_vector) {
-        emitter.emit(']');
-        if(row < this.row_count-1)
-          emitter.emit(',');
-      }
+      emitter.emit(']');
+      if(row < this.row_count-1)
+        emitter.emit(',');
     }
     emitter.emit(']');
   }
@@ -940,7 +936,7 @@ class ExprToAlgebrite {
       // Avoid an Algebrite bug with adding a scalar to a vector/matrix
       // (x + [y, z]).
       if(lhs_is_tensor != rhs_is_tensor)
-        this.error('Cannot mix scalar and tensor addition');
+        this.error('Cannot mix scalar and matrix addition');
     }
     if(fn === 'cross') {
       if(!(lhs_is_tensor && lhs_node.column_count === 1 && lhs_node.row_count === 3 &&
@@ -957,7 +953,8 @@ class ExprToAlgebrite {
     switch(op_name) {
     case '*': return {fn:'multiply', prec:2};
     case '/': return {fn:'multiply', modifier_fn: 'reciprocal', prec:2};
-    case 'times': return {fn:'cross', prec:2};  // TODO: revisit, should only apply this to literal vector pairs
+      //    case 'times': return {fn:'cross', prec:2};  // TODO: revisit, should only apply this to literal vector pairs
+    case 'times':
     case 'cdot': return {fn:'inner', prec:2};
     case '+': return {fn:'add', prec:1};
     case '-': return {fn:'add', modifier_fn:'negative', prec:1};
@@ -1674,6 +1671,8 @@ class AlgebriteToExpr {
     if(tensor_p.ndim === 1) { row_count = tensor_p.dim[0]; column_count = 1; }
     else if(tensor_p.ndim === 2) { row_count = tensor_p.dim[0]; column_count = tensor_p.dim[1]; }
     else return this.error('Tensor rank too high', tensor_p);
+    if(row_count === 1 && column_count === 1)
+      return this.to_expr(tensor_p.elem[0]);  // 1x1 matrices decay into scalars
     const row_exprs = [];
     for(let row = 0, linear_index = 0; row < row_count; row++) {
       const column_exprs = [];
