@@ -77,8 +77,13 @@ const allowed_algebrite_unary_functions = new Set([
 // commands like \operatorname{sgn}{x}.
 const algebrite_unary_operators = new Set([
   'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
-  'sec', 'csc', 'cot', 'coth',
+  'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
   'log', 'det', 'arg'
+]);
+
+// These unary functions require a literal matrix/vector argument.
+const algebrite_matrix_only_unary_functions = new Set([
+  'contract', 'det', 'inner'
 ]);
 
 // Translations between internal command names and Algebrite functions.
@@ -410,6 +415,10 @@ class AlgebriteInterface {
     return new AlgebriteToExpr().print_list(p);
   }
 
+  static error(message, offending_expr) {
+    throw new ExprToAlgebriteError(message, offending_expr);
+  }
+
   static expr_to_algebrite_string(expr) {
     return new ExprToAlgebrite().expr_to_algebrite_string(expr);
   }
@@ -428,8 +437,6 @@ class AlgebriteInterface {
   // 'argument_strings' have already been converted into Algebrite syntax.
   static call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
-    // const algebrite_method = Algebrite[function_name];
-    // const result = algebrite_method(...argument_strings);
     const result = Algebrite.exec(function_name, ...argument_strings);
     console.log('Output: ' + this.debug_print_list(result));
     return result;
@@ -454,7 +461,7 @@ class AlgebriteInterface {
     const A = Algebrite;
     const testeq = (x, y) => {
       const result = A.testeq(x, y);
-      if(result.k === 1)
+      if(result.k === 1 /* NUM */)
         return result.q.a.equals(1) ? true : false;
       else return false;
     };
@@ -922,7 +929,24 @@ class ExprToAlgebrite {
     const lhs_node = node_stack.pop();
     if(operator_info.modifier_fn)
       rhs_node = new AlgebriteCall(operator_info.modifier_fn, [rhs_node]);
+    this._check_infix_operator_arguments(operator_info.fn, lhs_node, rhs_node);
     node_stack.push(new AlgebriteCall(operator_info.fn, [lhs_node, rhs_node]));
+  }
+
+  _check_infix_operator_arguments(fn, lhs_node, rhs_node) {
+    const lhs_is_tensor = lhs_node instanceof AlgebriteTensor;
+    const rhs_is_tensor = rhs_node instanceof AlgebriteTensor;
+    if(fn === 'add') {
+      // Avoid an Algebrite bug with adding a scalar to a vector/matrix
+      // (x + [y, z]).
+      if(lhs_is_tensor != rhs_is_tensor)
+        this.error('Cannot mix scalar and tensor addition');
+    }
+    if(fn === 'cross') {
+      if(!(lhs_is_tensor && lhs_node.column_count === 1 && lhs_node.row_count === 3 &&
+           rhs_is_tensor && rhs_node.column_count === 1 && rhs_node.row_count === 3))
+        this.error('Cross product requires two 3-dimensional vectors');
+    }
   }
 
   // { fn: binary algebrite function to apply
@@ -1060,8 +1084,12 @@ class ExprToAlgebrite {
     // Check for unary functions like sin(x).
     // Translate 'Tr' -> 'contract', etc. if needed.
     const algebrite_command = translate_function_name(command_name, true);
-    if(allowed_algebrite_unary_functions.has(algebrite_command) && nargs === 1)
+    if(allowed_algebrite_unary_functions.has(algebrite_command) && nargs === 1) {
+      if(algebrite_matrix_only_unary_functions.has(algebrite_command) &&
+         !args[0].is_matrix_expr())
+        this.error('Matrix argument required', args[0]);
       return new AlgebriteCall(algebrite_command, [this.expr_to_node(args[0])]);
+    }
 
     // Special case for \binom{n}{m}; this is the only two-argument
     // function used with Algebrite.
@@ -1435,7 +1463,7 @@ class AlgebriteToExpr {
         // Integer or rational literal factor; put the pieces into the
         // numerator and denominator lists.
         const q = factor.q;
-        if(q.a.isNegative() && i == 0) {
+        if(q.a.isNegative() && i === 0) {
           // A leading negative factor makes the whole fraction negated
           // (but only when it comes first in the factors list).
           unary_minus = true;
