@@ -104,6 +104,7 @@ const algebrite_function_translations = [
   ['Tr', 'contract'  /* TODO: 'trace' instead */],
   ['Re', 'real'],
   ['Im', 'imag'],
+  ['delta', 'dirac'],
   ['ln', 'log'],
   ['log_2', 'log2'],
   ['lg', 'log2'],
@@ -143,7 +144,7 @@ function is_valid_variable_name(s, allow_initial_digit) {
 // If the Expr does not convert to a valid variable name, null
 // is returned.
 const reserved_algebrite_symbols =
-      new Set(['Gamma', 'd']);
+      new Set(['Gamma', 'd', 'delta']);
 function expr_to_variable_name(expr, ignore_superscript=false,
                                allow_subscript=true, allow_bold=true) {
   // Prepend 'bold_' if bolded.
@@ -1009,11 +1010,13 @@ class ExprToAlgebrite {
     // The usual case (not f'(x)):
     let fn_name = expr_to_variable_name(fn_expr);
     if(fn_name === 'Gamma_') {
-      // Special case for \Gamma{(x)}, which exists in Algebrite as a
+      // Special case for \Gamma{(x)} which exists in Algebrite as a
       // function (but implemented in a limited way), so use 'Gamma' when
       // called as as function, but 'Gamma_' when used as a variable.
       fn_name = 'Gamma';
     }
+    else if(fn_name === 'delta_')
+      fn_name = 'dirac';  // similar special case for Dirac delta
     if(fn_name)
       return new AlgebriteCall(
         fn_name, arg_exprs.map(arg_expr => this.expr_to_node(arg_expr)));
@@ -1037,6 +1040,7 @@ class ExprToAlgebrite {
       return new AlgebriteCall('floor', [inner_node]);
     else if((left === "\\lVert" && right === "\\rVert") ||
             (left === "\\vert" && right === "\\vert"))
+      // TODO: vector norm for literal vector argument
       return new AlgebriteCall('abs', [inner_node]);
     else
       return this.error('Unsupported delimiters', expr);
@@ -1418,7 +1422,10 @@ class AlgebriteToExpr {
       const command_name = translate_function_name(f, false);
       // Use LaTeX built-in commands when possible, otherwise
       // use \operatorname{f}{x}.
-      if(algebrite_unary_operators.has(f)) 
+      if(command_name === 'delta')  // special case
+        return new FunctionCallExpr(new CommandExpr('delta'),
+          DelimiterExpr.parenthesize(arg_exprs[0]));
+      else if(algebrite_unary_operators.has(f)) 
         return new CommandExpr(
           command_name,
           [DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
