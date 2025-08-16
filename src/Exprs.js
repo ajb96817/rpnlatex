@@ -307,7 +307,7 @@ class Expr {
     if(this.has_subexpressions() !== expr.has_subexpressions()) return false;
     const [this_subexpressions, expr_subexpressions] =
           [this.subexpressions(), expr.subexpressions()];
-    if(this_subexpressions.length != expr_subexpressions.length) return false;
+    if(this_subexpressions.length !== expr_subexpressions.length) return false;
     return this_subexpressions.every((this_subexpression, i) =>
       this_subexpression.matches(expr_subexpressions[i]));
   }
@@ -364,7 +364,7 @@ class Expr {
 }
 
 
-// Represents a "raw" LaTeX command such as \sqrt plus optional operand expressions.
+// Represents a LaTeX command such as \sqrt or \frac{x}{y}.
 class CommandExpr extends Expr {
   static frac(numer_expr, denom_expr) {
     return new CommandExpr(
@@ -406,7 +406,7 @@ class CommandExpr extends Expr {
   }
 
   emit_latex(emitter) {
-    if(this.command_name === 'atop' && this.operand_count() === 2) {
+    if(this.is_command_expr_with(2, 'atop')) {
       // \atop is a special case.  It needs to be written as
       // {left_expr \atop right_expr} instead of \atop{left_expr}{right_expr}.
       emitter.grouped(() => {
@@ -734,7 +734,7 @@ class InfixExpr extends Expr {
   // handled if combining x+y where y involves a prefix unary minus.
   // TODO: Maybe have subtract_exprs() as well.  That's not the same
   // though, since we want to have x - ((-y) - z) -> x + y + z,
-  // and it's "better" to just parethesize: x - (-y - z).
+  // and it's "better" to just parenthesize: x - (-y - z).
   static add_exprs(left_expr, right_expr) {
     if(right_expr.is_unary_minus_expr()) {
       // x + (-y)  ->  x - y
@@ -834,7 +834,7 @@ class InfixExpr extends Expr {
   // This gives us a chance to convert things like \parallel into
   // their flexible \middle counterparts.
   emit_latex(emitter, inside_delimiters) {
-    const is_top_level = (this === emitter.base_expr);
+    const is_top_level = this === emitter.base_expr;
     for(let i = 0; i < this.operator_exprs.length; i++) {
       emitter.expr(this.operand_exprs[i], 2*i);
       if(is_top_level && this.linebreaks_at.includes(2*i)) {
@@ -1542,6 +1542,7 @@ class DelimiterExpr extends Expr {
       ['infix', 'prefix', 'postfix'
       ].includes(expr.expr_type()) ||
 
+      // Something like '-2x'.
       (expr.is_sequence_expr() && expr.exprs[0].is_prefix_expr()) ||
 
       // Any infix expression inside "blank" delimiters

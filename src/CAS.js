@@ -936,7 +936,7 @@ class ExprToAlgebrite {
     if(fn === 'add') {
       // Avoid an Algebrite bug with adding a scalar to a vector/matrix
       // (x + [y, z]).
-      if(lhs_is_tensor != rhs_is_tensor)
+      if(lhs_is_tensor !== rhs_is_tensor)
         this.error('Cannot mix scalar and matrix addition');
     }
     if(fn === 'cross') {
@@ -1295,7 +1295,6 @@ class ExprToAlgebrite {
 // The Algebrite Lisp-style cons lists are called 'p' here.
 class AlgebriteToExpr {
   error(message, offending_p) {
-    alert(message);
     throw new Error('Algebrite: ' + message);
   }
   
@@ -1411,6 +1410,7 @@ class AlgebriteToExpr {
       if(nargs === 1)
         return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
     case 'erf': case 'erfc':
+      // TODO: needed?
       if(nargs === 1)
         return new SequenceExpr([
           new CommandExpr('operatorname', [new TextExpr(f)]),
@@ -1436,6 +1436,7 @@ class AlgebriteToExpr {
     }
 
     // Anything else becomes f(x,y,z).
+    // TODO: reduce()
     let operands_expr = arg_exprs[0];
     for(let i = 1; i < args.length; i++)
       operands_expr = InfixExpr.combine_infix(
@@ -1471,7 +1472,7 @@ class AlgebriteToExpr {
           // A leading negative factor makes the whole fraction negated
           // (but only when it comes first in the factors list).
           unary_minus = true;
-          if(!q.a.equals(-1))  // keep out unnecessary factors of 1
+          if(!q.a.equals(-1))  // keep out unnecessary '1' factors
             numerator_exprs.push(bigint_to_expr(q.a.multiply(-1)));
         }
         else if(!q.a.equals(1))

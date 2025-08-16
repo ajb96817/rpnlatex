@@ -1059,8 +1059,8 @@
             <td><span class="keybinding">2</span><span class="keybinding">N</span> <code>\log_2{x}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">m</span> <code>\mathrm{Im}(x)</code></td>
-            <td><span class="keybinding">M</span> <code>\mathrm{Re}(x)</code></td>
+            <td><span class="keybinding">m</span> <code>\operatorname{Im} x</code></td>
+            <td><span class="keybinding">M</span> <code>\operatorname{Re} x</code></td>
           </tr>
       </tbody></table>
 
@@ -2155,17 +2155,19 @@
         </li>
         <li>
           <span class="keybinding">j</span>
-          Attempt to calculate a definite integral:
-          <code>f\enspace a\enspace b \to \int_a^b f{(x)}\,dx</code>.
+          <code>f\enspace a\enspace b \to \int_a^b f{(x)}\,dx</code>:
+          Attempt to calculate a definite integral.
           The integration bounds can be symbolic expressions or rational numbers.
           Currently, numerical integration (quadrature) is not supported,
-          and the integration bounds must be finite.
+          and the integration bounds must be finite.  Example:
           <code>\displaystyle{
             \tan x \enspace 0 \enspace \pi/3 \to \ln 2}
-          </code>.
+          </code>
+        </li>
+        <li>
           <span class="keybinding">J</span>
-          allows you to specify the integration variable explicitly:
-          <code>f\enspace z\enspace a\enspace b \to \int_a^b f{(z)}\,dz</code>
+          <code>f\enspace z\enspace a\enspace b \to \int_a^b f{(z)}\,dz</code>:
+          Specify the integration variable explicitly.
         </li>
         <li>
           <span class="keybinding">t</span> and <span class="keybinding">T</span>
@@ -2188,6 +2190,8 @@
         Evaluating the expression with
         <span class="keybinding">#</span><span class="keybinding">#</span>
         will then execute the matrix or vector operation(s).
+      </p>
+      <p>
         <strong>NOTE:</strong> the matrices or vectors must be &quot;literal&quot;
         matrices, not generic variables like <code>M</code>.  However,
         they can contain symbolic expressions as their elements.

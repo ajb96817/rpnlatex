@@ -581,7 +581,7 @@ class TextEntryComponent extends React.Component {
       s += ' ';  // so that we can show the cursor when it's at the end of the text
     const spans = [];
     for(let i = 0; i < s.length; i++) {
-      const is_cursor = i == cursor_pos;
+      const is_cursor = i === cursor_pos;
       const is_error = error_start !== null && error_end !== null &&
             i >= error_start && i < error_end;
       const span_class_name =
