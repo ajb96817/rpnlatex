@@ -420,6 +420,11 @@ class AlgebriteInterface {
     throw new ExprToAlgebriteError(message, offending_expr);
   }
 
+  static parse_string(s) {
+    const result = Algebrite.parse(s);
+    return this.algebrite_result_to_expr(result);
+  }
+
   static expr_to_algebrite_string(expr) {
     return new ExprToAlgebrite().expr_to_algebrite_string(expr);
   }

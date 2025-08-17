@@ -1458,7 +1458,7 @@ class InputContext {
     else if(textstyle === 'conjunction' ||
             textstyle === 'bold_conjunction') {
       const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
-      const new_expr = Expr.combine_with_conjunction(
+      new_expr = Expr.combine_with_conjunction(
         left_expr, right_expr,
         trimmed_text, textstyle === 'bold_conjunction');
       this._cancel_text_entry(new_stack);
@@ -1472,7 +1472,14 @@ class InputContext {
       return new_stack.push(new_item);
     }
     else {
-      new_expr = ExprParser.parse_string(text);
+      try {
+        //new_expr = ExprParser.parse_string(text);
+        new_expr = AlgebriteInterface.parse_string(text);
+      }
+      catch(e) {
+        // Algebrite parse error.
+        this.report_error(e.message);
+      }
       if(!new_expr) {
         this.suppress_undo();
         this.switch_to_mode(this.mode);
