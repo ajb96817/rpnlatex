@@ -111,6 +111,22 @@ const algebrite_function_translations = [
   ['log_{10}', 'log10']  // not yet implemented in the editor
 ];
 
+// Maps between LaTeX commands and Algebrite relation "functions".
+const algebrite_relation_types = [
+  // Element 0: content of the corresponding TextExpr/CommandExpr
+  //            (so any leading \ has been stripped)
+  // Element 1: the full LaTeX string
+  // Element 2: Algebrite function name
+  ['=',  '=',    'testeq'],
+  ['=',  '=',    'equals'],
+  ['<',  '<',    'testlt'],
+  ['>',  '>',    'testgt'],
+  ['ne', "\\ne", 'testneq'],  // special case
+  ['le', "\\le", 'testle'],
+  ['ge', "\\ge", 'testge']
+];
+
+
 // 'to_algebrite'=true converts from editor commands to Algebrite
 // (e.g. binom->choose); false is the inverse.
 function translate_function_name(f, to_algebrite) {
@@ -600,23 +616,17 @@ class AlgebriteInterface {
   static analyze_relation(expr) {
     if(!expr.is_infix_expr())
       return null;
-    const relation_types = {
-      '=':  'testeq',
-      '<':  'testlt',
-      '>':  'testgt',
-      'ne': 'testneq',  // special case
-      'le': 'testle',
-      'ge': 'testge'
-    };
     // Scan for a relational operator in the infix expression.
     let relation_index = null;
     let relation_type = null;
     expr.operator_exprs.forEach((operator_expr, i) => {
       const operator_text = expr.operator_text_at(i);
-      if(relation_types[operator_text]) {
+      const match = algebrite_relation_types.find(
+        pair => pair[0] === operator_text);
+      if(match) {
         if(relation_type)
           return null;  // more than 1 relational operator
-        relation_type = relation_types[operator_text];
+        relation_type = match[2];
         relation_index = i;
       }
     });
@@ -1392,6 +1402,13 @@ class AlgebriteToExpr {
     const arg_exprs = args.map(arg => this.to_expr(arg));
 
     // Check forms that have special Expr representations.
+
+    // testle(x, y) -> x<y, etc.
+    const match = algebrite_relation_types.find(pair => pair[2] === f);
+    if(nargs === 2 && match)
+      return InfixExpr.combine_infix(...arg_exprs, Expr.text_or_command(match[1]));
+
+    // Other special cases:
     switch(f) {
     case 'multiply':
       return this.multiply_to_expr(args);
@@ -1414,6 +1431,12 @@ class AlgebriteToExpr {
     case 'abs':
       if(nargs === 1)
         return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
+    case 'quote':
+      return arg_exprs[0];
+    case 'not':
+      // not(equals(x,y)) -> not(x=y) -> x!=y
+      if(nargs === 1 && arg_exprs[0].is_infix_expr())
+        return arg_exprs[0].negate_operator_at(arg_exprs[0].split_at_index);
     case 'erf': case 'erfc':
       // TODO: needed?
       if(nargs === 1)
