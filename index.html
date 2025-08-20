@@ -242,8 +242,9 @@
         Typing <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
         will typeset your entry in a roman (non-italic) font instead of the normal italic math font,
         and it will not be parsed as a math expression, so you can use any text you want.  This can be
-        used to include normal English words or phrases in math expressions.  Placeholders can still be
-        included using <span class="keybinding">[</span><span class="keybinding">]</span>.
+        used to include normal English words or phrases in math expressions.
+        <a href="#placeholders">Placeholders</a> can also be included using
+        <span class="keybinding">[</span><span class="keybinding">]</span>.
         <br />
         <strong>NOTE:</strong> The <a href="#conjunction_anchor"><em>conjunction</em></a>
         command available via <span class="keybinding">,</span><span class="keybinding">&#39;</span>
@@ -289,26 +290,27 @@
             They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.
           </li>
           <li>
-            They can be concatenated with other text objects or with math expressions using <span class="keybinding">&nbsp;</span>
+            Short inline math expressions of the kind allowed in <em>math entry</em> mode
+            can be included between pairs of <span class="keybinding">$</span> symbols
+            (for example: <kbd>$x+y$</kbd>).
+          </li>
+          <li>
+            Placeholders can be included by using
+            <span class="keybinding">[</span><span class="keybinding">]</span>.
+          </li>
+          <li>
+            Text objects can be concatenated to other text objects or to math expressions using <span class="keybinding">&nbsp;</span>
             (space) or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.  Math expressions
             combined with text objects this way become part of the text and are displayed in a more compact inline format.
+          </li>
+          <li>
+            Bold and italic words may be entered using <kbd>**bold**</kbd> and <kbd>//italic//</kbd> syntax.
           </li>
           <li>
             Finishing the text entry with <span class="keybinding">Shift+Enter</span> will
             create a section header instead (with a larger font and underline).  You can later toggle
             whether or not the text object is a section header with the
             <span class="keybinding">/</span><span class="keybinding">&quot;</span> command.
-          </li>
-          <li>
-            Bold and italic words may be entered using <kbd>**bold**</kbd> and <kbd>//italic//</kbd> syntax.
-          </li>
-          <li>
-            Short inline math expressions of the kind allowed in <em>math entry</em> mode
-            can be included between pairs of <span class="keybinding">$</span> symbols
-            (for example: <kbd>$x+y$</kbd>).
-            This syntax is limited, so more complex expressions can be included by using
-            <span class="keybinding">[</span><span class="keybinding">]</span> for a placeholder
-            and filling in the expression later.
           </li>
         </ul>
       </p>

@@ -1765,14 +1765,16 @@ class TextItemTextElement extends TextItemElement {
       pieces.push(this._latex_escape(tokens[i]));
       if(i < tokens.length-1) pieces.push(' ');  // preserve spacing between words
       if(this.is_bold && this.is_italic) pieces.push("}");
-      pieces.push("}\\allowbreak");
+      // An extra empty group {} is needed to prevent the \allowbreak from possibly
+      // running into the next text element.
+      pieces.push("}\\allowbreak{}");
     }
     return pieces.join('');
   }
 
+  // For "export" mode, we can skip the \allowbreak hacks used for "display" mode,
+  // and there is no need to wrap ordinary text in \text{...} (only bold/italic).
   to_latex_export_mode() {
-    // For "export" mode, we can skip the \allowbreak hacks used for "display" mode,
-    // and there is no need to wrap ordinary text in \text{...} (only bold/italic).
     let pieces = [];
     if(this.is_bold && this.is_italic) pieces.push("\\textbf{\\textit{");
     else if(this.is_bold) pieces.push("\\textbf{");
@@ -1818,7 +1820,9 @@ class TextItemExprElement extends TextItemElement {
     else {
       // In "display" mode, we're implicitly in math mode because it's being rendered
       // with KaTeX, so the expression can just be emitted directly.
-      return this.expr.to_latex(null, false);
+      // An empty latex group {} needs to be inserted after this element,
+      // to prevent, e.g. an adjacent "\to" and "x" from becoming "\tox".
+      return this.expr.to_latex(null, false) + '{}';
     }
   }
 }
@@ -2025,14 +2029,10 @@ class TextItem extends Item {
 
   to_latex(export_mode) {
     if(this.is_empty())
-      return "\\rule";
-    else {
-      // NOTE: Elements need to be joined with an empty group {} between them,
-      // in case there are adjacent TextItemExprElements.  Otherwise, for example,
-      // adjacent "\to" and "x" would become "\tox".
+      return "\\rule";  // separator
+    else
       return this.elements.map(
-        element => element.to_latex(export_mode)).join('{}');
-    }
+        element => element.to_latex(export_mode)).join('');
   }
 
   clone() {
