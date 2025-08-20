@@ -233,6 +233,7 @@ const EditorKeymap = {
     'Escape': "cancel_text_entry",
     'Ctrl+z': "cancel_text_entry",
     'Backspace': "text_entry_backspace backspace",
+    'Shift+Backspace': "text_entry_backspace backspace",
     'Delete': "text_entry_backspace delete",
     'ArrowLeft': "text_entry_move_cursor left",
     'ArrowRight': "text_entry_move_cursor right",

@@ -730,6 +730,15 @@ class InfixExpr extends Expr {
       new_linebreaks_at);
   }
 
+  // Combine all exprs using the same op_expr between each term
+  // (x + y + z) with left associativity.
+  static combine_infix_all(exprs, op_expr) {
+    if(exprs.length === 0)
+      return TextExpr.blank();
+    return exprs.reduce((infix_expr, expr) =>
+      this.combine_infix(infix_expr, expr, op_expr));
+  }
+
   // Combining with infix + has some special cases that should be
   // handled if combining x+y where y involves a prefix unary minus.
   // TODO: Maybe have subtract_exprs() as well.  That's not the same

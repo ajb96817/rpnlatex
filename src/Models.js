@@ -6,6 +6,9 @@ import {
   Expr, CommandExpr, FontExpr, PrefixExpr, InfixExpr, PlaceholderExpr,
   TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr /* , ArrayExpr */
 } from './Exprs.js';
+import {
+  AlgebriteInterface
+} from './CAS';
 
 
 class Keymap {
@@ -1869,7 +1872,8 @@ class TextItem extends Item {
           // It's done this way in case there is something like $x//y$ which
           // would normally get confused as the italic '//' token.
           const math_text = math_pieces.join('');
-          let math_expr = ExprParser.parse_string(math_text);
+          //let math_expr = ExprParser.parse_string(math_text);
+          let math_expr = AlgebriteInterface.parse_string(math_text);
           if(!math_expr) return null;  // entire TextItem parsing fails if inline math exprs fail
           if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
           elements.push(new TextItemExprElement(math_expr));

@@ -1437,6 +1437,15 @@ class AlgebriteToExpr {
       // not(equals(x,y)) -> not(x=y) -> x!=y
       if(nargs === 1 && arg_exprs[0].is_infix_expr())
         return arg_exprs[0].negate_operator_at(arg_exprs[0].split_at_index);
+    case 'component':
+      // Comes from Algebrite x[4] input syntax.
+      // Convert to a function call with square brackets instead.
+      return new FunctionCallExpr(
+        arg_exprs[0],
+        DelimiterExpr.parenthesize(
+          InfixExpr.combine_infix_all(
+            arg_exprs.slice(1),
+            new TextExpr(',')), '[', ']'));
     case 'erf': case 'erfc':
       // TODO: needed?
       if(nargs === 1)
@@ -1464,14 +1473,11 @@ class AlgebriteToExpr {
     }
 
     // Anything else becomes f(x,y,z).
-    // TODO: reduce()
-    let operands_expr = arg_exprs[0];
-    for(let i = 1; i < args.length; i++)
-      operands_expr = InfixExpr.combine_infix(
-        operands_expr, arg_exprs[i], new TextExpr(','));
+    // NOTE: The syntax allows 0-argument calls: f().
     return new FunctionCallExpr(
       variable_name_to_expr(f),
-      DelimiterExpr.parenthesize(operands_expr));
+      DelimiterExpr.parenthesize(
+        InfixExpr.combine_infix_all(arg_exprs, new TextExpr(','))));
   }
 
   // (add x y z ...)
