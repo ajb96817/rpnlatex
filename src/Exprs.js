@@ -2188,6 +2188,30 @@ class ArrayExpr extends Expr {
       this.array_type, this.row_count, this.column_count, new_element_exprs,
       this.row_separators, this.column_separators);
   }
+
+  // If this ArrayExpr is a column vector of other column vectors
+  // (all of the same type and size), flatten them out into a matrix.
+  // For example, an 2x1 matrix with [1, 2, 3], [4, 5, 6] as its elements becomes
+  // a 3x2 matrix [[1, 2, 3], [4, 5, 6]].
+  // This is used to handle Algebrite matrix parsing, which initially gives a
+  // vector-of-vectors result for the [[...]] syntax.
+  try_flattening_vector_of_vectors() {
+    if(!(this.is_matrix() && this.column_count === 1))
+      return this;
+    const new_element_exprs = [];
+    for(let row = 0; row < this.row_count; row++) {
+      const element_expr = this.element_exprs[row][0];
+      if(!(element_expr.array_type === this.array_type &&
+           element_expr.column_count === 1 &&
+           element_expr.row_count === this.element_exprs[0][0].row_count))
+        return this;
+      new_element_exprs.push(
+        element_expr.element_exprs.map(row_exprs => row_exprs[0]));
+    }
+    return new ArrayExpr(
+      this.array_type, this.row_count, this.element_exprs[0].length,
+      new_element_exprs);
+  }
 }
 
 

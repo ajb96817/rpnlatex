@@ -328,8 +328,14 @@ class InputContext {
   // but needs some special handling to coalesce multiple \prime into a single superscript.
   do_prime(stack) {
     const [new_stack, base_expr] = stack.pop_exprs(1);
-    return new_stack.push_expr(
-      base_expr.with_prime(this.settings.autoparenthesize));
+    // For function calls, put the prime on the function name instead of
+    // the expression as a whole: f(x) -> f'(x).
+    if(base_expr.is_function_call_expr())
+      return new_stack.push_expr(new FunctionCallExpr(
+        base_expr.fn_expr.with_prime(), base_expr.args_expr));
+    else
+      return new_stack.push_expr(
+        base_expr.with_prime(this.settings.autoparenthesize));
   }
 
   do_mode(stack, new_mode) { this.switch_to_mode(new_mode); }

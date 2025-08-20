@@ -1716,8 +1716,9 @@ class AlgebriteToExpr {
         column_exprs.push(this.to_expr(tensor_p.elem[linear_index]));
       row_exprs.push(column_exprs);
     }
-    return new ArrayExpr(
+    const array_expr = new ArrayExpr(
       'bmatrix', row_count, column_count, row_exprs);
+    return array_expr.try_flattening_vector_of_vectors();
   }
 }
 

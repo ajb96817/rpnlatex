@@ -188,38 +188,40 @@
         A malformed expression will signal an error; allowed expressions include:
         <ul>
           <li>Numbers such as 3, -10, 5.12</li>
-          <li>Single-letter variables such as <code>x</code>.</li>
           <li>
-            Implicit multiplication such as <code>5x</code> or <code>xy</code>
-            (interpreted as multiplying <code>x</code> and <code>y</code>).
+            Single- or multi-letter variable or function names such as <code>x</code>, <code>\mathrm{xyz}</code>.
+            Multi-letter variables are typeset in a roman (non-italic) font.
+          </li>
+          <li>
+            Greek letters may be spelled out and will be converted: <code>\mathrm{pi} \to \pi</code>.
+          </li>
+          <li>
+            Multiplication by constants may be written implicitly (like <code>5x</code>);
+            for other types of multiplication use a space or an explicit <code>*</code>:
+            write <code>5x*y*z</code> or <code>5x\,y\,z</code> instead of <code>5xy</code>.
           </li>
           <li>
             Infix operators such as <code>x+2y</code>.
-            Allowed operators are: <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">/</span><span class="keybinding">*</span>
-            (but not <span class="keybinding">^</span>).
+            Use <span class="keybinding">^</span> for powers.
           </li>
           <li>
-            Full-size fractions via double slash: <kbd>2//3</kbd> <code>\to\frac{2}{3}</code>.
-          </li>
-          <li>Scientific notation such as 3e-4 (converts to <code>3\cdot{10}^{-4}</code>).</li>
-          <li>
-            <a href="#placeholders">Placeholders</a> via the sequence
-            <span class="keybinding">[</span><span class="keybinding">]</span>.
+            Function calls may be written as: <code>f{(x)}</code>.
           </li>
           <li>
-            <span class="keybinding">@</span> can be used to create a <code>\pi</code> symbol, as a special case.
-            For example: <kbd>1//2@i</kbd> <code>\to \frac{1}{2\pi i}</code>.
+            Parentheses may be used to indicate precedence:
+            <code>(x+1)/(x-1) \to \frac{x+1}{x-1}</code>.
           </li>
           <li>
-            <span class="keybinding">'</span> can be used to add one or more "prime" superscripts:
-            <code>x^{\prime\prime}</code>.
+            Equations and relational operators may be written using the syntaxes:
+            <kbd>x=y, x!=y, x&lt;y, x&gt;y, x&lt;=y, x&gt;=y</kbd>.
           </li>
           <li>
-            <span class="keybinding">!</span> for factorial notation
-            (<code>x!</code>) is allowed.
+            Factorial notation (<code>x!</code>) is allowed.
+          </li>
           <li>
-            Expressions can be parenthesized, e.g. <code>(x+y)</code>.  Square brackets and curly braces may also
-            be used, but they have to be properly matched.
+            Column vectors may be entered using square brackets:
+            <code>[x, y]</code> and matrices with nested brackets:
+            <code>[[1, 2], [3, 4]]</code>.
           </li>
         </ul>
       </p>
