@@ -1492,6 +1492,12 @@ class InputContext {
         this.error_flash_stack();
         return;
       }
+      this._cancel_text_entry(stack);
+      return stack.push(
+        new ExprItem(
+          new_expr,
+          null /* no tag */,
+          text /* source_string */));
     }
     this._cancel_text_entry(stack);
     return stack.push_expr(new_expr);
@@ -1510,7 +1516,8 @@ class InputContext {
   do_edit_item(stack) {
     const [new_stack, item] = stack.pop(1);
     if(item.item_type() === 'text') {
-      const s = item.as_editable_string();
+      //const s = item.as_editable_string();
+      const s = item.source_string;
       if(s) {
         this.do_start_text_entry(new_stack, 'text_entry', s);
         this.text_entry.edited_item = item;
@@ -1525,7 +1532,8 @@ class InputContext {
         this.text_entry.edited_item = item;
         return new_stack;
       }
-      const editable_string = expr.as_editable_string();
+      //const editable_string = expr.as_editable_string();
+      const editable_string = item.source_string;
       if(editable_string) {
         this.do_start_text_entry(new_stack, 'math_entry', editable_string);
         this.text_entry.edited_item = item;

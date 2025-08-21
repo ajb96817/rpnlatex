@@ -1616,11 +1616,13 @@ class Item {
     case 'expr':
       return new ExprItem(
         Expr.from_json(json.expr),
-        json.tag_string || null);
+        json.tag_string || null,
+        json.source_string || null);
     case 'text':
       return new TextItem(
         json.elements.map(element_json => TextItemElement.from_json(element_json)),
         json.tag_string || null,
+        json.source_string || null,
         !!json.is_heading);
     case 'code':
       return new CodeItem(json.language, json.source);
@@ -1630,9 +1632,12 @@ class Item {
   }
 
   // 'tag_string' is an optional tag shown to the right of the item.
-  constructor(tag_string) {
+  // 'source_string' is the original "source code" string for items
+  // that were created in the minieditor.
+  constructor(tag_string, source_string) {
     this.serial = Item.next_serial();
     this.tag_string = tag_string;
+    this.source_string = source_string;
   }
 
   react_key(prefix) { return prefix + '_' + this.serial; }
@@ -1659,8 +1664,8 @@ Item.serial_number = 1;
 class ExprItem extends Item {
   // 'selected_expr_path' is an optional ExprPath object; the indicated subexpression(s)
   // will be highlighted in a "selected" style by the renderer.
-  constructor(expr, tag_string, selected_expr_path) {
-    super(tag_string)
+  constructor(expr, tag_string, source_string, selected_expr_path) {
+    super(tag_string, source_string);
     this.expr = expr;
     this.selected_expr_path = selected_expr_path;
   }
@@ -1678,12 +1683,21 @@ class ExprItem extends Item {
   to_json() {
     let json = {item_type: 'expr', expr: this.expr.to_json()};
     if(this.tag_string) json.tag_string = this.tag_string;
+    if(this.source_string) json.source_string = this.source_string;
     return json;
   }
 
-  clone() { return new ExprItem(this.expr, this.tag_string); }
-  as_bold() { return new ExprItem(this.expr.as_bold(), this.tag_string); }
-  with_tag(new_tag_string) { return new ExprItem(this.expr, new_tag_string); }
+  clone() {
+    return new ExprItem(this.expr, this.tag_string, this.source_string);
+  }
+
+  as_bold() {
+    return new ExprItem(this.expr.as_bold(), this.tag_string, this.source_string);
+  }
+  
+  with_tag(new_tag_string) {
+    return new ExprItem(this.expr, new_tag_string, this.source_string);
+  }
 }
 
 
@@ -1843,8 +1857,15 @@ class TextItemRawElement extends TextItemElement {
 
 
 class TextItem extends Item {
-  static from_expr(expr) { return new TextItem([new TextItemExprElement(expr)]); }
-  static from_string(string) { return new TextItem([new TextItemTextElement(string)]); }
+  static from_expr(expr) {
+    return new this([new TextItemExprElement(expr)]);
+  }
+
+  static from_string(string) {
+    return new this(
+      [new TextItemTextElement(string)],
+      null /* tag_string */, string);
+  }
 
   // "Separators" are currently implemented as empty TextItems with is_heading=true.
   // cf. TextItem.is_empty()
@@ -1904,7 +1925,7 @@ class TextItem extends Item {
           break;
       }
     }
-    return new TextItem(elements);
+    return new this(elements, null /* tag */, s /* source */);
   }
 
   // Tokenize 's' into a token sequence usable by TextItem.parse_string().
@@ -1996,12 +2017,12 @@ class TextItem extends Item {
     }
     return new TextItem(
       merged_elements,
-      null,
+      null, null,  /* tag and source string */
       item1.is_heading || item2.is_heading);
   }
 
-  constructor(elements, tag_string, is_heading) {
-    super(tag_string);
+  constructor(elements, tag_string, source_string, is_heading) {
+    super(tag_string, source_string);
     this.elements = elements;
     this.is_heading = !!is_heading;
   }
@@ -2016,6 +2037,7 @@ class TextItem extends Item {
     // Avoid lots of useless is_heading:false / tag_string:null in the JSON.
     if(this.is_heading) json.is_heading = true;
     if(this.tag_string) json.tag_string = this.tag_string;
+    if(this.source_string) json.source_string = this.source_string;
     return json;
   }
 
@@ -2039,6 +2061,7 @@ class TextItem extends Item {
     return new TextItem(
       this.elements,
       this.tag_string,
+      this.source_string,
       this.is_heading);
   }
 
@@ -2076,6 +2099,7 @@ class TextItem extends Item {
     return new TextItem(
       this.elements.map(element => element.as_bold()),
       this.tag_string,
+      this.source_string,
       this.is_heading);
   }
 
@@ -2083,6 +2107,7 @@ class TextItem extends Item {
     return new TextItem(
       this.elements,
       new_tag_string,
+      this.source_string,
       this.is_heading);
   }
 
@@ -2097,7 +2122,7 @@ class TextItem extends Item {
         if(placeholder_expr_path !== null) {
           const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
           new_elements[i] = new TextItemExprElement(new_expr);
-          return new TextItem(new_elements, this.tag_string, this.is_heading);
+          return new TextItem(new_elements, this.tag_string, this.source_string, this.is_heading);
         }
       }
     }
