@@ -1592,7 +1592,12 @@ class AlgebriteToExpr {
   power_to_expr(args, negate_exponent) {
     if(args.length !== 2) return null;  // shouldn't happen
     const [base_term, exponent_term] = args;
-    const base_expr = this.to_expr(base_term);
+    let base_expr = this.to_expr(base_term);
+    // Special case: e^(something) uses the roman-font e instead
+    // (to match the usual natural exponential notation, as in
+    // the [/][e] command).
+    if(base_expr.is_text_expr_with('e'))
+      base_expr = FontExpr.roman_text('e');
     if(this.utype(exponent_term) === 'num') {
       // Rational or integer exponent.  Some special cases are checked
       // to simplify the display: x^(1/2) -> sqrt(x).

@@ -424,6 +424,7 @@ div.help h2 {
 body.eink_mode div.help h2 { border-bottom-color: #666; }
 div.help p { margin: 0.7em 0; }
 div.help a { scroll-margin-top: 0.5em; }  /* snap margin for internal links within helptext */
+div.help kbd { font-weight: bolder; color: #030; }
 
 ul.keybindings {
   margin: 0;

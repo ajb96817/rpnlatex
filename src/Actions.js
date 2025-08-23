@@ -1409,8 +1409,10 @@ class InputContext {
       return this._cancel_text_entry(stack);
     const text = this.text_entry.current_text;
     const trimmed_text = text.trim();
+    let source_text = trimmed_text;  // will be recorded as item.source_string
     if(textstyle === 'text' || textstyle === 'heading') {
-      let item = TextItem.parse_string(text);
+      // Text entry mode - create TextItems.
+      let item = TextItem.parse_string(trimmed_text);
       if(item) {
         if(textstyle === 'heading') item.is_heading = true;
         this._cancel_text_entry(stack);
@@ -1423,6 +1425,7 @@ class InputContext {
         return;
       }
     }
+    // Other cases here create ExprItems.
     let new_expr = null;
     if(textstyle === 'roman_text')
       new_expr = ExprParser.roman_text_to_expr(text);
@@ -1492,15 +1495,13 @@ class InputContext {
         this.error_flash_stack();
         return;
       }
-      this._cancel_text_entry(stack);
-      return stack.push(
-        new ExprItem(
-          new_expr,
-          null /* no tag */,
-          text /* source_string */));
     }
     this._cancel_text_entry(stack);
-    return stack.push_expr(new_expr);
+    return stack.push(
+      new ExprItem(
+        new_expr,
+          null /* no tag */,
+          text /* source_string */));
   }
 
   // Start text entry mode using the item on the stack top.
@@ -1515,11 +1516,10 @@ class InputContext {
   //   - ExprItems that represent \operatorname{x}.
   do_edit_item(stack) {
     const [new_stack, item] = stack.pop(1);
-    if(item.item_type() === 'text') {
-      //const s = item.as_editable_string();
-      const s = item.source_string;
-      if(s) {
-        this.do_start_text_entry(new_stack, 'text_entry', s);
+    if(item.is_text_item()) {
+      if(item.source_string) {
+        this.do_start_text_entry(
+          new_stack, 'text_entry', item.source_string);
         this.text_entry.edited_item = item;
         return new_stack;
       }
@@ -1532,10 +1532,9 @@ class InputContext {
         this.text_entry.edited_item = item;
         return new_stack;
       }
-      //const editable_string = expr.as_editable_string();
-      const editable_string = item.source_string;
-      if(editable_string) {
-        this.do_start_text_entry(new_stack, 'math_entry', editable_string);
+      const s = item.source_string || expr.as_editable_string();
+      if(s) {
+        this.do_start_text_entry(new_stack, 'math_entry', s);
         this.text_entry.edited_item = item;
         return new_stack;
       }

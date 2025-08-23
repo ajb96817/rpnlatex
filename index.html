@@ -187,42 +187,45 @@
         <span class="keybinding">Enter</span> will parse what you have typed and put it on the stack.
         A malformed expression will signal an error; allowed expressions include:
         <ul>
-          <li>Numbers such as 3, -10, 5.12</li>
+          <li>Numbers such as <kbd>3, -10, 5.12</kbd></li>
           <li>
-            Single- or multi-letter variable or function names such as <code>x</code>, <code>\mathrm{xyz}</code>.
+            Single- or multi-letter variable or function names such as <kbd>x, abc</kbd>.
             Multi-letter variables are typeset in a roman (non-italic) font.
           </li>
           <li>
-            Greek letters may be spelled out and will be converted: <code>\mathrm{pi} \to \pi</code>.
+            Greek letters may be spelled out and will be converted: <kbd>pi</kbd> <code>\to \pi</code>
           </li>
           <li>
-            Multiplication by constants may be written implicitly (like <code>5x</code>);
-            for other types of multiplication use a space or an explicit <code>*</code>:
-            write <code>5x*y*z</code> or <code>5x\,y\,z</code> instead of <code>5xy</code>.
+            Subscripts may be written as: <kbd>J_0</kbd> <code>\to J_0</code>,
+            <kbd>x_alpha</kbd> <code>\to x_\alpha</code>
           </li>
           <li>
-            Infix operators such as <code>x+2y</code>.
-            Use <span class="keybinding">^</span> for powers.
-          </li>
-          <li>
-            Function calls may be written as: <code>f{(x)}</code>
-            or <code>f{[x]}</code>.
-          </li>
-          <li>
-            Parentheses may be used to indicate precedence:
-            <code>(x+1)/(x-1) \to \frac{x+1}{x-1}</code>.
-          </li>
-          <li>
-            Equations and relational operators may be written using the syntaxes:
+            Infix expressions use the usual math syntax: <kbd>x+2y-z</kbd>.
+            Supported are: <kbd>+, -, *, /</kbd> and <kbd>^</kbd> for powers;
+            equations and comparisons may be written using:
             <kbd>x=y, x!=y, x&lt;y, x&gt;y, x&lt;=y, x&gt;=y</kbd>.
           </li>
           <li>
-            Factorial notation (<code>x!</code>) is allowed.
+            Multiplication by constants may be written implicitly (like <kbd>5x</kbd>);
+            for other multiplications an explicit space <kbd>*</kbd> must be
+            used between terms: write <kbd>5x*y*z</kbd> or <kbd>5x y z</kbd>
+            instead of <kbd>5xyz</kbd>.
+          </li>
+          <li>
+            Parentheses may be used to indicate precedence:
+            <kbd>(x+1)/(x-1)</kbd> <code>\to \frac{x+1}{x-1}</code>.
+          </li>
+          <li>
+            Function calls may be written as: <kbd>f(x)</kbd> or <kbd>f[x]</kbd>.
+            Standard math functions like <kbd>sin(x)</kbd> can also be used.
+          </li>
+          <li>
+            Factorial notation (<kbd>x!</kbd>) is allowed.
           </li>
           <li>
             Column vectors may be entered using square brackets:
-            <code>[x, y]</code> and matrices with nested brackets:
-            <code>[[1, 2], [3, 4]]</code>.
+            <kbd>[x, y]</kbd> and matrices with nested brackets:
+            <kbd>[[1, 2], [3, 4]]</kbd>.
           </li>
         </ul>
       </p>
@@ -243,9 +246,9 @@
         will typeset your entry in a roman (non-italic) font instead of the normal italic math font,
         and it will not be parsed as a math expression, so you can use any text you want.  This can be
         used to include normal English words or phrases in math expressions.
-        <a href="#placeholders">Placeholders</a> can also be included using
-        <span class="keybinding">[</span><span class="keybinding">]</span>.
-        <br />
+        <a href="#placeholders">Placeholders</a> can also be included by writing <kbd>[]</kbd>.
+      </p>
+      <p>
         <strong>NOTE:</strong> The <a href="#conjunction_anchor"><em>conjunction</em></a>
         command available via <span class="keybinding">,</span><span class="keybinding">&#39;</span>
         is another way of including English words or phrases.
@@ -291,12 +294,11 @@
           </li>
           <li>
             Short inline math expressions of the kind allowed in <em>math entry</em> mode
-            can be included between pairs of <span class="keybinding">$</span> symbols
+            can be included between pairs of <kbd>$</kbd> signs
             (for example: <kbd>$x+y$</kbd>).
           </li>
           <li>
-            Placeholders can be included by using
-            <span class="keybinding">[</span><span class="keybinding">]</span>.
+            Placeholders can be included by writing <kbd>[]</kbd>.
           </li>
           <li>
             Text objects can be concatenated to other text objects or to math expressions using <span class="keybinding">&nbsp;</span>
@@ -317,18 +319,20 @@
 
       <h2>
         <span class="keybinding">Shift+Enter</span>
-        <a name="edit_text" id="help_edit_text">Edit Text</a>
+        <a name="edit_text" id="help_edit_text">Edit as Text</a>
       </h2>
       <p>
-        Some simple math or text objects, including those entered with
-        <a href="#math_entry">math entry</a> or <a href="#text_entry">text entry</a> modes,
+        Expressions and text objects that were created with
+        <a href="#math_entry">math entry</a> or <a href="#text_entry">text entry</a> modes
         may be brought back into the math or text entry editor for further editing
         with <span class="keybinding">Shift+Enter</span>.
+        Simple expressions like numbers and variables may also be editable even
+        if they were not created with math entry mode.
       </p>
       <p>
-        <strong>NOTE:</strong> Only sufficiently simple objects are editable this way; once
-        further operations are performed they may no longer be editable.
-        In this case, <a href="#dissect">dissect</a> mode may be helpful instead.
+        Once an expression is modified or combined with other expressions, the result
+        may no longer be editable as text this way.  In this case,
+        <a href="#dissect">dissect</a> mode may be helpful instead.
       </p>
 
       <h2>

@@ -1743,17 +1743,6 @@ class TextItemTextElement extends TextItemElement {
     return json;
   }
 
-  as_editable_string() {
-    if(this.is_bold && this.is_italic)
-      return ['**//', this.text, '//**'].join('');
-    else if(this.is_bold)
-      return ['**', this.text, '**'].join('');
-    else if(this.is_italic)
-      return ['//', this.text, '//'].join('');
-    else
-      return this.text;
-  }
-
   to_latex(export_mode) {
     if(export_mode)
       return this.to_latex_export_mode();
@@ -2063,35 +2052,6 @@ class TextItem extends Item {
       this.tag_string,
       this.source_string,
       this.is_heading);
-  }
-
-  // If this TextItem is simple enough, return a string representation suitable
-  // for editing using the minieditor.  "Simple enough" currently means that there
-  // are no Exprs mixed into the text, with the exception of PlaceholderExprs which are
-  // rendered as [].
-  // If this TextItem is not simple, null is returned indicating that it's
-  // "uneditable" with the minieditor.
-  as_editable_string() {
-    let pieces = [];
-    for(let i = 0; i < this.elements.length; i++) {
-      const elt = this.elements[i];
-      if(elt.is_text())
-        pieces.push(elt.as_editable_string());
-      else if(elt.is_raw()) {
-        // Only basic "explicit spaces" are allowed; otherwise it's
-        // probably a LaTeX command.
-        if(elt.is_explicit_space())
-          pieces.push(' ');
-        else return null;
-      }
-      else if(elt.is_expr()) {
-        // Only top-level PlaceholderExprs are allowed.
-        if(elt.expr.is_placeholder_expr())
-          pieces.push('[]');
-        else return null;
-      }
-    }
-    return pieces.join('');
   }
 
   // Return a clone of this with all elements bolded.

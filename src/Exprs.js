@@ -277,9 +277,12 @@ class Expr {
     return { expr_type: this.expr_type() };
   }
 
-  // If this expression can be 'unparsed' for editing in the minieditor, return
-  // the editable string.  Return null if not possible.
-  // This is the 'inverse' of ExprParser.parse_string().
+  // Try to convert this Expr into a string for use in math entry mode.
+  // The string should be something that will recreate this Expr when parsed.
+  // Generally, we use the source_string from the ExprItem wrapping this Expr
+  // if available (i.e., the math entry mode input originally used), and only
+  // if that's not available is this method tried instead.  Currently only
+  // some simple Expr types will convert to editable strings.
   as_editable_string() { return null; }
 
   // Return a list of all immediate subexpressions of this one, in (at least approximate)
@@ -441,13 +444,12 @@ class CommandExpr extends Expr {
   }
 
   as_editable_string() {
-    // \operatorname{...} with a TextExpr inside.
+    // Check for \operatorname{...} with a TextExpr inside.
     // This may have been created with Tab from math entry mode.
     if(this.is_command_expr_with(1, 'operatorname') &&
        this.operand_exprs[0].is_text_expr())
       return this.operand_exprs[0].text;
-    // Other commands are not considered 'editable' (yet).
-    return null;
+    else return null;
   }
 
   // 0-argument commands are left as-is (\alpha, etc)
@@ -1049,30 +1051,6 @@ class InfixExpr extends Expr {
     return null;
   }
 
-  as_editable_string() {
-    // Special case: unparse scientific notation for infix expressions
-    // like 3 \cdot 10^-2 -> 3e-2
-    // NOTE: Expressions like 1 + 3 \cdot 10^-2 are flattened into
-    // larger InfixExprs so this unparsing will not work in that case.
-    const scientific_notation_pieces = this.unparse_scientific_notation();
-    if(scientific_notation_pieces)
-      return scientific_notation_pieces.join('e');
-    const operator_strings = this.operator_exprs.map(
-      (expr, index) => this.editable_operator_text_at(index));
-    const operand_strings = this.operand_exprs.map(
-      expr => expr.as_editable_string());
-    if(operator_strings.some(s => s === null) ||
-       operand_strings.some(s => s === null))
-      return null;
-    // Interleave the operand and operator pieces.
-    let pieces = [operand_strings[0]];
-    for(let i = 0; i < operator_strings.length; i++) {
-      pieces.push(operator_strings[i]);
-      pieces.push(operand_strings[i+1]);
-    }
-    return pieces.join('');   
-  }
-
   // InfixExprs dissolve into their operand expressions.
   // Operators are discarded.
   dissolve() { return this.operand_exprs; }
@@ -1162,8 +1140,7 @@ class PrefixExpr extends Expr {
     const base_string = this.base_expr.as_editable_string();
     if(base_string && operator_string)
       return [operator_string, base_string].join('');
-    else
-      return null;
+    else return null;
   }
 
   dissolve() { return this.subexpressions(); }
@@ -1211,15 +1188,6 @@ class FunctionCallExpr extends Expr {
     return new FunctionCallExpr(
       index === 0 ? new_expr : this.fn_expr,
       index === 1 ? new_expr : this.args_expr);
-  }
-
-  as_editable_string() {
-    const fn_string = this.fn_expr.as_editable_string();
-    const args_string = this.args_expr.as_editable_string;
-    if(fn_string && args_string)
-      return [fn_string, args_string].join('');
-    else
-      return null;
   }
 
   dissolve() {
@@ -1325,8 +1293,7 @@ class PostfixExpr extends Expr {
     const operator_string = this.operator_expr.as_editable_string();
     if(base_string && operator_string)
       return [base_string, operator_string].join('');
-    else
-      return null;
+    else return null;
   }
 
   dissolve() { return this.subexpressions(); }
@@ -1449,14 +1416,6 @@ class SequenceExpr extends Expr {
       this.exprs.map(
         (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr),
       this.fused);
-  }
-
-  as_editable_string() {
-    let pieces = this.exprs.map(expr => expr.as_editable_string());
-    if(pieces.every(s => s !== null))
-      return pieces.join('');
-    else
-      return null;
   }
 
   dissolve() { return this.exprs; }
@@ -1642,22 +1601,6 @@ class DelimiterExpr extends Expr {
       this.right_type,
       new_expr,
       this.fixed_size);
-  }
-
-  as_editable_string() {
-    const inner_string = this.inner_expr.as_editable_string();
-    if(!inner_string) return null;
-    let [left, right] = [null, null];
-    if(this.left_type === "\\{" && this.right_type === "\\}")
-      [left, right] = ['{', '}'];
-    else if(this.left_type === "[" && this.right_type === "]")
-      [left, right] = ['[', ']'];
-    else if(this.left_type === "(" && this.right_type === ")")
-      [left, right] = ['(', ')'];
-    if(left && right)
-      return [left, inner_string, right].join('');
-    else
-      return null;
   }
 
   // An inline division infix expression surrounded by "blank" delimiters
