@@ -260,6 +260,8 @@ class InputContext {
       message = message.slice(6);
     if(message.includes('tensor dimension check'))
       message = 'Matrix sizes incompatible';
+    if(message.endsWith('Stop: syntax error'))
+      message = 'Syntax error';  // TODO: highlight error position in editor
     this.error_message = {
       message: message,
       offending_expr: offending_expr

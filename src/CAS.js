@@ -1389,9 +1389,18 @@ class AlgebriteToExpr {
   }
 
   cons_to_expr(p) {
-    const head = this.car(p);
+    return this._cons_to_expr(this.car(p), this.cdr(p));
+  }
+  _cons_to_expr(head, rest) {
     if(this.is_sym(head))
-      return this.functioncall_to_expr(head.printname, this.cdr(p));
+      return this.functioncall_to_expr(head.printname, rest);
+    else if(this.is_cons(head) &&
+            this.is_sym(this.car(head)) &&
+            this.car(head).printname === 'eval') {
+      // ((eval f) x y z) -> (f x y z)
+      // for example, from input string: (f)(x, y, z)
+      return this._cons_to_expr(this.car(this.cdr(head)), rest);
+    }
     else
       return this.error('Unexpected Algebrite output', p);
   }
@@ -1432,6 +1441,7 @@ class AlgebriteToExpr {
       if(nargs === 1)
         return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
     case 'quote':
+    case 'eval':
       return arg_exprs[0];
     case 'not':
       // not(equals(x,y)) -> not(x=y) -> x!=y
