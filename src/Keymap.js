@@ -48,8 +48,8 @@ const EditorKeymap = {
     ',': "mode infix",
     '=': "mode relational",
     ')': "mode delimiters",
-    ';': "mode lowercase_greek",
-    ':': "mode uppercase_greek",
+    ';': "mode greek",
+    ':': "mode greek",  // alias for [;] for now, but may be reassigned to something else eventually
     '@': "mode calligraphic",
     '&': "mode script",
     '%': "mode blackboard",
@@ -152,7 +152,6 @@ const EditorKeymap = {
     '_': "scroll_to help_dissect",
     '#': "scroll_to help_cas",
     ';': "scroll_to help_greek",
-    ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
     'Backspace': "scroll_to help_prefix_keys",
     'c': "scroll_to help_control_keys",  // undocumented
@@ -1045,44 +1044,22 @@ const EditorKeymap = {
     '&': "push \\&"  // undocumented
   },
 
-  // [;] prefix: lowercase Greek letters
-  lowercase_greek: {
-    'a': "push \\alpha",     'b': "push \\beta",
-    'c': "push \\xi",        'd': "push \\delta",
-    'e': "push \\epsilon",   'f': "push \\phi",
-    'g': "push \\gamma",     'h': "push \\eta",
-    'i': "push \\iota",      'j': "push \\varphi",
-    'k': "push \\kappa",     'l': "push \\lambda",
-    'm': "push \\mu",        'n': "push \\nu",
-    'o': "push \\omega",     'p': "push \\pi",
-    'q': "push \\vartheta",  'r': "push \\rho",
-    's': "push \\sigma",     't': "push \\tau",
-    'u': "push \\upsilon",   'v': "push \\theta",
-    'w': "push \\omega",     'x': "push \\chi",
-    'y': "push \\psi",       'z': "push \\zeta",
+  // [;] prefix: Greek letters
+  greek: {
+    'a': "push \\alpha",      'b': "push \\beta",
+    'c': "push \\xi",         'd': "push \\delta",
+    'e': "push \\epsilon",    'f': "push \\phi",
+    'g': "push \\gamma",      'h': "push \\eta",
+    'i': "push \\iota",       'j': "push \\varphi",
+    'k': "push \\kappa",      'l': "push \\lambda",
+    'm': "push \\mu",         'n': "push \\nu",
+    'o': "push \\omega",      'p': "push \\pi",
+    'q': "push \\vartheta",   'r': "push \\rho",
+    's': "push \\sigma",      't': "push \\tau",
+    'u': "push \\upsilon",    'v': "push \\theta",
+    'w': "push \\omega",      'x': "push \\chi",
+    'y': "push \\psi",        'z': "push \\zeta",
 
-    ':': "mode variant_greek",
-    ';': "infix semicolon"
-  },
-
-  // [:] prefix: uppercase Greek letters
-  uppercase_greek: {
-    'a': "push A",            'b': "push B",
-    'c': "push \\Xi",         'd': "push \\Delta",
-    'e': "push \\varepsilon", 'f': "push \\Phi",
-    'g': "push \\Gamma",      'h': "push \\mho",
-    'i': "push I",            'j': "push \\Phi",
-    'k': "push \\varkappa",   'l': "push \\Lambda",
-    'm': "push \\varpi",      'n': "push \\nabla",
-    'o': "push \\Omega",      'p': "push \\Pi",
-    'q': "push \\Theta",      'r': "push \\varrho",
-    's': "push \\Sigma",      't': "push \\varsigma",
-    'u': "push \\Upsilon",    'v': "push \\Theta",
-    'w': "push \\Omega",      'x': "push X",
-    'y': "push \\Psi",        'z': "push Z",
-    /*'6': "push \\digamma",   '^': "push \\digamma",*/
-
-    // TODO: support for case-insensitive keybindings in general
     'A': "push A",            'B': "push B",
     'C': "push \\Xi",         'D': "push \\Delta",
     'E': "push \\varepsilon", 'F': "push \\Phi",
@@ -1097,10 +1074,14 @@ const EditorKeymap = {
     'W': "push \\Omega",      'X': "push X",
     'Y': "push \\Psi",        'Z': "push Z",
 
+    // '6': "push \\digamma",
+
+    '2': "mode variant_greek",
+    ';': "infix semicolon",
     ':': "infix \\colon"
   },
 
-  // [:][;] prefix: "variant" uppercase Greek letters
+  // [;][2] prefix: "variant" uppercase Greek letters
   // (these are italic versions of the normal ones)
   variant_greek: {
     'c': "push \\varXi",       'C': "push \\varXi",
@@ -1113,6 +1094,7 @@ const EditorKeymap = {
     'q': "push \\varTheta",    'Q': "push \\varTheta",
     's': "push \\varSigma",    'S': "push \\varSigma",
     'u': "push \\varUpsilon",  'U': "push \\varUpsilon",
+    'v': "push \\varTheta",    'V': "push \\varTheta",
     'y': "push \\varPsi",      'Y': "push \\varPsi"
   }
 };
