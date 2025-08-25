@@ -310,7 +310,6 @@ class App extends React.Component {
         new_app_state = scratch;
       else   // undo/redo "failed"
         this.state.input_context.error_flash_stack();
-
       let state_updates = {app_state: new_app_state};
       if(this.state.input_context.files_changed) {
         this.request_file_list();
@@ -449,7 +448,7 @@ class StackItemsComponent extends React.Component {
           error_start: null,
           error_end: null,
           entry_type: input_context.text_entry.mode,
-          key: 'textentry'
+          key: 'textentry'  // this is in a React list, so needs a key
         });
       item_components.push(component);
     }
@@ -570,7 +569,7 @@ class DocumentComponent extends React.Component {
 }
 
 
-// Accumulate a single line of text for literal or Latex command entry.
+// Accumulate a line of text for literal or Latex command entry.
 class TextEntryComponent extends React.Component {
   render() {
     const class_name = 'text_entry ' + this.props.entry_type + '_mode';
@@ -878,12 +877,11 @@ class ItemComponent extends React.Component {
     else if(latex_code === "\\,")
       latex_code = "\\llbracket\\mathsf{space}\\rrbracket";
     try {
-      // NOTE: trust: true here allows the use of \htmlClass etc.
       katex.render(latex_code, node, {
         throwOnError: true,
         displayMode: display_mode,
         fleqn: true,
-        trust: true,
+        trust: true,  // allow the use of \htmlClass etc.
         strict: false,
         minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
       });

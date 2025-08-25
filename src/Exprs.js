@@ -195,12 +195,13 @@ class Expr {
   }
 
   // Combine two CommandExprs with special-casing for some particular command pairs.
-  static combine_command_pair(left, right) {
-    const left_name = left.command_name, right_name = right.command_name;
+  static combine_command_pair(left_expr, right_expr) {
+    const [left_name, right_name] =
+          [left_expr.command_name, right_expr.command_name];
 
     // Try combining adjacent integral symbols into multiple-integral commands.
     let new_command_name = null;
-    if(left.operand_count() === 0 && right.operand_count() === 0) {
+    if(left_expr.operand_count() === 0 && right_expr.operand_count() === 0) {
       if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
       if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
       if(left_name === 'int' && right_name === 'iint') new_command_name = 'iiint';
@@ -212,21 +213,21 @@ class Expr {
       return new CommandExpr(new_command_name);
 
     // Everything else just becomes a SequenceExpr.
-    return new SequenceExpr([left, right]);
+    return new SequenceExpr([left_expr, right_expr]);
   }
 
   // Combine two Exprs with the given conjunction phrase between them,
   // with largish spacing.
   // For example "X  iff  Y" as in the [,][F] command.
   // is_bold will make the conjunction phrase bolded.
-  static combine_with_conjunction(left, right, phrase, is_bold) {
+  static combine_with_conjunction(left_expr, right_expr, phrase, is_bold) {
     const conjunction_expr = new SequenceExpr([
       new CommandExpr('quad'),
       new CommandExpr(
         is_bold ? 'textbf' : 'text',
         [new TextExpr(phrase)]),
       new CommandExpr('quad')]);
-    return InfixExpr.combine_infix(left, right, conjunction_expr);
+    return InfixExpr.combine_infix(left_expr, right_expr, conjunction_expr);
   }
 
   // Convert a string into a TextExpr, or a CommandExpr if it begins
@@ -257,7 +258,7 @@ class Expr {
   is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
   is_unary_minus_expr() { return this.is_prefix_expr() && this.is_unary_minus(); }
   
-  is_command_expr_with(operand_count, command_name) {
+  is_command_expr_with(operand_count, command_name /* optional */) {
     return this.is_command_expr() &&
       this.operand_count() === operand_count &&
       (command_name === undefined || this.command_name === command_name);
@@ -395,8 +396,9 @@ class CommandExpr extends Expr {
     this.operand_exprs = operand_exprs || [];
   }
 
-  operand_count() { return this.operand_exprs.length; }
   expr_type() { return 'command'; }
+
+  operand_count() { return this.operand_exprs.length; }
 
   to_json() {
     let json = super.to_json();

@@ -1181,7 +1181,7 @@ class ExprParser {
       }
       else if(op_token && op_token.text === '\'') {
         this.next_token();
-        factor = factor.with_prime();
+        factor = factor.with_prime(true);
       }
       else break;
     }

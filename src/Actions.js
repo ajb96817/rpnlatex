@@ -334,7 +334,8 @@ class InputContext {
     // the expression as a whole: f(x) -> f'(x).
     if(base_expr.is_function_call_expr())
       return new_stack.push_expr(new FunctionCallExpr(
-        base_expr.fn_expr.with_prime(), base_expr.args_expr));
+        base_expr.fn_expr.with_prime(false /* don't parenthesize */),
+        base_expr.args_expr));
     else
       return new_stack.push_expr(
         base_expr.with_prime(this.settings.autoparenthesize));

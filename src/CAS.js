@@ -257,7 +257,7 @@ function _variable_name_to_expr(pieces, allow_subscript) {
     // Convert it to the usual roman-font 'e'.
     // NOTE: Algebrite only gives '~' as output, but doesn't accept
     // it in input: ~ is not allowed in variable names.
-    base_expr = new FontExpr(new TextExpr('e'), 'roman');
+    base_expr = FontExpr.roman_text('e');
   }
   else if(latex_letter_commands.has(base_name))
     base_expr = new CommandExpr(base_name);  // Greek letter, etc.
@@ -1412,7 +1412,7 @@ class AlgebriteToExpr {
 
     // Check forms that have special Expr representations.
 
-    // testle(x, y) -> x<y, etc.
+    // testlt(x, y) -> x<y, etc.
     const match = algebrite_relation_types.find(pair => pair[2] === f);
     if(nargs === 2 && match)
       return InfixExpr.combine_infix(...arg_exprs, Expr.text_or_command(match[1]));
@@ -1685,7 +1685,9 @@ class AlgebriteToExpr {
       if((expr_to_variable_name(fn_expr) ||
           (fn_expr.is_subscriptsuperscript_expr() && fn_expr.count_primes() > 0)) &&
          expr_to_variable_name(args_expr.inner_expr) === variable_name)
-        return new FunctionCallExpr(fn_expr.with_prime(), args_expr);
+        return new FunctionCallExpr(
+          fn_expr.with_prime(false /* don't parenthesize */),
+          args_expr);
     }
     // TODO: See if we can use partial derivative notation for things like
     // d(f(x, y), y):
