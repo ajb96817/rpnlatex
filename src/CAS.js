@@ -36,6 +36,7 @@ import {
 } from './Models';
 
 import Algebrite from 'algebrite';
+const $A = Algebrite;
 
 
 // LaTeX commands like \alpha that can be treated as variable names
@@ -340,7 +341,24 @@ function format_bigint(x) {
     return x.toString();
 }
 
-function format_double(x) { return x.toString(); }
+function format_double(x) {
+  // Floating-point numbers don't necessarily need to be displayed
+  // at full accuracy (after all, this is just an editor, not something
+  // for "serious" calculation).  But enough precision is needed so that
+  // things like converting \pi to a float and back (via RationalizeToExpr)
+  // still work.  For now, the heuristic is:
+  //   - max 9 digits of precision after the decimal point
+  //   - trailing zeroes removed (0.75 instead of 0.750000000)
+  //   - values close to an integer are rounded (2.999999999 -> 3, no decimal point)
+  if(Math.abs(Math.round(x) - x) < 1e-8)
+    return Math.round(x).toString();
+  else {
+    const s = x.toFixed(9).replace(/0+$/, '');
+    // There's a chance we could wind up with something like "3.",
+    // even though that should be caught by the almost-an-integer check above.
+    return s.endsWith('.') ? s.slice(0, s.length-1) : s;
+  }
+}
 
 // Convert an Algebrite rational to a corresponding Expr.
 // Note that 'numerator' and 'denominator' are BigInt values here.
@@ -388,7 +406,7 @@ function double_to_expr(x) {
     else {
       // Here, x is known to have a "reasonable" exponent so
       // that toString() will not output scientific notation.
-      const expr = new TextExpr(abs_x.toString());
+      const expr = new TextExpr(format_double(abs_x));
       if(x < 0.0)
         return PrefixExpr.unary_minus(expr);
       else return expr;
@@ -426,7 +444,6 @@ function double_to_scientific_notation_expr(x) {
 }
 
 
-// This class is the only thing exported from this module.
 class AlgebriteInterface {
   static debug_print_list(p) {
     return new AlgebriteToExpr().print_list(p);
@@ -437,7 +454,7 @@ class AlgebriteInterface {
   }
 
   static parse_string(s) {
-    const result = Algebrite.parse(s);
+    const result = $A.parse(s);
     return this.algebrite_result_to_expr(result);
   }
 
@@ -492,9 +509,9 @@ class AlgebriteInterface {
   // 'argument_strings' have already been converted into Algebrite syntax.
   // Returns the Algebrite result list/node.
   static call_function_with_argument_strings(function_name, argument_strings) {
-    console.log('Input: ' + argument_strings[0]);
-    const result = Algebrite.exec(function_name, ...argument_strings);
-    console.log('Output: ' + this.debug_print_list(result));
+    //console.log('Input: ' + argument_strings[0]);
+    const result = $A.exec(function_name, ...argument_strings);
+    //console.log('Output: ' + this.debug_print_list(result));
     return result;
   }
 
@@ -514,9 +531,8 @@ class AlgebriteInterface {
   //       use Algebrite to extract coefficients and do some of the steps.
   // TODO: If given a relational equation lhs=rhs, complete squares on both sides
   static complete_square(expr, variable_expr) {
-    const A = Algebrite;
     const testeq = (x, y) => {
-      const result = A.testeq(x, y);
+      const result = $A.testeq(x, y);
       if(result.k === 1 /* NUM */)
         return result.q.a.equals(1) ? true : false;
       else return false;
@@ -535,7 +551,7 @@ class AlgebriteInterface {
       return expr;  // no quadratic term; nothing to do
 
     // Build square expr part: a*(x + b/2a)^2
-    const shift_term = A.multiply(b, A.power(A.multiply(2, a), -1));
+    const shift_term = $A.multiply(b, $A.power($A.multiply(2, a), -1));
     const shifted_var_expr = testeq(shift_term, 0) ?
           variable_expr /* basically b=0 */ :
           InfixExpr.add_exprs(
@@ -550,20 +566,19 @@ class AlgebriteInterface {
     // Determine what is left over in the expression aside from
     // the now "perfect" square term (linear term should no longer
     // be present in what is left).
-    const expr_result = A.eval(this.expr_to_algebrite_string(expr));
-    const var_result = A.eval(this.expr_to_algebrite_string(variable_expr));
+    const expr_result = $A.eval(this.expr_to_algebrite_string(expr));
+    const var_result = $A.eval(this.expr_to_algebrite_string(variable_expr));
     // a*x^2 + b*x + c
     const quadratic_polynomial_part =
-          A.add(A.multiply(a, A.power(var_result, 2)),
-                A.multiply(b, var_result),
-                c);
+          $A.add($A.multiply(a, $A.power(var_result, 2)),
+                 $A.multiply(b, var_result), c);
     // c - b^2/4a
-    const extra_constant_part = A.add(
-      c, A.multiply(A.power(b, 2),
-                    A.power(A.multiply(-4, a), -1)));
-    const remainder_part = A.add(
+    const extra_constant_part = $A.add(
+      c, $A.multiply($A.power(b, 2),
+                     $A.power($A.multiply(-4, a), -1)));
+    const remainder_part = $A.add(
       expr_result, extra_constant_part,
-      A.multiply(quadratic_polynomial_part, -1));
+      $A.multiply(quadratic_polynomial_part, -1));
     const remainder_part_expr = this.algebrite_result_to_expr(remainder_part);
     let final_expr = square_part_expr;
     if(!testeq(remainder_part, 0))
@@ -718,10 +733,10 @@ class AlgebriteInterface {
   }
 
   static _check_relation_numerically_once(variable_name, variable_value_string, relation_type) {
-    const lhs_result = Algebrite.eval(
+    const lhs_result = $A.eval(
       ['float(lhs_expr(', variable_name, '))'].join(''),
       variable_name, variable_value_string);
-    const rhs_result = Algebrite.eval(
+    const rhs_result = $A.eval(
       ['float(rhs_expr(', variable_name, '))'].join(''),
       variable_name, variable_value_string);
     if(lhs_result.k === 2 /* DOUBLE */ && rhs_result.k === 2) {
@@ -758,12 +773,12 @@ class AlgebriteInterface {
       '(', variable_name, ') = ',
       body_string
     ].join('');
-    Algebrite.run(def_string);
+    $A.run(def_string);
   }
 
   // Initialize Algebrite's environment.
   static setup_algebrite() {
-    Algebrite.clearall();
+    $A.clearall();
     [ 'sec(x) = 1/cos(x)',
       'csc(x) = 1/sin(x)',
       'cot(x) = 1/tan(x)',
@@ -780,7 +795,7 @@ class AlgebriteInterface {
       'log10(x) = log(x)/log(10)',  // not yet implemented in the editor
       'negative(x) = -x',  // used for infix '-': x-y -> add(x, negative(y))
       'reciprocal(x) = 1/x'  // used for infix '/' and fractions
-    ].forEach(s => Algebrite.eval(s) /* TODO: .run() */);
+    ].forEach(s => $A.eval(s) /* TODO: .run() */);
   }
 }
 
@@ -1780,5 +1795,5 @@ class AlgebriteToExpr {
 }
 
 
-export { AlgebriteInterface };
+export { AlgebriteInterface, double_to_expr };
 

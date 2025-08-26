@@ -7,7 +7,7 @@ import {
   TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr /* , ArrayExpr */
 } from './Exprs.js';
 import {
-  AlgebriteInterface
+  AlgebriteInterface, double_to_expr
 } from './CAS';
 
 
@@ -1380,7 +1380,7 @@ class RationalizeToExpr {
   // If no rationalization close enough can be found, return null.
   _try_rationalize_with_factor(value, factor, numer_factor_expr, denom_factor_expr) {
     const x = value / factor;
-    const max_denom = 500;  // maximum denominator tolerated
+    const max_denom = 1000;  // maximum denominator tolerated
     const epsilon = 0.00000001;  // maximum deviation from true value tolerated
     const sign = Math.sign(value);
     const x_abs = Math.abs(x);
@@ -1457,76 +1457,16 @@ class RationalizeToExpr {
       return [a, b];
   }
 
-  _make_fraction(numer_expr, denom_expr) {
-    if(this.full_size_fraction)
-      return CommandExpr.frac(numer_expr, denom_expr);
-    else
-      return InfixExpr.combine_infix(numer_expr, denom_expr, '/');
-  }
-
-  // Number formatting routines.
   // If we "know" x should be an integer (e.g. as part of a rationalized fraction),
-  // try to show it without any decimal part with _int_to_expr.
+  // this function is used to try to show it without any decimal part.
   // Very large or small-but-nonzero values are shown in scientific notation.
-
-  // TODO: these have been moved to CAS.js (double_to_expr etc)
-
   _int_to_expr(x) {
     if(isNaN(x))
       return FontExpr.roman_text('NaN');
     else if(Math.abs(x) > 1e12)
-      return this._float_to_expr(x);  // use scientific notation
+      return double_to_expr(x);  // use scientific notation
     else
       return TextExpr.integer(Math.round(x));
-  }
-
-  _float_to_expr(x) {
-    if(isNaN(x))
-      return FontExpr.roman_text('NaN');
-    else if(isFinite(x)) {
-      const abs_x = Math.abs(x);
-      if(abs_x < 1e-30)
-        return new TextExpr('0.0');
-      if(abs_x < 1e-8 || abs_x > 1e9)
-        return this._float_to_scientific_notation_expr(x);
-      else {
-        // Here, x is known to have a "reasonable" exponent so
-        // that toString() will not output scientific notation.
-        if(x > 0)
-          return new TextExpr(x.toString());
-        else
-          return PrefixExpr.unary_minus((-x).toString());
-      }
-    }
-    else {
-      const infty_expr = new CommandExpr('infty');
-      if(x > 0)
-        return infty_expr;
-      else
-        return PrefixExpr.unary_minus(infty_expr);
-    }
-  }
-
-  _float_to_scientific_notation_expr(x) {
-    const exp_string = x.toExponential();  // "3e+4", or else "Infinity", "NaN", etc.
-    // Split on e+ and e- both explicitly, in case e.g. "Infinity" happened to have an "e" in it.
-    const pieces_positive = exp_string.split('e+');
-    const pieces_negative = exp_string.split('e-');
-    let coefficient_text = null;
-    let exponent_text = null;
-    if(pieces_positive.length === 2)
-      [coefficient_text, exponent_text] = pieces_positive;
-    else if(pieces_negative.length === 2) {
-      coefficient_text = pieces_negative[0];
-      exponent_text = '-' + pieces_negative[1];
-    }
-    else
-      return new TextExpr('???');  // Infinity, NaN, etc.; shouldn't happen by this point
-    return InfixExpr.combine_infix(
-      new TextExpr(coefficient_text),
-      new SubscriptSuperscriptExpr(
-        TextExpr.integer(10), null, new TextExpr(exponent_text)),
-      new CommandExpr('cdot'));
   }
 }
 

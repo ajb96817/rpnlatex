@@ -976,8 +976,8 @@ const EditorKeymap = {
   algebrite: {
     '#': "algebrite bothsides eval",
     '=': "rationalize",  // not part of Algebrite
-    '*': "algebrite normal conj",
-    'A': "algebrite normal arg",
+    '*': "algebrite default conj",
+    'A': "algebrite default arg",
     'c': "algebrite_completesquare true",
     'C': "algebrite_completesquare false",
     'd': "algebrite bothsides derivative 1 1",
@@ -989,11 +989,11 @@ const EditorKeymap = {
     'I': "algebrite bothsides integral 2",
     'j': "algebrite bothsides defint 3 1",
     'J': "algebrite bothsides defint 4",
-    'm': "algebrite normal sum 3 1",
-    'M': "algebrite normal sum 4",
+    'm': "algebrite default sum 3 1",
+    'M': "algebrite default sum 4",
     'n': "algebrite bothsides float",
-    'o': "algebrite normal product 3 1",
-    'O': "algebrite normal product 4",
+    'o': "algebrite default product 3 1",
+    'O': "algebrite default product 4",
     'p': "mode algebrite_polynomial",
     'P': "algebrite bothsides polar",
     'q': "algebrite_check",
@@ -1001,28 +1001,28 @@ const EditorKeymap = {
     'r': "algebrite bothsides rationalize",
     'R': "algebrite bothsides rect",
     's': "algebrite bothsides simplify",
-    't': "push 7;push 0;algebrite normal taylor 3 1",
-    'T': "swap;algebrite normal taylor 4",  // NOTE: last two arguments are swapped
-    'v': "algebrite normal eigenval",
-    'V': "algebrite normal eigenvec;transpose_matrix",
+    't': "push 7;push 0;algebrite default taylor 3 1",
+    'T': "swap;algebrite default taylor 4",  // NOTE: last two arguments are swapped
+    'v': "algebrite default eigenval",
+    'V': "algebrite default eigenvec;transpose_matrix",
     'w': "algebrite bothsides eval 2 1",
     'W': "algebrite bothsides eval 3",
     'x': "algebrite bothsides expand 1 1",
     'X': "algebrite bothsides expand 2",
-    'y': "all_on_left true;algebrite normal nroots 1 1",  // TODO: display the guessed variable: x=[...] (for roots() too)
-    'Y': "swap;all_on_left true;swap;algebrite normal nroots 2",
-    'z': "all_on_left true;algebrite normal roots 1 1",
-    'Z': "swap;all_on_left true;swap;algebrite normal roots 2"
+    'y': "all_on_left true;algebrite default nroots 1 1",  // TODO: display the guessed variable: x=[...] (for roots() too)
+    'Y': "swap;all_on_left true;swap;algebrite default nroots 2",
+    'z': "all_on_left true;algebrite default roots 1 1",
+    'Z': "swap;all_on_left true;swap;algebrite default roots 2"
   },
 
   algebrite_polynomial: {
-    'p': "push x;swap;algebrite normal legendre 2",
-    'P': "push x;unrot;algebrite normal legendre 3",
-    'l': "push x;swap;algebrite normal laguerre 2",
-    'L': "push x;unrot;algebrite normal laguerre 3",
-    'h': "push x;swap;algebrite normal hermite 2",
-    'j': "push x;swap;algebrite normal besselj 2",
-    'y': "push x;swap;algebrite normal bessely 2"
+    'p': "push x;swap;algebrite default legendre 2",
+    'P': "push x;unrot;algebrite default legendre 3",
+    'l': "push x;swap;algebrite default laguerre 2",
+    'L': "push x;unrot;algebrite default laguerre 3",
+    'h': "push x;swap;algebrite default hermite 2",
+    'j': "push x;swap;algebrite default besselj 2",
+    'y': "push x;swap;algebrite default bessely 2"
   },
 
   // [@] prefix
