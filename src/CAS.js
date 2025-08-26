@@ -449,14 +449,48 @@ class AlgebriteInterface {
     return new AlgebriteToExpr().to_expr(p);
   }
 
-  static call_function(function_name, argument_exprs) {
+  // Returns the Algebrite result node/list.
+  static call_function_raw(function_name, argument_exprs) {
     const argument_strings = argument_exprs.map(
       expr => this.expr_to_algebrite_string(expr));
     return this.call_function_with_argument_strings(
       function_name, argument_strings);
   }
 
+  // Returns the Expr result, or null if failed.
+  static call_function(function_name, argument_exprs) {
+    const result_node = this.call_function_raw(function_name, argument_exprs);
+    if(result_node)
+      return this.algebrite_result_to_expr(result_node);
+    else
+      return null;
+  }
+
+  // Like call_function, but if the first argument_expr is an equation
+  // or relational expression, apply the call to both sides.
+  static call_function_bothsides(function_name, argument_exprs) {
+    const result = this.analyze_relation(argument_exprs[0]);
+    if(result) {
+      const [left_expr, right_expr, relation_type] =
+            this.analyze_relation(argument_exprs[0]);
+      const left_result = this.call_function(
+        function_name, [left_expr].concat(argument_exprs.slice(1)));
+      const right_result = this.call_function(
+        function_name, [right_expr].concat(argument_exprs.slice(1)));
+      if(!(left_result && right_result))
+        return null;
+      const operator_string = algebrite_relation_types.find(
+        pair => pair[2] === relation_type)[1];
+      return InfixExpr.combine_infix(
+        left_result, right_result,
+        Expr.text_or_command(operator_string));
+    }
+    else
+      return this.call_function(function_name, argument_exprs);
+  }
+
   // 'argument_strings' have already been converted into Algebrite syntax.
+  // Returns the Algebrite result list/node.
   static call_function_with_argument_strings(function_name, argument_strings) {
     console.log('Input: ' + argument_strings[0]);
     const result = Algebrite.exec(function_name, ...argument_strings);
@@ -495,7 +529,7 @@ class AlgebriteInterface {
 
     // Extract quadratic, linear, constant terms.
     const [a, b, c] = [2, 1, 0].map(
-      n => this.call_function(
+      n => this.call_function_raw(
         'coeff', [expr, variable_expr, TextExpr.integer(n)]));
     if(testeq(a, 0))
       return expr;  // no quadratic term; nothing to do
@@ -576,7 +610,7 @@ class AlgebriteInterface {
     // Try checking "symbolically" with Algebrite.
     // It will return 1 or 0 for true/false, otherwise the result
     // will just be a "testeq(...)" call.
-    const result = this.call_function(
+    const result = this.call_function_raw(
       // NOTE: there is no 'testneq()' function in Algebrite, so negate the
       // result of testeq() instead as a hack.
       relation_type === 'testneq' ? 'testeq' : relation_type,

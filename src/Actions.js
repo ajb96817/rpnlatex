@@ -348,13 +348,17 @@ class InputContext {
 
   // function_name:
   //   Algebrite function to call.
+  // mode:
+  //   'normal': apply function as normal
+  //   'bothsides': if applied to an 'equation' (x=y, x<y, etc),
+  //                apply function to both sides separately
   // arg_count_string:
   //   Number of arguments to pop from the stack (default 1).
   // guess_variable_arg_index_string:
   //   If given, guess the variable in the first argument expression
   //   and splice it into the Algebrite function call args list at the
   //   given position (e.g. '1' will put it as the second arg).
-  do_algebrite(stack, function_name, arg_count_string,
+  do_algebrite(stack, mode, function_name, arg_count_string,
                guess_variable_arg_index_string) {
     const arg_count = arg_count_string ? parseInt(arg_count_string) : 1;
     const [new_stack, ...argument_exprs] = stack.pop_exprs(arg_count);
@@ -376,17 +380,15 @@ class InputContext {
       }
     }
     AlgebriteInterface.setup_algebrite();
-    const result_node = AlgebriteInterface.call_function(
-      function_name, argument_exprs);
-    if(result_node) {
-      let result_expr = AlgebriteInterface.algebrite_result_to_expr(result_node);
-      if(result_expr) {
-        // Special-case handling to reformat the output of roots(), nroots() commands.
-        if(function_name === 'roots' || function_name === 'nroots')
-          result_expr = this._format_algebrite_roots_result(
-            argument_exprs[1], result_expr);
-        return new_stack.push_expr(result_expr);
-      }
+    const result_expr = mode === 'bothsides' ?
+          AlgebriteInterface.call_function_bothsides(function_name, argument_exprs) :
+          AlgebriteInterface.call_function(function_name, argument_exprs);
+    if(result_expr) {
+      // Special-case handling to reformat the output of roots(), nroots() commands.
+      if(function_name === 'roots' || function_name === 'nroots')
+        result_expr = this._format_algebrite_roots_result(
+          argument_exprs[1], result_expr);
+      return new_stack.push_expr(result_expr);
     }
     return this.error_flash_stack();
   }
