@@ -87,10 +87,10 @@
         </li>
         <li>
           <span class="keybinding">^</span> or <span class="keybinding">`</span> <em>(backtick)</em>
-          Make superscript: <code>x\enspace y \to x^y</code>
+          Make superscript: <code>x\enspace y \Rightarrow x^y</code>
         </li>
         <li><span class="keybinding">Enter</span>
-          Make subscript: <code>x\enspace y \to x_y</code>
+          Make subscript: <code>x\enspace y \Rightarrow x_y</code>
         </li>
         <li><span class="keybinding">Shift+Enter</span>
           Start <a href="#edit_text">editing</a> the stack top as text.
@@ -196,11 +196,11 @@
             Multi-letter variables are typeset in a roman (non-italic) font.
           </li>
           <li>
-            Greek letters may be spelled out and will be converted: <kbd>pi</kbd> <code>\to \pi</code>
+            Greek letters may be spelled out and will be converted: <kbd>pi</kbd> <code>\Rightarrow \pi</code>
           </li>
           <li>
-            Subscripts may be written as: <kbd>J_0</kbd> <code>\to J_0</code>,
-            <kbd>x_alpha</kbd> <code>\to x_\alpha</code>
+            Subscripts may be written as: <kbd>J_0</kbd> <code>\Rightarrow J_0</code>,
+            <kbd>x_alpha</kbd> <code>\Rightarrow x_\alpha</code>
           </li>
           <li>
             Infix expressions use the usual math syntax: <kbd>x+2y-z</kbd>.
@@ -216,7 +216,7 @@
           </li>
           <li>
             Parentheses may be used to indicate precedence:
-            <kbd>(x+1)/(x-1)</kbd> <code>\to \frac{x+1}{x-1}</code>.
+            <kbd>(x+1)/(x-1)</kbd> <code>\Rightarrow \frac{x+1}{x-1}</code>.
           </li>
           <li>
             Function calls may be written as: <kbd>f(x)</kbd> or <kbd>f[x]</kbd>.
@@ -269,13 +269,13 @@
         Typing another <span class="keybinding">\</span>
         after the first one will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
         zero-argument LaTeX command.  This can be used to create any standard LaTeX symbol.
-        For example: <kbd>\\boxdot</kbd> <code>\to\boxdot</code>
+        For example: <kbd>\\boxdot</kbd> <code>\Rightarrow\boxdot</code>
       </p>
       <p>
         One-argument LaTeX commands can be created using <span class="keybinding">Shift+Enter</span> instead of
         <span class="keybinding">Enter</span>.
         For example: <span class="keybinding">x</span><kbd>\\utilde</kbd><span class="keybinding">Shift+Enter</span>
-        <code>\to\utilde{x}</code>
+        <code>\Rightarrow\utilde{x}</code>
       </p>
 
       <h2>
@@ -659,7 +659,7 @@
           <span class="keybinding">/</span><span class="keybinding">&#39;</span>
           Substitute the stack top item for the placeholder in the item above it.
           If there is more than one placeholder, only the first one is substituted.
-          Example: <code>\sqrt{1 + \htmlClass{placeholder_expr}{\blacksquare}} \enspace x^2 \to \sqrt{1+x^2}</code>
+          Example: <code>\sqrt{1 + \htmlClass{placeholder_expr}{\blacksquare}} \enspace x^2 \Rightarrow \sqrt{1+x^2}</code>
         </li>
       </ul>
 
@@ -882,7 +882,7 @@
         The <span class="keybinding">,</span><span class="keybinding">a</span>
         command takes three expressions from the stack, combining them into an
         infix expression.  The stack top becomes the infix operator.  For example:
-        <code>x\enspace y\enspace \circledast \to x\circledast y</code>
+        <code>x\enspace y\enspace \circledast \Rightarrow x\circledast y</code>
       </p>
       <p id="conjunction_anchor">
         <strong>Conjunction:</strong>
@@ -1019,7 +1019,7 @@
         <strong>NOTE:</strong> &quot;Negated&quot; forms of relational operators can be
         created with the <span class="keybinding">/</span><span class="keybinding">!</span>
         command.  For example:
-        <code>x\subseteq y \to x\not\subseteq y</code>
+        <code>x\subseteq y \Rightarrow x\not\subseteq y</code>
       </p>
 
       <h2>
@@ -1033,25 +1033,25 @@
       <p><strong>Algebra and Calculus:</strong></p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">1</span> <code>x \to \displaystyle{\frac{1}{x}}</code></td>
-            <td><span class="keybinding">a</span> or <span class="keybinding">/</span> <code>x\enspace y \to \displaystyle{\frac{x}{y}}</code></td>
+            <td><span class="keybinding">1</span> <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code></td>
+            <td><span class="keybinding">a</span> or <span class="keybinding">/</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">l</span> <code>x \to \lim\limits_x</code></td>
-            <td><span class="keybinding">L</span> <code>x\enspace y \to \lim\limits_{x\to y}</code></td>
+            <td><span class="keybinding">l</span> <code>x \Rightarrow \lim\limits_x</code></td>
+            <td><span class="keybinding">L</span> <code>x\enspace y \Rightarrow \lim\limits_{x\Rightarrow y}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">b</span> <code>x\enspace y \to \displaystyle{\binom{x}{y}}</code></td>
-            <td><span class="keybinding">g</span> <code>x\enspace y \to \displaystyle{\int_x^y}</code></td>
+            <td><span class="keybinding">b</span> <code>x\enspace y \Rightarrow \displaystyle{\binom{x}{y}}</code></td>
+            <td><span class="keybinding">g</span> <code>x\enspace y \Rightarrow \displaystyle{\int_x^y}</code></td>
           </tr>
           <tr>
             <td>
               <span class="keybinding">=</span>
-              <code>x\enspace y\enspace z \to \displaystyle\sum_{x=y}^z</code>
+              <code>x\enspace y\enspace z \Rightarrow \displaystyle\sum_{x=y}^z</code>
             </td>
             <td>
               <span class="keybinding">+</span>
-              <code>x\enspace y \to \displaystyle\sum_{x\ge y}^{\phantom z}</code>
+              <code>x\enspace y \Rightarrow \displaystyle\sum_{x\ge y}^{\phantom z}</code>
             </td>
           </tr>
           <tr>
@@ -1100,31 +1100,31 @@
       <ul class="keybindings">
         <li>
           <span class="keybinding">/</span><span class="keybinding">-</span><span class="keybinding">c</span>
-          <code>x \to \cos^{-1} x</code>
+          <code>x \Rightarrow \cos^{-1} x</code>
         </li>
         <li>
           <span class="keybinding">/</span><span class="keybinding">h</span><span class="keybinding">T</span>
-          <code>x \to \coth x</code>
+          <code>x \Rightarrow \coth x</code>
         </li>
         <li>
           <span class="keybinding">/</span><span class="keybinding">-</span><span class="keybinding">h</span><span class="keybinding">S</span>
-          <code>x \to \operatorname{sech}^{-1} x</code>
+          <code>x \Rightarrow \operatorname{sech}^{-1} x</code>
         </li>
         <li>
           <span class="keybinding">/</span><span class="keybinding">2</span><span class="keybinding">t</span>
-          <code>x \to \tan^2 x</code>
+          <code>x \Rightarrow \tan^2 x</code>
         </li>
       </ul>
 
       <p><strong>Function Application:</strong></p>
       <ul class="keybindings">
-        <li><span class="keybinding">o</span> <code>f\enspace x \to f(x)</code></li>
-        <li><span class="keybinding">r</span> <code>f\enspace x\enspace y \to f(x,y)</code></li>
-        <li><span class="keybinding">R</span> <code>f\enspace x\enspace y\enspace z \to f(x,y,z)</code></li>
-        <li><span class="keybinding">k</span> <code>f\enspace x\enspace y \to f(x\,|\,y)</code></li>
-        <li><span class="keybinding">K</span> <code>f\enspace x\enspace y\enspace z \to f(x,y\,|\,z)</code></li>
-        <li><span class="keybinding">[</span> <code>f\enspace x \to f[x]</code></li>
-        <li><span class="keybinding">]</span> <code>f\enspace x \to f\{x\}</code></li>
+        <li><span class="keybinding">o</span> <code>f\enspace x \Rightarrow f(x)</code></li>
+        <li><span class="keybinding">r</span> <code>f\enspace x\enspace y \Rightarrow f(x,y)</code></li>
+        <li><span class="keybinding">R</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code></li>
+        <li><span class="keybinding">k</span> <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code></li>
+        <li><span class="keybinding">K</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code></li>
+        <li><span class="keybinding">[</span> <code>f\enspace x \Rightarrow f[x]</code></li>
+        <li><span class="keybinding">]</span> <code>f\enspace x \Rightarrow f\{x\}</code></li>
       </ul>
       <p>
         <strong>NOTE:</strong>
@@ -1140,17 +1140,17 @@
       <p><strong>Vertical Stacking:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">{</span> <code>x\enspace y \to \overbrace{x}^y</code>
+          <span class="keybinding">{</span> <code>x\enspace y \Rightarrow \overbrace{x}^y</code>
           &nbsp;&nbsp;
-          <span class="keybinding">}</span> <code>x\enspace y \to \underbrace{x}_y</code>
+          <span class="keybinding">}</span> <code>x\enspace y \Rightarrow \underbrace{x}_y</code>
         </li>
         <li>
-          <span class="keybinding">O</span> <code>x\enspace y \to \overset{y}{x}</code>
+          <span class="keybinding">O</span> <code>x\enspace y \Rightarrow \overset{y}{x}</code>
           &nbsp;&nbsp;
-          <span class="keybinding">U</span> <code>x\enspace y \to \underset{y}{x}</code>
+          <span class="keybinding">U</span> <code>x\enspace y \Rightarrow \underset{y}{x}</code>
         </li>
         <!-- <li>
-          <span class="keybinding">J</span> <code>x\enspace y \to \displaystyle{x\atop y}\enspace</code>
+          <span class="keybinding">J</span> <code>x\enspace y \Rightarrow \displaystyle{x\atop y}\enspace</code>
           (<strong>j</strong>oin vertically)
         </li> -->
       </ul>
@@ -1160,39 +1160,39 @@
           <tr>
             <td>
               <span class="keybinding">p</span>
-              <code>x \to \mathbb{P}{[x]}</code>
+              <code>x \Rightarrow \mathbb{P}{[x]}</code>
             </td>
             <td><em>probability</em></td>
           </tr>
           <tr>
             <td>
               <span class="keybinding">P</span>
-              <code>x\enspace y \to \mathbb{P}{[x\,\vert\,y]}</code>
+              <code>x\enspace y \Rightarrow \mathbb{P}{[x\,\vert\,y]}</code>
             </td>
             <td><em>conditional probability</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">v</span> <code>x \to \mathrm{Var}{[x]}</code></td>
+            <td><span class="keybinding">v</span> <code>x \Rightarrow \mathrm{Var}{[x]}</code></td>
             <td><em>variance</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">V</span> <code>x\enspace y \to \mathrm{Cov}{[x,y]}</code></td>
+            <td><span class="keybinding">V</span> <code>x\enspace y \Rightarrow \mathrm{Cov}{[x,y]}</code></td>
             <td><em>covariance</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>x \to \mathbb{E}{\left[x\right]}</code></td>
+            <td><span class="keybinding">x</span> <code>x \Rightarrow \mathbb{E}{\left[x\right]}</code></td>
             <td><em>expectation</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">X</span> <code>x\enspace y \to \mathbb{E}{\left[x\,\middle\vert\,y\right]}</code></td>
+            <td><span class="keybinding">X</span> <code>x\enspace y \Rightarrow \mathbb{E}{\left[x\,\middle\vert\,y\right]}</code></td>
             <td><em>conditional expectation</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">y</span> <code>x\enspace y \to \mathbb{E}_y{\left[x\right]}</code></td>
+            <td><span class="keybinding">y</span> <code>x\enspace y \Rightarrow \mathbb{E}_y{\left[x\right]}</code></td>
             <td><em>with subscript</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">Y</span> <code>x\enspace y\enspace z \to \mathbb{E}_z{\left[x\,\middle\vert\,y\right]}</code></td>
+            <td><span class="keybinding">Y</span> <code>x\enspace y\enspace z \Rightarrow \mathbb{E}_z{\left[x\,\middle\vert\,y\right]}</code></td>
             <td><em>conditional + subscript</em></td>
           </tr>
       </tbody></table>
@@ -1201,7 +1201,7 @@
       <ul class="keybindings">
         <li>
           <span class="keybinding">&nbsp;</span>
-          <code>x\enspace y \to yx</code> (prepend)
+          <code>x\enspace y \Rightarrow yx</code> (prepend)
         </li>
         <li>
           <span class="keybinding">w</span>
@@ -1215,17 +1215,17 @@
           on the stack in row-major order.
         </li>
         <li>
-          <span class="keybinding">|</span> <code>x\enspace y \to \left.x\right\vert_{y}</code>
+          <span class="keybinding">|</span> <code>x\enspace y \Rightarrow \left.x\right\vert_{y}</code>
           &nbsp;&nbsp;&quot;Where&quot; notation, for example:
           <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
         </li>
         <li>
-          <span class="keybinding">^</span> <code>x\enspace y \to x\cdot{10}^y</code>
+          <span class="keybinding">^</span> <code>x\enspace y \Rightarrow x\cdot{10}^y</code>
           &nbsp;&nbsp;Scientific notation, for example:
           <code>1.23\cdot{10}^{-4}</code>
         </li>
         <li>
-          <span class="keybinding">Enter</span> <code>x\enspace y\enspace z \to x_y^z</code>
+          <span class="keybinding">Enter</span> <code>x\enspace y\enspace z \Rightarrow x_y^z</code>
           (shortcut for adding a subscript and superscript at once)
         </li>
         <li>
@@ -1238,7 +1238,7 @@
           &quot;Negate&quot; a relational operator in an infix expression by putting a slash through it.
           If already negated, the slash is removed instead.  The operator most recently used to create
           the infix expression is the one negated.
-          Example: <code>x&le;y \to x\nleq y</code>
+          Example: <code>x&le;y \Rightarrow x\nleq y</code>
         </li>
         <li>
           <span class="keybinding">&#39;</span> <em>(apostrophe)</em>
@@ -1246,10 +1246,10 @@
         </li>
         <li>
           <span class="keybinding">%</span>
-          <code>x\enspace y\enspace z \to x_{\textrm{new}}</code>:
+          <code>x\enspace y\enspace z \Rightarrow x_{\textrm{new}}</code>:
           Replace subexpressions within <code>x</code> matching <code>y</code>
           with a replacement <code>z</code>.
-          Example: <code>\sqrt{x^2+1}\enspace x\enspace (t-1) \to \sqrt{(t-1)^2+1}</code>
+          Example: <code>\sqrt{x^2+1}\enspace x\enspace (t-1) \Rightarrow \sqrt{(t-1)^2+1}</code>
         </li>
         <li>
           <span class="keybinding">&quot;</span>
@@ -1311,64 +1311,64 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">j</span> <code>y\enspace x \to \frac{\partial y}{\partial x}</code></td>
-            <td><span class="keybinding">J</span> <code>y\enspace x \to \frac{\partial^2 y}{\partial x^2}</code></td>
+            <td><span class="keybinding">j</span> <code>y\enspace x \Rightarrow \frac{\partial y}{\partial x}</code></td>
+            <td><span class="keybinding">J</span> <code>y\enspace x \Rightarrow \frac{\partial^2 y}{\partial x^2}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">q</span> <code>x \to \frac{\partial}{\partial x}</code></td>
-            <td><span class="keybinding">Q</span> <code>x \to \frac{\partial^2}{\partial x^2}</code></td>
+            <td><span class="keybinding">q</span> <code>x \Rightarrow \frac{\partial}{\partial x}</code></td>
+            <td><span class="keybinding">Q</span> <code>x \Rightarrow \frac{\partial^2}{\partial x^2}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">m</span> <code>x\enspace y \to \frac{\partial^2}{\partial x\,\partial y}</code></td>
-            <td><span class="keybinding">M</span> <code>f\enspace x\enspace y \to \frac{\partial^2 f}{\partial x\,\partial y}</code></td>
+            <td><span class="keybinding">m</span> <code>x\enspace y \Rightarrow \frac{\partial^2}{\partial x\,\partial y}</code></td>
+            <td><span class="keybinding">M</span> <code>f\enspace x\enspace y \Rightarrow \frac{\partial^2 f}{\partial x\,\partial y}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>y\enspace x \to \frac{dy}{dx}</code></td>
-            <td><span class="keybinding">K</span> <code>y\enspace x \to \frac{d^2 y}{dx^2}</code></td>
+            <td><span class="keybinding">k</span> <code>y\enspace x \Rightarrow \frac{dy}{dx}</code></td>
+            <td><span class="keybinding">K</span> <code>y\enspace x \Rightarrow \frac{d^2 y}{dx^2}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>x \to \frac{d}{dx}</code></td>
-            <td><span class="keybinding">X</span> <code>x \to \frac{d^2}{dx^2}</code></td>
+            <td><span class="keybinding">x</span> <code>x \Rightarrow \frac{d}{dx}</code></td>
+            <td><span class="keybinding">X</span> <code>x \Rightarrow \frac{d^2}{dx^2}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">p</span> <code>x \to \partial x</code></td>
-            <td><span class="keybinding">P</span> <code>x\enspace y \to \partial_y x</code></td>
+            <td><span class="keybinding">p</span> <code>x \Rightarrow \partial x</code></td>
+            <td><span class="keybinding">P</span> <code>x\enspace y \Rightarrow \partial_y x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">g</span> <code>x \to \nabla x</code></td>
-            <td><span class="keybinding">G</span> <code>x\enspace y \to \nabla_y x</code></td>
+            <td><span class="keybinding">g</span> <code>x \Rightarrow \nabla x</code></td>
+            <td><span class="keybinding">G</span> <code>x\enspace y \Rightarrow \nabla_y x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">.</span> <code>x \to \nabla\cdot x</code></td>
-            <td><span class="keybinding">c</span> <code>x \to \nabla\times x</code></td>
+            <td><span class="keybinding">.</span> <code>x \Rightarrow \nabla\cdot x</code></td>
+            <td><span class="keybinding">c</span> <code>x \Rightarrow \nabla\times x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">l</span> <code>x \to \nabla^2 x</code></td>
-            <td><span class="keybinding">n</span> <code>x \to \Delta x</code> (i<strong>n</strong>crement)</td>
+            <td><span class="keybinding">l</span> <code>x \Rightarrow \nabla^2 x</code></td>
+            <td><span class="keybinding">n</span> <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)</td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>x \to dx</code></td>
-            <td><span class="keybinding">2</span> <code>x \to d^2 x</code></td>
+            <td><span class="keybinding">d</span> <code>x \Rightarrow dx</code></td>
+            <td><span class="keybinding">2</span> <code>x \Rightarrow d^2 x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">3</span> <code>x \to d^3 x</code></td>
-            <td><span class="keybinding">4</span> <code>x \to d^4 x</code></td>
+            <td><span class="keybinding">3</span> <code>x \Rightarrow d^3 x</code></td>
+            <td><span class="keybinding">4</span> <code>x \Rightarrow d^4 x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">f</span> <code>x\enspace y \to dx \wedge dy</code></td>
-            <td><span class="keybinding">F</span> <code>x\enspace y\enspace z \to dx \wedge dy \wedge dz</code></td>
+            <td><span class="keybinding">f</span> <code>x\enspace y \Rightarrow dx \wedge dy</code></td>
+            <td><span class="keybinding">F</span> <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code></td>
           </tr>
           <tr>
             <td colspan="2">
               <span class="keybinding">E</span>
-              <code>x\enspace y \to dx \wedge \cdots \wedge dy</code>
+              <code>x\enspace y \Rightarrow dx \wedge \cdots \wedge dy</code>
             </td>
           </tr>
           <tr>
             <td colspan="2">
               <span class="keybinding">i</span> or <span class="keybinding">I</span> or
               <span class="keybinding">&nbsp;</span>
-              <code>x\enspace y \to x\,dy</code> (see below)
+              <code>x\enspace y \Rightarrow x\,dy</code> (see below)
             </td>
           </tr>
       </tbody></table>
@@ -1399,7 +1399,7 @@
         <strong>Differential Forms:</strong>
         The <span class="keybinding">f</span> <span class="keybinding">F</span> <span class="keybinding">E</span>
         commands for building differential forms will pull out minus signs as needed, as in:
-        <code>-y\enspace x \to -dy \wedge dx</code>.
+        <code>-y\enspace x \Rightarrow -dy \wedge dx</code>.
         When concatenating differential forms to integral expressions, use
         <span class="keybinding">,</span><span class="keybinding">&nbsp;</span>
         instead of <span class="keybinding">&nbsp;</span> to avoid parenthesizing the differential form.
@@ -1428,31 +1428,31 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">r</span> <code>\int \to \int_{-\infty}^\infty</code></td>
+            <td><span class="keybinding">r</span> <code>\int \Rightarrow \int_{-\infty}^\infty</code></td>
             <td><em>reals</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">p</span> <code>\int \to \int_0^\infty</code></td>
+            <td><span class="keybinding">p</span> <code>\int \Rightarrow \int_0^\infty</code></td>
             <td><em>positive</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">n</span> <code>\int \to \int_{-\infty}^0</code></td>
+            <td><span class="keybinding">n</span> <code>\int \Rightarrow \int_{-\infty}^0</code></td>
             <td><em>negative</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">u</span> <code>\int \to \int_0^1</code></td>
+            <td><span class="keybinding">u</span> <code>\int \Rightarrow \int_0^1</code></td>
             <td><em>unit</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">U</span> <code>\int \to \int_{-1}^1</code></td>
+            <td><span class="keybinding">U</span> <code>\int \Rightarrow \int_{-1}^1</code></td>
             <td><em>symmetric unit</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">t</span> <code>\int \to \int_0^{2\pi}</code></td>
+            <td><span class="keybinding">t</span> <code>\int \Rightarrow \int_0^{2\pi}</code></td>
             <td><em>trigonometric</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">T</span> <code>\int \to \int_{-\pi}^\pi</code></td>
+            <td><span class="keybinding">T</span> <code>\int \Rightarrow \int_{-\pi}^\pi</code></td>
             <td><em>symmetric trigonometric</em></td>
           </tr>
       </tbody></table>
@@ -1469,7 +1469,7 @@
         rather than it having to exist beforehand.
         Example:
         <span class="keybinding">/</span><span class="keybinding">j</span><span class="keybinding">r</span>
-        <code>\to \int_{-\infty}^{\infty}</code>
+        <code>\Rightarrow \int_{-\infty}^{\infty}</code>
       </p>
 
       <h2>
@@ -1630,7 +1630,7 @@
         <em>blank</em> delimiters via <span class="keybinding">)</span><span class="keybinding">.</span> or
         <span class="keybinding">)</span><span class="keybinding">&nbsp;</span>.
         For example:
-        <code>\displaystyle x/\frac{1}{\sqrt x} \to \left.x\middle/\frac{1}{\sqrt x}\right.</code>
+        <code>\displaystyle x/\frac{1}{\sqrt x} \Rightarrow \left.x\middle/\frac{1}{\sqrt x}\right.</code>
       </p>
       <p>
         Other commands in this mode:
@@ -1763,7 +1763,7 @@
           <tr>
             <td>
               <span class="keybinding">$</span>
-              <code>a\enspace b\enspace c\enspace d\to
+              <code>a\enspace b\enspace c\enspace d\Rightarrow
                 \begin{bmatrix} a & b \\ c & d \end{bmatrix}
               </code>
             </td>
@@ -1772,13 +1772,13 @@
           <tr>
             <td>
               <span class="keybinding">@</span>
-              <code>a\enspace b\to
+              <code>a\enspace b\Rightarrow
                 \begin{bmatrix} a \\ b \end{bmatrix}
               </code>
             </td>
             <td>
               <span class="keybinding">#</span>
-              <code>a\enspace b\enspace c\to
+              <code>a\enspace b\enspace c\Rightarrow
                 \begin{bmatrix} a \\ b \\ c\end{bmatrix}
               </code>
             </td>
@@ -1859,7 +1859,7 @@
               x^2 \colon x \ge 0 \\
               0 \colon x &lt; 0
             \end{gathered}
-            \longrightarrow
+            \Longrightarrow
             \begin{cases}
               x^2 & x \ge 0 \\
               0 & x &lt; 0
@@ -1883,7 +1883,7 @@
               x^3 \colon 0 \le x \le 1 \\
               x^4
             \end{gathered}
-            \longrightarrow
+            \Longrightarrow
             \begin{cases}
               x^2 & \mathrm{if}\enspace x \ge 1 \\
               x^3 & \mathrm{if}\enspace 0 \le x \le 1 \\
@@ -2041,23 +2041,23 @@
           E<strong>x</strong>pand a polynomial or rational function, rewriting with partial fractions if possible:
           <code>\displaystyle{
             \frac{{\left(x+3\right)}^2}{\left(x+1\right)\left(x+2\right)}
-            \to 1+\frac{4}{x+1}-\frac{1}{x+2}}
+            \Rightarrow 1+\frac{4}{x+1}-\frac{1}{x+2}}
           </code>
         </li>
         <li>
           <span class="keybinding">f</span> and <span class="keybinding">F</span>
           Factor a polynomial over the integers:
           <code>\displaystyle{
-            x^3-1 \to \left(x-1\right)\left(x^2+x+1\right)}
+            x^3-1 \Rightarrow \left(x-1\right)\left(x^2+x+1\right)}
           </code>.
           Applied to a literal integer, factor into primes instead:
-          <code>123456 \to 2^6\cdot 3\cdot 643</code>
+          <code>123456 \Rightarrow 2^6\cdot 3\cdot 643</code>
         </li>
         <li>
           <span class="keybinding">c</span> and <span class="keybinding">C</span>
           Complete the square in an expression by rewriting in a way that eliminates
           the term linear in a variable:
-          <code>2x^2-3x+1 \to
+          <code>2x^2-3x+1 \Rightarrow
             2{\left(x-\frac{3}{4}\right)}^2-\frac{1}{8}
           </code>.
           Any extra terms like <code>x^3</code> or <code>\sin x</code> are left alone.
@@ -2066,14 +2066,14 @@
           <span class="keybinding">r</span>
           Rationalize an expression by putting everything over a common denominator:
           <code>\displaystyle{
-            \frac{1}{x+1}+\frac{1}{x-1}\to\frac{2x}{\left(x-1\right)\left(x+1\right)}}
+            \frac{1}{x+1}+\frac{1}{x-1}\Rightarrow\frac{2x}{\left(x-1\right)\left(x+1\right)}}
           </code>
         </li>
         <li>
           <span class="keybinding">s</span>
           Attempt to rewrite an expression in a <strong>s</strong>impler form:
           <code>\displaystyle{
-            \frac{\left(x+2\right)!}{x!} \to
+            \frac{\left(x+2\right)!}{x!} \Rightarrow
             \left(x+1\right)\left(x+2\right)}
           </code>
         </li>
@@ -2082,18 +2082,18 @@
           <em>(<strong>w</strong>here)</em>
           Substitute a value for a variable in an expression:
           <span class="keybinding">w</span>
-          <code>x^2\enspace 10 \to 100</code>
+          <code>x^2\enspace 10 \Rightarrow 100</code>
           or <span class="keybinding">W</span>
-          <code>x+y\enspace y\enspace 10 \to x+10</code>.
+          <code>x+y\enspace y\enspace 10 \Rightarrow x+10</code>.
           Note that with <span class="keybinding">W</span>, the &quot;variable&quot;
           can be any arbitrary expression:
-          <code>3\mathrm{e}^x\enspace \mathrm{e}^x\enspace y\to 3y</code>.
+          <code>3\mathrm{e}^x\enspace \mathrm{e}^x\enspace y\Rightarrow 3y</code>.
         </li>
         <li>
           <span class="keybinding">e</span>
           Rewrite trigonometric functions using <strong>e</strong>xponentials:
           <code>\displaystyle{
-            \sin{x} \to \frac{i{\mathrm e}^{-2ix}}{2}-\frac{i{\mathrm e}^{2ix}}{2}}
+            \sin{x} \Rightarrow \frac{i{\mathrm e}^{-2ix}}{2}-\frac{i{\mathrm e}^{2ix}}{2}}
           </code>
         </li>
         <li>
@@ -2109,7 +2109,7 @@
           <span class="keybinding">*</span>
           Complex conjugation:
           <code>\displaystyle{
-            {\mathrm e}^{2ix}\to{\mathrm e}^{-2ix}}
+            {\mathrm e}^{2ix}\Rightarrow{\mathrm e}^{-2ix}}
           </code>
         </li>
         <li>
@@ -2117,7 +2117,7 @@
           Find the (real or complex) exact roots of a polynomial if possible.
           Multiple roots are displayed as a list:
           <code>
-            x^2+2 \to
+            x^2+2 \Rightarrow
             \begin{aligned}
             x_1 & {}=-i\sqrt{2}\\
             x_2 & {}=i\sqrt{2}
@@ -2126,20 +2126,20 @@
         </li>
         <li>
           <span class="keybinding">m</span>
-          <code>f\enspace a\enspace b \to \displaystyle{\sum_{x=a}^b f{(x)}}</code>
+          <code>f\enspace a\enspace b \Rightarrow \displaystyle{\sum_{x=a}^b f{(x)}}</code>
           or
           <span class="keybinding">M</span>
-          <code>f\enspace x\enspace a\enspace b \to \displaystyle{\sum_{x=a}^b f{(x)}}</code>:
+          <code>f\enspace x\enspace a\enspace b \Rightarrow \displaystyle{\sum_{x=a}^b f{(x)}}</code>:
           Su<strong>m</strong> <code>f{(x)}</code> for values of the variable
           ranging from <code>a</code> to <code>b</code>;
           <code>a</code> and <code>b</code> must be finite integers.
         </li>
         <li>
           <span class="keybinding">o</span>
-          <code>f\enspace a\enspace b \to \displaystyle{\prod_{x=a}^b f{(x)}}</code>
+          <code>f\enspace a\enspace b \Rightarrow \displaystyle{\prod_{x=a}^b f{(x)}}</code>
           or
           <span class="keybinding">O</span>
-          <code>f\enspace x\enspace a\enspace b \to \displaystyle{\prod_{x=a}^b f{(x)}}</code>:
+          <code>f\enspace x\enspace a\enspace b \Rightarrow \displaystyle{\prod_{x=a}^b f{(x)}}</code>:
           Pr<strong>o</strong>duct of <code>f{(x)}</code> values.
         </li>
       </ul>
@@ -2149,35 +2149,35 @@
         <li>
           <span class="keybinding">d</span> and <span class="keybinding">D</span>
           Differentiate an expression:
-          <code>\displaystyle{x^2\sin{x} \to 2x\sin{x}+x^2\cos{x}}</code>.
+          <code>\displaystyle{x^2\sin{x} \Rightarrow 2x\sin{x}+x^2\cos{x}}</code>.
           Generic functions like <code>f{(x)}</code> can also be handled
           and are shown with &quot;prime&quot; notation:
           <code>\displaystyle{
             f{\left(x\right)}g{\left(x\right)}
-            \to f^{\prime}{\left(x\right)}g{\left(x\right)}+g^{\prime}{\left(x\right)}f{\left(x\right)}}
+            \Rightarrow f^{\prime}{\left(x\right)}g{\left(x\right)}+g^{\prime}{\left(x\right)}f{\left(x\right)}}
           </code>
         </li>
         <li>
           <span class="keybinding">i</span> and <span class="keybinding">I</span>
           Attempt to calculate the indefinite integral of an expression:
           <code>\displaystyle{
-            2\sin{x}\cos{x} \to {\left(\sin{x}\right)}^2}
+            2\sin{x}\cos{x} \Rightarrow {\left(\sin{x}\right)}^2}
           </code>
         </li>
         <li>
           <span class="keybinding">j</span>
-          <code>f\enspace a\enspace b \to \int_a^b f{(x)}\,dx</code>:
+          <code>f\enspace a\enspace b \Rightarrow \int_a^b f{(x)}\,dx</code>:
           Attempt to calculate a definite integral.
           The integration bounds can be symbolic expressions or rational numbers.
           Currently, numerical integration (quadrature) is not supported,
           and the integration bounds must be finite.  Example:
           <code>\displaystyle{
-            \tan x \enspace 0 \enspace \pi/3 \to \ln 2}
+            \tan x \enspace 0 \enspace \pi/3 \Rightarrow \ln 2}
           </code>
         </li>
         <li>
           <span class="keybinding">J</span>
-          <code>f\enspace z\enspace a\enspace b \to \int_a^b f{(z)}\,dz</code>:
+          <code>f\enspace z\enspace a\enspace b \Rightarrow \int_a^b f{(z)}\,dz</code>:
           Specify the integration variable explicitly.
         </li>
         <li>
@@ -2185,7 +2185,7 @@
           Expand a function in Taylor series.  Lowercase <span class="keybinding">t</span>
           performs a default expansion about <code>x=0</code> to order 7:
           <code>\displaystyle{
-              \sin{2x} \to -\frac{8x^7}{315}+\frac{4x^5}{15}-\frac{4x^3}{3}+2x}
+              \sin{2x} \Rightarrow -\frac{8x^7}{315}+\frac{4x^5}{15}-\frac{4x^3}{3}+2x}
           </code>.  Uppercase <span class="keybinding">T</span>
           takes 4 arguments on the stack:
           <code>f\enspace x\enspace a\enspace n</code> and calculates the expansion
@@ -2269,13 +2269,13 @@
           <span class="keybinding">n</span>
           Evaluate constants in an expression, replacing them with
           decimal approximations:
-          <code>(\ln{2})^3 \to 0.33302465198892944</code>
+          <code>(\ln{2})^3 \Rightarrow 0.33302465198892944</code>
         </li>
         <li>
           <span class="keybinding">=</span>
           Given a decimal number, try to find a close rational approximation to that number.
           Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
-          be detected: <code>1.6449340668482262 \to \pi^2/6</code>
+          be detected: <code>1.6449340668482262 \Rightarrow \pi^2/6</code>
         </li>
         <li>
           <span class="keybinding">y</span> and <span class="keybinding">Y</span>
@@ -2316,32 +2316,32 @@
       <ul class="keybindings">
         <li>
           <span class="keybinding">p</span><span class="keybinding">p</span>
-          <code>n \to P_n{(x)}</code>: Legendre polynomial of degree <code>n</code>.
+          <code>n \Rightarrow P_n{(x)}</code>: Legendre polynomial of degree <code>n</code>.
         </li>
         <li>
           <span class="keybinding">p</span><span class="keybinding">P</span>
-          <code>n\enspace m \to P_n^m{(x)}</code>: Associated Legendre function of order <code>(n,m)</code>.
+          <code>n\enspace m \Rightarrow P_n^m{(x)}</code>: Associated Legendre function of order <code>(n,m)</code>.
         </li>
         <li>
           <span class="keybinding">p</span><span class="keybinding">l</span>
-          <code>n \to L_n{(x)}</code>: Laguerre polynomial of degree <code>n</code>.
+          <code>n \Rightarrow L_n{(x)}</code>: Laguerre polynomial of degree <code>n</code>.
         </li>
         <li>
           <span class="keybinding">p</span><span class="keybinding">L</span>
-          <code>n\enspace m \to L_n^{(m)}{(x)}</code>: Associated Laguerre polynomial of order <code>(n,m)</code>.
+          <code>n\enspace m \Rightarrow L_n^{(m)}{(x)}</code>: Associated Laguerre polynomial of order <code>(n,m)</code>.
         </li>
         <li>
           <span class="keybinding">p</span><span class="keybinding">h</span>
-          <code>n \to H_n{(x)}</code>: Hermite polynomial of degree <code>n</code>.
+          <code>n \Rightarrow H_n{(x)}</code>: Hermite polynomial of degree <code>n</code>.
           These use the &quot;physicist's&quot; scaling convention.
         </li>
         <li>
           <span class="keybinding">p</span><span class="keybinding">j</span>
-          <code>\alpha \to J_{\alpha}{(x)}</code>: Bessel function of the first kind.
+          <code>\alpha \Rightarrow J_{\alpha}{(x)}</code>: Bessel function of the first kind.
         </li>
         <li>
           <span class="keybinding">p</span><span class="keybinding">y</span>
-          <code>\alpha \to Y_{\alpha}{(x)}</code>: Bessel function of the second kind.
+          <code>\alpha \Rightarrow Y_{\alpha}{(x)}</code>: Bessel function of the second kind.
         </li>
       </ul>
 
@@ -2590,7 +2590,7 @@
           (same as <span class="keybinding">Tab</span><span class="keybinding">c</span>)
         </li>
         <li><span class="keybinding">Ctrl+e</span>
-          <code>x \to \mathrm{e}^x</code>
+          <code>x \Rightarrow \mathrm{e}^x</code>
           (same as <span class="keybinding">/</span><span class="keybinding">e</span>)
         </li>
         <li><span class="keybinding">Ctrl+i</span>
@@ -2603,12 +2603,12 @@
         </li>
         <li>
           <span class="keybinding">Ctrl+k</span>
-          <code>f\enspace x\enspace y \to f(x\,|\,y)</code>
+          <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code>
           (same as <span class="keybinding">/</span><span class="keybinding">k</span>)
         </li>
         <li>
           <span class="keybinding">Ctrl+K</span>
-          <code>f\enspace x\enspace y\enspace z \to f(x,y\,|\,z)</code>
+          <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code>
           (same as <span class="keybinding">/</span><span class="keybinding">K</span>)
         </li>
         <li><span class="keybinding">Ctrl+l</span>
@@ -2616,11 +2616,11 @@
           (same as <span class="keybinding">Tab</span><span class="keybinding">l</span>)
         </li>
         <li><span class="keybinding">Ctrl+m</span>
-          <code>x \to -x</code>
+          <code>x \Rightarrow -x</code>
           (same as <span class="keybinding">.</span><span class="keybinding">-</span>)
         </li>
         <li><span class="keybinding">Ctrl+o</span>
-          <code>f\enspace x \to f(x)</code>
+          <code>f\enspace x \Rightarrow f(x)</code>
           (same as <span class="keybinding">/</span><span class="keybinding">o</span>)
         </li>
         <li>
@@ -2630,12 +2630,12 @@
         </li>
         <li>
           <span class="keybinding">Ctrl+r</span>
-          <code>f\enspace x\enspace y \to f(x,y)</code>
+          <code>f\enspace x\enspace y \Rightarrow f(x,y)</code>
           (same as <span class="keybinding">/</span><span class="keybinding">r</span>)
         </li>
         <li>
           <span class="keybinding">Ctrl+R</span>
-          <code>f\enspace x\enspace y\enspace z \to f(x,y,z)</code>
+          <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code>
           (same as <span class="keybinding">/</span><span class="keybinding">R</span>)
         </li>
         <li>
@@ -2656,7 +2656,7 @@
           (same as <span class="keybinding">Tab</span><span class="keybinding">w</span>)
         </li>
         <li><span class="keybinding">Ctrl+x</span>
-          <code>f \to f(x)</code>
+          <code>f \Rightarrow f(x)</code>
         </li>
         <li><span class="keybinding">Ctrl+z</span>
           Undo last action
@@ -2668,7 +2668,7 @@
         </li>
         <li>
           <span class="keybinding">Ctrl+/</span>
-          <code>x\enspace y \to \frac{x}{y}</code>
+          <code>x\enspace y \Rightarrow \frac{x}{y}</code>
           (same as <span class="keybinding">/</span><span class="keybinding">/</span>)
         </li>
         <li>

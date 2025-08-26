@@ -421,7 +421,9 @@ function double_to_expr(x) {
 }
 
 function double_to_scientific_notation_expr(x) {
-  const exp_string = x.toExponential();  // "3e+4", or else "Infinity", "NaN", etc.
+  // Convert to "3e+4", or else "Infinity", "NaN", etc.
+  // The 9 here should match the toFixed(9) in format_double().
+  const exp_string = x.toExponential(9);  
   // Split on e+ and e- both explicitly, in case e.g. "Infinity" happened to have an "e" in it.
   const [pieces_positive, pieces_negative] =
         [exp_string.split('e+'), exp_string.split('e-')];
