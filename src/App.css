@@ -121,6 +121,10 @@ div.separator_item hr {
   border: none;
   background-color: #bbf;
 }
+/* Separator lines in the floating item spot need an explicit width to be visible
+   (since they're inside an container without a fixed width). */
+div.floating_item div.separator_item hr { width: 4em; }
+
 
 /* "Emphasized" expressions created with [.][e]
    Note that because of how KaTeX layout works, we only really have the foreground color to
@@ -224,6 +228,7 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 #stack_panel div.indicator {
   float: right;
   clear: right;  /* in case there's a "floating" stack item */
+  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
   margin-right: 0.25em;
   margin-top: 0.25em;
   font-size: 120%;
@@ -240,6 +245,7 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 #stack_panel div.error_message {
   float: right;
   clear: right;
+  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
   background-color: #fdd;
   padding: 0.1em 0.2em;
   margin-right: 0.25em;
@@ -251,8 +257,7 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 
 #stack_panel div.floating_item {
   float: right;
-  /* position/z-index: keep the floating item from being obscured by other stack items */
-  position: relative;
+  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
   z-index: 2;  /* TODO: maybe use position: sticky instead */
   padding: 0.05em 0.2em;
   padding-left: 0;  /* make itemtype bar look "correct" */
