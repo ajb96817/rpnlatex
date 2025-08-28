@@ -769,6 +769,7 @@ const EditorKeymap = {
     'P': "push \\pm",
     'q': "push =",
     'Q': "push \\bigsqcup",
+    'r': "push \\square",
     's': "push \\sum",
     'S': "push \\S",
     't': "push \\therefore",
@@ -793,6 +794,7 @@ const EditorKeymap = {
     ';': "push semicolon",
     ':': "push :",
     '`': "push `",
+    '~': "push \\sim",
     '_': "push \\_",
     "'": "push_placeholder",
     ' ': "push ",  // "blank", e.g. when you don't want something on one side of an infix
