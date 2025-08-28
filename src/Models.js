@@ -50,6 +50,7 @@ class Settings {
 
   static saved_keys() {
     return [
+      'debug_mode',
       'filter',
       'eink_mode',
       'last_opened_filename',
@@ -63,6 +64,7 @@ class Settings {
   
   constructor() {
     this.current_keymap = new Keymap();
+    this.debug_mode = false;
     this.filter = null;  // null, 'inverse_video', 'sepia'
     this.eink_mode = false;
     this.last_opened_filename = null;

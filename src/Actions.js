@@ -240,6 +240,8 @@ class InputContext {
           // Algebrite, will be shown in red.
           this.report_error(e.message, e.offending_expr);
         }
+        if(this.settings.debug_mode)
+          throw e;  // don't "hide" exceptions in debug mode
         return null;
       }
       finally {
@@ -1502,11 +1504,10 @@ class InputContext {
       }
     }
     this._cancel_text_entry(stack);
-    return stack.push(
-      new ExprItem(
-        new_expr,
-          null /* no tag */,
-          text /* source_string */));
+    return stack.push(new ExprItem(
+      new_expr,
+      null /* no tag */,
+      text /* source_string */));
   }
 
   // Start text entry mode using the item on the stack top.
@@ -1564,7 +1565,12 @@ class InputContext {
       this.suppress_undo();
       this.dissect_mode_initial_expr = expr;
       // Build a new ExprItem with a default initial selection.
-      return new_stack.push(new ExprItem(expr, null, new ExprPath(expr, [0])));
+      const new_item = new ExprItem(
+        expr,
+        null /* tag */,
+        null /* source_string - discard */,
+        new ExprPath(expr, [0]));
+      return new_stack.push(new_item);
     }
     else
       return this.error_flash_stack();
@@ -1576,7 +1582,8 @@ class InputContext {
     this.suppress_undo();
     const original_expr = this.dissect_mode_initial_expr;
     this.dissect_mode_initial_expr = null;
-    return new_stack.push(new ExprItem(original_expr, null, null));
+    return new_stack.push(
+      new ExprItem(original_expr, null, null, null));
   }
 
   // Accept any changes that have been done while in dissect mode
@@ -1590,7 +1597,7 @@ class InputContext {
         this.dissect_undo_stack = null;
         // A new ExprItem needs to be constructed in order to remove
         // the existing ExprPath selection.
-        return new_stack.push(new ExprItem(expr, null, null));
+        return new_stack.push(new ExprItem(expr, null, null, null));
         }     */
 
   // Descend into a subexpression, if possible.
@@ -1672,7 +1679,8 @@ class InputContext {
     const new_expr_path = fn(expr_path);
     if(new_expr_path) {
       this.suppress_undo();
-      const new_expr_item = new ExprItem(new_expr_path.expr, null, new_expr_path);
+      const new_expr_item = new ExprItem(
+        new_expr_path.expr, null, null, new_expr_path);
       return new_stack.push(new_expr_item);
     }
     else
@@ -1869,6 +1877,10 @@ class InputContext {
       break;
     case 'reload_page':
       window.location.reload();
+      break;
+    case 'toggle_debug_mode':
+      settings.debug_mode = !settings.debug_mode;
+      this.notify("Debug mode " + (settings.debug_mode ? "on" : "off"));
       break;
     default:
       break;
