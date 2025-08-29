@@ -632,6 +632,7 @@ const EditorKeymap = {
     'b': "infix \\bullet",
     'c': "infix \\cap",
     'd': "swap;push \\dagger;superscript false;swap;concat",  // x^\dagger y
+    'D': "infix \\oplus",  // [D]irect sum
     'e': "infix ,\\dots,",
     'f': "conjunction if",
     'F': "conjunction iff",
@@ -662,8 +663,8 @@ const EditorKeymap = {
     'x': "infix \\times",
     'X': "infix \\otimes",
     '=': "infix \\Rightarrow",
+    '+': "infix \\Longrightarrow",
     '-': "infix \\ominus",
-    '+': "infix \\oplus",
     '.': "infix \\cdot",
     ',': "infix ,",
     ':': "infix \\colon",
