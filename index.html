@@ -75,11 +75,11 @@
           reveal the document section again.
         </li>
         <li>
-          <span class="keybinding">a-z</span><span class="keybinding">A-Z</span><span class="keybinding">0-9</span><span class="keybinding">*</span><span class="keybinding">~</span>
+          <span class="keybinding">a-z</span><span class="keybinding">A-Z</span><span class="keybinding">0-9</span><span class="keybinding">~</span>
           Place the corresponding character onto the stack.
         </li>
         <li>
-          <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">&lt;</span><span class="keybinding">&gt;</span>
+          <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">*</span><span class="keybinding">&lt;</span><span class="keybinding">&gt;</span>
           Join two expressions with the corresponding operator between them.
         </li>
         <li>
@@ -586,36 +586,36 @@
           <tr>
             <td><span class="keybinding">-</span> <code>-</code></td>
             <td><span class="keybinding">+</span> <code>+</code></td>
-            <td><span class="keybinding">*</span> <code>\star</code></td>
+            <td><span class="keybinding">*</span> <code>\ast</code></td>
+            <td><span class="keybinding">^</span> <code>\star</code></td>
             <td><span class="keybinding">|</span> <code>|</code></td>
-            <td><span class="keybinding">?</span> <code>?</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">?</span> <code>?</code></td>
             <td><span class="keybinding">!</span> <code>!</code></td>
             <td><span class="keybinding">,</span> <code>,</code></td>
             <td><span class="keybinding">;</span> <code>;</code></td>
             <td><span class="keybinding">:</span> <code>:</code></td>
-            <td><span class="keybinding">`</span> <code>`</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">`</span> <code>`</code></td>
             <td><span class="keybinding">~</span> <code>\sim</code></td>
             <td><span class="keybinding">/</span> <code>/</code></td>
             <td><span class="keybinding">\</span> <code>\backslash</code></td>
             <td><span class="keybinding">_</span> <code>\_</code></td>
-            <td><span class="keybinding">&uarr;</span> <code>\uparrow</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">&uarr;</span> <code>\uparrow</code></td>
             <td><span class="keybinding">&darr;</span> <code>\downarrow</code></td>
             <td><span class="keybinding">&larr;</span> <code>\leftarrow</code></td>
             <td><span class="keybinding">&rarr;</span> <code>\rightarrow</code></td>
             <td><span class="keybinding">@</span> <code>@</code></td>
-            <td><span class="keybinding">#</span> <code>\#</code></td>
           </tr>
           <tr>
+            <td><span class="keybinding">#</span> <code>\#</code></td>
             <td><span class="keybinding">$</span> <code>\$</code></td>
             <td><span class="keybinding">%</span> <code>\%</code></td>
             <td><span class="keybinding">&amp;</span> <code>\&</code></td>
-            <td></td>
             <td></td>
           </tr>
       </tbody></table>
@@ -906,9 +906,6 @@
       <p>
         Similar to <span class="keybinding">,</span> these commands combine two items
         into an "equation" by placing a relational operator between them.
-        <strong>NOTE:</strong> There is no real distinction between relational and infix
-        operators internally, so this <span class="keybinding">=</span> prefix is just a way to
-        get more keybindings available.
       </p>
 
       <p>Equality-like relations:</p>
@@ -2644,6 +2641,9 @@
           Save the current document
           (same as <span class="keybinding">Tab</span><span class="keybinding">s</span>)
         </li>
+        <li><span class="keybinding">Ctrl+t</span>
+          <code>f \Rightarrow f(t)</li>
+        </code>
         <li><span class="keybinding">Ctrl+u</span>
           Make superscript (same as <span class="keybinding">`</span>)
         </li>

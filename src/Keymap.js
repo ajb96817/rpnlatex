@@ -3,7 +3,6 @@ const EditorKeymap = {
   base: {
     // Letters/numbers and some symbols immediately push onto the stack
     '[alnum]': "self_push",
-    '*': "push *",
     '~': "push \\sim",
 
     // Immediate action special keys
@@ -20,6 +19,7 @@ const EditorKeymap = {
     '>': "infix >",
     '+': "infix +",
     '-': "autoparenthesize;infix -",
+    '*': "autoparenthesize 2;infix \\cdot",
     ']': "make_bold",
     '[': "delimiters [ ]",
     '(': "delimiters ( )",
@@ -83,10 +83,13 @@ const EditorKeymap = {
     'Ctrl+r': "infix ,;parenthesize;build_function_call",  // -> f(x,y): same as [/][r]
     'Ctrl+R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z): same as [/][R]
     'Ctrl+s': "save_file",
+    'Ctrl+t': "push t;parenthesize;build_function_call",  // y -> y(t)
+    'Ctrl+T': "push y;push t;parenthesize;build_function_call",  // y(t) - undocumented
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
     'Ctrl+w': "swap_floating_item",
     'Ctrl+x': "push x;parenthesize;build_function_call",  // f -> f(x)
+    'Ctrl+X': "push f;push x;parenthesize;build_function_call",  // f(x) - undocumented
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
@@ -573,23 +576,23 @@ const EditorKeymap = {
     // \partial^2 z / \partial x\,\partial y
     'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;operator frac 2",
     // gradient
-    'g': "push \\nabla;swap;concat",
+    'g': "autoparenthesize;push \\nabla;swap;concat",
     // gradient with respect to x
-    'G': "push \\nabla;swap;subscript;swap;concat",
+    'G': "push \\nabla;swap;subscript;swap;autoparenthesize;concat",
     // divergence
-    '.': "push \\nabla;swap;infix \\cdot",
+    '.': "autoparenthesize;push \\nabla;swap;infix \\cdot",
     // curl
-    'c': "push \\nabla;swap;infix \\times",
+    'c': "autoparenthesize;push \\nabla;swap;infix \\times",
     // Laplacian
-    'l': "push \\nabla;integer 2;superscript;swap;concat",
+    'l': "autoparenthesize;push \\nabla;integer 2;superscript;swap;concat",
     // Delta-x
-    'n': "push \\Delta;swap;concat",  // i[n]crement (?)
+    'n': "autoparenthesize;push \\Delta;swap;concat",  // i[n]crement (?)
     // x -> dx
-    'd': "push d;swap;fuse",
+    'd': "autoparenthesize;push d;swap;fuse",
     // x -> \partial x
-    'p': "push \\partial;swap;fuse",
+    'p': "autoparenthesize;push \\partial;swap;fuse",
     // y x -> \partial_x y
-    'P': "push \\partial;swap;subscript;swap;fuse",
+    'P': "push \\partial;swap;subscript;swap;autoparenthesize;fuse",
     // x y -> dx ^ dy
     'f': "differential_form 2 false false",
     // x y z -> dx ^ dy ^ dz
@@ -787,7 +790,8 @@ const EditorKeymap = {
     '>': "push \\cdots",
     '-': "push -",
     '+': "push +",
-    '*': "push \\star",
+    '*': "push \\ast",
+    '^': "push \\star",
     '|': "push |",
     '=': "push_separator",
     '?': "push ?",
