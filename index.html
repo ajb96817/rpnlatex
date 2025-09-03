@@ -75,15 +75,17 @@
           reveal the document section again.
         </li>
         <li>
-          <span class="keybinding">a-z</span><span class="keybinding">A-Z</span><span class="keybinding">0-9</span><span class="keybinding">~</span>
+          <span class="keybinding">a-z</span><span class="keybinding">A-Z</span><span class="keybinding">0-9</span>
           Place the corresponding character onto the stack.
         </li>
         <li>
-          <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">*</span><span class="keybinding">&lt;</span><span class="keybinding">&gt;</span>
-          Join two expressions with the corresponding operator between them.
+          <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">&lt;</span><span class="keybinding">&gt;</span><span class="keybinding">*</span>
+          Join two expressions with the corresponding operator between them
+          (<code>x\cdot y</code> in the case of <span class="keybinding">*</span>).
         </li>
         <li>
-          <span class="keybinding">&nbsp;</span> <em>(space)</em> Concatenate the top two stack entries.
+          <span class="keybinding">&nbsp;</span> <em>(space)</em>
+          Concatenate the top two stack entries.
         </li>
         <li>
           <span class="keybinding">^</span> or <span class="keybinding">`</span> <em>(backtick)</em>
@@ -92,16 +94,23 @@
         <li><span class="keybinding">Enter</span>
           Make subscript: <code>x\enspace y \Rightarrow x_y</code>
         </li>
-        <li><span class="keybinding">Shift+Enter</span>
+        <li>
+          <span class="keybinding">Shift+Enter</span>
           Start <a href="#edit_text">editing</a> the stack top as text.
         </li>
-        <li><span class="keybinding">Backspace</span> Drop the top item from the stack.</li>
+        <li>
+          <span class="keybinding">Backspace</span>
+          Drop the top item from the stack.
+        </li>
         <li>
           <span class="keybinding">(</span><span class="keybinding">[</span><span class="keybinding">{</span>
           Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
           These delimiters automatically adjust to fit their contents.
         </li>
-        <li><span class="keybinding">]</span> Apply a <strong>bold font</strong> to the stack top.</li>
+        <li>
+          <span class="keybinding">]</span>
+          Apply a <strong>bold font</strong> to the stack top.
+        </li>
         <li>
           <span class="keybinding">!</span>
           Append a <kbd>!</kbd> to the stack top (factorial notation).
@@ -904,7 +913,7 @@
         <a name="relational" id="help_relational">Relational Operators</a>
       </h2>
       <p>
-        Similar to <span class="keybinding">,</span> these commands combine two items
+        Similar to <span class="keybinding">,</span>, these commands combine two items
         into an "equation" by placing a relational operator between them.
       </p>
 
@@ -1036,7 +1045,7 @@
           </tr>
           <tr>
             <td><span class="keybinding">l</span> <code>x \Rightarrow \lim\limits_x</code></td>
-            <td><span class="keybinding">L</span> <code>x\enspace y \Rightarrow \lim\limits_{x\Rightarrow y}</code></td>
+            <td><span class="keybinding">L</span> <code>x\enspace y \Rightarrow \lim\limits_{x\to y}</code></td>
           </tr>
           <tr>
             <td><span class="keybinding">b</span> <code>x\enspace y \Rightarrow \displaystyle{\binom{x}{y}}</code></td>
@@ -2484,7 +2493,8 @@
         </li>
         <li>
           <span class="keybinding">m</span>
-          Toggle whether to show math expressions in the stack area aligned to the left or to the right.
+          Change the alignment of math expressions in the stack area.
+          Cycles between left-aligned (the default), centered, and right-aligned.
         </li>
         <li>
           <span class="keybinding">M</span>
@@ -2512,13 +2522,13 @@
           <span class="keybinding">F</span> exits fullscreen.
         </li>
         <li>
+          <span class="keybinding">H</span>
+          Toggle whether or not to hide the mouse cursor.
+        </li>
+        <li>
           <span class="keybinding">I</span>
           Toggle whether the prefix key mode indicator in the upper-right corner of the stack
           is visible or not.
-        </li>
-        <li>
-          <span class="keybinding">C</span>
-          Toggle whether or not to hide the mouse cursor.
         </li>
         <li>
           <span class="keybinding">V</span>
@@ -2653,7 +2663,7 @@
         </li>
         <li><span class="keybinding">Ctrl+w</span>
           Put the stack top into a temporary &quot;floating&quot; spot, or put it back
-          on the stack again.
+          on the stack again
           (same as <span class="keybinding">Tab</span><span class="keybinding">w</span>)
         </li>
         <li><span class="keybinding">Ctrl+x</span>
@@ -2669,7 +2679,7 @@
         </li>
         <li>
           <span class="keybinding">Ctrl+/</span>
-          <code>x\enspace y \Rightarrow \frac{x}{y}</code>
+          <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code>
           (same as <span class="keybinding">/</span><span class="keybinding">/</span>)
         </li>
         <li>
@@ -2685,7 +2695,7 @@
           (same as <span class="keybinding">Tab</span><span class="keybinding">n</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+&larr;&rarr;</span>
+          <span class="keybinding">Ctrl+&larr;</span><span class="keybinding">Ctrl+&rarr;</span>
           <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide
           (same as <span class="keybinding">Tab</span>+<span class="keybinding">&larr;</span><span class="keybinding">&rarr;</span>)
         </li>

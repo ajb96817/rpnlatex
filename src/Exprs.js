@@ -836,6 +836,7 @@ class InfixExpr extends Expr {
   // This determines if things like x - expr should convert to
   // x - (expr) or not.
   needs_autoparenthesization() {
+    // TODO: maybe \oplus, \ominus, \pm, \mp
     return this.operator_exprs.some(op_expr =>
       op_expr.is_unary_minus_expr() ||
         op_expr.is_text_expr_with('+') ||

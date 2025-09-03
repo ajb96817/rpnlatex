@@ -78,8 +78,8 @@ class Settings {
   default_layout() {
     return {
       zoom_factor: 0,
-      stack_rightalign_math: false,
-      document_rightalign_math: false,
+      stack_math_alignment: 'left',
+      document_math_alignment: 'left',
       inline_math: false,
       stack_side: 'left',
       stack_split: 50

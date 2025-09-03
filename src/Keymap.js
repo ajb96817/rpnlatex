@@ -3,7 +3,7 @@ const EditorKeymap = {
   base: {
     // Letters/numbers and some symbols immediately push onto the stack
     '[alnum]': "self_push",
-    '~': "push \\sim",
+    //'~': "push \\sim",  // [~] will eventually be used for a mode prefix
 
     // Immediate action special keys
     'Enter': "subscript",
@@ -83,12 +83,12 @@ const EditorKeymap = {
     'Ctrl+r': "infix ,;parenthesize;build_function_call",  // -> f(x,y): same as [/][r]
     'Ctrl+R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z): same as [/][R]
     'Ctrl+s': "save_file",
-    'Ctrl+t': "push t;parenthesize;build_function_call",  // y -> y(t)
+    'Ctrl+t': "autoparenthesize;push t;parenthesize;build_function_call",  // y -> y(t)
     'Ctrl+T': "push y;push t;parenthesize;build_function_call",  // y(t) - undocumented
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
     'Ctrl+w': "swap_floating_item",
-    'Ctrl+x': "push x;parenthesize;build_function_call",  // f -> f(x)
+    'Ctrl+x': "autoparenthesize;push x;parenthesize;build_function_call",  // f -> f(x)
     'Ctrl+X': "push f;push x;parenthesize;build_function_call",  // f(x) - undocumented
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
@@ -207,15 +207,15 @@ const EditorKeymap = {
     'ArrowRight': "config stack_side right",
     'ArrowUp': "config stack_side top",
     'ArrowDown': "config stack_side bottom",
-    'C': "config toggle_hide_mouse_cursor",
     'D': "config toggle_debug_mode",  // undocumented
     'E': "config eink_mode",
     'f': "fullscreen on",
     'F': "fullscreen off",
+    'H': "config toggle_hide_mouse_cursor",
     'i': "config toggle_inline_math",
     'I': "config toggle_mode_indicator",
-    'm': "config math_align toggle_stack",
-    'M': "config math_align toggle_document",
+    'm': "config math_align stack",
+    'M': "config math_align document",
     'r': "config reset_layout",
     'R': "config reload_page",
     's': "config stack_split",

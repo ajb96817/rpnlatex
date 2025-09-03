@@ -1817,10 +1817,18 @@ class InputContext {
       this.notify("Zoom level: " + (layout.zoom_factor > 0 ? "+" : "") + layout.zoom_factor);
       break;
     case 'math_align':
-      if(value === 'toggle_document')
-        layout.document_rightalign_math = !layout.document_rightalign_math;
-      else if(value === 'toggle_stack')
-        layout.stack_rightalign_math = !layout.stack_rightalign_math;
+      scratch = value === 'document' ?
+        layout.document_math_alignment : layout.stack_math_alignment;
+      if(scratch === 'left') scratch = 'center';
+      else if(scratch === 'center') scratch = 'right';
+      else scratch = 'left';
+      if(value === 'document')
+        layout.document_math_alignment = scratch;
+      else layout.stack_math_alignment = scratch;
+      full_refresh_needed = true;
+      this.notify(
+        (value === 'document' ? 'Document' : 'Stack') +
+          ' alignment: ' + scratch);
       break;
     case 'toggle_inline_math':
       layout.inline_math = !layout.inline_math;

@@ -436,6 +436,7 @@ class StackItemsComponent extends React.Component {
           item: item,
           highlighted: highlighted,
           inline_math: layout.inline_math,
+          centered: layout.stack_math_alignment === 'center',
           item_ref: React.createRef(),
           key: item.react_key(index)
         });
@@ -454,7 +455,7 @@ class StackItemsComponent extends React.Component {
     }
     let class_names = ['stack_items'];
     // NOTE: can't have inline_math and rightalign_math both at once currently
-    if(layout.stack_rightalign_math && !layout.inline_math)
+    if(layout.stack_math_alignment === 'right' && !layout.inline_math)
       class_names.push('rightalign_math');
     return $e('div', {className: class_names.join(' ')}, item_components);
   }
@@ -510,6 +511,7 @@ class DocumentComponent extends React.Component {
           item: item,
           selected: is_selected,
           inline_math: layout.inline_math,
+          centered: layout.document_math_alignment === 'center',
           item_ref: item_ref,
           key: item.react_key(index)
         });
@@ -537,7 +539,7 @@ class DocumentComponent extends React.Component {
     
     let class_names = ['document_items'];
     // NOTE: can't have inline_math and rightalign_math both at once currently
-    if(layout.document_rightalign_math && !layout.inline_math)
+    if(layout.document_math_alignment === 'right' && !layout.inline_math)
       class_names.push('rightalign_math');
     return $e(
       'div', {className: class_names.join(' ')},
@@ -857,7 +859,8 @@ class ItemComponent extends React.Component {
       this._render_with_katex(
         item.to_latex(false),
         katex_target_node,
-        !this.props.inline_math);
+        !this.props.inline_math,
+        this.props.centered);
     }
     else if(item.is_text_item()) {
       // TextItems are always rendered in inline mode.
@@ -866,11 +869,12 @@ class ItemComponent extends React.Component {
       this._render_with_katex(
         item.to_latex(false),
         katex_target_node,
+        false,
         false);
     }
   }
 
-  _render_with_katex(latex_code, node, display_mode) {
+  _render_with_katex(latex_code, node, display_mode, centered) {
     // Check for empty/blank latex expressions - fake it with something so that it's visible.
     if(latex_code === '' || latex_code === '{}')
       latex_code = "\\llbracket\\mathsf{blank}\\rrbracket";
@@ -880,7 +884,7 @@ class ItemComponent extends React.Component {
       katex.render(latex_code, node, {
         throwOnError: true,
         displayMode: display_mode,
-        fleqn: true,
+        fleqn: !centered,
         trust: true,  // allow the use of \htmlClass etc.
         strict: false,
         minRuleThickness: 0.06  // 0.04 default is too thin (but unfortunately this makes the sqrt bars too thick too)
