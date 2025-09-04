@@ -160,6 +160,75 @@ class Settings {
 }
 
 
+// Holds context for the text entry mode line editor (InputContext.text_entry).
+// Fields:
+// 'mode': Type of text entry currently being performed.
+//         (these strings also correspond to the InputContext mode).
+//     'text_entry': ["] - text entry will become a TextItem (a section heading if Shift+Enter is used)
+//     'math_entry': [\] - text entry will become a ExprItem with either normal italic math text
+//         (if Enter is used) or \mathrm roman math text (if Shift+Enter)
+//     'latex_entry': [\][\] - text entry will become a ExprItem with an arbitrary LaTeX command
+//     'conjunction_entry': [,]['] - text entry will become a "conjuction" like "X  for  Y", same
+//         as commands like [,][r].
+//     'tag_entry': [/][;] - text entry will become the tag_string of the ExprItem
+//         (or the tag_string is removed if text entry is empty).
+// 'text': The string to be edited (editing is done non-destructively).
+// 'edited_item': If this is set, this is the Item that is currently being edited.
+//      While it's being edited, it doesn't exist on the stack and is temporarily held here.
+//      If the editor is cancelled, this item will be placed back on the stack.
+// 'cursor_position':
+//     0: for beginning of string,
+//     current_text.length: after end of string (the usual case)
+class TextEntryState {
+  constructor(mode, text, edited_item) {
+    this.mode = mode;
+    this.current_text = text || '';
+    this.cursor_position = this.current_text.length;
+    this.edited_item = edited_item;
+  }
+
+  is_empty() {
+    return this.current_text.length === 0;
+  }
+
+  insert(s) {
+    this.current_text = [
+      this.current_text.slice(0, this.cursor_position),
+      s,
+      this.current_text.slice(this.cursor_position)].join('');
+    this.cursor_position++;
+  }
+
+  backspace() {
+    if(this.cursor_position > 0) {
+      this.cursor_position--;
+      this.current_text = [
+        this.current_text.slice(0, this.cursor_position),
+        this.current_text.slice(this.cursor_position+1)].join('');
+    }
+  }
+
+  // ('delete' is a Javascript keyword)
+  do_delete() {
+    if(this.cursor_position < this.current_text.length)
+      this.current_text = [
+        this.current_text.slice(0, this.cursor_position),
+        this.current_text.slice(this.cursor_position+1)].join('');
+  }
+
+  move(direction) {
+    if(direction === 'left' && this.cursor_position > 0)
+      this.cursor_position--;
+    else if(direction === 'right' && this.cursor_position < this.current_text.length)
+      this.cursor_position++;
+    else if(direction === 'begin')
+      this.cursor_position = 0;
+    else if(direction === 'end')
+      this.cursor_position = this.current_text.length;
+  }
+}
+
+
 // Helper for generating LaTeX strings from Expr objects.
 class LatexEmitter {
   static latex_escape(text) {
@@ -2254,10 +2323,9 @@ class Document {
 
 
 export {
-  Keymap, Settings, LatexEmitter, AppState, UndoStack,
-  DocumentStorage, ImportExportState, FileManagerState,
-  ExprPath, ExprParser, RationalizeToExpr,
-  Item, ExprItem, TextItem, CodeItem,
-  Stack, Document
+  Keymap, Settings, TextEntryState, LatexEmitter, AppState,
+  UndoStack, DocumentStorage, ImportExportState, FileManagerState,
+  ExprPath, ExprParser, RationalizeToExpr, Item, ExprItem,
+  TextItem, CodeItem, Stack, Document
 };
 

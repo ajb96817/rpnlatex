@@ -1,8 +1,15 @@
 
-const EditorKeymap = {
+// All editor keybindings are in here.
+// KeybindingTable maps each editor mode to a set of keyname->command bindings.
+// The 'commands' are in a simple macro language of one or more action names
+// separated by semicolons.  Each action invokes one of the do_* methods
+// of InputContext.  The actions can have extra arguments which are passed
+// as strings to these methods.
+
+const KeybindingTable = {
   base: {
     // Letters/numbers and some symbols immediately push onto the stack
-    '[alnum]': "self_push",
+    '[alnum]': "push_last_keypress",
     //'~': "push \\sim",  // [~] will eventually be used for a mode prefix
 
     // Immediate action special keys
@@ -533,6 +540,7 @@ const EditorKeymap = {
   // [/][i] prefix - add limits to an existing integral sign
   integral_limits: {
     'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
+    'R': "push R;typeface calligraphic;subscript",  // integral over reals
     'n': "push \\infty;negate;subscript;integer 0;superscript",  // -oo..0 : [n]egative 
     'p': "integer 0;subscript;push \\infty;superscript",  // 0..oo : [p]ositive
     'u': "integer 0;subscript;integer 1;superscript",  // 0..1 : [u]nit
@@ -545,6 +553,7 @@ const EditorKeymap = {
   // (same as /i, but create the integral sign too)
   integral_with_limits: {
     'r': "push \\int;push \\infty;negate;subscript;push \\infty;superscript",
+    'R': "push \\int;push R;typeface calligraphic;subscript",
     'n': "push \\int;push \\infty;negate;subscript;integer 0;superscript",
     'p': "push \\int;integer 0;subscript;push \\infty;superscript",
     'u': "push \\int;integer 0;subscript;integer 1;superscript",
@@ -1035,20 +1044,20 @@ const EditorKeymap = {
 
   // [@] prefix
   calligraphic: {
-    '[alpha]': "self_push;to_case uppercase;typeface calligraphic",
+    '[alpha]': "push_last_keypress;to_case uppercase;typeface calligraphic",
     '@': "push @"  // undocumented
   },
 
   // [%] prefix
   blackboard: {
-    '[alpha]': "self_push;to_case uppercase;typeface blackboard",
+    '[alpha]': "push_last_keypress;to_case uppercase;typeface blackboard",
     'k': "push k;typeface blackboard",  // there's (only) a lowercase k in LaTeX (aka \Bbbk).
     '%': "push \\%"  // undocumented
   },
 
   // [&] prefix
   script: {
-    '[alpha]': "self_push;to_case uppercase;typeface script",
+    '[alpha]': "push_last_keypress;to_case uppercase;typeface script",
     '&': "push \\&"  // undocumented
   },
 
@@ -1108,4 +1117,4 @@ const EditorKeymap = {
 };
 
 
-export default EditorKeymap;
+export default KeybindingTable;
