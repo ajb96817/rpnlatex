@@ -1336,10 +1336,12 @@ class InputContext {
   //   'conjunction' - "X  iff  Y" style InfixExpr conjunction
   //   'bold_conjunction' - same but the "iff" is bolded
   //   'tag' - set the tag_string of the stack top
+  //   'tag_with_parentheses' - same as 'tag' but automatically surround with parentheses
   do_finish_text_entry(stack, textstyle) {
     if(!this.text_entry)
       return stack;  // shouldn't happen
-    if(this.text_entry.is_empty() && textstyle !== 'tag')
+    if(this.text_entry.is_empty() &&
+       !(textstyle === 'tag' || textstyle === 'tag_with_parentheses'))
       return this._cancel_text_entry(stack);
     const text = this.text_entry.current_text;
     const trimmed_text = text.trim();
@@ -1407,10 +1409,13 @@ class InputContext {
       this._cancel_text_entry(new_stack);
       return new_stack.push_expr(new_expr);
     }
-    else if(textstyle === 'tag') {
+    else if(textstyle === 'tag' ||
+            textstyle === 'tag_with_parentheses') {
       const [new_stack, item] = stack.pop(1);
       const new_item = item.with_tag(
-        trimmed_text.length === 0 ? null : trimmed_text);
+        trimmed_text.length === 0 ? null :
+          textstyle === 'tag_with_parentheses' ?
+          ['(', trimmed_text, ')'] : trimmed_text);
       this._cancel_text_entry(new_stack);
       return new_stack.push(new_item);
     }

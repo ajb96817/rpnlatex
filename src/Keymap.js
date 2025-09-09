@@ -294,6 +294,7 @@ const KeybindingTable = {
   // [/][;] prefix: equation tag
   tag_entry: {
     'Enter': "finish_text_entry tag",
+    'Shift+Enter': "finish_text_entry tag_with_parentheses",
     'delegate': "_editor_commands"
   },
 
