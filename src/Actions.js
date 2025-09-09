@@ -793,20 +793,13 @@ class InputContext {
   // case_type: 'uppercase', 'lowercase'
   // Stack top should be an ExprItem with a simple TextExpr.
   do_to_case(stack, case_type) {
-    const convert_fn = string => {
-      switch(case_type) {
-      case 'uppercase': return string.toUpperCase();
-      case 'lowercase': return string.toLowerCase();
-      default: return string;
-      }
-    };
     const [new_stack, expr] = stack.pop_exprs(1);
-    let new_expr;
-    if(expr.is_text_expr())
-      new_expr = new TextExpr(convert_fn(expr.text));
-    else
-      new_expr = expr;
-    return new_stack.push_expr(new_expr);
+    if(expr.is_text_expr()) {
+      const new_text = case_type === 'uppercase' ?
+            expr.text.toUpperCase() : expr.text.toLowerCase();
+      return new_stack.push_expr(new TextExpr(new_text));
+    }
+    else return stack;
   }
 
   // Pop arity_string items (default 1) and turn them into an CommandExpr.

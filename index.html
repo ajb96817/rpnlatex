@@ -219,13 +219,13 @@
           </li>
           <li>
             Multiplication by constants may be written implicitly (like <kbd>5x</kbd>);
-            for other multiplications an explicit space <kbd>*</kbd> must be
+            for other multiplications an explicit space or <kbd>*</kbd> must be
             used between terms: write <kbd>5x*y*z</kbd> or <kbd>5x y z</kbd>
             instead of <kbd>5xyz</kbd>.
           </li>
           <li>
             Parentheses may be used to indicate precedence:
-            <kbd>(x+1)/(x-1)</kbd> <code>\Rightarrow \frac{x+1}{x-1}</code>.
+            <kbd>(x+1)/(x-1)</kbd> <code>\Rightarrow \displaystyle{\frac{x+1}{x-1}}</code>.
           </li>
           <li>
             Function calls may be written as: <kbd>f(x)</kbd> or <kbd>f[x]</kbd>.
@@ -305,17 +305,16 @@
             They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.
           </li>
           <li>
-            Short inline math expressions of the kind allowed in <em>math entry</em> mode
+            Inline math expressions of the kind allowed in <em>math entry</em> mode
             can be included between pairs of <kbd>$</kbd> signs
             (for example: <kbd>$x+y$</kbd>).
           </li>
           <li>
-            Placeholders can be included by writing <kbd>[]</kbd>.
+            <a href="#placeholders">Placeholders</a> can be included by writing <kbd>[]</kbd>.
           </li>
           <li>
             Text objects can be concatenated to other text objects or to math expressions using <span class="keybinding">&nbsp;</span>
-            (space) or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.  Math expressions
-            combined with text objects this way become part of the text and are displayed in a more compact inline format.
+            (space) or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.
           </li>
           <li>
             Bold and italic words may be entered using <kbd>**bold**</kbd> and <kbd>//italic//</kbd> syntax.
@@ -1102,7 +1101,7 @@
       <p>
         Using <span class="keybinding">-</span> or <span class="keybinding">h</span> or
         <span class="keybinding">2</span> before the other trigonometric commands
-        gives inverse, hyperbolic, and squared forms of the functions, respectively.
+        gives inverse, hyperbolic, and squared forms of the functions, respectively:
       </p>
       <ul class="keybindings">
         <li>
@@ -1248,8 +1247,9 @@
           Example: <code>x&le;y \Rightarrow x\nleq y</code>
         </li>
         <li>
-          <span class="keybinding">&#39;</span> <em>(apostrophe)</em>
-          Resolve a <a href="#placeholders">placeholder</a>.
+          <span class="keybinding">&#39;</span>
+          <code>f(\htmlClass{placeholder_expr}{\blacksquare}) \enspace x \Rightarrow f(x)</code>
+          Substitute <code>x</code> for the first <a href="#placeholders">placeholder</a> in an expression.
         </li>
         <li>
           <span class="keybinding">%</span>
@@ -1318,24 +1318,24 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">j</span> <code>y\enspace x \Rightarrow \frac{\partial y}{\partial x}</code></td>
-            <td><span class="keybinding">J</span> <code>y\enspace x \Rightarrow \frac{\partial^2 y}{\partial x^2}</code></td>
+            <td><span class="keybinding">j</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial y}{\partial x}}</code></td>
+            <td><span class="keybinding">J</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial^2 y}{\partial x^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">q</span> <code>x \Rightarrow \frac{\partial}{\partial x}</code></td>
-            <td><span class="keybinding">Q</span> <code>x \Rightarrow \frac{\partial^2}{\partial x^2}</code></td>
+            <td><span class="keybinding">q</span> <code>x \Rightarrow \displaystyle{\frac{\partial}{\partial x}}</code></td>
+            <td><span class="keybinding">Q</span> <code>x \Rightarrow \displaystyle{\frac{\partial^2}{\partial x^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">m</span> <code>x\enspace y \Rightarrow \frac{\partial^2}{\partial x\,\partial y}</code></td>
-            <td><span class="keybinding">M</span> <code>f\enspace x\enspace y \Rightarrow \frac{\partial^2 f}{\partial x\,\partial y}</code></td>
+            <td><span class="keybinding">m</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code></td>
+            <td><span class="keybinding">M</span> <code>f\enspace x\enspace y \Rightarrow \displaystyle{\frac{\partial^2 f}{\partial x\,\partial y}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>y\enspace x \Rightarrow \frac{dy}{dx}</code></td>
-            <td><span class="keybinding">K</span> <code>y\enspace x \Rightarrow \frac{d^2 y}{dx^2}</code></td>
+            <td><span class="keybinding">k</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{dy}{dx}}</code></td>
+            <td><span class="keybinding">K</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{d^2 y}{dx^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>x \Rightarrow \frac{d}{dx}</code></td>
-            <td><span class="keybinding">X</span> <code>x \Rightarrow \frac{d^2}{dx^2}</code></td>
+            <td><span class="keybinding">x</span> <code>x \Rightarrow \displaystyle{\frac{d}{dx}}</code></td>
+            <td><span class="keybinding">X</span> <code>x \Rightarrow \displaystyle{\frac{d^2}{dx^2}}</code></td>
           </tr>
           <tr>
             <td><span class="keybinding">p</span> <code>x \Rightarrow \partial x</code></td>
@@ -1559,32 +1559,32 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">b</span> <code>\left\langle x\right\vert</code> (Dirac bra)</td>
-            <td><span class="keybinding">c</span> <code>\left\lceil x\right\rceil</code> (ceiling)</td>
+            <td><span class="keybinding">b</span> <code>\left\langle x\right\vert</code> <em>(Dirac bra)</em></td>
+            <td><span class="keybinding">c</span> <code>\left\lceil x\right\rceil</code> <em>(ceiling)</em></td>
             <td><span class="keybinding">d</span> <code>\llbracket x\rrbracket</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">f</span> <code>\left\lfloor x\right\rfloor</code> (floor)</td>
-            <td><span class="keybinding">g</span> <code>\left\lgroup x\right\rgroup</code> (grouped)</td>
-            <td><span class="keybinding">i</span> <code>\left\langle x\,\middle\vert\,y\right\rangle</code> (bra-ket)</td>
+            <td><span class="keybinding">f</span> <code>\left\lfloor x\right\rfloor</code> <em>(floor)</em></td>
+            <td><span class="keybinding">g</span> <code>\left\lgroup x\right\rgroup</code> <em>(grouped)</em></td>
+            <td><span class="keybinding">i</span> <code>\left\langle x\,\middle\vert\,y\right\rangle</code> <em>(inner product)</em></td>
           </tr>
           <tr>
             <td><span class="keybinding">I</span> <code>\left\langle x\,\middle\vert\,y\,\middle\vert\,z\right\rangle</code></td>
-            <td><span class="keybinding">k</span> <code>\left\vert x\right\rangle</code> (Dirac ket)</td>
+            <td><span class="keybinding">k</span> <code>\left\vert x\right\rangle</code> <em>(Dirac ket)</em></td>
             <td><span class="keybinding">m</span> <code>\left\lmoustache x\right\rmoustache</code></td>
           </tr>
           <tr>
             <td>
               <span class="keybinding">n</span> or <span class="keybinding">N</span>
-              <code>\left\lVert x\right\rVert</code> (norm)
+              <code>\left\lVert x\right\rVert</code> <em>(norm)</em>
             </td>
-            <td><span class="keybinding">o</span> <code>\left(x\right]</code> (half-open)</td>
+            <td><span class="keybinding">o</span> <code>\left(x\right]</code> <em>(half-open)</em></td>
             <td><span class="keybinding">O</span> <code>\left[x\right)</code></td>
           </tr>
           <tr>
             <td>
               <span class="keybinding">w</span> or <span class="keybinding">W</span>
-              <code>\left. x\right\vert</code> (where)
+              <code>\left. x\right\vert</code> <em>(where)</em>
             </td>
             <td><span class="keybinding">|</span> <code>\left\vert x\right\vert</code></td>
             <td><span class="keybinding">&lt;</span> <code>\left\langle x\right\rangle</code></td>
@@ -1730,7 +1730,7 @@
       <p>
         <strong>Matrix Row Building:</strong>
         These commands assemble N items from the
-        stack into a 1xN row matrix with the indicated bracket type.
+        stack into a <code>1\times N</code> row matrix with the indicated bracket type.
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -1766,7 +1766,7 @@
         one of the matrix row building keys above to indicate the matrix type.
       </p>
       <p>
-        For example, to build a 2x3 matrix from 6 elements on the stack, with square brackets, enter:
+        For example, to build a <code>2\times 3</code> matrix from 6 elements on the stack, with square brackets, enter:
         <span class="keybinding">|</span><span class="keybinding">2</span><span class="keybinding">x</span><span class="keybinding">3</span><span class="keybinding">[</span>.
       </p>
       <p>There are some shortcuts available for building common matrix and vector types:</p>
@@ -1807,14 +1807,14 @@
           in order to notate a matrix that is not fully written out.
         </li>
         <li>
+          <span class="keybinding">T</span>
+          Transpose a matrix by exchanging its rows and columns.
+        </li>
+        <li>
           <span class="keybinding">s</span>
           Split a matrix into its component rows, putting each row onto the stack.
           To split by columns instead, use the <span class="keybinding">T</span> transpose
           command first.
-        </li>
-        <li>
-          <span class="keybinding">T</span>
-          Transpose a matrix by exchanging its rows and columns.
         </li>
         <li>
           <span class="keybinding">|</span> or <span class="keybinding">Enter</span>
@@ -2113,7 +2113,7 @@
           or <span class="keybinding">R</span> rectangular form:
           <code>
             \displaystyle{
-              {\mathrm e}^{i\pi/3} \longleftrightarrow \frac{1}{2}+\frac{i\sqrt{3}}{2}}
+              {\mathrm e}^{i\pi/3} \Leftrightarrow \frac{1}{2}+\frac{i\sqrt{3}}{2}}
           </code>
         </li>
         <li>
@@ -2206,7 +2206,7 @@
 
       <p><strong>Linear Algebra:</strong></p>
       <p>
-        These operations are performed by applying the &quot;usual&quot;
+        These operations are performed by applying the usual
         math syntax to matrices or vectors created with the
         <span class="keybinding">|</span> commands.
         Evaluating the expression with

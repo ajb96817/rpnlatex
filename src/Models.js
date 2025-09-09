@@ -1869,7 +1869,7 @@ class TextItem extends Item {
 
   // "Separators" are currently implemented as empty TextItems with is_heading=true.
   // cf. TextItem.is_empty()
-  static separator_item() { return new TextItem([], null, true); }
+  static separator_item() { return new TextItem([], null, '', true); }
 
   // "Parse" a string which may or may not contain certain escape sequences:
   //    **bold text** - Converts into a bolded TextItemTextElement
