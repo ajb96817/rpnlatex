@@ -336,7 +336,7 @@ class InputContext {
       return roots_matrix_expr;  // shouldn't happen
     const output_exprs = [];
     for(let row = 0; row < roots_matrix_expr.row_count; row++) {
-      let root_expr = roots_matrix_expr.element_exprs[row][0];
+      const root_expr = roots_matrix_expr.element_exprs[row][0];
       output_exprs.push(InfixExpr.combine_infix(
         SubscriptSuperscriptExpr.build_subscript_superscript(
           variable_expr, TextExpr.integer(row+1), false, false),
@@ -789,7 +789,7 @@ class InputContext {
     return stack.push_expr(TextExpr.integer(integer_string));
   }
 
-  // Used for \mathscr / \mathcal, which only have uppercase glyphs.
+  // Used for \mathscr, \mathcal, \mathbb, which only have uppercase glyphs.
   // case_type: 'uppercase', 'lowercase'
   // Stack top should be an ExprItem with a simple TextExpr.
   do_to_case(stack, case_type) {
@@ -890,8 +890,7 @@ class InputContext {
       d_exprs = d_exprs.slice(0, degree-1).concat(
         [new CommandExpr('cdots')]).concat(d_exprs.slice(degree-1));
     }
-    const form_expr = d_exprs.reduce((form_expr, d_expr) =>
-      InfixExpr.combine_infix(form_expr, d_expr, new CommandExpr('wedge')));
+    const form_expr = InfixExpr.combine_infix_all(d_exprs, new CommandExpr('wedge'));
     return new_stack.push_expr(form_expr);
   }
 
@@ -2070,24 +2069,25 @@ class InputContext {
     
     // TODO: Accessing the DOM elements directly like this is a hack but there's not an easy
     // way to get it properly from React here.  May want to restructure things to make this cleaner.
-    let container = document.getElementById('document_container');
+    const container = document.getElementById('document_container');
     if(!container) return;
     const selected_elts = container.getElementsByClassName('selected')
     if(selected_elts.length === 0) return;
     const selected_elt = selected_elts[0];
 
-    if([0, 50, 100].includes(screen_percentage)) {
+    if([0, 50, 100].includes(screen_percentage) && !this.settings.debug_mode) {
       // For these special cases, the browser's native scrollIntoView can be used.
       const block_mode = screen_percentage === 0 ? 'start' :
-            (screen_percentage === 100 ? 'end' : 'center');
+            screen_percentage === 100 ? 'end' : 'center';
       selected_elt.scrollIntoView({block: block_mode, inline: 'start'});
     }
     else {
+      // Fallback by explicitly setting the scrollTop.
+      // NOTE: If debug mode is on, this method is always used.
       const top_scrolltop = selected_elt.offsetTop;
       const bottom_scrolltop = selected_elt.offsetTop + selected_elt.offsetHeight - container.clientHeight;
       const ratio = screen_percentage/100;
-      const new_scrolltop = Math.round(top_scrolltop*(1-ratio) + bottom_scrolltop*ratio);
-      container.scrollTop = new_scrolltop;
+      container.scrollTop = Math.round(top_scrolltop*(1-ratio) + bottom_scrolltop*ratio);
     }
   }
 

@@ -76,7 +76,7 @@
         </li>
         <li>
           <span class="keybinding">a-z</span><span class="keybinding">A-Z</span><span class="keybinding">0-9</span>
-          Place the corresponding character onto the stack.
+          Place the corresponding letter or digit onto the stack.
         </li>
         <li>
           <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">&lt;</span><span class="keybinding">&gt;</span><span class="keybinding">*</span>
@@ -148,7 +148,7 @@
         will jump directly to the corresponding section.
         <span class="keybinding">Backspace</span> returns here to this list
         of prefixes.  (This does not apply if the user guide is "docked" into the
-        documents section via <span class="keybinding">?</span><span class="keybinding">?</span>.)
+        document area via <span class="keybinding">?</span><span class="keybinding">?</span>.)
       </p>
       <ul class="keybindings">
         <li><span class="keybinding">\</span> Input a longer character string or formula with <a href="#math_entry">math entry</a> mode.</li>
@@ -156,8 +156,8 @@
         <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
         <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
         <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#decorations">decoration</a> to the stack top.</li>
-        <li><span class="keybinding">,</span> <em>(comma)</em> Combine two items with an <a href="#infix">infix operator</a>.</li>
-        <li><span class="keybinding">=</span> Combine two items with a <a href="#relational">relational operator</a>.</li>
+        <li><span class="keybinding">,</span> <em>(comma)</em> Combine two expressions with an <a href="#infix">infix operator</a>.</li>
+        <li><span class="keybinding">=</span> Combine two expressions with a <a href="#relational">relational operator</a>.</li>
         <li><span class="keybinding">/</span> Apply various <a href="#operators">functions and operators</a>.</li>
         <li><span class="keybinding">/</span><span class="keybinding">d</span> Build different kinds of <a href="#derivatives">derivatives</a>.</li>
         <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#integrals">integral limits</a>.</li>
@@ -166,18 +166,18 @@
         <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="keybinding">_</span> Manipulate subexpressions with <a href="#dissect">dissect</a> mode.</li>
         <li><span class="keybinding">#</span> Perform <a href="#cas">symbolic algebra and calculus</a> operations.</li>
-        <li><span class="keybinding">;</span> Insert <a href="#greek">Greek</a> letters.</li>
+        <li><span class="keybinding">;</span> Create <a href="#greek">Greek</a> letters.</li>
         <li id="help_insert_calligraphic">
           <span class="keybinding">@</span>
-          Insert calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>
+          Create calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>
         </li>
         <li>
           <span class="keybinding" id="help_insert_script">&amp;</span>
-          Insert script-style uppercase letters: <code>\mathscr{ABCDE}</code>
+          Create script-style uppercase letters: <code>\mathscr{ABCDE}</code>
         </li>
         <li id="help_insert_blackboard">
           <span class="keybinding">%</span>
-          Insert blackboard-style uppercase letters: <code>\mathbb{ABCDE}</code>
+          Create blackboard-style uppercase letters: <code>\mathbb{ABCDE}</code>
         </li>
         <li>
           <span class="keybinding">$</span>
@@ -195,7 +195,7 @@
       </h2>
       <p>
         The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
-        will be shown where you can type a number or a simple math expression in infix notation.
+        will be shown where you can type a number or a simple math expression in traditional infix notation.
         <span class="keybinding">Enter</span> will parse what you have typed and put it on the stack.
         A malformed expression will signal an error; allowed expressions include:
         <ul>
@@ -273,6 +273,10 @@
         concatenated to (or before) the operator name to match normal math notation.  Only letters,
         numbers, spaces and dashes are allowed in operator names.
       </p>
+      </p>
+        <strong>NOTE:</strong> The <span class="keybinding">/</span><span class="keybinding">f</span>
+        command prefix can also be used to create commonly-used named operators.
+      </p>
       <p>
         <strong>LaTeX Entry:</strong>
         Typing another <span class="keybinding">\</span>
@@ -338,7 +342,7 @@
         may be brought back into the math or text entry editor for further editing
         with <span class="keybinding">Shift+Enter</span>.
         Simple expressions like numbers and variables may also be editable even
-        if they were not created with math entry mode.
+        if they were not created with math/text entry mode.
       </p>
       <p>
         Once an expression is modified or combined with other expressions, the result
@@ -418,6 +422,12 @@
           <span class="keybinding">J</span>
           Copy N items (default 1) from the document back onto the stack without removing
           them from the document.
+        </li>
+        <li>
+          <span class="keybinding">=</span>
+          Insert a <em>separator</em> (horizontal rule) into the document at the current selection
+          position.  A separator can also be created on the stack with
+          <span class="keybinding">'</span><span class="keybinding">=</span>.
         </li>
         <li>
           <span class="keybinding">l</span>
@@ -690,7 +700,7 @@
             <td><span class="keybinding">8</span> <code>x\to\infty</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">A</span> <code>\acute x</code></td>
+            <td><span class="keybinding">A</span> <code>\acute x</code> <em>(acute)</em></td>
             <td><span class="keybinding">b</span> <code>\bold{x}</code> <em>(bold roman)</em></td>
             <td><span class="keybinding">c</span> <code>1-x</code> <em>(complement)</em></td>
           </tr>
@@ -700,9 +710,9 @@
             <td><span class="keybinding">e</span> <code>\htmlClass{emphasized}{x}</code> <em>(emphasize)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">g</span> <code>\mathring x</code></td>
-            <td><span class="keybinding">G</span> <code>\grave x</code></td>
-            <td><span class="keybinding">h</span> <code>\hat x</code></td>
+            <td><span class="keybinding">g</span> <code>\mathring x</code> <em>(rin<strong>g</strong>)</em></td>
+            <td><span class="keybinding">G</span> <code>\grave x</code> <em>(grave)</em></td>
+            <td><span class="keybinding">h</span> <code>\hat x</code> <em>(hat)</em></td>
           </tr>
           <tr>
             <td><span class="keybinding">H</span> <code>\widehat{x\dots}</code></td>
@@ -711,7 +721,7 @@
           </tr>
           <tr>
             <td><span class="keybinding">k</span> <code>\mathfrak x</code> <em>(Fra<strong>k</strong>tur)</em></td>
-            <td><span class="keybinding">l</span> <code>x_\parallel</code></td>
+            <td><span class="keybinding">l</span> <code>x_\parallel</code> <em>(para<strong>l</strong>lel)</em></td>
             <td><span class="keybinding">m</span> <code>\mathtt x</code> <em>(monospace)</em></td>
           </tr>
           <tr>
@@ -720,9 +730,9 @@
             <td><span class="keybinding">o</span> <code>\overline{x\dots}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">p</span> <code>x_\perp</code></td>
+            <td><span class="keybinding">p</span> <code>x_\perp</code> <em>(perpendicular)</em></td>
             <td><span class="keybinding">P</span> <code>\pm x</code></td>
-            <td><span class="keybinding">q</span> <code>= x</code></td>
+            <td><span class="keybinding">q</span> <code>= x</code> <em>(e<strong>q</strong>uals)</em></td>
           </tr>
           <tr>
             <td><span class="keybinding">r</span> <code>\mathrm x</code> <em>(roman)</em></td>
@@ -730,7 +740,7 @@
             <td><span class="keybinding">S</span> <code>\mathsfit x</code> <em>(italic sans)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">t</span> <code>\to x</code></td>
+            <td><span class="keybinding">t</span> <code>\to x</code> <em>(to/therefore)</em></td>
             <td><span class="keybinding">T</span> <code>\longrightarrow x</code></td>
             <td><span class="keybinding">u</span> <code>\breve x</code></td>
           </tr>
@@ -742,7 +752,7 @@
           <tr>
             <td><span class="keybinding">w</span> <code>\check x</code></td>
             <td><span class="keybinding">W</span> <code>\widecheck{x\dots}</code></td>
-            <td><span class="keybinding">x</span> <code>\boxed x</code> <em>(box)</em></td>
+            <td><span class="keybinding">x</span> <code>\boxed x</code> <em>(bo<strong>x</strong>)</em></td>
           </tr>
           <tr>
             <td><span class="keybinding">X</span> <code>\sout x</code> <em>(crossout)</em></td>
@@ -771,7 +781,7 @@
           </tr>
           <tr>
             <td><span class="keybinding">_</span> <code>\underline{x\dots}</code></td>
-            <td><span class="keybinding">!</span> <code>\neg x</code></td>
+            <td><span class="keybinding">!</span> <code>\neg x</code> <em>(not)</em></td>
             <td><span class="keybinding">\</span> <code>\bcancel x</code></td>
           </tr>
           <tr>
@@ -1284,7 +1294,7 @@
           <span class="keybinding">;</span>
           Prompt for a text string and attach it as a &quot;tag&quot; to the expression on the stack top.
           Tags can be used as equation numbers or labels and will be displayed to the right of the tagged item.
-          Note that any further operation on a tagged item will remove the tag, so tags are generally added
+          Note that any further operations on a tagged item will remove the tag, so tags are generally added
           just before moving an item into the document.
         </li>
         <li>
@@ -1479,12 +1489,12 @@
 
       <p>
         <strong>Integral Sign + Limits:</strong>
-        Using the prefix <span class="keybinding">/</span><span class="keybinding">j</span>
+        Using the prefix <span class="keybinding">/</span><span class="keybinding">I</span>
         instead of <span class="keybinding">/</span><span class="keybinding">i</span>
         works like the above, except that the integral sign itself is created too,
         rather than it having to exist beforehand.
         Example:
-        <span class="keybinding">/</span><span class="keybinding">j</span><span class="keybinding">r</span>
+        <span class="keybinding">/</span><span class="keybinding">I</span><span class="keybinding">r</span>
         <code>\Rightarrow \int_{-\infty}^{\infty}</code>
       </p>
 
@@ -1564,7 +1574,7 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">b</span> <code>\left\langle x\right\vert</code> <em>(Dirac bra)</em></td>
+            <td><span class="keybinding">b</span> <code>\left\langle x\right\vert</code> <em>(Dirac <strong>b</strong>ra)</em></td>
             <td><span class="keybinding">c</span> <code>\left\lceil x\right\rceil</code> <em>(ceiling)</em></td>
             <td><span class="keybinding">d</span> <code>\llbracket x\rrbracket</code></td>
           </tr>
@@ -1575,7 +1585,7 @@
           </tr>
           <tr>
             <td><span class="keybinding">I</span> <code>\left\langle x\,\middle\vert\,y\,\middle\vert\,z\right\rangle</code></td>
-            <td><span class="keybinding">k</span> <code>\left\vert x\right\rangle</code> <em>(Dirac ket)</em></td>
+            <td><span class="keybinding">k</span> <code>\left\vert x\right\rangle</code> <em>(Dirac <strong>k</strong>et)</em></td>
             <td><span class="keybinding">m</span> <code>\left\lmoustache x\right\rmoustache</code></td>
           </tr>
           <tr>
@@ -1583,7 +1593,7 @@
               <span class="keybinding">n</span> or <span class="keybinding">N</span>
               <code>\left\lVert x\right\rVert</code> <em>(norm)</em>
             </td>
-            <td><span class="keybinding">o</span> <code>\left(x\right]</code> <em>(half-open)</em></td>
+            <td><span class="keybinding">o</span> <code>\left(x\right]</code> <em>(half-<strong>o</strong>pen)</em></td>
             <td><span class="keybinding">O</span> <code>\left[x\right)</code></td>
           </tr>
           <tr>

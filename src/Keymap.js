@@ -153,6 +153,7 @@ const KeybindingTable = {
     'd': "scroll_to help_derivatives",
     'D': "scroll_to help_derivatives",
     'i': "scroll_to help_integrals",
+    'I': "scroll_to help_integrals",
     'f': "scroll_to help_named_operators",
     ')': "scroll_to help_delimiters",
     '(': "scroll_to help_delimiters",
@@ -199,6 +200,7 @@ const KeybindingTable = {
     'z': "undo",
     'Enter': "dup",
     'Backspace': "pop",
+    '=': "push_separator;pop_to_document",
     '!': "export_document_as_text",
     '@': "export_stack_items_as_text",
     '$': "extract_latex_source",
@@ -402,7 +404,7 @@ const KeybindingTable = {
     'g': "push \\int;swap;superscript;swap;subscript",
     'h': "mode hyperbolic",
     'i': "mode integral_limits",
-    'j': "mode integral_with_limits",
+    'I': "mode integral_with_limits",
     //'J': "operator atop 2",  // not that useful
     'k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y -> f(x|y)
     'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z)

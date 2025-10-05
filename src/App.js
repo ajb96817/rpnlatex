@@ -153,7 +153,7 @@ class App extends React.Component {
   apply_layout_to_dom() {
     const settings = this.state.settings;
 
-    /* Set up color filter / theme CSS classes. */
+    // Set up color filter / theme CSS classes.
     let body_classes = [];
     if(settings.filter === 'inverse_video') body_classes.push('inverse_video');
     if(settings.filter === 'sepia') body_classes.push('sepia');
@@ -161,8 +161,8 @@ class App extends React.Component {
     if(settings.hide_mouse_cursor) body_classes.push('hide_mouse_cursor');
     document.getElementById('body').className = body_classes.join(' ');
 
-    /* Set up stack position classes.  Currently these are only used to
-       create a solid border between stack and document in E-ink mode. */
+    // Set up stack position classes.  Currently these are only used to
+    // create a solid border between stack and document in E-ink mode.
     const stack_panel = document.getElementById('stack_panel');
     const document_panel = document.getElementById('document_panel');
     stack_panel.classList.remove('stack_on_bottom');
