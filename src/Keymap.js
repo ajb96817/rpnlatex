@@ -8,8 +8,9 @@
 
 const KeybindingTable = {
   base: {
-    // Letters/numbers and some symbols immediately push onto the stack
+    // Letters and numbers immediately push onto the stack
     '[alnum]': "push_last_keypress",
+
     //'~': "push \\sim",  // [~] will eventually be used for a mode prefix
 
     // Immediate action special keys
@@ -163,6 +164,7 @@ const KeybindingTable = {
     '_': "scroll_to help_dissect",
     '#': "scroll_to help_cas",
     ';': "scroll_to help_greek",
+    ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
     'Backspace': "scroll_to help_prefix_keys",
     'c': "scroll_to help_control_keys",  // undocumented
@@ -995,7 +997,8 @@ const KeybindingTable = {
   // [#] prefix: symbolic algebra mode
   algebrite: {
     '#': "algebrite bothsides eval",
-    '=': "rationalize",  // not part of Algebrite
+    '/': "rationalize",  // not part of Algebrite
+    '=': "algebrite bothsides float",
     '*': "algebrite default conj",
     'A': "algebrite default arg",
     'c': "algebrite_completesquare true",
@@ -1011,7 +1014,6 @@ const KeybindingTable = {
     'J': "algebrite bothsides defint 4",
     'm': "algebrite default sum 3 1",
     'M': "algebrite default sum 4",
-    'n': "algebrite bothsides float",
     'o': "algebrite default product 3 1",
     'O': "algebrite default product 4",
     'p': "mode algebrite_polynomial",

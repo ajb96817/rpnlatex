@@ -997,18 +997,10 @@ class PopupPanelComponent extends React.Component {
 
   _helptext_anchor_onclick(event) {
     const anchor_target = this.getAttribute('href').slice(1);  // remove leading '#'
-    const help_elt = document.getElementById('helptext');
-    if(!help_elt) return;
-    // Search for the corresponding <a name="..."> anchor and scroll to it.
-    const anchor_elts = help_elt.getElementsByTagName('a');
-    for(let i = 0; i < anchor_elts.length; i++) {
-      const anchor_elt = anchor_elts[i];
-      const name_attr = anchor_elt.getAttribute('name');
-      if(name_attr && name_attr === anchor_target) {
-        event.preventDefault();
-        anchor_elt.scrollIntoView();
-        break;
-      }
+    const dest_elt = document.getElementById(anchor_target);
+    if(dest_elt) {
+      event.preventDefault();
+      dest_elt.scrollIntoView();
     }
   }
 }

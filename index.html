@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="rpnlatex" />
-    <link rel="manifest" href="manifest.json" />
-    <!-- <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png" /> -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="rpnlatex">
+    <link rel="manifest" href="manifest.json">
+    <!-- <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png"> -->
     <title>rpnlatex</title>
   </head>
   <body id="body">
@@ -96,7 +96,7 @@
         </li>
         <li>
           <span class="keybinding">Shift+Enter</span>
-          Start <a href="#edit_text">editing</a> the stack top as text.
+          Start <a href="#help_edit_text">editing</a> the stack top as text.
         </li>
         <li>
           <span class="keybinding">Backspace</span>
@@ -133,9 +133,7 @@
         </li>
       </ul>
 
-      <h2>
-        <a name="prefix_keys" id="help_prefix_keys">Prefix Keys</a>
-      </h2>
+      <h2 id="help_prefix_keys">Prefix Keys</h2>
       <p>
         All other operations require <em>prefix keys</em> to be typed first.  These keys
         switch into a corresponding <em>mode</em>.  The current mode is displayed in grey in the upper-right
@@ -151,22 +149,22 @@
         document area via <span class="keybinding">?</span><span class="keybinding">?</span>.)
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">\</span> Input a longer character string or formula with <a href="#math_entry">math entry</a> mode.</li>
-        <li><span class="keybinding">&quot;</span> Create a text object with <a href="#text_entry">text entry</a> mode.</li>
-        <li><span class="keybinding">Tab</span> <a href="#stack">Stack manipulation</a> and other utilities.</li>
-        <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#symbols">math symbols</a>.</li>
-        <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#decorations">decoration</a> to the stack top.</li>
-        <li><span class="keybinding">,</span> <em>(comma)</em> Combine two expressions with an <a href="#infix">infix operator</a>.</li>
-        <li><span class="keybinding">=</span> Combine two expressions with a <a href="#relational">relational operator</a>.</li>
-        <li><span class="keybinding">/</span> Apply various <a href="#operators">functions and operators</a>.</li>
-        <li><span class="keybinding">/</span><span class="keybinding">d</span> Build different kinds of <a href="#derivatives">derivatives</a>.</li>
-        <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#integrals">integral limits</a>.</li>
-        <li><span class="keybinding">/</span><span class="keybinding">f</span> Create <a href="#named_operators">named operators</a>.</li>
-        <li><span class="keybinding">)</span> Add paired <a href="#delimiters">delimiters</a> to the stack top.</li>
-        <li><span class="keybinding">|</span> Manipulate <a href="#arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
-        <li><span class="keybinding">_</span> Manipulate subexpressions with <a href="#dissect">dissect</a> mode.</li>
-        <li><span class="keybinding">#</span> Perform <a href="#cas">symbolic algebra and calculus</a> operations.</li>
-        <li><span class="keybinding">;</span> Create <a href="#greek">Greek</a> letters.</li>
+        <li><span class="keybinding">\</span> Input a longer character string or formula with <a href="#help_math_entry">math entry</a> mode.</li>
+        <li><span class="keybinding">&quot;</span> Create a text object with <a href="#help_text_entry">text entry</a> mode.</li>
+        <li><span class="keybinding">Tab</span> <a href="#help_stack">Stack manipulation</a> and other utilities.</li>
+        <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#help_symbols">math symbols</a>.</li>
+        <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#help_decorations">decoration</a> to the stack top.</li>
+        <li><span class="keybinding">,</span> <em>(comma)</em> Combine two expressions with an <a href="#help_infix">infix operator</a>.</li>
+        <li><span class="keybinding">=</span> Combine two expressions with a <a href="#help_relational">relational operator</a>.</li>
+        <li><span class="keybinding">/</span> Apply various <a href="#help_operators">functions and operators</a>.</li>
+        <li><span class="keybinding">/</span><span class="keybinding">d</span> Build different kinds of <a href="#help_derivatives">derivatives</a>.</li>
+        <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#help_integrals">integral limits</a>.</li>
+        <li><span class="keybinding">/</span><span class="keybinding">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
+        <li><span class="keybinding">)</span> Add paired <a href="#help_delimiters">delimiters</a> to the stack top.</li>
+        <li><span class="keybinding">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
+        <li><span class="keybinding">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
+        <li><span class="keybinding">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
+        <li><span class="keybinding">;</span> Create <a href="#help_greek">Greek</a> letters.</li>
         <li id="help_insert_calligraphic">
           <span class="keybinding">@</span>
           Create calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>
@@ -181,68 +179,68 @@
         </li>
         <li>
           <span class="keybinding">$</span>
-          Change <a href="#configuration">configuration settings</a>.
+          Change <a href="#help_configuration">configuration settings</a>.
         </li>
         <li>
           <span class="keybinding">Ctrl</span>
-          Some <a href="#control_keys">Control key</a> shortcuts are also available.
+          Some <a href="#help_control_keys">Control key</a> shortcuts are also available.
         </li>
       </ul>
 
-      <h2>
-        <span class="keybinding">\</span>
-        <a name="math_entry" id="help_math_entry">Math Entry</a>
+      <h2 id="help_math_entry">
+        <span class="keybinding">\</span> Math Entry
       </h2>
       <p>
         The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
         will be shown where you can type a number or a simple math expression in traditional infix notation.
         <span class="keybinding">Enter</span> will parse what you have typed and put it on the stack.
         A malformed expression will signal an error; allowed expressions include:
-        <ul>
-          <li>Numbers such as <kbd>3, -10, 5.12</kbd></li>
-          <li>
-            Single- or multi-letter variable or function names such as <kbd>x, abc</kbd>.
-            Multi-letter variables are typeset in a roman (non-italic) font.
-          </li>
-          <li>
-            Greek letters may be spelled out and will be converted: <kbd>pi</kbd> <code>\Rightarrow \pi</code>
-          </li>
-          <li>
-            Subscripts may be written as: <kbd>J_0</kbd> <code>\Rightarrow J_0</code>,
-            <kbd>x_alpha</kbd> <code>\Rightarrow x_\alpha</code>
-          </li>
-          <li>
-            Infix expressions use the usual math syntax: <kbd>x+2y-z</kbd>.
-            Supported are: <kbd>+, -, *, /</kbd> and <kbd>^</kbd> for powers;
-            equations and comparisons may be written using:
-            <kbd>x=y, x!=y, x&lt;y, x&gt;y, x&lt;=y, x&gt;=y</kbd>.
-          </li>
-          <li>
-            Multiplication by constants may be written implicitly (like <kbd>5x</kbd>);
-            for other multiplications an explicit space or <kbd>*</kbd> must be
-            used between terms: write <kbd>5x*y*z</kbd> or <kbd>5x y z</kbd>
-            instead of <kbd>5xyz</kbd>.
-          </li>
-          <li>
-            Parentheses may be used to indicate precedence:
-            <kbd>(x+1)/(x-1)</kbd> <code>\Rightarrow \displaystyle{\frac{x+1}{x-1}}</code>.
-          </li>
-          <li>
-            Function calls may be written as: <kbd>f(x)</kbd> or <kbd>f[x]</kbd>.
-            Standard math functions like <kbd>sin(x)</kbd> can also be used.
-          </li>
-          <li>
-            Factorial notation (<kbd>x!</kbd>) is allowed.
-          </li>
-          <li>
-            Column vectors may be entered using square brackets:
-            <kbd>[x, y]</kbd> and matrices with nested brackets:
-            <kbd>[[1, 2], [3, 4]]</kbd>.
-          </li>
-        </ul>
       </p>
+      <ul>
+        <li>Numbers such as <kbd>3, -10, 5.12</kbd></li>
+        <li>
+          Single- or multi-letter variable or function names such as <kbd>x, abc</kbd>.
+          Multi-letter variables are typeset in a roman (non-italic) font.
+        </li>
+        <li>
+          Greek letters may be spelled out and will be converted: <kbd>pi</kbd> <code>\Rightarrow \pi</code>
+        </li>
+        <li>
+          Subscripts may be written as: <kbd>J_0</kbd> <code>\Rightarrow J_0</code>,
+          <kbd>x_alpha</kbd> <code>\Rightarrow x_\alpha</code>
+        </li>
+        <li>
+          Infix expressions use the usual math syntax: <kbd>x+2y-z</kbd>.
+          Supported are: <kbd>+, -, *, /</kbd> and <kbd>^</kbd> for powers;
+          equations and comparisons may be written using:
+          <kbd>x=y, x!=y, x&lt;y, x&gt;y, x&lt;=y, x&gt;=y</kbd>.
+        </li>
+        <li>
+          Multiplication by constants may be written implicitly (like <kbd>5x</kbd>);
+          for other multiplications an explicit space or <kbd>*</kbd> must be
+          used between terms: write <kbd>5x*y*z</kbd> or <kbd>5x y z</kbd>
+          instead of <kbd>5xyz</kbd>
+        </li>
+        <li>
+          Parentheses may be used to indicate precedence:
+          <kbd>(x+1)/(x-1)</kbd> <code>\Rightarrow \displaystyle{\frac{x+1}{x-1}}</code>
+        </li>
+        <li>
+          Function calls may be written as: <kbd>f(x)</kbd> or <kbd>f[x]</kbd>.
+          Standard math functions like <kbd>sin(x)</kbd> can also be used.
+        </li>
+        <li>
+          Factorial notation (<kbd>x!</kbd>) is allowed.
+        </li>
+        <li>
+          Column vectors may be entered using square brackets:
+          <kbd>[x, y]</kbd> and matrices with nested brackets:
+          <kbd>[[1, 2], [3, 4]]</kbd>.
+        </li>
+      </ul>
       <p>
-        <span class="keybinding">Esc</span> (or <span class="keybinding">Ctrl+z</span>) will cancel math entry mode.
+        <span class="keybinding">Esc</span> (or <span class="keybinding">Ctrl+z</span>)
+        will cancel math entry mode.
       </p>
       <p>
         <strong>NOTE:</strong>
@@ -258,7 +256,7 @@
         will typeset your entry in a roman (non-italic) font instead of the normal italic math font,
         and it will not be parsed as a math expression, so you can use any text you want.  This can be
         used to include normal English words or phrases in math expressions.
-        <a href="#placeholders">Placeholders</a> can also be included by writing <kbd>[]</kbd>.
+        <a href="#help_placeholders">Placeholders</a> can also be included by writing <kbd>[]</kbd>.
       </p>
       <p>
         <strong>NOTE:</strong> The <a href="#conjunction_anchor"><em>conjunction</em></a>
@@ -273,7 +271,7 @@
         concatenated to (or before) the operator name to match normal math notation.  Only letters,
         numbers, spaces and dashes are allowed in operator names.
       </p>
-      </p>
+      <p>
         <strong>NOTE:</strong> The <span class="keybinding">/</span><span class="keybinding">f</span>
         command prefix can also be used to create commonly-used named operators.
       </p>
@@ -291,54 +289,52 @@
         <code>\Rightarrow\utilde{x}</code>
       </p>
 
-      <h2>
-        <span class="keybinding">&quot;</span>
-        <a name="text_entry" id="help_text_entry">Text Entry</a>
+      <h2 id="help_text_entry">
+        <span class="keybinding">&quot;</span> Text Entry
       </h2>
       <p>
         The <span class="keybinding">&quot;</span> prefix starts <em>text entry</em> mode which
-        is similar to <a href="#math_entry">math entry</a> but creates <em>text objects</em>.
+        is similar to <a href="#help_math_entry">math entry</a> but creates <em>text objects</em>.
         Text objects are shown with a blue bar to the left (instead of grey) and differ from normal
         math objects in some important ways:
-        <ul>
-          <li>
-            They are meant for explanatory text, comments, etc., rather than being standalone math expressions.
-            Therefore, they are not required to follow any particular math syntax.
-          </li>
-          <li>
-            They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.
-          </li>
-          <li>
-            Inline math expressions of the kind allowed in <em>math entry</em> mode
-            can be included between pairs of <kbd>$</kbd> signs
-            (for example: <kbd>$x+y$</kbd>).
-          </li>
-          <li>
-            <a href="#placeholders">Placeholders</a> can be included by writing <kbd>[]</kbd>.
-          </li>
-          <li>
-            Text objects can be concatenated to other text objects or to math expressions using <span class="keybinding">&nbsp;</span>
-            (space) or combined via <a href="#infix">infix</a> or <a href="#relational">relational</a> operators.
-          </li>
-          <li>
-            Bold and italic words may be entered using <kbd>**bold**</kbd> and <kbd>//italic//</kbd> syntax.
-          </li>
-          <li>
-            Finishing the text entry with <span class="keybinding">Shift+Enter</span> will
-            create a section header instead (with a larger font and underline).  You can later toggle
-            whether or not the text object is a section header with the
-            <span class="keybinding">/</span><span class="keybinding">&quot;</span> command.
-          </li>
-        </ul>
       </p>
+      <ul>
+        <li>
+          They are meant for explanatory text, comments, etc., rather than being standalone math expressions.
+          Therefore, they are not required to follow any particular math syntax.
+        </li>
+        <li>
+          They are shown in a roman (non-italic) font and will wrap around to multiple lines if needed.
+        </li>
+        <li>
+          Inline math expressions of the kind allowed in <em>math entry</em> mode
+          can be included between pairs of <kbd>$</kbd> signs
+          (for example: <kbd>$x+y$</kbd>).
+        </li>
+        <li>
+          <a href="#help_placeholders">Placeholders</a> can be included by writing <kbd>[]</kbd>.
+        </li>
+        <li>
+          Text objects can be concatenated to other text objects or to math expressions using <span class="keybinding">&nbsp;</span>
+          (space) or combined via <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operators.
+        </li>
+        <li>
+          Bold and italic words may be entered using <kbd>**bold**</kbd> and <kbd>//italic//</kbd> syntax.
+        </li>
+        <li>
+          Finishing the text entry with <span class="keybinding">Shift+Enter</span> will
+          create a section header instead (with a larger font and underline).  You can later toggle
+          whether or not the text object is a section header with the
+          <span class="keybinding">/</span><span class="keybinding">&quot;</span> command.
+        </li>
+      </ul>
 
-      <h2>
-        <span class="keybinding">Shift+Enter</span>
-        <a name="edit_text" id="help_edit_text">Edit as Text</a>
+      <h2 id="help_edit_text">
+        <span class="keybinding">Shift+Enter</span> Edit as Text
       </h2>
       <p>
         Expressions and text objects that were created with
-        <a href="#math_entry">math entry</a> or <a href="#text_entry">text entry</a> modes
+        <a href="#help_math_entry">math entry</a> or <a href="#help_text_entry">text entry</a> modes
         may be brought back into the math or text entry editor for further editing
         with <span class="keybinding">Shift+Enter</span>.
         Simple expressions like numbers and variables may also be editable even
@@ -347,12 +343,11 @@
       <p>
         Once an expression is modified or combined with other expressions, the result
         may no longer be editable as text this way.  In this case,
-        <a href="#dissect">dissect</a> mode may be helpful instead.
+        <a href="#help_dissect">dissect</a> mode may be helpful instead.
       </p>
 
-      <h2>
-        <span class="keybinding">Tab</span>
-        <a name="stack" id="help_stack">Stack Manipulation and Utilities</a>
+      <h2 id="help_stack">
+        <span class="keybinding">Tab</span> Stack Manipulation and Utilities
       </h2>
       <p>
         This prefix has a variety of commands for managing the stack and the document,
@@ -504,9 +499,9 @@
         </li>
       </ul>
 
-      <h2>
+      <h2 id="help_files">
         <span class="keybinding">Tab</span><span class="keybinding">f</span>
-        <a name="files" id="help_files">File Management</a>
+        File Management
       </h2>
       <p>
         <span class="keybinding">Tab</span><span class="keybinding">f</span>
@@ -537,9 +532,8 @@
         upload field.
       </p>
 
-      <h2>
-        <span class="keybinding">&#39;</span>
-        <a name="symbols" id="help_symbols">Math Symbols</a>
+      <h2 id="help_symbols">
+        <span class="keybinding">&#39;</span> Math Symbols
       </h2>
       <p>
         Assorted standalone math symbols.  These all put exactly one object onto the stack.
@@ -658,9 +652,7 @@
         </li>
       </ul>
 
-      <h2>
-        <a name="placeholders" id="help_placeholders">Placeholders</a>
-      </h2>
+      <h2 id="help_placeholders">Placeholders</h2>
       <p>
         Sometimes you may want to fill in part of an expression you are working on later, rather than including
         it immediately.  You can insert a <em>placeholder</em> marker in your expression, and then later on
@@ -681,9 +673,8 @@
         </li>
       </ul>
 
-      <h2>
-        <span class="keybinding">.</span>
-        <a name="decorations" id="help_decorations">Decorations</a>
+      <h2 id="help_decorations">
+        <span class="keybinding">.</span> Decorations
       </h2>
       <p>
         These all modify a single item on the stack.
@@ -795,9 +786,8 @@
           </tr>
       </tbody></table>
 
-      <h2>
-        <span class="keybinding">,</span>
-        <a name="infix" id="help_infix">Infix Operators</a>
+      <h2 id="help_infix">
+        <span class="keybinding">,</span> Infix Operators
       </h2>
       <p>
         These commands combine the top two stack items by placing a mathematical operator between them.
@@ -917,9 +907,8 @@
         will make it bolded.
       </p>
 
-      <h2>
-        <span class="keybinding">=</span>
-        <a name="relational" id="help_relational">Relational Operators</a>
+      <h2 id="help_relational">
+        <span class="keybinding">=</span> Relational Operators
       </h2>
       <p>
         Similar to <span class="keybinding">,</span>, these commands combine two items
@@ -1038,9 +1027,8 @@
         <code>x\subseteq y \Rightarrow x\not\subseteq y</code>
       </p>
 
-      <h2>
-        <span class="keybinding">/</span>
-        <a name="operators" id="help_operators">Functions and Operators</a>
+      <h2 id="help_operators">
+        <span class="keybinding">/</span> Functions and Operators
       </h2>
       <p>
         This prefix has commands for building different kinds of expression structures and
@@ -1259,7 +1247,7 @@
         <li>
           <span class="keybinding">&#39;</span>
           <code>f(\htmlClass{placeholder_expr}{\blacksquare}) \enspace x \Rightarrow f(x)</code>
-          Substitute <code>x</code> for the first <a href="#placeholders">placeholder</a> in an expression.
+          Substitute <code>x</code> for the first <a href="#help_placeholders">placeholder</a> in an expression.
         </li>
         <li>
           <span class="keybinding">%</span>
@@ -1279,7 +1267,7 @@
         <li>
           <span class="keybinding">,</span>
           Split a long equation across multiple lines.  The stack top must be an expression
-          just joined with an <a href="#infix">infix</a> or <a href="#relational">relational</a> operator.
+          just joined with an <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operator.
           This command inserts a line break after the operator.  A second application of this command to the
           same expression will change it to break before the operator instead, and a third will put it back to not
           having a line break.  Further line breaks can be inserted after adding more terms and operators
@@ -1312,21 +1300,21 @@
       <ul class="keybindings">
         <li>
           <span class="keybinding">d</span>
-          Subprefix for building <a href="#derivatives">derivative</a> expressions.
+          Subprefix for building <a href="#help_derivatives">derivative</a> expressions.
         </li>
         <li>
           <span class="keybinding">i</span>
-          Subprefix for applying <a href="#integrals">integral</a> limits.
+          Subprefix for applying <a href="#help_integrals">integral</a> limits.
         </li>
         <li>
           <span class="keybinding">f</span>
-          Subprefix for applying <a href="#named_operators">named operators</a>.
+          Subprefix for applying <a href="#help_named_operators">named operators</a>.
         </li>
       </ul>
 
-      <h2>
+      <h2 id="help_derivatives">
         <span class="keybinding">/</span><span class="keybinding">d</span>
-        <a name="derivatives" id="help_derivatives">Derivative Building</a>
+        Derivative Building
       </h2>
       <p>
         These are some shortcuts for quickly creating common types of expressions involving derivatives and differentials.
@@ -1441,9 +1429,9 @@
         <span class="keybinding">/</span><span class="keybinding">d</span>.
       </p>
 
-      <h2>
+      <h2 id="help_integrals">
         <span class="keybinding">/</span><span class="keybinding">i</span>
-        <a name="integrals" id="help_integrals">Integral Limits</a>
+        Integral Limits
       </h2>
       <p>
         These commands are for quickly applying common limits to integral signs.
@@ -1498,9 +1486,9 @@
         <code>\Rightarrow \int_{-\infty}^{\infty}</code>
       </p>
 
-      <h2>
+      <h2 id="help_named_operators">
         <span class="keybinding">/</span><span class="keybinding">f</span>
-        <a name="named_operators" id="help_named_operators">Named Operators</a>
+        Named Operators
       </h2>
       <p>
         These commands attach named operators like <code>\max</code> to an expression from
@@ -1555,13 +1543,12 @@
 
       <p>
         <strong>NOTE:</strong> Arbitrarily-named operators can be created with
-        <a href="#math_entry">math entry</a> mode by finishing the entry with
+        <a href="#help_math_entry">math entry</a> mode by finishing the entry with
         <span class="keybinding">Tab</span>.
       </p>
 
-      <h2>
-        <span class="keybinding">)</span>
-        <a name="delimiters" id="help_delimiters">Delimiters</a>
+      <h2 id="help_delimiters">
+        <span class="keybinding">)</span> Delimiters
       </h2>
       <p>
         These commands enclose expressions in various kinds of delimiter pairs.
@@ -1625,32 +1612,32 @@
       <p>
         Certain infix operators, when enclosed in delimiters, will also adjust to fit
         the size of the delimiters.  These operators are:
-        <table class="keybindings"><tbody>
-            <tr>
-              <td><code>x\,\vert\,y</code></td>
-              <td>created by</td>
-              <td>
-                <span class="keybinding">,</span><span class="keybinding">k</span> or
-                <span class="keybinding">,</span><span class="keybinding">|</span>
-              </td>
-            </tr>
-            <tr>
-              <td><code>x\parallel y</code></td>
-              <td>created by</td>
-              <td><span class="keybinding">,</span><span class="keybinding">l</span></td>
-            </tr>
-            <tr>
-              <td><code>x/y</code></td>
-              <td>created by</td>
-              <td><span class="keybinding">,</span><span class="keybinding">/</span></td>
-            </tr>
-            <tr>
-              <td><code>x\backslash y</code></td>
-              <td>created by</td>
-              <td><span class="keybinding">,</span><span class="keybinding">\</span></td>
-            </tr>
-        </tbody></table>
       </p>
+      <table class="keybindings"><tbody>
+          <tr>
+            <td><code>x\,\vert\,y</code></td>
+            <td>created by</td>
+            <td>
+              <span class="keybinding">,</span><span class="keybinding">k</span> or
+              <span class="keybinding">,</span><span class="keybinding">|</span>
+            </td>
+          </tr>
+          <tr>
+            <td><code>x\parallel y</code></td>
+            <td>created by</td>
+            <td><span class="keybinding">,</span><span class="keybinding">l</span></td>
+          </tr>
+          <tr>
+            <td><code>x/y</code></td>
+            <td>created by</td>
+            <td><span class="keybinding">,</span><span class="keybinding">/</span></td>
+          </tr>
+          <tr>
+            <td><code>x\backslash y</code></td>
+            <td>created by</td>
+            <td><span class="keybinding">,</span><span class="keybinding">\</span></td>
+          </tr>
+      </tbody></table>
       <p>
         Because of this, you can give these operators a flexible size anywhere by using
         <em>blank</em> delimiters via <span class="keybinding">)</span><span class="keybinding">.</span> or
@@ -1725,9 +1712,8 @@
           </tr>
       </tbody></table>
 
-      <h2>
-        <span class="keybinding">|</span>
-        <a name="arrays" id="help_arrays">Array Operations</a>
+      <h2 id="help_arrays">
+        <span class="keybinding">|</span> Array Operations
       </h2>
       <p>
         These commands are for building and manipulating arrayed structures like
@@ -1879,7 +1865,7 @@
           (via <span class="keybinding">,</span><span class="keybinding">:</span>),
           they will be split up and placed as the left and right parts of the case structure.
           For example:
-          <br />
+          <br>
           <code>
             \begin{gathered}
               x^2 \colon x \ge 0 \\
@@ -1902,7 +1888,7 @@
           but prepend the word "if" to the right-hand side of expressions joined with a colon.
           If there is no colon, the right-hand side becomes the word "otherwise" instead.
           For example:
-          <br />
+          <br>
           <code>
             \begin{gathered}
               x^2 \colon x \ge 1 \\
@@ -1961,9 +1947,8 @@
         </li>
       </ul>
 
-      <h2>
-        <span class="keybinding">_</span>
-        <a name="dissect" id="help_dissect">Dissect</a>
+      <h2 id="help_dissect">
+        <span class="keybinding">_</span> Dissect
       </h2>
       <p>
         Entering <em>dissect</em> mode with <span class="keybinding">_</span> (underscore)
@@ -2003,7 +1988,7 @@
         <li>
           <span class="keybinding">x</span> or <span class="keybinding">X</span> or <span class="keybinding">&#39;</span>
           <strong>Extract</strong> the currently selected subexpression, replacing it with a
-          <a href="#placeholders">placeholder</a>.  The extracted subexpression will be left on the stack
+          <a href="#help_placeholders">placeholder</a>.  The extracted subexpression will be left on the stack
           top, where it can be further manipulated or replaced with normal commands, and then re-substituted
           back into the original expression using <span class="keybinding">/</span><span class="keybinding">&#39;</span>.
         </li>
@@ -2030,9 +2015,8 @@
         </li>
       </ul>
 
-      <h2>
-        <span class="keybinding">#</span>
-        <a name="cas" id="help_cas">Symbolic Algebra</a>
+      <h2 id="help_cas">
+        <span class="keybinding">#</span> Symbolic Algebra
       </h2>
       <p>
         These commands perform symbolic algebra and calculus operations on expressions
@@ -2292,13 +2276,13 @@
       <p><strong>Numerical Operations:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">n</span>
+          <span class="keybinding">=</span>
           Evaluate constants in an expression, replacing them with
           decimal approximations:
           <code>(\ln{2})^3 \Rightarrow 0.333024651</code>
         </li>
         <li>
-          <span class="keybinding">=</span>
+          <span class="keybinding">/</span>
           Given a decimal number, try to find a close rational approximation to that number.
           Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
           be detected: <code>1.644934066 \Rightarrow \pi^2/6</code>
@@ -2372,10 +2356,13 @@
       </ul>
 
           
-      <h2>
-        <span class="keybinding">;</span>
-        <a name="greek" id="help_greek">Greek Letters</a>
+      <h2 id="help_greek">
+        <span class="keybinding">;</span> Greek Letters
       </h2>
+      <p>
+        <strong>NOTE:</strong> <span class="keybinding">:</span> may optionally be used
+        as an alias for <span class="keybinding">;</span>.
+      </p>
       <p>Lowercase Greek letters:</p>
       <table class="keybindings"><tbody>
           <tr>
@@ -2491,9 +2478,8 @@
         <span class="keybinding">,</span><span class="keybinding">:</span>.
       </p>
 
-      <h2>
-        <span class="keybinding">$</span>
-        <a name="configuration" id="help_configuration">Configuration</a>
+      <h2 id="help_configuration">
+        <span class="keybinding">$</span> Configuration
       </h2>
       <p>
         These commands let you change global configuration settings.
@@ -2584,9 +2570,7 @@
         </li>
       </ul>
 
-      <h2>
-        <a name="control_keys" id="help_control_keys">Control Keys</a>
-      </h2>
+      <h2 id="help_control_keys">Control Keys</h2>
       <p>
         For maximum browser compatibility, Control/Alt/Command keys are not required.
         However, the following Control key based shortcuts are available for optional use.
@@ -2671,8 +2655,8 @@
           (same as <span class="keybinding">Tab</span><span class="keybinding">s</span>)
         </li>
         <li><span class="keybinding">Ctrl+t</span>
-          <code>f \Rightarrow f(t)</li>
-        </code>
+          <code>f \Rightarrow f(t)</code>
+        </li>
         <li><span class="keybinding">Ctrl+u</span>
           Make superscript (same as <span class="keybinding">`</span>)
         </li>
