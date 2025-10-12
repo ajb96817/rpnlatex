@@ -450,7 +450,7 @@ class AppState {
   
   constructor(stack, document) {
     this.stack = stack || this._default_stack();
-    this.document = document || new Document([], 0);
+    this.document = document || new Document();
     this.is_dirty = false;
   }
 
@@ -2256,7 +2256,7 @@ class Document {
   // NOTE: selection_index can be in the range 0..items.length (inclusive).
   constructor(items, selection_index) {
     this.items = items || [];
-    this.selection_index = selection_index;
+    this.selection_index = selection_index || 0;
   }
 
   selected_item() {
