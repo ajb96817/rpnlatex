@@ -1199,9 +1199,14 @@ class FunctionCallExpr extends Expr {
   }
 
   as_bold() {
-    return new FunctionCallExpr(
-      this.fn_expr.as_bold(),
-      this.args_expr.as_bold());
+    // f(x) -> bolded f and x, but not the parentheses themselves.
+    // Bolding the parentheses themselves might be considered desirable
+    // instead of this, in which case bold_args_expr = this.args_expr.as_bold().
+    const bold_args_expr =
+        this.args_expr.is_delimiter_expr() ?
+        this.args_expr.replace_subexpression(0, this.args_expr.inner_expr.as_bold()) :
+        this.args_expr.as_bold();
+    return new FunctionCallExpr(this.fn_expr.as_bold(), bold_args_expr);
   }
 
   // Return an array of individual function arguments.
@@ -1475,7 +1480,15 @@ class DelimiterExpr extends Expr {
   //   - a normal fraction like \frac{x}{y}
   //   - a "primed" expression like f' (but not f'(x)).
   static parenthesize_for_power(expr, left_type, right_type) {
-    const needs_parenthesization = (
+    if(this.should_parenthesize_for_power(expr))
+      return this.parenthesize_if_not_already(
+        expr, left_type, right_type);
+    else
+      return expr;
+  }
+
+  static should_parenthesize_for_power(expr) {
+    return (
       // Any sequence/infix/prefix/postfix expression
       ['sequence', 'infix', 'prefix', 'postfix'
       ].includes(expr.expr_type()) ||
@@ -1493,22 +1506,29 @@ class DelimiterExpr extends Expr {
       (expr.is_command_expr_with(1) &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
 
+      // FontExpr(x) where x itself should be parenthesized
+      (expr.is_font_expr() && expr.typeface !== 'normal' &&
+       this.should_parenthesize_for_power(expr.expr)) ||
+
       // f', f'', but not f'(x)
       (expr.is_subscriptsuperscript_expr() &&
        expr.count_primes() > 0)
     );
-    if(needs_parenthesization)
-      return this.parenthesize_if_not_already(
-        expr, left_type, right_type);
-    else
-      return expr;
   }
 
   // expr is about to become the argument of a (unary) function call
   // like \sin.  We want to have 'sin(x+1)' but also 'sin 2x', etc.
   // The logic is similar to, but not quite the same as, parenthesize_for_power().
   static parenthesize_for_argument(expr, left_type, right_type) {
-    const needs_parenthesization = (
+    if(this.should_parenthesize_for_argument(expr))
+      return this.parenthesize_if_not_already(
+        expr, left_type, right_type);
+    else
+      return expr;
+  }
+
+  static should_parenthesize_for_argument(expr) {
+    return (
       // NOTE: Only parenthesize SequenceExprs if they don't start
       // with a PrefixExpr: sin 2x, but sin(-2x)
       ['infix', 'prefix', 'postfix'
@@ -1528,13 +1548,12 @@ class DelimiterExpr extends Expr {
       
       // \sin{x}, \ln{x}, etc.
       (expr.is_command_expr_with(1) &&
-       !expr.operand_exprs[0].is_delimiter_expr())
+       !expr.operand_exprs[0].is_delimiter_expr()) ||
+
+      // FontExpr(x) where x itself should be parenthesized
+      (expr.is_font_expr() && expr.typeface !== 'normal' &&
+       this.should_parenthesize_for_argument(expr.expr))
     );
-    if(needs_parenthesization)
-      return this.parenthesize_if_not_already(
-        expr, left_type, right_type);
-    else
-      return expr;
   }
 
   // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
