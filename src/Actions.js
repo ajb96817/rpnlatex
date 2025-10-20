@@ -202,14 +202,12 @@ class InputContext {
     };
   }
 
-  switch_to_mode(new_mode) {
-    this.new_mode = new_mode;
-  }
+  switch_to_mode(new_mode) { this.new_mode = new_mode; }
+
+  update_document(new_document) { this.new_document = new_document;  }
 
   // Don't include the results of this action in the undo stack.
-  suppress_undo() {
-    this.perform_undo_or_redo = 'suppress';
-  }
+  suppress_undo() { this.perform_undo_or_redo = 'suppress'; }
 
   error_flash_element(dom_element) {
     dom_element.classList.remove('errorflash');
@@ -517,7 +515,7 @@ class InputContext {
   }
 
   // Copy stack top above the current Nth stack item.
-  // Default argument of 2 is: a b -> b a b
+  // Default argument of 2 is: a b => b a b
   // Argument of 1 acts as "dup".
   do_tuck(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
@@ -531,7 +529,7 @@ class InputContext {
   }
 
   // Pick the Nth item from the stack and copy it to the stack top.
-  // Default argument of 2 is: a b -> a b a
+  // Default argument of 2 is: a b => a b a
   do_over(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
@@ -541,7 +539,7 @@ class InputContext {
       return new_stack;
   }
 
-  // Rotate N top stack items (default=3: a b c -> b c a)
+  // Rotate N top stack items (default=3: a b c => b c a)
   do_rot(stack) {
     const arg = this._get_prefix_argument(3, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
@@ -553,7 +551,7 @@ class InputContext {
       return new_stack;
   }
 
-  // Rotate N top stack items backwards (default=3: a b c -> c a b)
+  // Rotate N top stack items backwards (default=3: a b c => c a b)
   do_unrot(stack) {
     const arg = this._get_prefix_argument(3, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
@@ -586,14 +584,14 @@ class InputContext {
       return this.do_scroll(stack, 'document_container', 'vertical', percentage.toString());
     }
     else
-      this.new_document = this.app_state.document.move_selection_by(amount);
+      this.update_document(this.app_state.document.move_selection_by(amount));
   }
 
   do_shift_document_selection(stack, amount_string) {
     const amount = parseInt(amount_string);
     const new_document = this.app_state.document.shift_selection_by(amount);
     if(new_document)
-      this.new_document = new_document;
+      this.update_document(new_document);
     else
       this.error_flash_document();
   }
@@ -684,7 +682,7 @@ class InputContext {
 
     // This basically works like loading from a blank file.
     let new_state = new AppState();
-    this.new_document = new_state.document;
+    this.update_document(new_state.document);
     file_manager_state.selected_filename = file_manager_state.current_filename = new_filename;
     this.settings.last_opened_filename = new_filename;
     this.settings.save();
@@ -698,7 +696,7 @@ class InputContext {
 
   do_select_adjacent_file(stack, offset_string) {
     const offset = parseInt(offset_string);
-    let file_manager_state = this.app_component.state.file_manager_state;
+    const file_manager_state = this.app_component.state.file_manager_state;
     const new_filename = file_manager_state.find_adjacent_filename(file_manager_state.selected_filename, offset);
     if(new_filename) {
       file_manager_state.selected_filename = new_filename;
@@ -707,8 +705,8 @@ class InputContext {
   }
 
   do_delete_selected_file(stack) {
-    let file_manager_state = this.app_component.state.file_manager_state;
-    let document_storage = this.app_component.state.document_storage;
+    const file_manager_state = this.app_component.state.file_manager_state;
+    const document_storage = this.app_component.state.document_storage;
     const filename = file_manager_state.selected_filename;
     if(!filename) return this.error_flash_document();
     if(!window.confirm("Really delete \"" + filename + "\"?")) return;
@@ -735,7 +733,7 @@ class InputContext {
     let new_document = this.app_state.document;
     for(let n = 0; n < items.length; n++)
       new_document = new_document.insert_item(items[n].clone());
-    this.new_document = new_document;
+    this.update_document(new_document);
     return preserve ? new_stack.push_all(items) : new_stack;
   }
 
@@ -754,14 +752,14 @@ class InputContext {
     }
     new_items.reverse();
     if(!preserve)
-      this.new_document = new_document;
+      this.update_document(new_document);
     return stack.push_all(new_items);
   }
 
   // Clear stack and document.
   do_reset_all(stack) {
     this.notify("Stack and document cleared");
-    this.new_document = new Document();
+    this.update_document(new Document());
     return new Stack([]);
   }
 
@@ -822,7 +820,7 @@ class InputContext {
   // Increase or decrease the size of an expression via commands like \large and \small.
   // operation:
   //   'larger' or 'smaller': increase or decrease in steps of +/- 1.
-  //   Max is 5 in either direction.
+  //   Limit is -4 <= size <= 5.
   do_adjust_size(stack, operation) {
     const delta = operation === 'larger' ? +1 : -1;
     const [new_stack, expr] = stack.pop_exprs(1);
@@ -865,32 +863,37 @@ class InputContext {
 
   // Create a differential form infix expression like: dx ^ dy ^ dz.
   // degree_string is the number of differential elements to combine.
+  // degree_string='0' creates a lone 'd'.
   // ellipses='true' inserts a set of ellipses before the last element.
   // is_roman='true' typesets the 'd' with \mathrm.
-  // Unary minus signs are pulled out into the differential, e.g. -x -> -dx.
+  // Unary minus signs are pulled out into the differential, e.g. -x -> -dx,
+  // and the 'x' expressions are autoparenthesized if the autoparenthesization mode is on.
   do_differential_form(stack, degree_string, ellipses, is_roman) {
     const degree = parseInt(degree_string);
+    const d_expr = is_roman === 'true' ?
+          FontExpr.roman_text('d') : new TextExpr('d');
     const [new_stack, ...exprs] = stack.pop_exprs(degree);
-    let d_exprs = exprs.map(expr => {
+    if(degree === 0)  // special case
+      return new_stack.push_expr(d_expr);
+    let dx_exprs = exprs.map(expr => {
       let is_negated = false;
       let base_expr = expr;
       if(expr.is_unary_minus_expr()) {
         is_negated = true;
         base_expr = expr.base_expr;
       }
-      let d_expr = Expr.combine_pair(
-        is_roman === 'true' ? FontExpr.roman_text('d') : new TextExpr('d'),
-        base_expr);
+      if(this.settings.autoparenthesize)
+        base_expr = DelimiterExpr.autoparenthesize(base_expr);
+      let dx_expr = Expr.combine_pair(d_expr, base_expr);
+      if(dx_expr.is_sequence_expr())
+        dx_expr = dx_expr.as_fused();
       if(is_negated)
-        d_expr = PrefixExpr.unary_minus(d_expr);
-      return d_expr;
+        dx_expr = PrefixExpr.unary_minus(dx_expr);
+      return dx_expr;
     });
-    if(ellipses === 'true') {
-      // Splice in ellipses before the final element.
-      d_exprs = d_exprs.slice(0, degree-1).concat(
-        [new CommandExpr('cdots')]).concat(d_exprs.slice(degree-1));
-    }
-    const form_expr = InfixExpr.combine_infix_all(d_exprs, new CommandExpr('wedge'));
+    if(ellipses === 'true')
+      dx_exprs.splice(degree-1, 0, new CommandExpr('cdots'));
+    const form_expr = InfixExpr.combine_infix_all(dx_exprs, new CommandExpr('wedge'));
     return new_stack.push_expr(form_expr);
   }
 
@@ -1830,7 +1833,7 @@ class InputContext {
     this.clear_all_flashes();
     if(full_refresh_needed) {
       // All displayed ItemComponents need to be re-rendered.
-      this.new_document = this.app_state.document.clone_all_items();
+      this.update_document(this.app_state.document.clone_all_items());
       return stack.clone_all_items();
     }
   }

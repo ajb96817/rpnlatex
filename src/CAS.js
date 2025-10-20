@@ -133,8 +133,7 @@ const algebrite_relation_types = [
 function translate_function_name(f, to_algebrite) {
   const match = algebrite_function_translations.find(
     pair => pair[to_algebrite ? 0 : 1] === f);
-  if(match) return match[to_algebrite ? 1 : 0];
-  else return f;
+  return match ? match[to_algebrite ? 1 : 0] : f;
 }
 
 // Check if a variable name is acceptable by Algebrite.
@@ -490,8 +489,7 @@ class AlgebriteInterface {
   static call_function_bothsides(function_name, argument_exprs) {
     const result = this.analyze_relation(argument_exprs[0]);
     if(result) {
-      const [left_expr, right_expr, relation_type] =
-            this.analyze_relation(argument_exprs[0]);
+      const [left_expr, right_expr, relation_type] = result;
       const left_result = this.call_function(
         function_name, [left_expr].concat(argument_exprs.slice(1)));
       const right_result = this.call_function(
@@ -536,8 +534,9 @@ class AlgebriteInterface {
     const testeq = (x, y) => {
       const result = $A.testeq(x, y);
       if(result.k === 1 /* NUM */)
-        return result.q.a.equals(1) ? true : false;
-      else return false;
+        return result.q.a.equals(1);
+      else
+        return false;
     };
 
     // For now, disallow more complex expressions like x^2 as the
@@ -555,7 +554,8 @@ class AlgebriteInterface {
     // Build square expr part: a*(x + b/2a)^2
     const shift_term = $A.multiply(b, $A.power($A.multiply(2, a), -1));
     const shifted_var_expr = testeq(shift_term, 0) ?
-          variable_expr /* basically b=0 */ :
+          variable_expr /* basically b=0 */
+          :
           InfixExpr.add_exprs(
             variable_expr,
             this.algebrite_result_to_expr(shift_term));
@@ -844,12 +844,11 @@ class AlgebriteCall extends AlgebriteNode {
   }
 }
 
-// Contains a vector or matrix of other AlgebriteNodes.
+// Contains a 2D matrix of other AlgebriteNodes.
+// Vectors are handled as 1xN (row) or Nx1 (column) matrices.
 // Tensor orders other than 1 and 2 are not supported.
 // 'element_nodes' is a nested array-of-arrays of nodes,
 // similar to what ArrayExpr has.
-// If column_count=1, this is considered a vector and
-// emitted as [x,y,z] rather than [[x], [y], [z]].
 class AlgebriteTensor extends AlgebriteNode {
   constructor(row_count, column_count, element_nodes) {
     super();
@@ -857,8 +856,6 @@ class AlgebriteTensor extends AlgebriteNode {
     this.column_count = column_count;
     this.element_nodes = element_nodes;
   }
-
-  // TODO: emit_as_vector (for cross())
 
   emit(emitter) {
     emitter.emit('[');
@@ -1015,7 +1012,7 @@ class ExprToAlgebrite {
   // { fn: binary algebrite function to apply
   //   modifier_fn: unary algebrite function to apply to second argument
   //                (e.g., x/y -> multiply(x, quotient(y)))
-  //   prec_fn: higher numbers bind tighter }
+  //   prec: higher numbers bind tighter }
   _infix_op_info(op_name) {
     switch(op_name) {
     case '*': return {fn:'multiply', prec:2};

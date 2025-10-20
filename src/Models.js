@@ -2043,7 +2043,7 @@ class TextItem extends Item {
 
   // Empty TextItems are displayed as "separator lines" (visually, the underline part
   // of an ordinary section header).  Currently empty TextItems can only be created by
-  // the ['][=] command, and they are always created with is_heading=true.
+  // the ['][=] and [Tab][=] commands, and they are always created with is_heading=true.
   // There is a slight corner case here if is_header flag is turned off via [/]["].
   // That case "should" display as a truly empty item, but for now we avoid this by
   // just disallowing turning off the is_header flag in [/]["] (do_toggle_is_heading).
@@ -2166,7 +2166,7 @@ class Stack {
 
   // Fetch item at position n (stack top = 1, next = 2, etc).
   peek(n) {
-    if(!this.check(1)) this.underflow();
+    if(!this.check(n)) this.underflow();
     return this.items[this.items.length - n];
   }
 

@@ -574,25 +574,25 @@ const KeybindingTable = {
     // \partial^2 y / \partial x^2
     'J': "integer 2;superscript;push \\partial;swap;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;operator frac 2",
     // dy/dx
-    'k': "push d;swap;concat;swap;push d;swap;concat;swap;operator frac 2",
-    // d^2(y) / dx^2
-    'K': "integer 2;superscript;push d;swap;concat;swap;push d;integer 2;superscript;swap;concat;swap;operator frac 2",
+    'k': "differential_form 1;swap;differential_form 1;swap;operator frac 2",
+    // d^2(y) / dx^2 (NOTE: differential_form(1) can't be used in the numerator because of the exponent)
+    'K': "integer 2;superscript;differential_form 1;swap;differential_form 0;integer 2;superscript;swap;concat;swap;operator frac 2",
     // \partial / \partial x
     'q': "push \\partial;swap;concat;push \\partial;swap;operator frac 2",
     // \partial^2 / \partial x^2
     'Q': "integer 2;superscript;push \\partial;swap;concat;push \\partial;integer 2;superscript;swap;operator frac 2",
     // d/dx
-    'x': "push d;swap;concat;push d;swap;operator frac 2",
+    'x': "differential_form 1;differential_form 0;swap;operator frac 2",
     // d^2 / dx^2
-    'X': "integer 2;superscript;push d;swap;concat;push d;integer 2;superscript;swap;operator frac 2",
+    'X': "integer 2;superscript;differential_form 1;differential_form 0;integer 2;superscript;swap;operator frac 2",
     // \partial^2 / \partial x\,\partial y
     'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;operator frac 2",
     // \partial^2 z / \partial x\,\partial y
     'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;operator frac 2",
     // gradient
-    'g': "autoparenthesize;push \\nabla;swap;concat",
+    'g': "push \\nabla;swap;concat",
     // gradient with respect to x
-    'G': "push \\nabla;swap;subscript;swap;autoparenthesize;concat",
+    'G': "push \\nabla;swap;subscript;swap;concat",
     // divergence
     '.': "autoparenthesize;push \\nabla;swap;infix \\cdot",
     // curl
@@ -602,11 +602,11 @@ const KeybindingTable = {
     // Delta-x
     'n': "autoparenthesize;push \\Delta;swap;concat",  // i[n]crement (?)
     // x -> dx
-    'd': "autoparenthesize;push d;swap;fuse",
+    'd': "differential_form 1",
     // x -> \partial x
-    'p': "autoparenthesize;push \\partial;swap;fuse",
+    'p': "push \\partial;swap;concat",
     // y x -> \partial_x y
-    'P': "push \\partial;swap;subscript;swap;autoparenthesize;fuse",
+    'P': "push \\partial;swap;subscript;swap;concat",
     // x y -> dx ^ dy
     'f': "differential_form 2 false false",
     // x y z -> dx ^ dy ^ dz
@@ -614,32 +614,34 @@ const KeybindingTable = {
     // x y -> dx ^ ... ^ dy
     'E': "differential_form 2 true false",
     // x -> d^2x
-    '2': "push d;integer 2;superscript;swap;fuse",
-    '3': "push d;integer 3;superscript;swap;fuse",
-    '4': "push d;integer 4;superscript;swap;fuse",
-    // y x -> y dx
-    'i': "autoparenthesize;swap;push \\,;concat;swap;push d;swap;fuse;concat",
-    // y x -> ydx (with thinspace after the dx)
-    'I': "autoparenthesize;push d;swap;fuse;concat;push \\,;concat",
+    '2': "differential_form 0;integer 2;superscript;swap;concat",
+    '3': "differential_form 0;integer 3;superscript;swap;concat",
+    '4': "differential_form 0;integer 4;superscript;swap;concat",
+    // y x -> y dx (thinspace between terms)
+    'i': "differential_form 1;swap;push \\,;concat;swap;concat",
+    // y x -> ydx (thinspace after the dx)
+    'I': "differential_form 1;push \\,;concat;concat",
     // y x -> ydx (no spacing around the dx)
-    ' ': "autoparenthesize;push d;swap;fuse;concat"
+    ' ': "differential_form 1;concat"
   },
 
+  // [/][D] prefix: derivative operations, but using roman-font 'd'
   derivative_alt: {
-    'd': "push d;typeface roman;swap;fuse",
+    'd': "differential_form 1 false true",
+    'D': "differential_form 1 false true",  // alias for d (undocumented)
     'f': "differential_form 2 false true",
     'F': "differential_form 3 false true",
     'E': "differential_form 2 true true",
-    '2': "push d;typeface roman;integer 2;superscript;swap;fuse",
-    '3': "push d;typeface roman;integer 3;superscript;swap;fuse",
-    '4': "push d;typeface roman;integer 4;superscript;swap;fuse",
-    'i': "autoparenthesize;swap;push \\,;concat;swap;push d;typeface roman;swap;fuse;concat",
-    'I': "autoparenthesize;push d;typeface roman;swap;fuse;concat;push \\,;concat",
-    ' ': "autoparenthesize;push d;typeface roman;swap;fuse;concat",
-    'k': "push d;typeface roman;swap;concat;swap;push d;typeface roman;swap;concat;swap;operator frac 2",
-    'K': "integer 2;superscript;push d;typeface roman;swap;concat;swap;push d;typeface roman;integer 2;superscript;swap;concat;swap;operator frac 2",
-    'x': "push d;typeface roman;swap;concat;push d;typeface roman;swap;operator frac 2",
-    'X': "integer 2;superscript;push d;typeface roman;swap;concat;push d;typeface roman;integer 2;superscript;swap;operator frac 2",
+    '2': "differential_form 0 false true;integer 2;superscript;swap;concat",
+    '3': "differential_form 0 false true;integer 3;superscript;swap;concat",
+    '4': "differential_form 0 false true;integer 4;superscript;swap;concat",
+    'i': "differential_form 1 false true;swap;push \\,;concat;swap;concat",
+    'I': "differential_form 1 false true;push \\,;concat;concat",
+    ' ': "differential_form 1 false true;concat",
+    'k': "differential_form 1 false true;swap;differential_form 1 false true;swap;operator frac 2",
+    'K': "integer 2;superscript;differential_form 1 false true;swap;differential_form 0 false true;integer 2;superscript;swap;concat;swap;operator frac 2",
+    'x': "differential_form 1 false true;differential_form 0 false true;swap;operator frac 2",
+    'X': "integer 2;superscript;differential_form 1 false true;differential_form 0 false true;integer 2;superscript;swap;operator frac 2",
     'delegate': "derivative"
   },
 

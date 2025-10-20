@@ -694,9 +694,9 @@ class InfixExpr extends Expr {
   // 'op_expr' as the infix operator.
   // If one or both of the expressions are already InfixExprs, they are
   // flattened into a larger InfixExpr.
-  static combine_infix(left_expr, right_expr, op_expr,
-                       check_special_cases=true) {
+  static combine_infix(left_expr, right_expr, op_expr, check_special_cases=true) {
     if(check_special_cases) {
+      // We want x + -y => x-y.
       if(op_expr.is_text_expr_with('+'))
          return this.add_exprs(left_expr, right_expr);
     }
@@ -746,11 +746,11 @@ class InfixExpr extends Expr {
   // Combining with infix + has some special cases that should be
   // handled if combining x+y where y involves a prefix unary minus.
   // TODO: Maybe have subtract_exprs() as well.  That's not the same
-  // though, since we want to have x - ((-y) - z) -> x + y + z,
+  // though, since we want to have x - ((-y) - z) => x + y + z,
   // and it's "better" to just parenthesize: x - (-y - z).
   static add_exprs(left_expr, right_expr) {
     if(right_expr.is_unary_minus_expr()) {
-      // x + (-y)  ->  x - y
+      // x + (-y) => x - y
       return this.combine_infix(
         left_expr, right_expr.base_expr,
         new TextExpr('-'), false);
@@ -761,9 +761,9 @@ class InfixExpr extends Expr {
              right_expr.operator_exprs[0].is_text_expr_with('-'))) {
       // Adding left_expr to an InfixExpr where the first term is negated
       // and then added to something else:
-      //   x + (-y + z)  ->  x - y + z
+      //   x + (-y + z) => x - y + z
       // (but x + (-y / z) stays as is).
-      // We also allow x + (-y - z) -> x - y - z, though.
+      // We also allow x + (-y - z) => x - y - z, though.
       return this.combine_infix(
         left_expr, new InfixExpr(
           [right_expr.operand_exprs[0].base_expr,
@@ -1378,7 +1378,6 @@ class TextExpr extends Expr {
     return LatexEmitter.latex_unescape(this.text);
   }
 
-  // cf. ExprParser.tokenize()
   looks_like_number() { return /^-?\d*\.?\d+$/.test(this.text); }
   looks_like_floating_point() { return !isNaN(parseFloat(this.text)); }
   looks_like_negative_number() { return /^-\d*\.?\d+$/.test(this.text); }
@@ -1428,6 +1427,8 @@ class SequenceExpr extends Expr {
       this.exprs.map(expr => expr.as_bold()),
       this.fused);
   }
+
+  as_fused() { return new SequenceExpr(this.exprs, true); }
 }
 
 
@@ -1704,7 +1705,7 @@ class SubscriptSuperscriptExpr extends Expr {
     return exprs;
   }
 
-  // NOTE: the meaning of 'index' may vary depending on whether sub/superscript is populated.
+  // NOTE: the meaning of 'index' varies depending on whether sub/superscript is populated.
   replace_subexpression(index, new_expr) {
     return new SubscriptSuperscriptExpr(
       index === 0 ? new_expr : this.base_expr,
@@ -1902,11 +1903,6 @@ class ArrayExpr extends Expr {
     return new ArrayExpr(
       new_array_type, this.row_count, this.column_count,
       this.element_exprs, this.row_separators, this.column_separators);
-  }
-
-  // Matrices are dissolved in row-major order.
-  dissolve() {
-    return [].concat(...this.element_exprs);
   }
 
   as_bold() {
@@ -2124,6 +2120,8 @@ class ArrayExpr extends Expr {
     // Flatten element expressions in row-major order.
     return [].concat(...this.element_exprs);
   }
+
+  dissolve() { return this.subexpressions(); }
 
   matches(expr) {
     // NOTE: row/column separators are disregarded for matching purposes
