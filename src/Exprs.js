@@ -1481,35 +1481,30 @@ class DelimiterExpr extends Expr {
   //   - a "primed" expression like f' (but not f'(x)).
   static parenthesize_for_power(expr, left_type, right_type) {
     if(this.should_parenthesize_for_power(expr))
-      return this.parenthesize_if_not_already(
-        expr, left_type, right_type);
+      return this.parenthesize_if_not_already(expr, left_type, right_type);
     else
       return expr;
   }
 
+  // TODO: make non-static
   static should_parenthesize_for_power(expr) {
     return (
       // Any sequence/infix/prefix/postfix expression
       ['sequence', 'infix', 'prefix', 'postfix'
       ].includes(expr.expr_type()) ||
-
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
       (expr.is_delimiter_expr() &&
        expr.left_type === '.' && expr.right_type === '.' &&
        expr.inner_expr.is_infix_expr()) ||
-
       // \frac{x}{y}
       expr.is_command_expr_with(2, 'frac') ||
-
-      // \sin{x}, \ln{x}, etc.
+      // \sin{x}, \ln{x}, etc., but not \sin({x})
       (expr.is_command_expr_with(1) &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
-
       // FontExpr(x) where x itself should be parenthesized
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
        this.should_parenthesize_for_power(expr.expr)) ||
-
       // f', f'', but not f'(x)
       (expr.is_subscriptsuperscript_expr() &&
        expr.count_primes() > 0)
@@ -1519,10 +1514,10 @@ class DelimiterExpr extends Expr {
   // expr is about to become the argument of a (unary) function call
   // like \sin.  We want to have 'sin(x+1)' but also 'sin 2x', etc.
   // The logic is similar to, but not quite the same as, parenthesize_for_power().
+  // TODO: make non-static
   static parenthesize_for_argument(expr, left_type, right_type) {
     if(this.should_parenthesize_for_argument(expr))
-      return this.parenthesize_if_not_already(
-        expr, left_type, right_type);
+      return this.parenthesize_if_not_already(expr, left_type, right_type);
     else
       return expr;
   }
@@ -1533,23 +1528,18 @@ class DelimiterExpr extends Expr {
       // with a PrefixExpr: sin 2x, but sin(-2x)
       ['infix', 'prefix', 'postfix'
       ].includes(expr.expr_type()) ||
-
       // Something like '-2x'.
       (expr.is_sequence_expr() && expr.exprs[0].is_prefix_expr()) ||
-
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
       (expr.is_delimiter_expr() &&
        expr.left_type === '.' && expr.right_type === '.' &&
        expr.inner_expr.is_infix_expr()) ||
-
       // \frac{x}{y}
       expr.is_command_expr_with(2, 'frac') ||
-      
-      // \sin{x}, \ln{x}, etc.
+      // \sin{x}, \ln{x}, etc., but not \sin({x})
       (expr.is_command_expr_with(1) &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
-
       // FontExpr(x) where x itself should be parenthesized
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
        this.should_parenthesize_for_argument(expr.expr))

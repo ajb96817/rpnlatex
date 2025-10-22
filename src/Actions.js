@@ -862,9 +862,11 @@ class InputContext {
   }
 
   // Create a differential form infix expression like: dx ^ dy ^ dz.
-  // degree_string is the number of differential elements to combine.
-  // degree_string='0' creates a lone 'd'.
-  // ellipses='true' inserts a set of ellipses before the last element.
+  // degree_string is the number of differential elements to combine:
+  //   degree_string='0' creates a lone 'd'.
+  //   degree_string='1' creates the usual 'dx'.
+  //   degree_string>='2' combines the differentials with \wedge into an InfixExpr.
+  // ellipses='true' inserts a set of ellipses before the last element: dx ^ dy ^ ... ^ dz
   // is_roman='true' typesets the 'd' with \mathrm.
   // Unary minus signs are pulled out into the differential, e.g. -x -> -dx,
   // and the 'x' expressions are autoparenthesized if the autoparenthesization mode is on.

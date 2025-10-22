@@ -1880,7 +1880,7 @@ class TextItem extends Item {
   //            If the parsing fails (invalid syntax), null is returned.
   // A TextItem with the parsed elements is returned, or null on failure.
   static parse_string(s) {
-    let tokens = TextItem.tokenize_string(s);
+    let tokens = this.tokenize_string(s);
     // Add a fake $ token at the end in order to auto-close math mode (e.g. 'test $x+y').
     tokens.push({type: 'math_mode', text: '$'});
     let is_bold = false;
@@ -1897,11 +1897,14 @@ class TextItem extends Item {
           // It's done this way in case there is something like $x//y$ which
           // would normally get confused as the italic '//' token.
           const math_text = math_pieces.join('');
-          //let math_expr = ExprParser.parse_string(math_text);
-          let math_expr = AlgebriteInterface.parse_string(math_text);
-          if(!math_expr) return null;  // entire TextItem parsing fails if inline math exprs fail
-          if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
-          elements.push(new TextItemExprElement(math_expr));
+          if(math_text.trim().length > 0) {
+            //let math_expr = ExprParser.parse_string(math_text);
+            let math_expr = AlgebriteInterface.parse_string(math_text);
+            if(!math_expr)
+              return null;  // entire TextItem parsing fails if inline math exprs fail
+            if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
+            elements.push(new TextItemExprElement(math_expr));
+          }
         }
         else  // switching into math mode
           math_pieces = [];  // start accumulating text pieces inside $...$
