@@ -400,7 +400,7 @@ const KeybindingTable = {
     'C': "named_function csc",
     'd': "mode derivative",
     'D': "mode derivative_alt",
-    'e': "push e;typeface roman;swap;superscript",  // exp(x)
+    'e': "push e;typeface roman;swap;superscript",  // e^x
     'E': "named_function exp",
     'f': "mode named_operator",
     'g': "push \\int;swap;superscript;swap;subscript",
@@ -678,6 +678,7 @@ const KeybindingTable = {
     'v': "infix \\vee",
     'V': "infix \\veebar",
     'w': "infix \\wedge",
+    '^': "infix \\wedge",
     'W': "infix \\barwedge",
     'x': "infix \\times",
     'X': "infix \\otimes",

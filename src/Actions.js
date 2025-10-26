@@ -237,6 +237,8 @@ class InputContext {
 
   notify(text) { this.notification_text = text; }
 
+  do_cancel() {}
+
   do_subscript(stack, autoparenthesize) {
     return this._build_subscript_superscript(
       stack, false,
@@ -404,8 +406,7 @@ class InputContext {
         'upper_bound': upper_bound
       });
     const result_text = this._format_algebrite_check_result(result);
-    //return new_stack.push(result_text);
-    return stack.push(result_text);  // leave the equation on the stack
+    return stack.push(result_text);  // leave the equation on the stack (otherwise it'd be new_stack.push())
   }
 
   _format_algebrite_check_result(result) {
@@ -888,7 +889,7 @@ class InputContext {
         base_expr = DelimiterExpr.autoparenthesize(base_expr);
       let dx_expr = Expr.combine_pair(d_expr, base_expr);
       if(dx_expr.is_sequence_expr())
-        dx_expr = dx_expr.as_fused();
+        dx_expr = dx_expr.as_fused();  // TODO: maybe remove this
       if(is_negated)
         dx_expr = PrefixExpr.unary_minus(dx_expr);
       return dx_expr;
@@ -1001,7 +1002,8 @@ class InputContext {
       return stack;  // not considered an error
   }
 
-  // opname can be either a \latex_command or a regular string like '+'
+  // Combine two Text or Expr items with an infix operator.
+  // 'opname' can be either a \latex_command or a regular string like '+'
   // The cases of Expr+Expr and Expr+Text (or Text+Text) are handled separately.
   do_infix(stack, opname) {
     const [new_stack, left_item, right_item] = stack.pop(2);
@@ -1022,6 +1024,13 @@ class InputContext {
       return stack.type_error();
   }
 
+  // Take (left, right, operator) from the stack and create an InfixExpr.
+  do_apply_infix(stack) {
+    let [new_stack, left_expr, right_expr, operator_expr] = stack.pop_exprs(3);
+    const new_expr = InfixExpr.combine_infix(left_expr, right_expr, operator_expr);
+    return new_stack.push_expr(new_expr);
+  }
+
   // Similar to do_infix but joins two expressions with an English phrase
   // with Roman font and extra spacing (\quad).
   do_conjunction(stack, phrase) {
@@ -1030,29 +1039,6 @@ class InputContext {
       left_expr, right_expr,
       phrase.replaceAll('_', ' '),
       false);
-    return new_stack.push_expr(new_expr);
-  }
-
-  // Make a line break at the current split_at_index of the stack top InfixExpr.
-  // Cycles between:
-  //   - No line break at split_at_index
-  //   - Line break after the split_at_index operator
-  //   - Line break before the operator
-  do_infix_linebreak(stack) {
-    const [new_stack, infix_expr] = stack.pop_exprs(1);
-    if(!infix_expr.is_infix_expr()) {
-      this.error_flash_stack();
-      return;
-    }
-    const index_before = 2*infix_expr.split_at_index;
-    const index_after = index_before+1;
-    let new_expr;
-    if(infix_expr.has_linebreak_at(index_after))
-      new_expr = infix_expr.without_linebreak_at(index_after).with_linebreak_at(index_before);
-    else if(infix_expr.has_linebreak_at(index_before))
-      new_expr = infix_expr.without_linebreak_at(index_before);
-    else
-      new_expr = infix_expr.with_linebreak_at(index_after);
     return new_stack.push_expr(new_expr);
   }
 
@@ -1086,7 +1072,28 @@ class InputContext {
       return this.error_flash_stack();
   }
 
-  do_cancel() {}
+  // Make a line break at the current split_at_index of the stack top InfixExpr.
+  // Cycles between:
+  //   - No line break at split_at_index operator
+  //   - Line break after the split_at_index
+  //   - Line break before the operator
+  do_infix_linebreak(stack) {
+    const [new_stack, infix_expr] = stack.pop_exprs(1);
+    if(!infix_expr.is_infix_expr()) {
+      this.error_flash_stack();
+      return;
+    }
+    const index_before = 2*infix_expr.split_at_index;
+    const index_after = index_before+1;
+    let new_expr;
+    if(infix_expr.has_linebreak_at(index_after))
+      new_expr = infix_expr.without_linebreak_at(index_after).with_linebreak_at(index_before);
+    else if(infix_expr.has_linebreak_at(index_before))
+      new_expr = infix_expr.without_linebreak_at(index_before);
+    else
+      new_expr = infix_expr.with_linebreak_at(index_after);
+    return new_stack.push_expr(new_expr);
+  }
 
   // Concatenate two Expr or Text items.  This is the basic concatenation action.
   // If 'autoparenthesize' is 'false', autoparenthesization is inhibited,
@@ -1095,7 +1102,7 @@ class InputContext {
   do_concat(stack, autoparenthesize) {
     let [new_stack, left_item, right_item] = stack.pop(2);
     const left_type = left_item.item_type(), right_type = right_item.item_type();
-    const no_parenthesize = autoparenthesize === 'false' ? true : !this.settings.autoparenthesize;
+    const no_parenthesize = autoparenthesize === 'false' || !this.settings.autoparenthesize;
     if(left_type === 'expr' && right_type === 'expr') {
       let left_expr = left_item.expr, right_expr = right_item.expr;
       const new_expr = Expr.combine_pair(left_expr, right_expr, no_parenthesize);
@@ -1117,7 +1124,7 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
-  // "Fuse" a function name and its argument tuple into a FunctionCallExpr.
+  // Combine a function name and its argument tuple into a FunctionCallExpr.
   // The arguments must already exist as a DelimiterExpr, e.g. (x,y).
   do_build_function_call(stack) {
     const [new_stack, fn_expr, args_expr] = stack.pop_exprs(2);
@@ -1137,7 +1144,7 @@ class InputContext {
   do_negate(stack) { return this.do_prefix(stack, '-'); }
 
   // Substitute the stack top expression into the first available placeholder marker in the
-  // item second from top.  That item can be either an ExprItem or TextItem.
+  // item second from top.  That (second) item can be either an ExprItem or TextItem.
   do_substitute_placeholder(stack) {
     const [new_stack, substitution_expr] = stack.pop_exprs(1);
     const [new_stack_2, item] = new_stack.pop(1);
@@ -1157,7 +1164,7 @@ class InputContext {
     return stack.type_error();
   }
 
-  // x y z -> 'x', with expressions matching 'y' replaced by 'z'.
+  // x y z => 'x', with expressions matching 'y' replaced by 'z'.
   do_substitute(stack) {
     const [new_stack, expr, search_expr, substitution_expr] = stack.pop_exprs(3);
     const result_expr = expr.substitute(search_expr, substitution_expr);
@@ -1305,7 +1312,7 @@ class InputContext {
   // If new_mode_when_empty is provided, switch to that mode if this
   // backspace was done while the text field is empty.  This is currently
   // used to switch back from latex entry mode to normal math entry mode.
-  // backspace_type can be 'backspace' or 'delete'.
+  // 'backspace_type' can be 'backspace' or 'delete'.
   do_text_entry_backspace(stack, backspace_type, new_mode_when_empty) {
     if(this.text_entry.is_empty()) {
       // Everything has been deleted; cancel text entry.
@@ -1330,7 +1337,7 @@ class InputContext {
   }
 
   // textstyle determines what the entered text becomes:
-  //   'math' - ExprItem with "parsed" italic math text (see ExprParser)
+  //   'math' - ExprItem with "parsed" italic math text
   //   'roman_text' - Expr with \mathrm{...}, where ... is always a TextExpr (not parsed as a math)
   //   'operatorname' - Similar to 'roman_text' but use \operatorname instead of \mathrm
   //   'latex' - ExprItem with arbitrary 0-argument latex command
@@ -1704,13 +1711,6 @@ class InputContext {
         new CommandExpr(command_expr.command_name, operand_exprs));
     else
       return this.error_flash_stack();
-  }
-
-  // Take (left, right, operator) from the stack and create an InfixExpr.
-  do_apply_infix(stack) {
-    let [new_stack, left_expr, right_expr, operator_expr] = stack.pop_exprs(3);
-    const new_expr = InfixExpr.combine_infix(left_expr, right_expr, operator_expr);
-    return new_stack.push_expr(new_expr);
   }
 
   do_toggle_popup(stack, mode_string) {

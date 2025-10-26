@@ -1843,7 +1843,7 @@ class ArrayExpr extends Expr {
   //   'colon_if': like 'colon', but place the word "if" before the right-hand side if there
   //               is a ':' infix.  If there is no ':' infix, the right-hand side becomes 'otherwise'.
   static split_elements(exprs, split_mode) {
-    const element_exprs = exprs.map(expr => ArrayExpr._split_expr(expr, split_mode));
+    const element_exprs = exprs.map(expr => this._split_expr(expr, split_mode));
     // Special case: when building a \cases structure, and there are no colon-infix expressions,
     // strip out the second column that would normally have the subexpressions to the right
     // of the colon (so we don't get a useless column of empty TextExprs).
@@ -1989,9 +1989,10 @@ class ArrayExpr extends Expr {
   _transpose_cell(cell_expr) {
     if(cell_expr.is_command_expr_with(0, 'vdots'))
       return new CommandExpr('cdots');
-    if(cell_expr.is_command_expr_with(0, 'cdots'))
+    else if(cell_expr.is_command_expr_with(0, 'cdots'))
       return new CommandExpr('vdots');
-    return cell_expr;
+    else
+      return cell_expr;
   }
 
   // Return an array of 1xN ArrayExprs, one for each row in this matrix.
@@ -2076,7 +2077,6 @@ class ArrayExpr extends Expr {
     case 'Vmatrix': left_delim = right_delim = "\\Vert"; break;
     default: break;
     }
-
     // Assemble the LaTeX column separator "specification" string
     // (the {c:c:c} part in: \begin{array}{c:c:c}).
     let pieces = ['{'];
@@ -2090,7 +2090,6 @@ class ArrayExpr extends Expr {
     }
     pieces.push('}');
     const column_layout_string = pieces.join('');
-
     if(left_delim) {
       emitter.command('left');
       emitter.text_or_command(left_delim);

@@ -245,8 +245,9 @@
       <p>
         <strong>NOTE:</strong>
         The input field used here is very limited and supports only character entry along with
-        arrow keys to move around, <span class="keybinding">Backspace</span>, and
-        <span class="keybinding">Esc</span> to cancel text entry.
+        arrow keys to move around, <span class="keybinding">Backspace</span>,
+        <span class="keybinding">Enter</span> to finish your entry,
+        and <span class="keybinding">Esc</span> to cancel entry.
         It is meant for entering short snippets of text; longer items should be created as pieces
         and assembled on the stack.
       </p>
@@ -847,7 +848,10 @@
           </tr>
           <tr>
             <td><span class="keybinding">V</span> <code>x\veebar y</code></td>
-            <td><span class="keybinding">w</span> <code>x\wedge y</code></td>
+            <td>
+              <span class="keybinding">w</span> or <span class="keybinding">^</span>
+              <code>x\wedge y</code>
+            </td>
             <td><span class="keybinding">W</span> <code>x\barwedge y</code></td>
           </tr>
           <tr>
@@ -1125,7 +1129,7 @@
         <li><span class="keybinding">o</span> <code>f\enspace x \Rightarrow f(x)</code></li>
         <li><span class="keybinding">r</span> <code>f\enspace x\enspace y \Rightarrow f(x,y)</code></li>
         <li><span class="keybinding">R</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code></li>
-        <li><span class="keybinding">k</span> <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code></li>
+        <li><span class="keybinding">k</span> <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code> <em>(&quot;<strong>k</strong>onditional&quot;)</em></li>
         <li><span class="keybinding">K</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code></li>
         <li><span class="keybinding">[</span> <code>f\enspace x \Rightarrow f[x]</code></li>
         <li><span class="keybinding">]</span> <code>f\enspace x \Rightarrow f\{x\}</code></li>

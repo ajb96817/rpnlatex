@@ -353,7 +353,8 @@ body.eink_mode #document_panel div.selected {
   height: 100%;
   z-index: 1;
 }
-#document_container #helptext { padding: 0 1em; }
+
+#helptext { font-size: 105%; }
 
 div.document_items div.top_spacer { min-height: 0.5em; }
 div.document_items div.bottom_spacer { min-height: 8em; }
