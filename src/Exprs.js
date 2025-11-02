@@ -5,6 +5,8 @@ import {
 
 
 // Abstract superclass for expression trees.
+// Note that all operations on Exprs are non-destructive; new Expr instances
+// are returned with changes rather than modifying internal state.
 class Expr {
   static from_json(json) {
     switch(json.expr_type) {
@@ -42,9 +44,7 @@ class Expr {
     case 'text':
       return new TextExpr(json.text);
     case 'sequence':
-      return new SequenceExpr(
-        this._list(json.exprs),
-        !!json.fused);
+      return new SequenceExpr(this._list(json.exprs));
     case 'delimiter':
       return new DelimiterExpr(
         json.left_type,
@@ -76,9 +76,6 @@ class Expr {
   
   // Concatenate two Exprs into one.  This will merge Exprs into adjacent SequenceExprs
   // when possible, instead of creating nested SequenceExprs.
-  // The 'fused' flag of SequenceExprs can be used to prohibit combining this way.
-  // InfixExprs are always parenthesized before being combined here unless
-  // no_parenthesize=true is passed.
   static combine_pair(left, right, no_parenthesize) {
     const left_type = left.expr_type(), right_type = right.expr_type();
     const autoparenthesize = expr => {
@@ -130,15 +127,15 @@ class Expr {
     }
 
     // Sequence + Sequence
-    if(left_type === 'sequence' && !left.fused && right_type === 'sequence' && !right.fused)
+    if(left_type === 'sequence' && right_type === 'sequence')
       return new SequenceExpr(left.exprs.concat(right.exprs));
 
     // Sequence + NonSequence
-    if(left_type === 'sequence' && !left.fused && right_type !== 'sequence')
+    if(left_type === 'sequence' && right_type !== 'sequence')
       return new SequenceExpr(left.exprs.concat([autoparenthesize(right)]));
 
     // NonSequence + Sequence
-    if(right_type === 'sequence' && !right.fused && left_type !== 'sequence')
+    if(right_type === 'sequence' && left_type !== 'sequence')
       return new SequenceExpr([autoparenthesize(left)].concat(right.exprs));
 
     // Some types of Command can be combined in special ways
@@ -293,9 +290,9 @@ class Expr {
   // True if this has any subexpressions to descend into via ExprPath.
   // As a special case, FontExprs that represent font commands peek into
   // their arguments (recursively) to determine this.  This is to prevent
-  // selecting "inside" font commands that only wrap a simple leaf expression.
-  // This means that has_subexpressions() may sometimes return false even
-  // if subexpressions() is nonempty.
+  // selecting "inside" font commands (with dissect mode) that only wrap a
+  // simple leaf expression.  This means that has_subexpressions() may
+  // sometimes return false even if subexpressions() is nonempty.
   has_subexpressions() { return this.subexpressions().length > 0; }
 
   // Return a new Expr like this one but with the subexpression at the given index replaced
@@ -319,8 +316,8 @@ class Expr {
   // Substitute anything matching 'search_expr' with 'substitution_expr'.
   // NOTE: This can potentially create expressions that are nested internally
   // in a way they ordinarily wouldn't be.  For example: (x+y).substitute(y, z+w)
-  // creates a nested Infix(Infix(x, +, Infix(z, + w)).  This shouldn't be a
-  // problem in practice though.
+  // creates a nested Infix(Infix(x, +, Infix(z, +, w)), which would normally
+  // be Innfix(x, +, z, +, w).  This shouldn't be a problem in practice though.
   substitute(search_expr, substitution_expr) {
     if(this.matches(search_expr))
       return substitution_expr;
@@ -343,7 +340,8 @@ class Expr {
     let found_expr_path = null;
     this.subexpressions().forEach((subexpr, index) => {
       if(found_expr_path === null)
-        found_expr_path = subexpr._find_placeholder_expr_path(expr_path.descend(index));
+        found_expr_path = subexpr._find_placeholder_expr_path(
+          expr_path.descend(index));
     });
     return found_expr_path;
   }
@@ -626,7 +624,8 @@ class FontExpr extends Expr {
     // NOTE: -4 <= size_adjustment <= 5
     return [
       'tiny', 'scriptsize', 'footnotesize', 'small', null /* \normalsize */,
-      'large', 'Large', 'LARGE', 'huge', 'Huge'][size_adjustment+4];
+      'large', 'Large', 'LARGE', 'huge', 'Huge'
+    ][size_adjustment+4];
   }
 
   // Returns true if the given typeface's bold variant should be rendered using \pmb
@@ -696,7 +695,7 @@ class InfixExpr extends Expr {
   // flattened into a larger InfixExpr.
   static combine_infix(left_expr, right_expr, op_expr, check_special_cases=true) {
     if(check_special_cases) {
-      // We want x + -y => x-y.
+      // We want x + -y => x - y.
       if(op_expr.is_text_expr_with('+'))
          return this.add_exprs(left_expr, right_expr);
     }
@@ -759,11 +758,11 @@ class InfixExpr extends Expr {
             right_expr.operand_exprs[0].is_unary_minus_expr() &&
             (right_expr.operator_exprs[0].is_text_expr_with('+') ||
              right_expr.operator_exprs[0].is_text_expr_with('-'))) {
-      // Adding left_expr to an InfixExpr where the first term is negated
-      // and then added to something else:
+      // Adding left_expr (which can be anything) to an InfixExpr where the first
+      // term is negated and then combined to something else with + or -:
       //   x + (-y + z) => x - y + z
+      //   x + (-y - z) => x - y - z
       // (but x + (-y / z) stays as is).
-      // We also allow x + (-y - z) => x - y - z, though.
       return this.combine_infix(
         left_expr, new InfixExpr(
           [right_expr.operand_exprs[0].base_expr,
@@ -821,17 +820,6 @@ class InfixExpr extends Expr {
     return this.operator_text(this.operator_exprs[index]);
   }
 
-  // 'Editable' version of the operator (for use in math entry mode).
-  editable_operator_text_at(index) {
-    const s = this.operator_text_at(index);
-    if(s === '+' || s === '-' || s === '/')
-      return s;
-    else if(s === 'cdot')
-      return '*';
-    else
-      return null;
-  }
-  
   // Check if this is a "low-precedence" infix expression like x+y.
   // This determines if things like x - expr should convert to
   // x - (expr) or not.
@@ -944,8 +932,8 @@ class InfixExpr extends Expr {
             this.operand_exprs.slice(0, operator_index+1));
     const new_operator_exprs =
           this.operator_exprs.slice(operator_index+1).concat(
-            [this.operator_exprs[operator_index]]).concat(
-              this.operator_exprs.slice(0, operator_index));
+            [this.operator_exprs[operator_index]],
+            this.operator_exprs.slice(0, operator_index));
     // NOTE: linebreaks_at is discarded here, otherwise the result
     // isn't very intuitive.
     return new InfixExpr(
@@ -1007,7 +995,7 @@ class InfixExpr extends Expr {
         new_expr = new CommandExpr(pair[1]);
     }
     else if(expr.is_command_expr_with(0)) {
-      // Check special cases to convert:  \nless -> <
+      // Check special cases to convert:  \nless => <
       const pair = special_pairs.find(pair => pair[1] === expr.command_name);
       if(pair)
         new_expr = new TextExpr(pair[0]);
@@ -1391,15 +1379,10 @@ class TextExpr extends Expr {
 
 // Represents a sequence of expressions all concatenated together.
 // Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
-// If 'fused' is true, this will not be combined with other adjacent
-// sequences in Expr.combine_pair(), etc.  This can be used to group things
-// that functionally belong together like differentials 'dx', '\partial x',
-// which matters for 'dissect' mode.
 class SequenceExpr extends Expr {
-  constructor(exprs, fused) {
+  constructor(exprs) {
     super();
     this.exprs = exprs;
-    this.fused = !!fused;
   }
 
   expr_type() { return 'sequence'; }
@@ -1407,8 +1390,6 @@ class SequenceExpr extends Expr {
   to_json() {
     let json = super.to_json();
     json.exprs = this.exprs.map(expr => expr.to_json());
-    if(this.fused)
-      json.fused = true;
     return json;
   }
 
@@ -1421,19 +1402,14 @@ class SequenceExpr extends Expr {
   replace_subexpression(index, new_expr) {
     return new SequenceExpr(
       this.exprs.map(
-        (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr),
-      this.fused);
+        (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
   }
 
   dissolve() { return this.exprs; }
 
   as_bold() {
-    return new SequenceExpr(
-      this.exprs.map(expr => expr.as_bold()),
-      this.fused);
+    return new SequenceExpr(this.exprs.map(expr => expr.as_bold()));
   }
-
-  as_fused() { return new SequenceExpr(this.exprs, true); }
 }
 
 

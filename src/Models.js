@@ -655,7 +655,6 @@ class DocumentStorage {
     let request = transaction.objectStore('documents_metadata').getAll();
     request.onsuccess = () => {
       request.result.forEach(row => {
-        // Parse the timestamp
         const ts_value = Date.parse(row.timestamp);
         row.timestamp = ts_value ? new Date(ts_value) : null;
       });

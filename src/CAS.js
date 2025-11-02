@@ -1327,14 +1327,13 @@ class ExprToAlgebrite {
       return null;
     const [numer_expr, denom_expr] = expr.operand_exprs;
     // Numerator must be a literal 'd';
-    // denominator must be a fused sequence of ['d', variable_expr].
+    // denominator must be a sequence of ['d', variable_expr].
     // (NOTE: currently roman-d is not generated, only normal italic).
     if(!numer_expr.is_text_expr_with('d'))
       return null;
-    if(!(denom_expr.is_sequence_expr() && denom_expr.exprs.length === 2 &&
-         denom_expr.fused))
-      return null;
-    return denom_expr.exprs[1];
+    if(denom_expr.is_sequence_expr() && denom_expr.exprs.length === 2)
+      return denom_expr.exprs[1];
+    return null;
   }
 
   array_expr_to_node(expr) {

@@ -888,8 +888,6 @@ class InputContext {
       if(this.settings.autoparenthesize)
         base_expr = DelimiterExpr.autoparenthesize(base_expr);
       let dx_expr = Expr.combine_pair(d_expr, base_expr);
-      if(dx_expr.is_sequence_expr())
-        dx_expr = dx_expr.as_fused();  // TODO: maybe remove this
       if(is_negated)
         dx_expr = PrefixExpr.unary_minus(dx_expr);
       return dx_expr;
@@ -1115,13 +1113,6 @@ class InputContext {
     }
     else
       return stack.type_error();
-  }
-
-  // "Fuse" two expressions into a uncombinable SequenceExpr.
-  do_fuse(stack) {
-    const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
-    const new_expr = new SequenceExpr([left_expr, right_expr], true);
-    return new_stack.push_expr(new_expr);
   }
 
   // Combine a function name and its argument tuple into a FunctionCallExpr.
