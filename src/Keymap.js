@@ -678,7 +678,6 @@ const KeybindingTable = {
     'v': "infix \\vee",
     'V': "infix \\veebar",
     'w': "infix \\wedge",
-    '^': "infix \\wedge",
     'W': "infix \\barwedge",
     'x': "infix \\times",
     'X': "infix \\otimes",
@@ -692,6 +691,7 @@ const KeybindingTable = {
     "'": "start_text_entry conjunction_entry",
     '`': "swap;push T;typeface roman;superscript false;swap;concat",  // xTy
     '*': "infix *",
+    '^': "infix \\star",
     '%': "infix \\div",
     '(': "infix ,;delimiters ( )",  // (x,y)
     '[': "infix \\llcorner",  // right-contraction
