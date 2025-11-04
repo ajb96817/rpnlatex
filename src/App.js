@@ -294,12 +294,14 @@ class App extends React.Component {
     if(event.altKey)
       return;
     const key = this._keyname_from_event(event);
+    console.log(key);
     // Pass through Alt+3, etc. to avoid interfering with browser tab
     // switching shortcuts.  Ctrl+digit is still allowed.
     if(event.metaKey && /^\d$/.test(event.key))
       return;
-    if(key === 'Meta' || key === 'Ctrl+Control')
-      return;
+    if(['Meta', 'Shift', 'Ctrl+Control', 'Ctrl+Meta'
+       ].includes(key))
+      return;  // ignore isolated modifier key presses
     let app_state = this.state.app_state;
     let [was_handled, new_app_state] = this.state.input_context.handle_key(app_state, key);
     if(was_handled) {

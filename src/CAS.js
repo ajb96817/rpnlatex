@@ -1751,7 +1751,7 @@ class AlgebriteToExpr {
     const d_dx_expr = new CommandExpr(
       'frac', [
         new TextExpr('d'),
-        new SequenceExpr([new TextExpr('d'), variable_expr], true)]);
+        new SequenceExpr([new TextExpr('d'), variable_expr])]);
     return Expr.combine_pair(
       d_dx_expr, DelimiterExpr.parenthesize_for_argument(base_expr));
   }

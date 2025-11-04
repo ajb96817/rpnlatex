@@ -1901,7 +1901,8 @@ class TextItem extends Item {
             let math_expr = AlgebriteInterface.parse_string(math_text);
             if(!math_expr)
               return null;  // entire TextItem parsing fails if inline math exprs fail
-            if(is_bold) math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
+            if(is_bold)
+              math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
             elements.push(new TextItemExprElement(math_expr));
           }
         }

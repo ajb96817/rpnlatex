@@ -995,12 +995,12 @@ class InfixExpr extends Expr {
         new_expr = new CommandExpr(pair[1]);
     }
     else if(expr.is_command_expr_with(0)) {
-      // Check special cases to convert:  \nless => <
+      // Check special cases to convert: \nless => <
       const pair = special_pairs.find(pair => pair[1] === expr.command_name);
       if(pair)
         new_expr = new TextExpr(pair[0]);
       else {
-        // Default case: \le -> \not\le
+        // Default case: \le => \not\le
         new_expr = new SequenceExpr([new CommandExpr('not'), expr]);
       }
     }
