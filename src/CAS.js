@@ -58,7 +58,7 @@ const allowed_algebrite_unary_functions = new Set([
   // Built-in Algebrite commands:
   'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh',
   'arcsin', 'arccos', 'arctan', 'arcsinh', 'arccosh', 'arctanh',
-  'log', 'choose', 'contract', 'det', 'curl', 'div',
+  'exp', 'log', 'choose', 'contract', 'det', 'curl', 'div',
   'add', 'multiply', 'quotient', /*'cross',*/ 'inner',
   'arg', 'erf', 'erfc', 'real', 'imag',
   'sgn', 'dirac',
@@ -1244,6 +1244,14 @@ class ExprToAlgebrite {
         (base_expr.is_font_expr() && base_expr.typeface === 'roman' &&
          base_expr.expr.is_text_expr_with('e'))))
       return new AlgebriteCall('exp', [this.expr_to_node(superscript_expr)]);
+
+    // Check for x^{\circ} (degrees notation).  Becomes x*pi/180.
+    if(superscript_expr &&
+       superscript_expr.is_command_expr_with(0, 'circ'))
+      return new AlgebriteCall('multiply', [
+        this.expr_to_node(base_expr),
+        new AlgebriteVariable('pi'),
+        new AlgebriteCall('reciprocal', [new AlgebriteNumber('180')])]);
 
     // x^y with no subscript on x.
     if(superscript_expr)

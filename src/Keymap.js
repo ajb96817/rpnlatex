@@ -883,6 +883,7 @@ const KeybindingTable = {
     "\"": "apply_hat ddot",
     ' ': "push \\,;concat",  // append thin space
     "'": "autoparenthesize;prime",
+    ',': "push \\circ;superscript",  // degree marker
     '*': "push *;superscript",
     '~': "apply_hat tilde",
     '=': "prefix \\Rightarrow",

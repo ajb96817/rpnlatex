@@ -294,7 +294,6 @@ class App extends React.Component {
     if(event.altKey)
       return;
     const key = this._keyname_from_event(event);
-    console.log(key);
     // Pass through Alt+3, etc. to avoid interfering with browser tab
     // switching shortcuts.  Ctrl+digit is still allowed.
     if(event.metaKey && /^\d$/.test(event.key))
