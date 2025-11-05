@@ -690,6 +690,7 @@ const KeybindingTable = {
     ';': "infix semicolon",
     "'": "start_text_entry conjunction_entry",
     '`': "swap;push T;typeface roman;superscript false;swap;concat",  // xTy
+    '~': "push T;typeface roman;superscript false;concat",  // xyT
     '*': "infix *",
     '^': "infix \\star",
     '%': "infix \\div",

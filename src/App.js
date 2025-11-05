@@ -558,10 +558,17 @@ class DocumentComponent extends React.Component {
 
     // Use the nonstandard scrollIntoViewIfNeeded method if available.
     // (Chrome has this, but not Firefox)
-    if(item.scrollIntoViewIfNeeded)
+    const container = document.getElementById('document_container');
+    if(item.scrollIntoViewIfNeeded) {
+      // scrollIntoViewIfNeeded resets the document container's horizontal scroll position
+      // to zero, so it needs to be explicitly restored here.  Otherwise, left/right
+      // document panel scrolling commands wouldn't work, since ensure_selection_visible()
+      // is invoked after every action.
+      const old_scroll_left = container.scrollLeft;
       item.scrollIntoViewIfNeeded(false /* centerIfNeeded, i.e. don't recenter */);
+      container.scrollLeft = old_scroll_left;
+    }
     else {
-      let container = document.getElementById('document_container');
       const extra_space = item.offsetHeight/2;
       if(item.offsetTop < container.scrollTop)
         container.scrollTop = item.offsetTop - extra_space;
