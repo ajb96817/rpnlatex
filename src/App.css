@@ -46,6 +46,13 @@ div.item {
   /* Snap margins for scrolling when the document selection changes. */
   scroll-margin-top: 0.5em;
   scroll-margin-bottom: 0.5em;
+
+  /* These two rules expand the selection indicator (when the .selected class
+     is applied) to the entire content of large items so that the indicator is
+     still visible when scrolling the content, while still taking up the full
+     visible width of the document container for smaller items. */
+  width: fit-content;
+  min-width: 100%;
 }
 
 /* div.expr_item {}
@@ -340,12 +347,6 @@ div.stack_items div.tag_entry_mode::before {
   /* NOTE: box-shadow so that the element size is not affected
            like it would be with border */
   box-shadow: inset 0 0 0.25em 0 #999;
-  /* These two rules expand the selection indicator to the entire content
-     of large items (so that the indicator is still visible when scrolling
-     the content), while still taking up the full visible width of the
-     document container for smaller items. */
-  width: fit-content;
-  min-width: 100%;
 }
 body.eink_mode #document_panel div.selected {
   box-shadow: inset 0 0 1px 1px black;
