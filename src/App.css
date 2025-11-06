@@ -221,8 +221,10 @@ body.sepia div.panel {
   height: 100%;
   overflow-x: scroll;
   overflow-y: auto;
+  scrollbar-width: none;
   box-shadow: inset 0 0 1em 0 #ccc;
 }
+#stack_panel::-webkit-scrollbar { display: none; }
 body.eink_mode #stack_panel {
   /* Remove "tinting" for E-ink displays. */
   box-shadow: none;
@@ -354,12 +356,14 @@ body.eink_mode #document_panel div.selected {
 #document_container {
   position: absolute;
   overflow: scroll;
+  scrollbar-width: none;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 1;
 }
+#document_container::-webkit-scrollbar { display: none; }
 
 #helptext { font-size: 105%; }
 
