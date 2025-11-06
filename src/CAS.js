@@ -7,7 +7,7 @@
 // - Conversion of Expr structures into Algebrite's input syntax is handled
 //   by ExprToAlgebrite.  Expr trees are turned into an intermediate tree
 //   of AlgebriteNode objects and from there generate nested function calls
-//   like x^2+3 -> 'add(power(x, 2), 3)'.  Since everything is function calls,
+//   like x^2+3 => 'add(power(x, 2), 3)'.  Since everything is function calls,
 //   the Algebrite infix math syntax is hardly used.
 //
 // - Algebrite returns list structures that are converted back into
@@ -129,7 +129,7 @@ const algebrite_relation_types = [
 
 
 // 'to_algebrite'=true converts from editor commands to Algebrite
-// (e.g. binom->choose); false is the inverse.
+// (e.g. binom=>choose); false is the inverse.
 function translate_function_name(f, to_algebrite) {
   const match = algebrite_function_translations.find(
     pair => pair[to_algebrite ? 0 : 1] === f);
@@ -146,7 +146,7 @@ function is_valid_variable_name(s, allow_initial_digit) {
 // If possible, convert an Expr to the corresponding Algebrite
 // variable name.  Greek letters and subscripted variables are
 // allowed.  For example: x_0, f_alpha.  Bolded variables are
-// handled as, e.g. 'x_0' -> 'bold_x_0'.
+// handled as, e.g. 'x_0' => 'bold_x_0'.
 //
 // Certain "reserved" names are changed so they don't conflict.
 // For example, Gamma() is a function in Algebrite so a \Gamma
@@ -155,7 +155,7 @@ function is_valid_variable_name(s, allow_initial_digit) {
 // "Worst-case" variable name: 'bold_Gamma__bold_Gamma_'.
 // 
 // 'ignore_superscript'=true will ignore possible superscripts
-// that are "in the way": x_1^y -> 'x_1'.
+// that are "in the way": x_1^y => 'x_1'.
 //
 // If the Expr does not convert to a valid variable name, null
 // is returned.
@@ -348,7 +348,7 @@ function format_double(x) {
   // still work.  For now, the heuristic is:
   //   - max 9 digits of precision after the decimal point
   //   - trailing zeroes removed (0.75 instead of 0.750000000)
-  //   - values close to an integer are rounded (2.999999999 -> 3, no decimal point)
+  //   - values close to an integer are rounded (2.999999999 => 3, no decimal point)
   if(Math.abs(Math.round(x) - x) < 1e-8)
     return Math.round(x).toString();
   else {
@@ -795,7 +795,7 @@ class AlgebriteInterface {
       'arccoth(x) = arctanh(1/x)',
       'log2(x) = log(x)/log(2)',
       'log10(x) = log(x)/log(10)',  // not yet implemented in the editor
-      'negative(x) = -x',  // used for infix '-': x-y -> add(x, negative(y))
+      'negative(x) = -x',  // used for infix '-': x-y => add(x, negative(y))
       'reciprocal(x) = 1/x'  // used for infix '/' and fractions
     ].forEach(s => $A.eval(s) /* TODO: .run() */);
   }
@@ -945,7 +945,7 @@ class ExprToAlgebrite {
 
   // InfixExprs are flat lists of operators and operands, so we have
   // to "parse" the terms and take into account operator precedence.
-  // (x+y*z -> x+(y*z)).
+  // (x+y*z => x+(y*z)).
   infix_expr_to_node(infix_expr) {
     // Gather operator precedence, etc, for all infix operators, and
     // check that all are supported in Algebrite.
@@ -1011,7 +1011,7 @@ class ExprToAlgebrite {
 
   // { fn: binary algebrite function to apply
   //   modifier_fn: unary algebrite function to apply to second argument
-  //                (e.g., x/y -> multiply(x, quotient(y)))
+  //                (e.g., x/y => multiply(x, quotient(y)))
   //   prec: higher numbers bind tighter }
   _infix_op_info(op_name) {
     switch(op_name) {
@@ -1064,7 +1064,7 @@ class ExprToAlgebrite {
        expr_to_variable_name(variable_expr)) {
       // Remove one prime from the FunctionCallExpr, using that as the argument
       // to a d() call.  If there is more than one prime, this will
-      // recurse until we arrive at f(x).  f''(x) -> d(d(f(x),x),x)
+      // recurse until we arrive at f(x).  f''(x) => d(d(f(x),x),x)
       return new AlgebriteCall('d', [
         this.expr_to_node(
           new FunctionCallExpr(fn_expr.remove_prime(), expr.args_expr)),
@@ -1146,7 +1146,7 @@ class ExprToAlgebrite {
     }
 
     // Check for unary functions like sin(x).
-    // Translate 'Tr' -> 'contract', etc. if needed.
+    // Translate 'Tr' => 'contract', etc. if needed.
     const algebrite_command = translate_function_name(command_name, true);
     if(allowed_algebrite_unary_functions.has(algebrite_command) && nargs === 1) {
       if(algebrite_matrix_only_unary_functions.has(algebrite_command) &&
@@ -1163,8 +1163,8 @@ class ExprToAlgebrite {
 
     // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
     // having the command_name be a literal 'sin^2'.  This needs to be translated
-    // as sin^2(x) -> sin(x)^2 for Algebrite.  Also, reciprocal trig functions
-    // need to be translated as csc^2(x) -> sin(x)^(-2).
+    // as sin^2(x) => sin(x)^2 for Algebrite.  Also, reciprocal trig functions
+    // need to be translated as csc^2(x) => sin(x)^(-2).
     const match = [
       // [rpnlatex, algebrite_function, power]
       ['sin^2', 'sin', 2],    ['cos^2', 'cos', 2],    ['tan^2', 'tan', 2],
@@ -1289,7 +1289,7 @@ class ExprToAlgebrite {
       }
       // Look for d/dx f(x) (two adjacent terms in a SequenceExpr).
       // Convert to d(f(x), x) calls.  Any parentheses around the
-      // f(x) part are stripped: d/dx (arg x) -> d(arg(x), x)
+      // f(x) part are stripped: d/dx (arg x) => d(arg(x), x)
       if(i < exprs.length-1) {
         const variable_expr = this._analyze_derivative(exprs[i]);
         if(variable_expr) {
@@ -1452,7 +1452,7 @@ class AlgebriteToExpr {
     else if(this.is_cons(head) &&
             this.is_sym(this.car(head)) &&
             this.car(head).printname === 'eval') {
-      // ((eval f) x y z) -> (f x y z)
+      // ((eval f) x y z) => (f x y z)
       // for example, from input string: (f)(x, y, z)
       return this._cons_to_expr(this.car(this.cdr(head)), rest);
     }
@@ -1467,7 +1467,7 @@ class AlgebriteToExpr {
 
     // Check forms that have special Expr representations.
 
-    // testlt(x, y) -> x<y, etc.
+    // testlt(x, y) => x<y, etc.
     const match = algebrite_relation_types.find(pair => pair[2] === f);
     if(nargs === 2 && match)
       return InfixExpr.combine_infix(...arg_exprs, Expr.text_or_command(match[1]));
@@ -1499,7 +1499,7 @@ class AlgebriteToExpr {
     case 'eval':
       return arg_exprs[0];
     case 'not':
-      // not(equals(x,y)) -> not(x=y) -> x!=y
+      // not(equals(x,y)) => not(x=y) => x!=y
       if(nargs === 1 && arg_exprs[0].is_infix_expr())
         return arg_exprs[0].negate_operator_at(arg_exprs[0].split_at_index);
     case 'component':
@@ -1651,7 +1651,7 @@ class AlgebriteToExpr {
     });
   }
 
-  // negate_exponent=true turns, e.g. x^(-2) -> x^2, so that the term can
+  // negate_exponent=true turns, e.g. x^(-2) => x^2, so that the term can
   // be put into the denominator of a larger \frac.  The exponent must be
   // integer/rational (type='num') for this to work (caller must check).
   power_to_expr(args, negate_exponent) {
@@ -1665,17 +1665,17 @@ class AlgebriteToExpr {
       base_expr = FontExpr.roman_text('e');
     if(this.utype(exponent_term) === 'num') {
       // Rational or integer exponent.  Some special cases are checked
-      // to simplify the display: x^(1/2) -> sqrt(x).
+      // to simplify the display: x^(1/2) => sqrt(x).
       let [numer, denom] = [exponent_term.q.a, exponent_term.q.b];
       if(negate_exponent)
         numer = numer.multiply(-1);
-      // x^1 -> x (can happen if the exponent of x^(-1) is negated)
+      // x^1 => x (can happen if the exponent of x^(-1) is negated)
       if(numer.equals(1) && denom.equals(1))
         return base_expr;
-      // x^(-1) -> 1/x
+      // x^(-1) => 1/x
       if(numer.equals(-1) && denom.equals(1))
         return new CommandExpr('frac', [TextExpr.integer(1), base_expr]);
-      // x^(-n) -> 1/(x)^n
+      // x^(-n) => 1/(x)^n
       if(numer.isNegative() && denom.equals(1))
         return new CommandExpr('frac', [
           TextExpr.integer(1),
@@ -1684,18 +1684,18 @@ class AlgebriteToExpr {
             rational_to_expr(numer.multiply(-1), denom),
             true, /* is_superscript */
             true /* autoparenthesize */)]);
-      // x^(1/2) -> sqrt(x)
+      // x^(1/2) => sqrt(x)
       if(numer.equals(1) && denom.equals(2))
         return new CommandExpr('sqrt', [base_expr]);
-      // x^(1/3) -> sqrt[3](x)
+      // x^(1/3) => sqrt[3](x)
       if(numer.equals(1) && denom.equals(3))
         return new CommandExpr('sqrt', [base_expr], '3');
-      // x^(-1/2) -> 1/sqrt(x)
+      // x^(-1/2) => 1/sqrt(x)
       if(numer.equals(-1) && denom.equals(2))
         return new CommandExpr('frac', [
           TextExpr.integer(1),
           new CommandExpr('sqrt', [base_expr])]);
-      // x^(-1/3) -> 1/sqrt[3](x)
+      // x^(-1/3) => 1/sqrt[3](x)
       if(numer.equals(-1) && denom.equals(3))
         return new CommandExpr('frac', [
           TextExpr.integer(1),
@@ -1725,7 +1725,7 @@ class AlgebriteToExpr {
     // Try to convert forms like d(f(x), x) to f^{\prime}(x):
     //   - f has to be a simple variable name (possibly with a subscript)
     //   - f may also already be "primed", in which case another prime is added,
-    //       e.g. d(d(f(x), x), x) -> f''(x)
+    //       e.g. d(d(f(x), x), x) => f''(x)
     //   - there must only be one function argument; we can't have f'(x, y)
     //   - the argument to f must match the derivative variable
     //       e.g. not things like d(f(x^2), x)

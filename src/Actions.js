@@ -867,18 +867,17 @@ class InputContext {
   //   degree_string='0' creates a lone 'd'.
   //   degree_string='1' creates the usual 'dx'.
   //   degree_string>='2' combines the differentials with \wedge into an InfixExpr.
-  // ellipses='true' inserts a set of ellipses before the last element: dx ^ dy ^ ... ^ dz
-  // is_roman='true' typesets the 'd' with \mathrm.
+  // typeface='roman' typesets the 'd' with \mathrm.
   // Unary minus signs are pulled out into the differential, e.g. -x -> -dx,
   // and the 'x' expressions are autoparenthesized if the autoparenthesization mode is on.
-  do_differential_form(stack, degree_string, ellipses, is_roman) {
+  do_differential_form(stack, degree_string, typeface) {
     const degree = parseInt(degree_string);
-    const d_expr = is_roman === 'true' ?
+    const d_expr = typeface === 'roman' ?
           FontExpr.roman_text('d') : new TextExpr('d');
     const [new_stack, ...exprs] = stack.pop_exprs(degree);
     if(degree === 0)  // special case
       return new_stack.push_expr(d_expr);
-    let dx_exprs = exprs.map(expr => {
+    const dx_exprs = exprs.map(expr => {
       let is_negated = false;
       let base_expr = expr;
       if(expr.is_unary_minus_expr()) {
@@ -892,8 +891,6 @@ class InputContext {
         dx_expr = PrefixExpr.unary_minus(dx_expr);
       return dx_expr;
     });
-    if(ellipses === 'true')
-      dx_exprs.splice(degree-1, 0, new CommandExpr('cdots'));
     const form_expr = InfixExpr.combine_infix_all(dx_exprs, new CommandExpr('wedge'));
     return new_stack.push_expr(form_expr);
   }
@@ -1642,7 +1639,7 @@ class InputContext {
 
   // TODO: optional argument to specify export vs. display mode in to_latex()
   do_extract_latex_source(stack) {
-    const latex_source = stack.peek(1).to_latex(true /* export mode */);
+    const latex_source = stack.peek().to_latex(true /* export mode */);
     return stack.push(new CodeItem('latex', latex_source));
   }
 
@@ -2040,11 +2037,17 @@ class InputContext {
       if(code.startsWith("$")) code = code.slice(1);
       if(code.endsWith("$")) code = code.slice(0, code.length-1);
     }
-    code = code.trim();  // e.g. "  $$  xyz  $$  "
+    code = code.trim();  // to handle for example: "  $$  xyz  $$  "
     if(code.length === 0)
       return stack;
-    else
-      return stack.push_expr(new TextExpr(code));
+    // Add spaces around the code to protect against concatenation resulting
+    // in invalid LaTeX code.  For example, pasting "\bullet" then
+    // concatenating "x" would result in "\bulletx".  Normally, "\bullet" would
+    // be a CommandExpr and this would correctly generate "\bullet x", but since
+    // the pasted code is not parsed, we don't know to do that.
+    // Adding spaces isn't perfect, but prevents most unintentional cases like this.
+    code = [' ', code, ' '].join('');
+    return stack.push_expr(new TextExpr(code));
   }
 
   do_swap_floating_item(stack) {

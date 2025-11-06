@@ -610,11 +610,9 @@ const KeybindingTable = {
     // y x -> \partial_x y
     'P': "push \\partial;swap;subscript;swap;concat",
     // x y -> dx ^ dy
-    'f': "differential_form 2 false false",
+    'f': "differential_form 2",
     // x y z -> dx ^ dy ^ dz
-    'F': "differential_form 3 false false",
-    // x y -> dx ^ ... ^ dy
-    'E': "differential_form 2 true false",
+    'F': "differential_form 3",
     // x -> d^2x
     '2': "differential_form 0;integer 2;superscript;swap;concat",
     '3': "differential_form 0;integer 3;superscript;swap;concat",
@@ -629,21 +627,20 @@ const KeybindingTable = {
 
   // [/][D] prefix: derivative operations, but using roman-font 'd'
   derivative_alt: {
-    'd': "differential_form 1 false true",
-    'D': "differential_form 1 false true",  // alias for d (undocumented)
-    'f': "differential_form 2 false true",
-    'F': "differential_form 3 false true",
-    'E': "differential_form 2 true true",
-    '2': "differential_form 0 false true;integer 2;superscript;swap;concat",
-    '3': "differential_form 0 false true;integer 3;superscript;swap;concat",
-    '4': "differential_form 0 false true;integer 4;superscript;swap;concat",
-    'i': "differential_form 1 false true;swap;push \\,;concat;swap;concat",
-    'I': "differential_form 1 false true;push \\,;concat;concat",
-    ' ': "differential_form 1 false true;concat",
-    'k': "differential_form 1 false true;swap;differential_form 1 false true;swap;operator frac 2",
-    'K': "integer 2;superscript;differential_form 1 false true;swap;differential_form 0 false true;integer 2;superscript;swap;concat;swap;operator frac 2",
-    'x': "differential_form 1 false true;differential_form 0 false true;swap;operator frac 2",
-    'X': "integer 2;superscript;differential_form 1 false true;differential_form 0 false true;integer 2;superscript;swap;operator frac 2",
+    'd': "differential_form 1 roman",
+    'D': "differential_form 1 roman",  // alias for d (undocumented)
+    'f': "differential_form 2 roman",
+    'F': "differential_form 3 roman",
+    '2': "differential_form 0 roman;integer 2;superscript;swap;concat",
+    '3': "differential_form 0 roman;integer 3;superscript;swap;concat",
+    '4': "differential_form 0 roman;integer 4;superscript;swap;concat",
+    'i': "differential_form 1 roman;swap;push \\,;concat;swap;concat",
+    'I': "differential_form 1 roman;push \\,;concat;concat",
+    ' ': "differential_form 1 roman;concat",
+    'k': "differential_form 1 roman;swap;differential_form 1 roman;swap;operator frac 2",
+    'K': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;operator frac 2",
+    'x': "differential_form 1 roman;differential_form 0 roman;swap;operator frac 2",
+    'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;operator frac 2",
     'delegate': "derivative"
   },
 

@@ -1332,9 +1332,9 @@ class ExprParser {
 }
 
 
+// Conversion of any floating-point values in an Expr to (approximate)
+// rational fractions or rational multiples of common numbers like sqrt(2).
 class RationalizeToExpr {
-  // Scan all subexpressions in 'expr', replacing rationalized
-  // versions of any floating-point values encountered.
   static rationalize_expr(expr, full_size_fraction=true) {
     return new RationalizeToExpr(
       full_size_fraction).rationalize_expr(expr);
@@ -1818,6 +1818,8 @@ class TextItemTextElement extends TextItemElement {
   }
 }
 
+
+// An Expr embedded in a TextItem.
 class TextItemExprElement extends TextItemElement {
   constructor(expr) { super(); this.expr = expr; }
   is_expr() { return true; }
@@ -1841,7 +1843,7 @@ class TextItemExprElement extends TextItemElement {
 }
 
 
-// Represents a "raw" piece of LaTeX text (similar to TextExpr) within a TextItem.
+// A "raw" piece of LaTeX text (similar to TextExpr) within a TextItem.
 // This is used for things like combining a TextItem and ExprItem with an infix operator.
 // TextItemTextElement can't be used for the infix itself because we don't want to wrap it
 // in a \text{...} and we don't want to escape the operator's actual LaTeX command.
@@ -1928,7 +1930,9 @@ class TextItem extends Item {
           break;
       }
     }
-    return new this(elements, null /* tag */, s /* source */);
+    if(elements.length > 0)
+      return new this(elements, null /* tag */, s /* source */);
+    else return null;  // could happen for '$', '$$$', etc.
   }
 
   // Tokenize 's' into a token sequence usable by TextItem.parse_string().
@@ -1948,6 +1952,7 @@ class TextItem extends Item {
       if(token)
         pos += 2;
       else {
+        // Length-1 token.
         if(ch === '$') token = {'type': 'math_mode', 'text': '$'};
         else token = {'type': 'text', 'text': ch};
         pos++;
@@ -2168,21 +2173,20 @@ class Stack {
   }
 
   // Fetch item at position n (stack top = 1, next = 2, etc).
-  peek(n) {
+  peek(n=1) {
     if(!this.check(n)) this.underflow();
     return this.items[this.items.length - n];
   }
 
   // Returns [new_stack, item1, item2, ...].
-  pop(n) {
-    if(n === undefined) n = 1;
+  pop(n=1) {
     if(!this.check(n)) this.underflow();
     return this._unchecked_pop(n);
   }
 
   // Like pop(n) but all the items have to be ExprItems, and the wrapped Expr
   // instances are returned, not the ExprItems.
-  pop_exprs(n) {
+  pop_exprs(n=1) {
     if(!this.check(n)) this.underflow();
     if(!this.check_exprs(n)) this.type_error();
     const [new_stack, ...items] = this._unchecked_pop(n);
