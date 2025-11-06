@@ -81,6 +81,8 @@ const KeybindingTable = {
     'Ctrl+c': "copy_to_clipboard",
     'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x): same as [/][e]
     'Ctrl+i': "pop_to_document",
+    'Ctrl+f': "parenthesize;push f;swap;build_function_call",
+    'Ctrl+g': "parenthesize;push g;swap;build_function_call",
     'Ctrl+j': "extract_from_document",
     'Ctrl+k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f(x|y): same as [/][k]
     'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K]
