@@ -184,7 +184,7 @@ class Expr {
     if(left_expr.is_font_expr() && right_expr.is_font_expr() &&
        FontExpr.font_exprs_compatible(left_expr, right_expr)) {
       return new FontExpr(
-        new SequenceExpr([left_expr.expr, right_expr.expr]),
+        this.combine_pair(left_expr.expr, right_expr.expr, no_parenthesize),
         left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
     }
     else
@@ -317,7 +317,7 @@ class Expr {
   // NOTE: This can potentially create expressions that are nested internally
   // in a way they ordinarily wouldn't be.  For example: (x+y).substitute(y, z+w)
   // creates a nested Infix(Infix(x, +, Infix(z, +, w)), which would normally
-  // be Innfix(x, +, z, +, w).  This shouldn't be a problem in practice though.
+  // be Infix(x, +, z, +, w).  This shouldn't be a problem in practice though.
   substitute(search_expr, substitution_expr) {
     if(this.matches(search_expr))
       return substitution_expr;
@@ -449,7 +449,8 @@ class CommandExpr extends Expr {
     if(this.is_command_expr_with(1, 'operatorname') &&
        this.operand_exprs[0].is_text_expr())
       return this.operand_exprs[0].text;
-    else return null;
+    else
+      return null;
   }
 
   // 0-argument commands are left as-is (\alpha, etc)
@@ -1014,32 +1015,6 @@ class InfixExpr extends Expr {
         this.linebreaks_at);
     }
     else return null;
-  }
-
-  // If this expression is "scientific notation" such as 3 \cdot 10^-2,
-  // return [coefficient_text, exponent_text] (e.g. ['3', '-2'] in this case).
-  // The expression must be of this exact form, with literal numbers for the
-  // coefficient and exponent.  Return null if it's not of this form.
-  unparse_scientific_notation() {
-    if(!(this.operator_exprs.length === 1 &&
-         this.operator_exprs[0].is_command_expr_with(0, 'cdot')))
-      return null;
-    const [lhs, rhs] = this.operand_exprs;
-    if(lhs.is_text_expr_with_number() &&
-       rhs.is_subscriptsuperscript_expr() &&
-       rhs.base_expr.is_text_expr_with('10') &&
-       !rhs.subscript_expr && rhs.superscript_expr) {
-      const exponent_expr = rhs.superscript_expr;
-      let exponent_text = null;
-      if(exponent_expr.is_text_expr_with_number())
-        exponent_text = exponent_expr.text;
-      else if(exponent_expr.is_unary_minus_expr() &&
-              exponent_expr.base_expr.is_text_expr_with_number())
-        exponent_text = '-' + exponent_expr.base_expr.text;
-      if(exponent_text !== null)
-        return [lhs.text, exponent_text];
-    }
-    return null;
   }
 
   // InfixExprs dissolve into their operand expressions.

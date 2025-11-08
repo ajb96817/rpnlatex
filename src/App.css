@@ -47,11 +47,12 @@ div.item {
   scroll-margin-top: 0.5em;
   scroll-margin-bottom: 0.5em;
 
-  /* These two rules expand the selection indicator (when the .selected class
+  /* These three rules expand the selection indicator (when the .selected class
      is applied) to the entire content of large items so that the indicator is
      still visible when scrolling the content, while still taking up the full
      visible width of the document container for smaller items. */
   width: fit-content;
+  box-sizing: border-box;  /* include left type-indicator border in box width */
   min-width: 100%;
 }
 
