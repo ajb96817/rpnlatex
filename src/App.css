@@ -19,8 +19,6 @@ body {
 
 body.inverse_video { filter: invert(100%); }
 body.sepia { filter: sepia(10%) brightness(95%); }
-body.sepia #stack_panel { box-shadow: inset 0 0 1em 0 #ccc; }
-body.sepia #document_panel { box-shadow: inset 0 0 1em 0 #bbb; }
 body.hide_mouse_cursor { cursor: none; }
 
 /* Root node of the React app. */
@@ -41,7 +39,154 @@ body.hide_mouse_cursor { cursor: none; }
   -webkit-text-size-adjust: none;
 }
 
+#panel_layout { height: 100%; }
 
+div.panel {
+  /* This ends up being the stack panel color. */
+  background-color: #f8f8f8;
+}  
+body.sepia div.panel {
+  /* For better contrast against document panel. */
+  background-color: #f0f0f0;
+}
+
+#stack_panel {
+  position: absolute;
+  height: 100%;
+  overflow-x: scroll;
+  overflow-y: auto;
+  scrollbar-width: none;
+  box-shadow: inset 0 0 1.5em 0 #ccc;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+}
+#stack_panel::-webkit-scrollbar { display: none; }
+body.eink_mode #stack_panel {
+  /* Remove "tinting" for E-ink displays. */
+  box-shadow: none;
+  background-color: white;
+}
+body.eink_mode #stack_panel.stack_on_bottom { border-top: 2px solid #888; }
+body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
+body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
+body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
+
+#stack_panel div.indicator {
+  float: right;
+  clear: right;  /* in case there's a "floating" stack item */
+  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
+  margin-right: 0.25em;
+  margin-top: 0.25em;
+  font-size: 120%;
+}
+#stack_panel div.indicator span.notification {
+  color: #151;
+  background-color: #ffe;
+  padding: 0.1em 0.2em;
+  border: 1px solid #cca;
+}
+#stack_panel div.indicator span.highlighted { color: #393; font-weight: bold; font-family: monospace; }
+#stack_panel div.indicator span.mode { color: #888; font-family: monospace; }
+
+#stack_panel div.error_message {
+  float: right;
+  clear: right;
+  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
+  background-color: #fdd;
+  padding: 0.1em 0.2em;
+  margin-right: 0.25em;
+  margin-top: 0.25em;
+  border: 1px solid #cbb;
+  font-weight: bold;
+  color: #800;
+}
+
+#stack_panel div.floating_item {
+  float: right;
+  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
+  z-index: 2;  /* TODO: maybe use position: sticky instead */
+  padding: 0.05em 0.2em;
+  padding-left: 0;  /* make itemtype bar look "correct" */
+  margin-right: 0.25em;
+  margin-top: 0.25em;
+  border: 1px solid #ccc;
+  background-color: #eee;
+  box-shadow: inset 0 0 0.35em 0.1em #ccc;
+}
+div.floating_item div.tag_string {
+  display: none;  /* tags get in the way in the "floating" item spot */
+}
+
+#stack_panel.errorflash {
+  animation-name: errorflash_stack;
+  animation-duration: 0.3s;
+}
+body.sepia #stack_panel.errorflash {
+  animation-name: errorflash_stack_sepia;
+}
+@keyframes errorflash_stack {
+  from { background-color: #fdd; }
+  to { background-color: #f8f8f8; /* match div.panel */ }
+}
+@keyframes errorflash_stack_sepia {
+  from { background-color: #fdd; }
+  to { background-color: #f0f0f0; /* match body.sepia div.panel */ }
+}
+
+#document_panel {
+  position: absolute;
+  overflow: hidden;
+  background-color: white;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  box-shadow: inset 0 0 0.5em 0 #ccc;
+}
+#document_panel.errorflash {
+  animation-name: errorflash_document;
+  animation-duration: 0.3s;
+}
+@keyframes errorflash_document {
+  from { background-color: #fdd; }
+  to { background-color: #fff; }
+}
+#document_panel div.selected {
+  background-color: #eee;
+  box-shadow: inset 0 0 0.25em 0 #999;
+}
+body.eink_mode #document_panel div.selected {
+  box-shadow: inset 0 0 1px 1px black;
+}
+#document_container {
+  position: absolute;
+  overflow: scroll;
+  scrollbar-width: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+#document_container::-webkit-scrollbar { display: none; }
+
+#helptext { font-size: 105%; }
+
+div.document_items div.top_spacer { min-height: 0.5em; }
+div.document_items div.bottom_spacer { min-height: 8em; }
+
+#popup_panel {
+  position: absolute;
+  overflow: auto;
+  top: 5%;
+  height: 90%;
+  left: 8%;
+  width: 84%;
+  z-index: 30;
+  background-color: white;
+  box-shadow: 0 0 1em 2px #bbb;
+}
+body.eink_mode #popup_panel { border: 2px solid black; }
+
+/* Containing box for a complete "Item" either in the stack or the document. */
 div.item {
   /* Snap margins for scrolling when the document selection changes. */
   scroll-margin-top: 0.5em;
@@ -133,7 +278,6 @@ div.separator_item hr {
    (since they're inside an container without a fixed width). */
 div.floating_item div.separator_item hr { width: 4em; }
 
-
 /* "Emphasized" expressions created with [.][e]
    Note that because of how KaTeX layout works, we only really have the foreground color to
    work with here (background and borders won't work right). */
@@ -155,7 +299,6 @@ div.floating_item div.separator_item hr { width: 4em; }
   0% { color: #c33; }
   50% { color: #40a; }
 }
-
 
 div.latex_source_item {
   border-left: var(--itemtype-bar-width) solid #bbcfbb;
@@ -197,96 +340,10 @@ div.tag_string {
 
 .placeholder_expr { color: #6c6; }  
 
-#panel_layout { height: 100%; }
-
-div.panel {
-  /* This ends up being the stack panel color. */
-  background-color: #f8f8f8;
-}  
-body.sepia div.panel {
-  /* For better contrast against document panel. */
-  background-color: #f0f0f0;
-}
-
-#stack_panel.errorflash {
-  animation-name: errorflash_stack;
-  animation-duration: 0.3s;
-}
-@keyframes errorflash_stack {
-  from { background-color: #fdd; }
-  to { background-color: #f8f8f8; }
-}
-
-#stack_panel {
-  position: absolute;
-  height: 100%;
-  overflow-x: scroll;
-  overflow-y: auto;
-  scrollbar-width: none;
-  box-shadow: inset 0 0 1em 0 #ccc;
-}
-#stack_panel::-webkit-scrollbar { display: none; }
-body.eink_mode #stack_panel {
-  /* Remove "tinting" for E-ink displays. */
-  box-shadow: none;
-  background-color: white;
-}
-body.eink_mode #stack_panel.stack_on_bottom { border-top: 2px solid #888; }
-body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
-body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
-body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
-
-#stack_panel div.indicator {
-  float: right;
-  clear: right;  /* in case there's a "floating" stack item */
-  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
-  margin-right: 0.25em;
-  margin-top: 0.25em;
-  font-size: 120%;
-}
-#stack_panel div.indicator span.notification {
-  color: #151;
-  background-color: #ffe;
-  padding: 0.1em 0.2em;
-  border: 1px solid #cca;
-}
-#stack_panel div.indicator span.highlighted { color: #393; font-weight: bold; font-family: monospace; }
-#stack_panel div.indicator span.mode { color: #888; font-family: monospace; }
-
-#stack_panel div.error_message {
-  float: right;
-  clear: right;
-  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
-  background-color: #fdd;
-  padding: 0.1em 0.2em;
-  margin-right: 0.25em;
-  margin-top: 0.25em;
-  border: 1px solid #cbb;
-  font-weight: bold;
-  color: #800;
-}
-
-#stack_panel div.floating_item {
-  float: right;
-  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
-  z-index: 2;  /* TODO: maybe use position: sticky instead */
-  padding: 0.05em 0.2em;
-  padding-left: 0;  /* make itemtype bar look "correct" */
-  margin-right: 0.25em;
-  margin-top: 0.25em;
-  border: 1px solid #ccc;
-  background-color: #eee;
-  box-shadow: inset 0 0 0.35em 0.1em #ccc;
-}
-div.floating_item div.tag_string {
-  display: none;  /* tags get in the way in the "floating" item spot */
-}
-
 div.stack_items {
   position: absolute;
   width: 100%;
-  bottom: 2px;  /* 0px seems to cause rounding problems with the scrollbar in Chrome (TODO: revisit) */
-  border-bottom: 2px solid #ddd;
+  bottom: 0;
 }
 body.eink_mode div.stack_items { border-bottom: none; }
 
@@ -330,60 +387,6 @@ div.stack_items div.tag_entry_mode::before {
   font-weight: bold;
   color: #264;
 }
-
-
-#document_panel {
-  position: absolute;
-  overflow: hidden;
-  background-color: white;
-}
-#document_panel.errorflash {
-  animation-name: errorflash_document;
-  animation-duration: 0.3s;
-}
-@keyframes errorflash_document {
-  from { background-color: #fdd; }
-  to { background-color: #fff; }
-}
-#document_panel div.selected {
-  background-color: #eee;
-  /* NOTE: box-shadow so that the element size is not affected
-           like it would be with border */
-  box-shadow: inset 0 0 0.25em 0 #999;
-}
-body.eink_mode #document_panel div.selected {
-  box-shadow: inset 0 0 1px 1px black;
-}
-#document_container {
-  position: absolute;
-  overflow: scroll;
-  scrollbar-width: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-#document_container::-webkit-scrollbar { display: none; }
-
-#helptext { font-size: 105%; }
-
-div.document_items div.top_spacer { min-height: 0.5em; }
-div.document_items div.bottom_spacer { min-height: 8em; }
-
-
-#popup_panel {
-  position: absolute;
-  overflow: auto;
-  top: 5%;
-  height: 90%;
-  left: 8%;
-  width: 84%;
-  z-index: 30;
-  background-color: white;
-  box-shadow: 0 0 1em 2px #bbb;
-}
-body.eink_mode #popup_panel { border: 2px solid black; }
 
 
 span.keybinding {
