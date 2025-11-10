@@ -895,36 +895,37 @@ class InputContext {
 
   // Similar to do_operator, except:
   //   - If the object the hat is being added to is a literal 'i' or 'j',
-  //     or bolded i/j, it's first converted into a \imath or \jmath to remove the dot.
+  //     it's first converted into a \imath or \jmath to remove the dot
+  //     before applying the hat.
   //   - Adding a hat to a subscripted/superscripted expression instead applies
-  //     to the base expression, for better horizontal positioning.
+  //     it to the base expression, for better horizontal positioning.
   //   - If the 'base' expression itself is also subscripted/superscripted, this rule
   //     is applied recursively: j^2^3 -> \jmath^2^3 (but (j^2)^3 is left alone).
+  //   - FontExprs are also examined recursively, but only if they're normal math
+  //     typeface (no roman font, etc).  They can still be bolded and/or resized.
+  //       \bold{j}   => \bold{\jmath}
+  //       \bold{j^2} => \bold{\jmath^2}
+  //       \bold{j}^2 => \bold{\jmath}^2
   do_apply_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
     return new_stack.push_expr(this._do_apply_hat(expr, hat_op));
   }
-
   _do_apply_hat(expr, hat_op) {
-    let new_base_expr = expr;
-    if(expr.is_subscriptsuperscript_expr())
+    if(expr.is_text_expr_with('i') || expr.is_text_expr_with('j'))
+      return new CommandExpr(
+        hat_op,
+        [new CommandExpr(
+          expr.is_text_expr_with('i') ? 'imath' : 'jmath')]);
+    else if(expr.is_subscriptsuperscript_expr())
       return expr.replace_subexpression(
-        0 /* base_expr */,
+        0 /* expr.base_expr */,
         this._do_apply_hat(expr.base_expr, hat_op));
-    else if(expr.is_text_expr_with('i'))
-      new_base_expr = new CommandExpr('imath');
-    else if(expr.is_text_expr_with('j'))
-      new_base_expr = new CommandExpr('jmath');
-    else if(expr.is_font_expr() && expr.typeface === 'normal' && expr.is_bold) {
-      // Check for bolded literal i/j
-      const inner_expr = expr.expr;
-      if(inner_expr.is_text_expr_with('i') ||
-         inner_expr.is_text_expr_with('j'))
-        new_base_expr = expr.replace_subexpression(
-          0 /* expr.expr */,
-          new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'));
-    }
-    return new CommandExpr(hat_op, [new_base_expr]);
+    else if(expr.is_font_expr() && expr.typeface === 'normal')
+      return expr.replace_subexpression(
+        0 /* expr.expr */,
+        this._do_apply_hat(expr.expr /* NOTE: not expr.base_expr */, hat_op));
+    else
+      return new CommandExpr(hat_op, [expr]);
   }
 
   // Wrap expr in \htmlClass{...}
