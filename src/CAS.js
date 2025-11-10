@@ -340,19 +340,20 @@ function format_bigint(x) {
     return x.toString();
 }
 
-function format_double(x) {
+function format_double(x, max_decimal_digits = 9) {
   // Floating-point numbers don't necessarily need to be displayed
   // at full accuracy (after all, this is just an editor, not something
   // for "serious" calculation).  But enough precision is needed so that
   // things like converting \pi to a float and back (via RationalizeToExpr)
   // still work.  For now, the heuristic is:
-  //   - max 9 digits of precision after the decimal point
+  //   - max 9 digits of precision after the decimal point (or whatever
+  //     is specified by max_decimal_digits)
   //   - trailing zeroes removed (0.75 instead of 0.750000000)
   //   - values close to an integer are rounded (2.999999999 => 3, no decimal point)
   if(Math.abs(Math.round(x) - x) < 1e-8)
     return Math.round(x).toString();
   else {
-    const s = x.toFixed(9).replace(/0+$/, '');
+    const s = x.toFixed(max_decimal_digits).replace(/0+$/, '');
     // There's a chance we could wind up with something like "3.",
     // even though that should be caught by the almost-an-integer check above.
     return s.endsWith('.') ? s.slice(0, s.length-1) : s;
@@ -721,7 +722,7 @@ class AlgebriteInterface {
           'exact': false,
           'tries': iter,
           'variable': variable_expr,
-          'false_for': variable_value
+          'false_for': format_double(variable_value, 6 /* precision */)
         };
       }
     }

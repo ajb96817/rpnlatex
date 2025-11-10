@@ -105,6 +105,7 @@ const KeybindingTable = {
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
     'Ctrl+,': "infix ,",
     'Ctrl+/': "operator frac 2",
+    "Ctrl+\\": "integer 1;swap;operator frac 2",  // 1/x, same as [/][1]
     'Ctrl+ArrowRight': "scroll document_container horizontal 75",
     'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
     'Ctrl+Backspace': "nip"

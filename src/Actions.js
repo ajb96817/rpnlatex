@@ -314,9 +314,9 @@ class InputContext {
       }
     }
     AlgebriteInterface.setup_algebrite();
-    const result_expr = mode === 'bothsides' ?
-          AlgebriteInterface.call_function_bothsides(function_name, argument_exprs) :
-          AlgebriteInterface.call_function(function_name, argument_exprs);
+    let result_expr = mode === 'bothsides' ?
+        AlgebriteInterface.call_function_bothsides(function_name, argument_exprs) :
+        AlgebriteInterface.call_function(function_name, argument_exprs);
     if(result_expr) {
       // Special-case handling to reformat the output of roots(), nroots() commands.
       if(function_name === 'roots' || function_name === 'nroots')
@@ -425,7 +425,7 @@ class InputContext {
       pieces.push('.');
       if(result.false_for !== undefined && result.variable !== undefined) {
         pieces.push(' False for [] = ');
-        pieces.push(result.false_for.toString());
+        pieces.push(result.false_for);
         pieces.push('.');
         show_variable_value = true;
       }
@@ -1173,7 +1173,7 @@ class InputContext {
       extracted_expr = expr.inner_expr.operand_exprs[which_side === 'right' ? 1 : 0];
     else
       return stack.type_error();
-    return stack.push_expr(extracted_expr);  // leave original expr on the stack
+    return new_stack.push_expr(extracted_expr);
   }
 
   // Attempt to "negate" the operator of an infix expression at it's split_at_index point.

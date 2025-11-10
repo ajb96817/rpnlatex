@@ -55,12 +55,15 @@ body.sepia div.panel {
   height: 100%;
   overflow-x: scroll;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-width: none;  /* hide scrollbars in stack panel (but not document) */
   box-shadow: inset 0 0 1.5em 0 #ccc;
   box-sizing: border-box;
   border: 1px solid #ccc;
 }
-#stack_panel::-webkit-scrollbar { display: none; }
+#stack_panel::-webkit-scrollbar {
+  /* webkit version of scrollbar-width: none */
+  display: none;
+}
 body.eink_mode #stack_panel {
   /* Remove "tinting" for E-ink displays. */
   box-shadow: none;
@@ -121,9 +124,8 @@ div.floating_item div.tag_string {
   animation-name: errorflash_stack;
   animation-duration: 0.3s;
 }
-body.sepia #stack_panel.errorflash {
-  animation-name: errorflash_stack_sepia;
-}
+body.sepia #stack_panel.errorflash { animation-name: errorflash_stack_sepia; }
+body.eink_mode #stack_panel.errorflash { animation-name: errorflash_stack_eink; }
 @keyframes errorflash_stack {
   from { background-color: #fdd; }
   to { background-color: #f8f8f8; /* match div.panel */ }
@@ -132,6 +134,11 @@ body.sepia #stack_panel.errorflash {
   from { background-color: #fdd; }
   to { background-color: #f0f0f0; /* match body.sepia div.panel */ }
 }
+@keyframes errorflash_stack_eink {
+  from { background-color: #fdd; }
+  to { background-color: white; /* match body.eink_mode #stack_panel */ }
+}
+
 
 #document_panel {
   position: absolute;
@@ -159,14 +166,12 @@ body.eink_mode #document_panel div.selected {
 #document_container {
   position: absolute;
   overflow: scroll;
-  scrollbar-width: none;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 1;
 }
-#document_container::-webkit-scrollbar { display: none; }
 
 #helptext { font-size: 105%; }
 
@@ -427,7 +432,12 @@ table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: lef
 
 
 div.help { padding: 0.5em 1em; }
-#document_container.help { padding: 0; }  /* when the helptext is 'docked' */
+#document_container.help {
+  /* For when the helptext is 'docked'. */
+  width: auto;
+  padding: 0 1em;
+  margin-bottom: 1em;
+}
 div.help .version_info {
   float: right;
   color: #888;

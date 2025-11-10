@@ -94,8 +94,8 @@ class Settings {
 
     // Set overall font scale factor.
     const root_elt = document.getElementById('root');
-    const percentage = Math.round(100*Math.pow(1.05, layout.zoom_factor || 0));
-    root_elt.style.fontSize = percentage + '%';
+    const percentage = 100*Math.pow(1.05, layout.zoom_factor || 0);
+    root_elt.style.fontSize = percentage.toFixed(2) + '%';
 
     // Set some specific scale factors for other UI elements
     // by manipulating the corresponding CSS variables.

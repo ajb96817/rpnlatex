@@ -1252,14 +1252,16 @@
         </li>
         <li>
           <span class="keybinding">&lt;</span> or <span class="keybinding">&gt;</span>
-          Extract the left or right side of an infix or relational expression,
-          or the numerator/denominator of a fraction.
+          Extract the left or right side of an infix or relational expression.
+          The split will be based on the operator most recently used to create the infix
+          expression.  For fractions, the numerator or denominator is extracted.
         </li>
         <li>
           <span class="keybinding">!</span>
           &quot;Negate&quot; a relational operator in an infix expression by putting a slash through it.
-          If already negated, the slash is removed instead.  The operator most recently used to create
-          the infix expression is the one negated.
+          If already negated, the slash is removed instead.  As with
+          <span class="keybinding">&lt;</span><span class="keybinding">&gt;</span>,
+          the operator most recently used to create the infix expression is the one negated.
           Example: <code>x&le;y \Rightarrow x\nleq y</code>
         </li>
         <li>
@@ -1398,7 +1400,8 @@
         <strong>Integral Spacing:</strong>
         <span class="keybinding">i</span> and <span class="keybinding">I</span> and
         <span class="keybinding">&nbsp;</span>
-        are meant for attaching a differential to an existing integral expression with appropriate spacing.
+        are meant for attaching a differential to an existing integral expression
+        (or an ordinary expression as in <code>x^2\,dx</code>) with appropriate spacing.
         The difference between the three is where the spacing goes:
       </p>
       <ul class="keybindings">
@@ -2704,6 +2707,11 @@
           (same as <span class="keybinding">/</span><span class="keybinding">/</span>)
         </li>
         <li>
+          <span class="keybinding">Ctrl+\</span>
+          <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code>
+          (same as <span class="keybinding">/</span><span class="keybinding">1</span>)
+        </li>
+        <li>
           <span class="keybinding">Ctrl+,</span> Join two items with a comma
           (same as <span class="keybinding">,</span><span class="keybinding">,</span>)
         </li>
@@ -2721,6 +2729,7 @@
           (same as <span class="keybinding">Tab</span>+<span class="keybinding">&larr;</span><span class="keybinding">&rarr;</span>)
         </li>
       </ul>
-    </div>
+      <p><!-- small spacer --></p>
+    </div> <!-- end #helptext -->
   </body>
 </html>
