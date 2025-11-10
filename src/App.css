@@ -394,7 +394,8 @@ div.stack_items div.tag_entry_mode::before {
 }
 
 
-span.keybinding {
+/* User guide keybinding notation */
+span.k {
   font-size: 120%;
   font-weight: bold;
   font-family: monospace;
@@ -403,7 +404,7 @@ span.keybinding {
   border: 1px solid #bdb;
   padding: 0 0.3em;
 }
-body.eink_mode span.keybinding { border-color: black; }
+body.eink_mode span.k { border-color: black; }
 
 
 #files_panel { padding: 0.5em 1em; }

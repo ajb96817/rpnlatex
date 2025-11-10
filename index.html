@@ -23,12 +23,12 @@
       <h1>User Guide</h1>
       <p>
         Scroll this text up and down with
-        <span class="keybinding">&uarr;</span> and <span class="keybinding">&darr;</span>
-        (arrow keys), or <span class="keybinding">j</span> and <span class="keybinding">k</span>.
+        <span class="k">&uarr;</span> and <span class="k">&darr;</span>
+        (arrow keys), or <span class="k">j</span> and <span class="k">k</span>.
       </p>
       <p>
         Close the user guide and return to the editor with
-        <span class="keybinding">q</span> or <span class="keybinding">Esc</span>.
+        <span class="k">q</span> or <span class="k">Esc</span>.
       </p>
       <p>
         The editor is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
@@ -39,8 +39,8 @@
         Expressions are entered using <em>reverse Polish notation</em> (RPN) which means
         that operands come before their operators.  For example, to enter the expression <code>a+b</code> you would
         first type
-        <span class="keybinding">a</span> then <span class="keybinding">b</span>
-        followed by <span class="keybinding">+</span> to apply the addition operation.
+        <span class="k">a</span> then <span class="k">b</span>
+        followed by <span class="k">+</span> to apply the addition operation.
       </p>
       <p>
         The stack is displayed bottom-up; that is, the item most recently placed on the stack
@@ -66,69 +66,69 @@
       <h2>Single-Key Commands</h2>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">?</span>
+          <span class="k">?</span>
           Show this user guide.
-          Typing <span class="keybinding">?</span> a second time will "dock" the user guide
+          Typing <span class="k">?</span> a second time will "dock" the user guide
           into the document section for easier reference.  While docked, the user guide can be
-          scrolled with the <span class="keybinding">&uarr;</span><span class="keybinding">&darr;</span> arrow keys.
-          Typing <span class="keybinding">?</span> a third time will then close the user guide and
+          scrolled with the <span class="k">&uarr;</span><span class="k">&darr;</span> arrow keys.
+          Typing <span class="k">?</span> a third time will then close the user guide and
           reveal the document section again.
         </li>
         <li>
-          <span class="keybinding">a-z</span><span class="keybinding">A-Z</span><span class="keybinding">0-9</span>
+          <span class="k">a-z</span><span class="k">A-Z</span><span class="k">0-9</span>
           Place the corresponding letter or digit onto the stack.
         </li>
         <li>
-          <span class="keybinding">+</span><span class="keybinding">-</span><span class="keybinding">&lt;</span><span class="keybinding">&gt;</span><span class="keybinding">*</span>
+          <span class="k">+</span><span class="k">-</span><span class="k">&lt;</span><span class="k">&gt;</span><span class="k">*</span>
           Join two expressions with the corresponding operator between them
-          (<code>x\cdot y</code> in the case of <span class="keybinding">*</span>).
+          (<code>x\cdot y</code> in the case of <span class="k">*</span>).
         </li>
         <li>
-          <span class="keybinding">&nbsp;</span> <em>(space)</em>
+          <span class="k">&nbsp;</span> <em>(space)</em>
           Concatenate the top two stack entries.
         </li>
         <li>
-          <span class="keybinding">^</span> or <span class="keybinding">`</span> <em>(backtick)</em>
+          <span class="k">^</span> or <span class="k">`</span> <em>(backtick)</em>
           Make superscript: <code>x\enspace y \Rightarrow x^y</code>
         </li>
-        <li><span class="keybinding">Enter</span>
+        <li><span class="k">Enter</span>
           Make subscript: <code>x\enspace y \Rightarrow x_y</code>
         </li>
         <li>
-          <span class="keybinding">Shift+Enter</span>
+          <span class="k">Shift+Enter</span>
           Start <a href="#help_edit_text">editing</a> the stack top as text.
         </li>
         <li>
-          <span class="keybinding">Backspace</span>
+          <span class="k">Backspace</span>
           Drop the top item from the stack.
         </li>
         <li>
-          <span class="keybinding">(</span><span class="keybinding">[</span><span class="keybinding">{</span>
+          <span class="k">(</span><span class="k">[</span><span class="k">{</span>
           Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
           These delimiters automatically adjust to fit their contents.
         </li>
         <li>
-          <span class="keybinding">]</span>
+          <span class="k">]</span>
           Apply a <strong>bold font</strong> to the stack top.
         </li>
         <li>
-          <span class="keybinding">!</span>
+          <span class="k">!</span>
           Append a <kbd>!</kbd> to the stack top (factorial notation).
         </li>
         <li>
-          <span class="keybinding">&uarr;</span><span class="keybinding">&darr;</span>
+          <span class="k">&uarr;</span><span class="k">&darr;</span>
           <em>(up/down arrows)</em> Move the document selection indicator up or down.
         </li>
         <li>
-          <span class="keybinding">Shift+&uarr;</span><span class="keybinding">Shift+&darr;</span>
+          <span class="k">Shift+&uarr;</span><span class="k">Shift+&darr;</span>
           <em>(shift+up/down)</em> Shift the selected document item up or down within the document.
         </li>
         <li>
-          <span class="keybinding">&larr;</span><span class="keybinding">&rarr;</span>
+          <span class="k">&larr;</span><span class="k">&rarr;</span>
           <em>(left/right arrows)</em> Scroll the stack panel left or right if the contents are too wide.
         </li>
         <li>
-          <span class="keybinding">Shift+&larr;</span><span class="keybinding">Shift+&rarr;</span>
+          <span class="k">Shift+&larr;</span><span class="k">Shift+&rarr;</span>
           <em>(shift+left/right)</em> Scroll the document panel left or right.
         </li>
       </ul>
@@ -144,56 +144,56 @@
         <strong>NOTE:</strong>
         Typing the prefix keys below while this user guide is being shown
         will jump directly to the corresponding section.
-        <span class="keybinding">Backspace</span> returns here to this list
+        <span class="k">Backspace</span> returns here to this list
         of prefixes.  (This does not apply if the user guide is "docked" into the
-        document area via <span class="keybinding">?</span><span class="keybinding">?</span>.)
+        document area via <span class="k">?</span><span class="k">?</span>.)
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">\</span> Input a longer character string or formula with <a href="#help_math_entry">math entry</a> mode.</li>
-        <li><span class="keybinding">&quot;</span> Create a text object with <a href="#help_text_entry">text entry</a> mode.</li>
-        <li><span class="keybinding">Tab</span> <a href="#help_stack">Stack manipulation</a> and other utilities.</li>
-        <li><span class="keybinding">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#help_symbols">math symbols</a>.</li>
-        <li><span class="keybinding">.</span> <em>(period)</em> Add a <a href="#help_decorations">decoration</a> to the stack top.</li>
-        <li><span class="keybinding">,</span> <em>(comma)</em> Combine two expressions with an <a href="#help_infix">infix operator</a>.</li>
-        <li><span class="keybinding">=</span> Combine two expressions with a <a href="#help_relational">relational operator</a>.</li>
-        <li><span class="keybinding">/</span> Apply various <a href="#help_operators">functions and operations</a>.</li>
-        <li><span class="keybinding">/</span><span class="keybinding">d</span> Build different kinds of <a href="#help_derivatives">derivatives</a>.</li>
-        <li><span class="keybinding">/</span><span class="keybinding">i</span> Apply <a href="#help_integrals">integral limits</a>.</li>
-        <li><span class="keybinding">/</span><span class="keybinding">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
-        <li><span class="keybinding">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
-        <li><span class="keybinding">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
-        <li><span class="keybinding">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
-        <li><span class="keybinding">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
-        <li><span class="keybinding">;</span> Create <a href="#help_greek">Greek letters</a>.</li>
+        <li><span class="k">\</span> Input a longer character string or formula with <a href="#help_math_entry">math entry</a> mode.</li>
+        <li><span class="k">&quot;</span> Create a text object with <a href="#help_text_entry">text entry</a> mode.</li>
+        <li><span class="k">Tab</span> <a href="#help_stack">Stack manipulation</a> and other utilities.</li>
+        <li><span class="k">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#help_symbols">math symbols</a>.</li>
+        <li><span class="k">.</span> <em>(period)</em> Add a <a href="#help_decorations">decoration</a> to the stack top.</li>
+        <li><span class="k">,</span> <em>(comma)</em> Combine two expressions with an <a href="#help_infix">infix operator</a>.</li>
+        <li><span class="k">=</span> Combine two expressions with a <a href="#help_relational">relational operator</a>.</li>
+        <li><span class="k">/</span> Apply various <a href="#help_operators">functions and operations</a>.</li>
+        <li><span class="k">/</span><span class="k">d</span> Build different kinds of <a href="#help_derivatives">derivatives</a>.</li>
+        <li><span class="k">/</span><span class="k">i</span> Apply <a href="#help_integrals">integral limits</a>.</li>
+        <li><span class="k">/</span><span class="k">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
+        <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
+        <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
+        <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
+        <li><span class="k">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
+        <li><span class="k">;</span> Create <a href="#help_greek">Greek letters</a>.</li>
         <li id="help_insert_calligraphic">
-          <span class="keybinding">@</span>
+          <span class="k">@</span>
           Create calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>
         </li>
         <li>
-          <span class="keybinding" id="help_insert_script">&amp;</span>
+          <span class="k" id="help_insert_script">&amp;</span>
           Create script-style uppercase letters: <code>\mathscr{ABCDE}</code>
         </li>
         <li id="help_insert_blackboard">
-          <span class="keybinding">%</span>
+          <span class="k">%</span>
           Create blackboard-style uppercase letters: <code>\mathbb{ABCDE}</code>
         </li>
         <li>
-          <span class="keybinding">$</span>
+          <span class="k">$</span>
           Change <a href="#help_configuration">configuration settings</a>.
         </li>
         <li>
-          <span class="keybinding">Ctrl</span>
+          <span class="k">Ctrl</span>
           Some <a href="#help_control_keys">Control key</a> shortcuts are also available.
         </li>
       </ul>
 
       <h2 id="help_math_entry">
-        <span class="keybinding">\</span> Math Entry
+        <span class="k">\</span> Math Entry
       </h2>
       <p>
-        The <span class="keybinding">\</span> prefix starts <em>math entry</em> mode.  A small input field
+        The <span class="k">\</span> prefix starts <em>math entry</em> mode.  A small input field
         will be shown where you can type a number or a simple math expression in traditional infix notation.
-        <span class="keybinding">Enter</span> will parse what you have typed and put it on the stack.
+        <span class="k">Enter</span> will parse what you have typed and put it on the stack.
         A malformed expression will signal an error; allowed expressions include:
       </p>
       <ul>
@@ -239,21 +239,21 @@
         </li>
       </ul>
       <p>
-        <span class="keybinding">Esc</span> (or <span class="keybinding">Ctrl+z</span>)
+        <span class="k">Esc</span> (or <span class="k">Ctrl+z</span>)
         will cancel math entry mode.
       </p>
       <p>
         <strong>NOTE:</strong>
         The input field used here is very limited and supports only character entry along with
-        arrow keys to move around, <span class="keybinding">Backspace</span>,
-        <span class="keybinding">Enter</span> to finish your entry,
-        and <span class="keybinding">Esc</span> to cancel entry.
+        arrow keys to move around, <span class="k">Backspace</span>,
+        <span class="k">Enter</span> to finish your entry,
+        and <span class="k">Esc</span> to cancel entry.
         It is meant for entering short snippets of text; longer items should be created as pieces
         and assembled on the stack.
       </p>
       <p>
         <strong>Plain Text Entry:</strong>
-        Typing <span class="keybinding">Shift+Enter</span> instead of <span class="keybinding">Enter</span>
+        Typing <span class="k">Shift+Enter</span> instead of <span class="k">Enter</span>
         will typeset your entry in a roman (non-italic) font instead of the normal italic math font,
         and it will not be parsed as a math expression, so you can use any text you want.  This can be
         used to include normal English words or phrases in math expressions.
@@ -261,40 +261,40 @@
       </p>
       <p>
         <strong>NOTE:</strong> The <a href="#conjunction_anchor"><em>conjunction</em></a>
-        command available via <span class="keybinding">,</span><span class="keybinding">&#39;</span>
+        command available via <span class="k">,</span><span class="k">&#39;</span>
         is another way of including English words or phrases.
       </p>
       <p>
         <strong>Named Operators:</strong>
-        Typing <span class="keybinding">Tab</span> instead of <span class="keybinding">Enter</span>
+        Typing <span class="k">Tab</span> instead of <span class="k">Enter</span>
         will typeset your entry as an <em>operator name</em> which behaves the same as built-in operators
         such as <code>\lim</code> and <code>\sin</code>.  This gives extra spacing between anything
         concatenated to (or before) the operator name to match normal math notation.  Only letters,
         numbers, spaces and dashes are allowed in operator names.
       </p>
       <p>
-        <strong>NOTE:</strong> The <span class="keybinding">/</span><span class="keybinding">f</span>
+        <strong>NOTE:</strong> The <span class="k">/</span><span class="k">f</span>
         command prefix can also be used to create commonly-used named operators.
       </p>
       <p>
         <strong>LaTeX Entry:</strong>
-        Typing another <span class="keybinding">\</span>
+        Typing another <span class="k">\</span>
         after the first one will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
         zero-argument LaTeX command.  This can be used to create any standard LaTeX symbol.
         For example: <kbd>\\boxdot</kbd> <code>\Rightarrow\boxdot</code>
       </p>
       <p>
-        One-argument LaTeX commands can be created using <span class="keybinding">Shift+Enter</span> instead of
-        <span class="keybinding">Enter</span>.
-        For example: <span class="keybinding">x</span><kbd>\\utilde</kbd><span class="keybinding">Shift+Enter</span>
+        One-argument LaTeX commands can be created using <span class="k">Shift+Enter</span> instead of
+        <span class="k">Enter</span>.
+        For example: <span class="k">x</span><kbd>\\utilde</kbd><span class="k">Shift+Enter</span>
         <code>\Rightarrow\utilde{x}</code>
       </p>
 
       <h2 id="help_text_entry">
-        <span class="keybinding">&quot;</span> Text Entry
+        <span class="k">&quot;</span> Text Entry
       </h2>
       <p>
-        The <span class="keybinding">&quot;</span> prefix starts <em>text entry</em> mode which
+        The <span class="k">&quot;</span> prefix starts <em>text entry</em> mode which
         is similar to <a href="#help_math_entry">math entry</a> but creates <em>text objects</em>.
         Text objects are shown with a blue bar to the left (instead of grey) and differ from normal
         math objects in some important ways:
@@ -316,28 +316,28 @@
           <a href="#help_placeholders">Placeholders</a> can be included by writing <kbd>[]</kbd>.
         </li>
         <li>
-          Text objects can be concatenated to other text objects or to math expressions using <span class="keybinding">&nbsp;</span>
+          Text objects can be concatenated to other text objects or to math expressions using <span class="k">&nbsp;</span>
           (space) or combined via <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operators.
         </li>
         <li>
           Bold and italic words may be entered using <kbd>**bold**</kbd> and <kbd>//italic//</kbd> syntax.
         </li>
         <li>
-          Finishing the text entry with <span class="keybinding">Shift+Enter</span> will
+          Finishing the text entry with <span class="k">Shift+Enter</span> will
           create a section header instead (with a larger font and underline).  You can later toggle
           whether or not the text object is a section header with the
-          <span class="keybinding">/</span><span class="keybinding">&quot;</span> command.
+          <span class="k">/</span><span class="k">&quot;</span> command.
         </li>
       </ul>
 
       <h2 id="help_edit_text">
-        <span class="keybinding">Shift+Enter</span> Edit as Text
+        <span class="k">Shift+Enter</span> Edit as Text
       </h2>
       <p>
         Expressions and text objects that were created with
         <a href="#help_math_entry">math entry</a> or <a href="#help_text_entry">text entry</a> modes
         may be brought back into the math or text entry editor for further editing
-        with <span class="keybinding">Shift+Enter</span>.
+        with <span class="k">Shift+Enter</span>.
         Simple expressions like numbers and variables may also be editable even
         if they were not created with math/text entry mode.
       </p>
@@ -348,7 +348,7 @@
       </p>
 
       <h2 id="help_stack">
-        <span class="keybinding">Tab</span> Stack Manipulation and Utilities
+        <span class="k">Tab</span> Stack Manipulation and Utilities
       </h2>
       <p>
         This prefix has a variety of commands for managing the stack and the document,
@@ -359,40 +359,40 @@
         These commands manipulate the stack with traditional RPN operations.
         These can optionally take numeric <em>prefix arguments</em> which specify the number
         of stack items to operate on.  Prefix arguments are entered by typing one or more digits
-        after the <span class="keybinding">Tab</span> and before one of the following subcommand
-        keys.  Also, instead of a digit, <span class="keybinding">*</span> may be used to indicate that the operation
+        after the <span class="k">Tab</span> and before one of the following subcommand
+        keys.  Also, instead of a digit, <span class="k">*</span> may be used to indicate that the operation
         should apply to the entire stack.  For example, to reverse the entire stack you can type
-        <span class="keybinding">Tab</span><span class="keybinding">*</span><span class="keybinding">a</span>.
+        <span class="k">Tab</span><span class="k">*</span><span class="k">a</span>.
         In the descriptions below, N refers to the prefix argument if given, otherwise the default is used.
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">Enter</span> <em>(Dup)</em> Duplicate the top N items (default 1).</li>
-        <li><span class="keybinding">a</span> <em>(Sw<strong>a</strong>p)</em>
+        <li><span class="k">Enter</span> <em>(Dup)</em> Duplicate the top N items (default 1).</li>
+        <li><span class="k">a</span> <em>(Sw<strong>a</strong>p)</em>
           Reverse the order of the top N items (default 2).
         </li>
         <li>
-          <span class="keybinding">d</span>
+          <span class="k">d</span>
           <em>(Drop)</em> Remove the top N items (default 1).
-          <span class="keybinding">Backspace</span> can also be used by itself to drop single items from the stack
-          instead of <span class="keybinding">Tab</span><span class="keybinding">d</span>.
+          <span class="k">Backspace</span> can also be used by itself to drop single items from the stack
+          instead of <span class="k">Tab</span><span class="k">d</span>.
         </li>
         <li>
-          <span class="keybinding">k</span>
+          <span class="k">k</span>
           <em>(Keep)</em> Remove all but the top N items (default 1).
         </li>
-        <li><span class="keybinding">n</span> <em>(Nip)</em> Delete the Nth item from the top (default 2).</li>
-        <li><span class="keybinding">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
-        <li><span class="keybinding">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
-        <li><span class="keybinding">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
-        <li><span class="keybinding">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
+        <li><span class="k">n</span> <em>(Nip)</em> Delete the Nth item from the top (default 2).</li>
+        <li><span class="k">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
+        <li><span class="k">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
+        <li><span class="k">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
+        <li><span class="k">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
       </ul>
       <p>
         <strong>Document Operations:</strong>
         These commands transfer items between the stack and the document.
         The document has a shaded <em>selection indicator</em> which you can
-        move with the <span class="keybinding">&uarr;</span><span class="keybinding">&darr;</span>
-        arrow keys (without using the <span class="keybinding">Tab</span> prefix).
-        <span class="keybinding">Shift+&uarr;</span> and <span class="keybinding">Shift+&darr;</span>
+        move with the <span class="k">&uarr;</span><span class="k">&darr;</span>
+        arrow keys (without using the <span class="k">Tab</span> prefix).
+        <span class="k">Shift+&uarr;</span> and <span class="k">Shift+&darr;</span>
         will shift the selected item up or down within the document.
       </p>
       <p>
@@ -402,110 +402,110 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">i</span>
+          <span class="k">i</span>
           Move N items (default 1) from the stack into the document at the current selection position.
         </li>
         <li>
-          <span class="keybinding">j</span>
+          <span class="k">j</span>
           Move N items (default 1) from the document back onto the stack.
         </li>
         <li>
-          <span class="keybinding">I</span>
+          <span class="k">I</span>
           Copy N items (default 1) from the stack into the document at the current selection position
           without removing them from the stack.
         </li>
         <li>
-          <span class="keybinding">J</span>
+          <span class="k">J</span>
           Copy N items (default 1) from the document back onto the stack without removing
           them from the document.
         </li>
         <li>
-          <span class="keybinding">=</span>
+          <span class="k">=</span>
           Insert a <em>separator</em> (horizontal rule) into the document at the current selection
           position.  A separator can also be created on the stack with
-          <span class="keybinding">'</span><span class="keybinding">=</span>.
+          <span class="k">'</span><span class="k">=</span>.
         </li>
         <li>
-          <span class="keybinding">l</span>
+          <span class="k">l</span>
           Recenter the document view around the current selection indicator.
         </li>
         <li>
-          <span class="keybinding">&larr;</span><span class="keybinding">&rarr;</span>
+          <span class="k">&larr;</span><span class="k">&rarr;</span>
           <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide.
-          <span class="keybinding">Shift+&larr;</span> and <span class="keybinding">Shift+&rarr;</span>
-          can also be used without the <span class="keybinding">Tab</span> prefix.
+          <span class="k">Shift+&larr;</span> and <span class="k">Shift+&rarr;</span>
+          can also be used without the <span class="k">Tab</span> prefix.
         </li>
       </ul>
       <p>
         <strong>Utilities:</strong>
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">z</span>
+        <li><span class="k">z</span>
           <em>Undo:</em> Revert the stack and document back to the last 
           state they were in.
-          <span class="keybinding">Ctrl+z</span> is a shortcut for this.
+          <span class="k">Ctrl+z</span> is a shortcut for this.
         </li>
         <li>
-          <span class="keybinding">y</span> <em>Redo:</em> Replay states that were
+          <span class="k">y</span> <em>Redo:</em> Replay states that were
           previously undone.
         </li>
         <li>
-          <span class="keybinding">c</span>
+          <span class="k">c</span>
           Copy the stack top into an internal clipboard slot.
           A prefix argument may optionally be entered to use a different
           slot than the default of 1
-          (e.g. <span class="keybinding">Tab</span><span class="keybinding">5</span><span class="keybinding">c</span>).
+          (e.g. <span class="k">Tab</span><span class="k">5</span><span class="k">c</span>).
         </li>
         <li>
-          <span class="keybinding">v</span>
+          <span class="k">v</span>
           Paste the item copied into a clipboard slot
-          (with <span class="keybinding">Tab</span><span class="keybinding">c</span>) onto the stack.
+          (with <span class="k">Tab</span><span class="k">c</span>) onto the stack.
         </li>
         <li>
-          <span class="keybinding">V</span>
+          <span class="k">V</span>
           Prompt for a string of LaTeX source code.  This code will be put on the stack as
           a math expression if possible.  Invalid LaTeX code will appear as a special error
           object.
         </li>
         <li>
-          <span class="keybinding">w</span>
+          <span class="k">w</span>
           Move the stack top into a &quot;floating&quot; spot in the upper-right corner.
           This can be used to temporarily keep an item out of the way, or to pin
           it for quick reference.  If there is already a floating item in this spot, it is
           put back on the stack instead.
         </li>
         <li>
-          <span class="keybinding">f</span>
+          <span class="k">f</span>
           Open the File Manager (see below).
         </li>
         <li>
-          <span class="keybinding">s</span>
+          <span class="k">s</span>
           Save the current document to browser storage.
         </li>
         <li>
-          <span class="keybinding">X</span>
+          <span class="k">X</span>
           Clear the the entire stack and document.
         </li>
         <li>
-          <span class="keybinding">!</span> <em>Export document:</em>
+          <span class="k">!</span> <em>Export document:</em>
           Copy the document content to the clipboard as LaTeX text.
         </li>
         <li>
-          <span class="keybinding">@</span> <em>Export stack item(s):</em>
+          <span class="k">@</span> <em>Export stack item(s):</em>
           Copy the top N stack items (default 1) to the clipboard as LaTeX text.
         </li>
         <li>
-          <span class="keybinding">$</span>
+          <span class="k">$</span>
           Extract the LaTeX source of the top stack item as a &quot;code&quot; object.
         </li>
       </ul>
 
       <h2 id="help_files">
-        <span class="keybinding">Tab</span><span class="keybinding">f</span>
+        <span class="k">Tab</span><span class="k">f</span>
         File Management
       </h2>
       <p>
-        <span class="keybinding">Tab</span><span class="keybinding">f</span>
+        <span class="k">Tab</span><span class="k">f</span>
         opens the File Manager popup panel.
         If your browser supports it, you can save and manage separate documents in the
         internal browser storage (IndexedDB).
@@ -514,8 +514,8 @@
       </p>
       <p>
         <strong>NOTE:</strong>
-        You can use <span class="keybinding">Tab</span><span class="keybinding">s</span>
-        or <span class="keybinding">Ctrl+s</span> from the main screen to save the current
+        You can use <span class="k">Tab</span><span class="k">s</span>
+        or <span class="k">Ctrl+s</span> from the main screen to save the current
         document without opening the file manager first.
       </p>
       <p>
@@ -529,106 +529,106 @@
       </p>
       <p>
         You can also export individual documents as <kbd>.json</kbd> files using the
-        <span class="keybinding">x</span> command, and import them with the file
+        <span class="k">x</span> command, and import them with the file
         upload field.
       </p>
 
       <h2 id="help_symbols">
-        <span class="keybinding">&#39;</span> Math Symbols
+        <span class="k">&#39;</span> Math Symbols
       </h2>
       <p>
         Assorted standalone math symbols.  These all put exactly one object onto the stack.
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">0</span> <code>\varnothing</code></td>
-            <td><span class="keybinding">1</span> <code>-1</code></td>
-            <td><span class="keybinding">2</span> <code>\frac{1}{2}</code></td>
-            <td><span class="keybinding">3</span> <code>1/2</code></td>
-            <td><span class="keybinding">8</span> <code>\infty</code></td>
+            <td><span class="k">0</span> <code>\varnothing</code></td>
+            <td><span class="k">1</span> <code>-1</code></td>
+            <td><span class="k">2</span> <code>\frac{1}{2}</code></td>
+            <td><span class="k">3</span> <code>1/2</code></td>
+            <td><span class="k">8</span> <code>\infty</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">a</span> <code>\forall</code></td>
-            <td><span class="keybinding">A</span> <code>\aleph</code></td>
-            <td><span class="keybinding">b</span> <code>\bullet</code></td>
-            <td><span class="keybinding">c</span> <code>\cdot</code></td>
-            <td><span class="keybinding">C</span> <code>\bigcap</code></td>
+            <td><span class="k">a</span> <code>\forall</code></td>
+            <td><span class="k">A</span> <code>\aleph</code></td>
+            <td><span class="k">b</span> <code>\bullet</code></td>
+            <td><span class="k">c</span> <code>\cdot</code></td>
+            <td><span class="k">C</span> <code>\bigcap</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>\partial</code></td>
-            <td><span class="keybinding">D</span> <code>\bigoplus</code></td>
-            <td><span class="keybinding">e</span> <code>\exists</code></td>
-            <td><span class="keybinding">E</span> <code>\nexists</code></td>
-            <td><span class="keybinding">h</span> <code>\hslash</code></td>
+            <td><span class="k">d</span> <code>\partial</code></td>
+            <td><span class="k">D</span> <code>\bigoplus</code></td>
+            <td><span class="k">e</span> <code>\exists</code></td>
+            <td><span class="k">E</span> <code>\nexists</code></td>
+            <td><span class="k">h</span> <code>\hslash</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">i</span> <code>\int</code></td>
-            <td><span class="keybinding">I</span> <code>\iint</code></td>
-            <td><span class="keybinding">l</span> <code>\ell</code></td>
-            <td><span class="keybinding">M</span> <code>\mp</code></td>
-            <td><span class="keybinding">n</span> <code>\ne</code></td>
+            <td><span class="k">i</span> <code>\int</code></td>
+            <td><span class="k">I</span> <code>\iint</code></td>
+            <td><span class="k">l</span> <code>\ell</code></td>
+            <td><span class="k">M</span> <code>\mp</code></td>
+            <td><span class="k">n</span> <code>\ne</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">o</span> <code>\circ</code></td>
-            <td><span class="keybinding">O</span> <code>\bigodot</code></td>
-            <td><span class="keybinding">p</span> <code>\prod</code></td>
-            <td><span class="keybinding">P</span> <code>\pm</code></td>
-            <td><span class="keybinding">q</span> <code>=</code></td>
+            <td><span class="k">o</span> <code>\circ</code></td>
+            <td><span class="k">O</span> <code>\bigodot</code></td>
+            <td><span class="k">p</span> <code>\prod</code></td>
+            <td><span class="k">P</span> <code>\pm</code></td>
+            <td><span class="k">q</span> <code>=</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">Q</span> <code>\bigsqcup</code></td>
-            <td><span class="keybinding">r</span> <code>\square</code></td>
-            <td><span class="keybinding">s</span> <code>\sum</code></td>
-            <td><span class="keybinding">S</span> <code>\S</code></td>
-            <td><span class="keybinding">t</span> <code>\therefore</code></td>
+            <td><span class="k">Q</span> <code>\bigsqcup</code></td>
+            <td><span class="k">r</span> <code>\square</code></td>
+            <td><span class="k">s</span> <code>\sum</code></td>
+            <td><span class="k">S</span> <code>\S</code></td>
+            <td><span class="k">t</span> <code>\therefore</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">U</span> <code>\bigcup</code></td>
-            <td><span class="keybinding">v</span> <code>\vee</code></td>
-            <td><span class="keybinding">V</span> <code>\bigvee</code></td>
-            <td><span class="keybinding">w</span> <code>\wedge</code></td>
-            <td><span class="keybinding">W</span> <code>\bigwedge</code></td>
+            <td><span class="k">U</span> <code>\bigcup</code></td>
+            <td><span class="k">v</span> <code>\vee</code></td>
+            <td><span class="k">V</span> <code>\bigvee</code></td>
+            <td><span class="k">w</span> <code>\wedge</code></td>
+            <td><span class="k">W</span> <code>\bigwedge</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">X</span> <code>\bigotimes</code></td>
-            <td><span class="keybinding">y</span> <code>\oint</code></td>
-            <td><span class="keybinding">Y</span> <code>\oiint</code></td>
-            <td><span class="keybinding">.</span> <code>\dots</code></td>
-            <td><span class="keybinding">&gt;</span> <code>\cdots</code></td>
+            <td><span class="k">X</span> <code>\bigotimes</code></td>
+            <td><span class="k">y</span> <code>\oint</code></td>
+            <td><span class="k">Y</span> <code>\oiint</code></td>
+            <td><span class="k">.</span> <code>\dots</code></td>
+            <td><span class="k">&gt;</span> <code>\cdots</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">-</span> <code>-</code></td>
-            <td><span class="keybinding">+</span> <code>+</code></td>
-            <td><span class="keybinding">*</span> <code>\ast</code></td>
-            <td><span class="keybinding">^</span> <code>\star</code></td>
-            <td><span class="keybinding">|</span> <code>|</code></td>
+            <td><span class="k">-</span> <code>-</code></td>
+            <td><span class="k">+</span> <code>+</code></td>
+            <td><span class="k">*</span> <code>\ast</code></td>
+            <td><span class="k">^</span> <code>\star</code></td>
+            <td><span class="k">|</span> <code>|</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">?</span> <code>?</code></td>
-            <td><span class="keybinding">!</span> <code>!</code></td>
-            <td><span class="keybinding">,</span> <code>,</code></td>
-            <td><span class="keybinding">;</span> <code>;</code></td>
-            <td><span class="keybinding">:</span> <code>:</code></td>
+            <td><span class="k">?</span> <code>?</code></td>
+            <td><span class="k">!</span> <code>!</code></td>
+            <td><span class="k">,</span> <code>,</code></td>
+            <td><span class="k">;</span> <code>;</code></td>
+            <td><span class="k">:</span> <code>:</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">`</span> <code>`</code></td>
-            <td><span class="keybinding">~</span> <code>\sim</code></td>
-            <td><span class="keybinding">/</span> <code>/</code></td>
-            <td><span class="keybinding">\</span> <code>\backslash</code></td>
-            <td><span class="keybinding">_</span> <code>\_</code></td>
+            <td><span class="k">`</span> <code>`</code></td>
+            <td><span class="k">~</span> <code>\sim</code></td>
+            <td><span class="k">/</span> <code>/</code></td>
+            <td><span class="k">\</span> <code>\backslash</code></td>
+            <td><span class="k">_</span> <code>\_</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">&uarr;</span> <code>\uparrow</code></td>
-            <td><span class="keybinding">&darr;</span> <code>\downarrow</code></td>
-            <td><span class="keybinding">&larr;</span> <code>\leftarrow</code></td>
-            <td><span class="keybinding">&rarr;</span> <code>\rightarrow</code></td>
-            <td><span class="keybinding">@</span> <code>@</code></td>
+            <td><span class="k">&uarr;</span> <code>\uparrow</code></td>
+            <td><span class="k">&darr;</span> <code>\downarrow</code></td>
+            <td><span class="k">&larr;</span> <code>\leftarrow</code></td>
+            <td><span class="k">&rarr;</span> <code>\rightarrow</code></td>
+            <td><span class="k">@</span> <code>@</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">#</span> <code>\#</code></td>
-            <td><span class="keybinding">$</span> <code>\$</code></td>
-            <td><span class="keybinding">%</span> <code>\%</code></td>
-            <td><span class="keybinding">&amp;</span> <code>\&</code></td>
+            <td><span class="k">#</span> <code>\#</code></td>
+            <td><span class="k">$</span> <code>\$</code></td>
+            <td><span class="k">%</span> <code>\%</code></td>
+            <td><span class="k">&amp;</span> <code>\&</code></td>
             <td></td>
           </tr>
       </tbody></table>
@@ -637,18 +637,18 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">&nbsp;</span>
+          <span class="k">&nbsp;</span>
           (space) Create a <em>blank</em> expression, which has no content of its own but can still
           be combined with other expressions as usual.  A blank expression by itself will be displayed
           as <code>\llbracket\mathsf{blank}\rrbracket</code> until it's combined with something.
         </li>
         <li>
-          <span class="keybinding">=</span>
+          <span class="k">=</span>
           Create a <em>separator</em>, a horizontal rule object which can be
           useful to visually separate parts of the document.
         </li>
         <li>
-          <span class="keybinding">&#39;</span>
+          <span class="k">&#39;</span>
           Create a <em>placeholder</em>.  See the following section for more details.
         </li>
       </ul>
@@ -661,13 +661,13 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">&#39;</span><span class="keybinding">&#39;</span>
+          <span class="k">&#39;</span><span class="k">&#39;</span>
           Put a placeholder (<code>\htmlClass{placeholder_expr}{\blacksquare}</code>) onto the stack.
           You can treat it like any other subexpression, applying operations to it and using it
           in other expressions.  All placeholders are identical.
         </li>
         <li>
-          <span class="keybinding">/</span><span class="keybinding">&#39;</span>
+          <span class="k">/</span><span class="k">&#39;</span>
           Substitute the stack top item for the placeholder in the item above it.
           If there is more than one placeholder, only the first one is substituted.
           Example: <code>\sqrt{1 + \htmlClass{placeholder_expr}{\blacksquare}} \enspace x^2 \Rightarrow \sqrt{1+x^2}</code>
@@ -675,368 +675,368 @@
       </ul>
 
       <h2 id="help_decorations">
-        <span class="keybinding">.</span> Decorations
+        <span class="k">.</span> Decorations
       </h2>
       <p>
         These all modify a single item on the stack.
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">0</span> <code>x_0</code></td>
-            <td><span class="keybinding">1</span> <code>x^{-1}</code></td>
-            <td><span class="keybinding">2</span> <code>x^2</code></td>
+            <td><span class="k">0</span> <code>x_0</code></td>
+            <td><span class="k">1</span> <code>x^{-1}</code></td>
+            <td><span class="k">2</span> <code>x^2</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">3</span> <code>x^3</code></td>
-            <td><span class="keybinding">4</span> <code>x^4</code></td>
-            <td><span class="keybinding">8</span> <code>x\to\infty</code></td>
+            <td><span class="k">3</span> <code>x^3</code></td>
+            <td><span class="k">4</span> <code>x^4</code></td>
+            <td><span class="k">8</span> <code>x\to\infty</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">A</span> <code>\acute x</code> <em>(ácute)</em></td>
-            <td><span class="keybinding">b</span> <code>\bold{x}</code> <em>(bold roman)</em></td>
-            <td><span class="keybinding">c</span> <code>1-x</code> <em>(complement)</em></td>
+            <td><span class="k">A</span> <code>\acute x</code> <em>(ácute)</em></td>
+            <td><span class="k">b</span> <code>\bold{x}</code> <em>(bold roman)</em></td>
+            <td><span class="k">c</span> <code>1-x</code> <em>(complement)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>x^\dagger</code> <em>(dual/dagger)</em></td>
-            <td><span class="keybinding">D</span> <code>x^\ddagger</code></td>
-            <td><span class="keybinding">e</span> <code>\htmlClass{emphasized}{x}</code> <em>(emphasize)</em></td>
+            <td><span class="k">d</span> <code>x^\dagger</code> <em>(dual/dagger)</em></td>
+            <td><span class="k">D</span> <code>x^\ddagger</code></td>
+            <td><span class="k">e</span> <code>\htmlClass{emphasized}{x}</code> <em>(emphasize)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">g</span> <code>\mathring x</code> <em>(rin<strong>g</strong>)</em></td>
-            <td><span class="keybinding">G</span> <code>\grave x</code> <em>(gràve)</em></td>
-            <td><span class="keybinding">h</span> <code>\hat x</code> <em>(hat)</em></td>
+            <td><span class="k">g</span> <code>\mathring x</code> <em>(rin<strong>g</strong>)</em></td>
+            <td><span class="k">G</span> <code>\grave x</code> <em>(gràve)</em></td>
+            <td><span class="k">h</span> <code>\hat x</code> <em>(hat)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">H</span> <code>\widehat{x\dots}</code></td>
-            <td><span class="keybinding">i</span> <code>x^{-}</code></td>
-            <td><span class="keybinding">I</span> <code>x^{+}</code></td>
+            <td><span class="k">H</span> <code>\widehat{x\dots}</code></td>
+            <td><span class="k">i</span> <code>x^{-}</code></td>
+            <td><span class="k">I</span> <code>x^{+}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>\mathfrak x</code> <em>(Fra<strong>k</strong>tur)</em></td>
-            <td><span class="keybinding">l</span> <code>x_\parallel</code> <em>(para<strong>l</strong>lel)</em></td>
-            <td><span class="keybinding">m</span> <code>\mathtt x</code> <em>(monospace)</em></td>
+            <td><span class="k">k</span> <code>\mathfrak x</code> <em>(Fra<strong>k</strong>tur)</em></td>
+            <td><span class="k">l</span> <code>x_\parallel</code> <em>(para<strong>l</strong>lel)</em></td>
+            <td><span class="k">m</span> <code>\mathtt x</code> <em>(monospace)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">M</span> <code>\mp x</code> <em>(minus-or-plus)</em></td>
-            <td><span class="keybinding">n</span> <code>\bar x</code> <em>(overli<strong>n</strong>e)</em></td>
-            <td><span class="keybinding">o</span> <code>\overline{x\dots}</code> <em>(<strong>o</strong>verline)</em></td>
+            <td><span class="k">M</span> <code>\mp x</code> <em>(minus-or-plus)</em></td>
+            <td><span class="k">n</span> <code>\bar x</code> <em>(overli<strong>n</strong>e)</em></td>
+            <td><span class="k">o</span> <code>\overline{x\dots}</code> <em>(<strong>o</strong>verline)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">p</span> <code>x_\perp</code> <em>(perpendicular)</em></td>
-            <td><span class="keybinding">P</span> <code>\pm x</code> <em>(plus-or-minus)</em></td>
-            <td><span class="keybinding">q</span> <code>= x</code> <em>(e<strong>q</strong>uals)</em></td>
+            <td><span class="k">p</span> <code>x_\perp</code> <em>(perpendicular)</em></td>
+            <td><span class="k">P</span> <code>\pm x</code> <em>(plus-or-minus)</em></td>
+            <td><span class="k">q</span> <code>= x</code> <em>(e<strong>q</strong>uals)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">r</span> <code>\mathrm x</code> <em>(roman)</em></td>
-            <td><span class="keybinding">s</span> <code>\mathsf x</code> <em>(sans-serif)</em></td>
-            <td><span class="keybinding">S</span> <code>\mathsfit x</code> <em>(italic sans)</em></td>
+            <td><span class="k">r</span> <code>\mathrm x</code> <em>(roman)</em></td>
+            <td><span class="k">s</span> <code>\mathsf x</code> <em>(sans-serif)</em></td>
+            <td><span class="k">S</span> <code>\mathsfit x</code> <em>(italic sans)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">t</span> <code>\to x</code> <em>(to/therefore)</em></td>
-            <td><span class="keybinding">T</span> <code>\longrightarrow x</code></td>
-            <td><span class="keybinding">u</span> <code>\breve x</code></td>
+            <td><span class="k">t</span> <code>\to x</code> <em>(to/therefore)</em></td>
+            <td><span class="k">T</span> <code>\longrightarrow x</code></td>
+            <td><span class="k">u</span> <code>\breve x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">U</span> <code>\utilde{x\dots}</code></td>
-            <td><span class="keybinding">v</span> <code>\vec x</code> <em>(vector)</em></td>
-            <td><span class="keybinding">V</span> <code>\overrightharpoon{x\dots}</code></td>
+            <td><span class="k">U</span> <code>\utilde{x\dots}</code></td>
+            <td><span class="k">v</span> <code>\vec x</code> <em>(vector)</em></td>
+            <td><span class="k">V</span> <code>\overrightharpoon{x\dots}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">w</span> <code>\check x</code> <em>(check)</em></td>
-            <td><span class="keybinding">W</span> <code>\widecheck{x\dots}</code></td>
-            <td><span class="keybinding">x</span> <code>\boxed x</code> <em>(bo<strong>x</strong>)</em></td>
+            <td><span class="k">w</span> <code>\check x</code> <em>(check)</em></td>
+            <td><span class="k">W</span> <code>\widecheck{x\dots}</code></td>
+            <td><span class="k">x</span> <code>\boxed x</code> <em>(bo<strong>x</strong>)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">X</span> <code>\sout x</code> <em>(crossout)</em></td>
-            <td><span class="keybinding">Y</span> <code>\widetilde{x\dots}</code></td>
-            <td><span class="keybinding">z</span> <code>\cancel x</code> <em>(cancel)</em></td>
+            <td><span class="k">X</span> <code>\sout x</code> <em>(crossout)</em></td>
+            <td><span class="k">Y</span> <code>\widetilde{x\dots}</code></td>
+            <td><span class="k">z</span> <code>\cancel x</code> <em>(cancel)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">.</span> <code>\dot x</code></td>
-            <td><span class="keybinding">&gt;</span> <code>x.</code></td>
-            <td><span class="keybinding">&quot;</span> <code>\ddot x</code></td>
+            <td><span class="k">.</span> <code>\dot x</code></td>
+            <td><span class="k">&gt;</span> <code>x.</code></td>
+            <td><span class="k">&quot;</span> <code>\ddot x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">&nbsp;</span> <code>x\,</code> <em>(append space)</em></td>
-            <td><span class="keybinding">&#39;</span> <code>x'</code></td>
-            <td><span class="keybinding">,</span> <code>x^{\circ}</code> <em>(degrees)</em></td>
+            <td><span class="k">&nbsp;</span> <code>x\,</code> <em>(append space)</em></td>
+            <td><span class="k">&#39;</span> <code>x'</code></td>
+            <td><span class="k">,</span> <code>x^{\circ}</code> <em>(degrees)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">*</span> <code>x^{*}</code></td>
-            <td><span class="keybinding">=</span> <code>\Rightarrow x</code></td>
-            <td><span class="keybinding">-</span> <code>-x</code></td>
+            <td><span class="k">*</span> <code>x^{*}</code></td>
+            <td><span class="k">=</span> <code>\Rightarrow x</code></td>
+            <td><span class="k">-</span> <code>-x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">+</span> <code>+x</code></td>
-            <td><span class="keybinding">`</span> <code>x^\mathrm{T}</code> <em>(transpose)</em></td>
-            <td><span class="keybinding">~</span> <code>\tilde x</code></td>
+            <td><span class="k">+</span> <code>+x</code></td>
+            <td><span class="k">`</span> <code>x^\mathrm{T}</code> <em>(transpose)</em></td>
+            <td><span class="k">~</span> <code>\tilde x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">/</span> <code>1/x</code></td>
-            <td><span class="keybinding">_</span> <code>\underline{x\dots}</code></td>
-            <td><span class="keybinding">!</span> <code>\neg x</code> <em>(not)</em></td>
+            <td><span class="k">/</span> <code>1/x</code></td>
+            <td><span class="k">_</span> <code>\underline{x\dots}</code></td>
+            <td><span class="k">!</span> <code>\neg x</code> <em>(not)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">\</span> <code>\bcancel x</code></td>
-            <td><span class="keybinding">[</span> <code>\small x</code> <em>(smaller)</em></td>
-            <td><span class="keybinding">]</span> <code>\large x</code> <em>(larger)</em></td>
+            <td><span class="k">\</span> <code>\bcancel x</code></td>
+            <td><span class="k">[</span> <code>\small x</code> <em>(smaller)</em></td>
+            <td><span class="k">]</span> <code>\large x</code> <em>(larger)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">{</span> <code>\overbrace{x\dots}</code></td>
-            <td><span class="keybinding">}</span> <code>\underbrace{x\dots}</code></td>
-            <td><span class="keybinding">Tab</span> <code>\quad x</code> <em>(indent)</em></td>
+            <td><span class="k">{</span> <code>\overbrace{x\dots}</code></td>
+            <td><span class="k">}</span> <code>\underbrace{x\dots}</code></td>
+            <td><span class="k">Tab</span> <code>\quad x</code> <em>(indent)</em></td>
           </tr>
       </tbody></table>
 
       <h2 id="help_infix">
-        <span class="keybinding">,</span> Infix Operators
+        <span class="k">,</span> Infix Operators
       </h2>
       <p>
         These commands combine the top two stack items by placing a mathematical operator between them.
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">a</span> <em>apply</em> (see below)</td>
-            <td><span class="keybinding">b</span> <code>x\bullet y</code></td>
-            <td><span class="keybinding">c</span> <code>x\cap y</code></td>
+            <td><span class="k">a</span> <em>apply</em> (see below)</td>
+            <td><span class="k">b</span> <code>x\bullet y</code></td>
+            <td><span class="k">c</span> <code>x\cap y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>x^\dagger y</code></td>
-            <td><span class="keybinding">D</span> <code>x\oplus y</code></td>
-            <td><span class="keybinding">e</span> <code>x,\dots,y</code></td>
+            <td><span class="k">d</span> <code>x^\dagger y</code></td>
+            <td><span class="k">D</span> <code>x\oplus y</code></td>
+            <td><span class="k">e</span> <code>x,\dots,y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">f</span> <code>x\quad\mathrm{if}\quad y</code></td>
-            <td><span class="keybinding">F</span> <code>x\quad\mathrm{iff}\quad y</code></td>
-            <td><span class="keybinding">g</span> <code>x\gets y</code> <em>(<strong>g</strong>ets)</em></td>
+            <td><span class="k">f</span> <code>x\quad\mathrm{if}\quad y</code></td>
+            <td><span class="k">F</span> <code>x\quad\mathrm{iff}\quad y</code></td>
+            <td><span class="k">g</span> <code>x\gets y</code> <em>(<strong>g</strong>ets)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">j</span> <code>x\Join y</code> <em>(<strong>j</strong>oin)</em></td>
+            <td><span class="k">j</span> <code>x\Join y</code> <em>(<strong>j</strong>oin)</em></td>
             <td>
-              <span class="keybinding">k</span> or <span class="keybinding">|</span>
+              <span class="k">k</span> or <span class="k">|</span>
               <code>\left.x\,\middle\vert\,y\right.</code>
             </td>
-            <td><span class="keybinding">l</span> <code>x\parallel y</code></td>
+            <td><span class="k">l</span> <code>x\parallel y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">m</span> <code>x\pmod y</code></td>
-            <td><span class="keybinding">M</span> <code>x\mp y</code></td>
-            <td><span class="keybinding">n</span> <code>x\quad\mathrm{whe\mathbf{n}}\quad y</code></td>
+            <td><span class="k">m</span> <code>x\pmod y</code></td>
+            <td><span class="k">M</span> <code>x\mp y</code></td>
+            <td><span class="k">n</span> <code>x\quad\mathrm{whe\mathbf{n}}\quad y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">o</span> <code>x\circ y</code></td>
-            <td><span class="keybinding">O</span> <code>x\odot y</code></td>
-            <td><span class="keybinding">p</span> <code>x\perp y</code></td>
+            <td><span class="k">o</span> <code>x\circ y</code></td>
+            <td><span class="k">O</span> <code>x\odot y</code></td>
+            <td><span class="k">p</span> <code>x\perp y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">P</span> <code>x\pm y</code></td>
-            <td><span class="keybinding">q</span> <code>x\quad\mathrm{and}\quad y</code></td>
-            <td><span class="keybinding">Q</span> <code>x\quad\mathrm{or}\quad y</code></td>
+            <td><span class="k">P</span> <code>x\pm y</code></td>
+            <td><span class="k">q</span> <code>x\quad\mathrm{and}\quad y</code></td>
+            <td><span class="k">Q</span> <code>x\quad\mathrm{or}\quad y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">r</span> <code>x\quad\mathrm{fo\mathbf{r}}\quad y</code></td>
+            <td><span class="k">r</span> <code>x\quad\mathrm{fo\mathbf{r}}\quad y</code></td>
             <td>
-              <span class="keybinding">s</span> or
-              <span class="keybinding">&nbsp;</span>
+              <span class="k">s</span> or
+              <span class="k">&nbsp;</span>
               <code>x\,y</code>
             </td>
-            <td><span class="keybinding">t</span> <code>x\to y</code></td>
+            <td><span class="k">t</span> <code>x\to y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">T</span> <code>x\longrightarrow y</code></td>
-            <td><span class="keybinding">u</span> <code>x\cup y</code></td>
-            <td><span class="keybinding">v</span> <code>x\vee y</code></td>
+            <td><span class="k">T</span> <code>x\longrightarrow y</code></td>
+            <td><span class="k">u</span> <code>x\cup y</code></td>
+            <td><span class="k">v</span> <code>x\vee y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">V</span> <code>x\veebar y</code></td>
-            <td><span class="keybinding">w</span> <code>x\wedge y</code>
-            <td><span class="keybinding">W</span> <code>x\barwedge y</code></td>
+            <td><span class="k">V</span> <code>x\veebar y</code></td>
+            <td><span class="k">w</span> <code>x\wedge y</code>
+            <td><span class="k">W</span> <code>x\barwedge y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>x\times y</code></td>
-            <td><span class="keybinding">X</span> <code>x\otimes y</code></td>
-            <td><span class="keybinding">[</span> <code>x\llcorner y</code></td>
+            <td><span class="k">x</span> <code>x\times y</code></td>
+            <td><span class="k">X</span> <code>x\otimes y</code></td>
+            <td><span class="k">[</span> <code>x\llcorner y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">]</span> <code>x\lrcorner y</code></td>
-            <td><span class="keybinding">=</span> <code>x\Rightarrow y</code></td>
-            <td><span class="keybinding">+</span> <code>x\Longrightarrow y</code></td>
+            <td><span class="k">]</span> <code>x\lrcorner y</code></td>
+            <td><span class="k">=</span> <code>x\Rightarrow y</code></td>
+            <td><span class="k">+</span> <code>x\Longrightarrow y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">-</span> <code>x\ominus y</code></td>
-            <td><span class="keybinding">.</span> <code>x\cdot y</code></td>
-            <td><span class="keybinding">,</span> <code>x,y</code></td>
+            <td><span class="k">-</span> <code>x\ominus y</code></td>
+            <td><span class="k">.</span> <code>x\cdot y</code></td>
+            <td><span class="k">,</span> <code>x,y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">&gt;</span> <code>x\cdots y</code></td>
-            <td><span class="keybinding">&lt;</span> <code>\left\langle x,y\right\rangle</code></td>
-            <td><span class="keybinding">(</span> <code>\left(x,y\right)</code></td>
+            <td><span class="k">&gt;</span> <code>x\cdots y</code></td>
+            <td><span class="k">&lt;</span> <code>\left\langle x,y\right\rangle</code></td>
+            <td><span class="k">(</span> <code>\left(x,y\right)</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">*</span> <code>x*y</code></td>
-            <td><span class="keybinding">^</span> <code>x\star y</code>
-            <td><span class="keybinding">:</span> <code>x\colon y</code></td>
+            <td><span class="k">*</span> <code>x*y</code></td>
+            <td><span class="k">^</span> <code>x\star y</code>
+            <td><span class="k">:</span> <code>x\colon y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">;</span> <code>x;y</code></td>
-            <td><span class="keybinding">`</span> <code>x^\mathrm{T} y</code></td>
-            <td><span class="keybinding">~</span> <code>xy^\mathrm{T}</code></td>
+            <td><span class="k">;</span> <code>x;y</code></td>
+            <td><span class="k">`</span> <code>x^\mathrm{T} y</code></td>
+            <td><span class="k">~</span> <code>xy^\mathrm{T}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">/</span> <code>x/y</code></td>
-            <td><span class="keybinding">\</span> <code>x\backslash y</code></td>
-            <td><span class="keybinding">%</span> <code>x\div y</code></td>
+            <td><span class="k">/</span> <code>x/y</code></td>
+            <td><span class="k">\</span> <code>x\backslash y</code></td>
+            <td><span class="k">%</span> <code>x\div y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">Tab</span> <code>x\quad y</code></td>
+            <td><span class="k">Tab</span> <code>x\quad y</code></td>
             <td colspan="2">
-              <span class="keybinding">&#39;</span> <em>conjunction</em> (see below)
+              <span class="k">&#39;</span> <em>conjunction</em> (see below)
             </td>
           </tr>
       </tbody></table>
       <p>
         <strong>Apply:</strong>
-        The <span class="keybinding">,</span><span class="keybinding">a</span>
+        The <span class="k">,</span><span class="k">a</span>
         command takes three expressions from the stack, combining them into an
         infix expression.  The stack top becomes the infix operator.  For example:
         <code>x\enspace y\enspace \circledast \Rightarrow x\circledast y</code>
       </p>
       <p id="conjunction_anchor">
         <strong>Conjunction:</strong>
-        The <span class="keybinding">,</span><span class="keybinding">&#39;</span>
+        The <span class="k">,</span><span class="k">&#39;</span>
         command is for combining two expressions with an English phrase between them,
         with some extra spacing.
         Several of these are already available via dedicated commands such as
-        <span class="keybinding">,</span><span class="keybinding">F</span> which
+        <span class="k">,</span><span class="k">F</span> which
         creates: <code>x\quad\mathrm{iff}\quad y</code>.
         This <em>conjunction</em> command starts a special text entry mode where you can
-        type in whatever phrase you want instead.  Using <span class="keybinding">Enter</span>
-        creates an ordinary conjunction, while <span class="keybinding">Shift+Enter</span>
+        type in whatever phrase you want instead.  Using <span class="k">Enter</span>
+        creates an ordinary conjunction, while <span class="k">Shift+Enter</span>
         will make it bolded.
       </p>
 
       <h2 id="help_relational">
-        <span class="keybinding">=</span> Relational Operators
+        <span class="k">=</span> Relational Operators
       </h2>
       <p>
-        Similar to <span class="keybinding">,</span>, these commands combine two expressions
+        Similar to <span class="k">,</span>, these commands combine two expressions
         into an "equation" by placing a relational operator between them.
       </p>
 
       <p>Equality-like relations:</p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">a</span> <code>x\approx y</code> <em>(approx)</em></td>
-            <td><span class="keybinding">c</span> <code>x\cong y</code> <em>(congruent)</em></td>
+            <td><span class="k">a</span> <code>x\approx y</code> <em>(approx)</em></td>
+            <td><span class="k">c</span> <code>x\cong y</code> <em>(congruent)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">e</span> <code>x\equiv y</code></td>
-            <td><span class="keybinding">E</span> <code>x\iff y</code></td>
+            <td><span class="k">e</span> <code>x\equiv y</code></td>
+            <td><span class="k">E</span> <code>x\iff y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">f</span> <code>x\Leftarrow y</code> <em>(from)</em></td>
-            <td><span class="keybinding">i</span> <code>x\in y</code> <em>(in)</em></td>
+            <td><span class="k">f</span> <code>x\Leftarrow y</code> <em>(from)</em></td>
+            <td><span class="k">i</span> <code>x\in y</code> <em>(in)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">I</span> <code>x\notin y</code></td>
-            <td><span class="keybinding">m</span> <code>x\mapsto y</code> <em>(maps to)</em></td>
+            <td><span class="k">I</span> <code>x\notin y</code></td>
+            <td><span class="k">m</span> <code>x\mapsto y</code> <em>(maps to)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">o</span> <code>x\circeq y</code></td>
-            <td><span class="keybinding">=</span> or <span class="keybinding">q</span> <code>x = y</code></td>
+            <td><span class="k">o</span> <code>x\circeq y</code></td>
+            <td><span class="k">=</span> or <span class="k">q</span> <code>x = y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">!</span> or <span class="keybinding">n</span> <code>x\ne y</code></td>
-            <td><span class="keybinding">p</span> <code>x\propto y</code> <em>(proportional)</em></td>
+            <td><span class="k">!</span> or <span class="k">n</span> <code>x\ne y</code></td>
+            <td><span class="k">p</span> <code>x\propto y</code> <em>(proportional)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">;</span> <code>x\coloncolon y</code></td>
-            <td><span class="keybinding">:</span> <code>x\coloneqq y</code></td>
+            <td><span class="k">;</span> <code>x\coloncolon y</code></td>
+            <td><span class="k">:</span> <code>x\coloneqq y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">~</span> or <span class="keybinding">t</span> <code>x\sim y</code></td>
-            <td><span class="keybinding">.</span> <code>x\doteq y</code></td>
+            <td><span class="k">~</span> or <span class="k">t</span> <code>x\sim y</code></td>
+            <td><span class="k">.</span> <code>x\doteq y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">^</span> <code>x\triangleq y</code></td>
-            <td><span class="keybinding">?</span> <code>x\stackrel{?}{=} y</code></td>
+            <td><span class="k">^</span> <code>x\triangleq y</code></td>
+            <td><span class="k">?</span> <code>x\stackrel{?}{=} y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">-</span> <code>x\vdash y</code></td>
-            <td><span class="keybinding">|</span> <code>x\vDash y</code></td>
+            <td><span class="k">-</span> <code>x\vdash y</code></td>
+            <td><span class="k">|</span> <code>x\vDash y</code></td>
           </tr>
       </tbody></table>
 
       <p>Ordering relations:</p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">l</span> <code>x &lt; y</code></td>
-            <td><span class="keybinding">g</span> <code>x &gt; y</code></td>
+            <td><span class="k">l</span> <code>x &lt; y</code></td>
+            <td><span class="k">g</span> <code>x &gt; y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">&lt;</span> or <span class="keybinding">[</span> <code>x\le y</code></td>
-            <td><span class="keybinding">&gt;</span> or <span class="keybinding">]</span> <code>x\ge y</code></td>
+            <td><span class="k">&lt;</span> or <span class="k">[</span> <code>x\le y</code></td>
+            <td><span class="k">&gt;</span> or <span class="k">]</span> <code>x\ge y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">L</span> <code>x\ll y</code></td>
-            <td><span class="keybinding">G</span> <code>x\gg y</code></td>
+            <td><span class="k">L</span> <code>x\ll y</code></td>
+            <td><span class="k">G</span> <code>x\gg y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">{</span> <code>x\lll y</code></td>
-            <td><span class="keybinding">}</span> <code>x\ggg y</code></td>
+            <td><span class="k">{</span> <code>x\lll y</code></td>
+            <td><span class="k">}</span> <code>x\ggg y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">s</span> <code>x\subset y</code></td>
-            <td><span class="keybinding">S</span> <code>x\subseteq y</code></td>
+            <td><span class="k">s</span> <code>x\subset y</code></td>
+            <td><span class="k">S</span> <code>x\subseteq y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">u</span> <code>x\supset y</code></td>
-            <td><span class="keybinding">U</span> <code>x\supseteq y</code></td>
+            <td><span class="k">u</span> <code>x\supset y</code></td>
+            <td><span class="k">U</span> <code>x\supseteq y</code></td>
           </tr>
       </tbody></table>
 
       <p>
-        Variants of the above are available with the <span class="keybinding">2</span> subprefix:
+        Variants of the above are available with the <span class="k">2</span> subprefix:
       </p>
 
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">l</span> <code>x\prec y</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">g</span> <code>x\succ y</code></td>
+            <td><span class="k">2</span><span class="k">l</span> <code>x\prec y</code></td>
+            <td><span class="k">2</span><span class="k">g</span> <code>x\succ y</code></td>
           </tr>
           <tr>
             <td>
-              <span class="keybinding">2</span><span class="keybinding">&lt;</span> or
-              <span class="keybinding">2</span><span class="keybinding">[</span> <code>x\preceq y</code>
+              <span class="k">2</span><span class="k">&lt;</span> or
+              <span class="k">2</span><span class="k">[</span> <code>x\preceq y</code>
             </td>
             <td>
-              <span class="keybinding">2</span><span class="keybinding">&gt;</span> or
-              <span class="keybinding">2</span><span class="keybinding">]</span> <code>x\succeq y</code>
+              <span class="k">2</span><span class="k">&gt;</span> or
+              <span class="k">2</span><span class="k">]</span> <code>x\succeq y</code>
             </td>
           </tr>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">L</span> <code>x\leqslant y</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">G</span> <code>x\geqslant y</code></td>
+            <td><span class="k">2</span><span class="k">L</span> <code>x\leqslant y</code></td>
+            <td><span class="k">2</span><span class="k">G</span> <code>x\geqslant y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">s</span> <code>x\sqsubset y</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">S</span> <code>x\sqsubseteq y</code></td>
+            <td><span class="k">2</span><span class="k">s</span> <code>x\sqsubset y</code></td>
+            <td><span class="k">2</span><span class="k">S</span> <code>x\sqsubseteq y</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">u</span> <code>x\sqsupset y</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">U</span> <code>x\sqsupseteq y</code></td>
+            <td><span class="k">2</span><span class="k">u</span> <code>x\sqsupset y</code></td>
+            <td><span class="k">2</span><span class="k">U</span> <code>x\sqsupseteq y</code></td>
           </tr>
       </tbody></table>
       
       <p>
         <strong>NOTE:</strong> &quot;Negated&quot; forms of relational operators can be
-        created with the <span class="keybinding">/</span><span class="keybinding">!</span>
+        created with the <span class="k">/</span><span class="k">!</span>
         command.  For example:
         <code>x\subseteq y \Rightarrow x\not\subseteq y</code>
       </p>
 
       <h2 id="help_operators">
-        <span class="keybinding">/</span> Functions and Operators
+        <span class="k">/</span> Functions and Operators
       </h2>
       <p>
         This prefix has commands for building different kinds of expression structures and
@@ -1045,134 +1045,134 @@
       <p><strong>Algebra and Calculus:</strong></p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">1</span> <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code></td>
-            <td><span class="keybinding">a</span> or <span class="keybinding">/</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code></td>
+            <td><span class="k">1</span> <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code></td>
+            <td><span class="k">a</span> or <span class="k">/</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">l</span> <code>x \Rightarrow \lim\limits_x</code></td>
-            <td><span class="keybinding">L</span> <code>x\enspace y \Rightarrow \lim\limits_{x\to y}</code></td>
+            <td><span class="k">l</span> <code>x \Rightarrow \lim\limits_x</code></td>
+            <td><span class="k">L</span> <code>x\enspace y \Rightarrow \lim\limits_{x\to y}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">b</span> <code>x\enspace y \Rightarrow \displaystyle{\binom{x}{y}}</code></td>
-            <td><span class="keybinding">g</span> <code>x\enspace y \Rightarrow \displaystyle{\int_x^y}</code></td>
+            <td><span class="k">b</span> <code>x\enspace y \Rightarrow \displaystyle{\binom{x}{y}}</code></td>
+            <td><span class="k">g</span> <code>x\enspace y \Rightarrow \displaystyle{\int_x^y}</code></td>
           </tr>
           <tr>
             <td>
-              <span class="keybinding">=</span>
+              <span class="k">=</span>
               <code>x\enspace y\enspace z \Rightarrow \displaystyle\sum_{x=y}^z</code>
             </td>
             <td>
-              <span class="keybinding">+</span>
+              <span class="k">+</span>
               <code>x\enspace y \Rightarrow \displaystyle\sum_{x\ge y}^{\phantom z}</code>
             </td>
           </tr>
           <tr>
-            <td><span class="keybinding">q</span> <code>\sqrt{x}</code></td>
-            <td><span class="keybinding">Q</span> <code>\sqrt[3]{x}</code></td>
+            <td><span class="k">q</span> <code>\sqrt{x}</code></td>
+            <td><span class="k">Q</span> <code>\sqrt[3]{x}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">e</span> <code>\mathrm{e}^x</code></td>
-            <td><span class="keybinding">E</span> <code>\exp x</code></td>
+            <td><span class="k">e</span> <code>\mathrm{e}^x</code></td>
+            <td><span class="k">E</span> <code>\exp x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">n</span> <code>\ln{x}</code></td>
-            <td><span class="keybinding">N</span> <code>\log{x}</code></td>
+            <td><span class="k">n</span> <code>\ln{x}</code></td>
+            <td><span class="k">N</span> <code>\log{x}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">n</span> <code>\lg{x}</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">N</span> <code>\log_2{x}</code></td>
+            <td><span class="k">2</span><span class="k">n</span> <code>\lg{x}</code></td>
+            <td><span class="k">2</span><span class="k">N</span> <code>\log_2{x}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">m</span> <code>\operatorname{Im} x</code></td>
-            <td><span class="keybinding">M</span> <code>\operatorname{Re} x</code></td>
+            <td><span class="k">m</span> <code>\operatorname{Im} x</code></td>
+            <td><span class="k">M</span> <code>\operatorname{Re} x</code></td>
           </tr>
       </tbody></table>
 
       <p><strong>Trigonometric Functions:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">s</span> <code>\sin x</code>&nbsp;
-          <span class="keybinding">c</span> <code>\cos x</code>&nbsp;
-          <span class="keybinding">t</span> <code>\tan x</code>&nbsp;
+          <span class="k">s</span> <code>\sin x</code>&nbsp;
+          <span class="k">c</span> <code>\cos x</code>&nbsp;
+          <span class="k">t</span> <code>\tan x</code>&nbsp;
         </li>
         <li>
-          <span class="keybinding">S</span> <code>\sec x</code>&nbsp;
-          <span class="keybinding">C</span> <code>\csc x</code>&nbsp;
-          <span class="keybinding">T</span> <code>\cot x</code>&nbsp;
+          <span class="k">S</span> <code>\sec x</code>&nbsp;
+          <span class="k">C</span> <code>\csc x</code>&nbsp;
+          <span class="k">T</span> <code>\cot x</code>&nbsp;
         </li>
-        <li><span class="keybinding">-</span> <em>inverse</em> mode (see below)</li>
-        <li><span class="keybinding">h</span> <em>hyperbolic</em> mode</li>
-        <li><span class="keybinding">2</span> <em>squared</em> mode</li>
+        <li><span class="k">-</span> <em>inverse</em> mode (see below)</li>
+        <li><span class="k">h</span> <em>hyperbolic</em> mode</li>
+        <li><span class="k">2</span> <em>squared</em> mode</li>
       </ul>
       <p>
-        Using <span class="keybinding">-</span> or <span class="keybinding">h</span> or
-        <span class="keybinding">2</span> before the other trigonometric commands
+        Using <span class="k">-</span> or <span class="k">h</span> or
+        <span class="k">2</span> before the other trigonometric commands
         gives inverse, hyperbolic, and squared forms of the functions, respectively:
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">/</span><span class="keybinding">-</span><span class="keybinding">c</span>
+          <span class="k">/</span><span class="k">-</span><span class="k">c</span>
           <code>x \Rightarrow \cos^{-1} x</code>
         </li>
         <li>
-          <span class="keybinding">/</span><span class="keybinding">h</span><span class="keybinding">T</span>
+          <span class="k">/</span><span class="k">h</span><span class="k">T</span>
           <code>x \Rightarrow \coth x</code>
         </li>
         <li>
-          <span class="keybinding">/</span><span class="keybinding">-</span><span class="keybinding">h</span><span class="keybinding">S</span>
+          <span class="k">/</span><span class="k">-</span><span class="k">h</span><span class="k">S</span>
           <code>x \Rightarrow \operatorname{sech}^{-1} x</code>
         </li>
         <li>
-          <span class="keybinding">/</span><span class="keybinding">2</span><span class="keybinding">t</span>
+          <span class="k">/</span><span class="k">2</span><span class="k">t</span>
           <code>x \Rightarrow \tan^2 x</code>
         </li>
       </ul>
 
       <p><strong>Function Application:</strong></p>
       <ul class="keybindings">
-        <li><span class="keybinding">o</span> <code>f\enspace x \Rightarrow f(x)</code></li>
-        <li><span class="keybinding">r</span> <code>f\enspace x\enspace y \Rightarrow f(x,y)</code></li>
-        <li><span class="keybinding">R</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code></li>
-        <li><span class="keybinding">k</span> <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code> <em>(&quot;<strong>k</strong>onditional&quot;)</em></li>
-        <li><span class="keybinding">K</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code></li>
-        <li><span class="keybinding">[</span> <code>f\enspace x \Rightarrow f[x]</code></li>
-        <li><span class="keybinding">]</span> <code>f\enspace x \Rightarrow f\{x\}</code></li>
+        <li><span class="k">o</span> <code>f\enspace x \Rightarrow f(x)</code></li>
+        <li><span class="k">r</span> <code>f\enspace x\enspace y \Rightarrow f(x,y)</code></li>
+        <li><span class="k">R</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code></li>
+        <li><span class="k">k</span> <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code> <em>(&quot;<strong>k</strong>onditional&quot;)</em></li>
+        <li><span class="k">K</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code></li>
+        <li><span class="k">[</span> <code>f\enspace x \Rightarrow f[x]</code></li>
+        <li><span class="k">]</span> <code>f\enspace x \Rightarrow f\{x\}</code></li>
       </ul>
       <p>
         <strong>NOTE:</strong>
         These commands should be used instead of simply concatenating the function name to
-        its (parenthesized) argument(s) with <span class="keybinding">&nbsp;</span>.
+        its (parenthesized) argument(s) with <span class="k">&nbsp;</span>.
         The spacing is tighter to match normal function notation.
         Compare: <code>f{\left(x\right)}</code> vs. <code>f\left(x\right)</code>.
         Other function call types can be created by first building an argument list such as
         <code>x,y\,|\,z,w</code> and then applying to <code>f</code> with
-        <span class="keybinding">/</span><span class="keybinding">o</span>.
+        <span class="k">/</span><span class="k">o</span>.
       </p>
       <p>
         Some common function application patterns can be created directly with
-        <span class="keybinding">Ctrl</span> key shortcuts:
+        <span class="k">Ctrl</span> key shortcuts:
         <ul class="keybindings">
-          <li><span class="keybinding">Ctrl+x</span><code>\quad f\Rightarrow f(x)</code></li>
-          <li><span class="keybinding">Ctrl+t</span><code>\quad f\Rightarrow f(t)</code></li>
-          <li><span class="keybinding">Ctrl+f</span><code>\quad x\Rightarrow f(x)</code></li>
-          <li><span class="keybinding">Ctrl+g</span><code>\quad x\Rightarrow g(x)</code></li>
+          <li><span class="k">Ctrl+x</span><code>\quad f\Rightarrow f(x)</code></li>
+          <li><span class="k">Ctrl+t</span><code>\quad f\Rightarrow f(t)</code></li>
+          <li><span class="k">Ctrl+f</span><code>\quad x\Rightarrow f(x)</code></li>
+          <li><span class="k">Ctrl+g</span><code>\quad x\Rightarrow g(x)</code></li>
         </ul>
       </p>
 
       <p><strong>Vertical Stacking:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">{</span> <code>x\enspace y \Rightarrow \overbrace{x}^y</code>
+          <span class="k">{</span> <code>x\enspace y \Rightarrow \overbrace{x}^y</code>
           &nbsp;&nbsp;
-          <span class="keybinding">}</span> <code>x\enspace y \Rightarrow \underbrace{x}_y</code>
+          <span class="k">}</span> <code>x\enspace y \Rightarrow \underbrace{x}_y</code>
         </li>
         <li>
-          <span class="keybinding">O</span> <code>x\enspace y \Rightarrow \overset{y}{x}</code>
+          <span class="k">O</span> <code>x\enspace y \Rightarrow \overset{y}{x}</code>
           &nbsp;&nbsp;
-          <span class="keybinding">U</span> <code>x\enspace y \Rightarrow \underset{y}{x}</code>
+          <span class="k">U</span> <code>x\enspace y \Rightarrow \underset{y}{x}</code>
         </li>
         <!-- <li>
-          <span class="keybinding">J</span> <code>x\enspace y \Rightarrow \displaystyle{x\atop y}\enspace</code>
+          <span class="k">J</span> <code>x\enspace y \Rightarrow \displaystyle{x\atop y}\enspace</code>
           (<strong>j</strong>oin vertically)
         </li> -->
       </ul>
@@ -1181,40 +1181,40 @@
       <table class="keybindings"><tbody>
           <tr>
             <td>
-              <span class="keybinding">p</span>
+              <span class="k">p</span>
               <code>x \Rightarrow \mathbb{P}{[x]}</code>
             </td>
             <td><em>probability</em></td>
           </tr>
           <tr>
             <td>
-              <span class="keybinding">P</span>
+              <span class="k">P</span>
               <code>x\enspace y \Rightarrow \mathbb{P}{[x\,\vert\,y]}</code>
             </td>
             <td><em>conditional probability</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">v</span> <code>x \Rightarrow \mathrm{Var}{[x]}</code></td>
+            <td><span class="k">v</span> <code>x \Rightarrow \mathrm{Var}{[x]}</code></td>
             <td><em>variance</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">V</span> <code>x\enspace y \Rightarrow \mathrm{Cov}{[x,y]}</code></td>
+            <td><span class="k">V</span> <code>x\enspace y \Rightarrow \mathrm{Cov}{[x,y]}</code></td>
             <td><em>covariance</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>x \Rightarrow \mathbb{E}{\left[x\right]}</code></td>
+            <td><span class="k">x</span> <code>x \Rightarrow \mathbb{E}{\left[x\right]}</code></td>
             <td><em>expectation</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">X</span> <code>x\enspace y \Rightarrow \mathbb{E}{\left[x\,\middle\vert\,y\right]}</code></td>
+            <td><span class="k">X</span> <code>x\enspace y \Rightarrow \mathbb{E}{\left[x\,\middle\vert\,y\right]}</code></td>
             <td><em>conditional expectation</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">y</span> <code>x\enspace y \Rightarrow \mathbb{E}_y{\left[x\right]}</code></td>
+            <td><span class="k">y</span> <code>x\enspace y \Rightarrow \mathbb{E}_y{\left[x\right]}</code></td>
             <td><em>with subscript</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">Y</span> <code>x\enspace y\enspace z \Rightarrow \mathbb{E}_z{\left[x\,\middle\vert\,y\right]}</code></td>
+            <td><span class="k">Y</span> <code>x\enspace y\enspace z \Rightarrow \mathbb{E}_z{\left[x\,\middle\vert\,y\right]}</code></td>
             <td><em>conditional + subscript</em></td>
           </tr>
       </tbody></table>
@@ -1222,62 +1222,62 @@
       <p><strong>Shortcuts and Utilities:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">&nbsp;</span>
+          <span class="k">&nbsp;</span>
           <code>x\enspace y \Rightarrow yx</code> (prepend)
         </li>
         <li>
-          <span class="keybinding">w</span>
+          <span class="k">w</span>
           S<strong>w</strong>ap the left and right sides of an infix or relational expression,
           or the numerator and denominator of a fraction.
         </li>
         <li>
-          <span class="keybinding">z</span>
+          <span class="k">z</span>
           "Dissolve" an expression, breaking it apart into its component parts if possible.
           Delimiters will be removed, fractions disassembled, and matrix elements put
           on the stack in row-major order.
         </li>
         <li>
-          <span class="keybinding">|</span> <code>x\enspace y \Rightarrow \left.x\right\vert_{y}</code>
+          <span class="k">|</span> <code>x\enspace y \Rightarrow \left.x\right\vert_{y}</code>
           &nbsp;&nbsp;&quot;Where&quot; notation, for example:
           <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
         </li>
         <li>
-          <span class="keybinding">^</span> <code>x\enspace y \Rightarrow x\cdot{10}^y</code>
+          <span class="k">^</span> <code>x\enspace y \Rightarrow x\cdot{10}^y</code>
           &nbsp;&nbsp;Scientific notation, for example:
           <code>1.23\cdot{10}^{-4}</code>
         </li>
         <li>
-          <span class="keybinding">Enter</span> <code>x\enspace y\enspace z \Rightarrow x_y^z</code>
+          <span class="k">Enter</span> <code>x\enspace y\enspace z \Rightarrow x_y^z</code>
           (shortcut for adding a subscript and superscript at once)
         </li>
         <li>
-          <span class="keybinding">&lt;</span> or <span class="keybinding">&gt;</span>
+          <span class="k">&lt;</span> or <span class="k">&gt;</span>
           Extract the left or right side of an infix or relational expression.
           The split will be based on the operator most recently used to create the infix
           expression.  For fractions, the numerator or denominator is extracted.
         </li>
         <li>
-          <span class="keybinding">!</span>
+          <span class="k">!</span>
           &quot;Negate&quot; a relational operator in an infix expression by putting a slash through it.
           If already negated, the slash is removed instead.  As with
-          <span class="keybinding">&lt;</span><span class="keybinding">&gt;</span>,
+          <span class="k">&lt;</span><span class="k">&gt;</span>,
           the operator most recently used to create the infix expression is the one negated.
           Example: <code>x&le;y \Rightarrow x\nleq y</code>
         </li>
         <li>
-          <span class="keybinding">&#39;</span>
+          <span class="k">&#39;</span>
           <code>f(\htmlClass{placeholder_expr}{\blacksquare}) \enspace x \Rightarrow f(x)</code>
           Substitute <code>x</code> for the first <a href="#help_placeholders">placeholder</a> in an expression.
         </li>
         <li>
-          <span class="keybinding">%</span>
+          <span class="k">%</span>
           <code>x\enspace y\enspace z \Rightarrow x_{\textrm{new}}</code>:
           Replace subexpressions within <code>x</code> matching <code>y</code>
           with a replacement <code>z</code>.
           Example: <code>\sqrt{x^2+1}\enspace x\enspace (t-1) \Rightarrow \sqrt{(t-1)^2+1}</code>
         </li>
         <li>
-          <span class="keybinding">&quot;</span>
+          <span class="k">&quot;</span>
           Toggle whether the stack top is displayed as a section header.
         </li>
       </ul>
@@ -1285,7 +1285,7 @@
       <p><strong>Equation Splitting:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">,</span>
+          <span class="k">,</span>
           Split a long equation across multiple lines.  The stack top must be an expression
           just joined with an <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operator.
           This command inserts a line break after the operator.  A second application of this command to the
@@ -1299,7 +1299,7 @@
       <p><strong>Tags:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">;</span>
+          <span class="k">;</span>
           Prompt for a text string and attach it as a &quot;tag&quot; to the expression on the stack top.
           Tags can be used as equation numbers or labels and will be displayed to the right of the tagged item.
           Note that any further operations on a tagged item will remove the tag, so tags are generally added
@@ -1307,7 +1307,7 @@
         </li>
         <li>
           <strong>NOTE:</strong>
-          Using <span class="keybinding">Shift+Enter</span> will automatically enclose the tag string
+          Using <span class="k">Shift+Enter</span> will automatically enclose the tag string
           in parentheses, useful for equation numbers like <kbd>(1)</kbd>.
         </li>
       </ul>
@@ -1319,21 +1319,21 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">d</span>
+          <span class="k">d</span>
           Subprefix for building <a href="#help_derivatives">derivative</a> expressions.
         </li>
         <li>
-          <span class="keybinding">i</span>
+          <span class="k">i</span>
           Subprefix for applying <a href="#help_integrals">integral</a> limits.
         </li>
         <li>
-          <span class="keybinding">f</span>
+          <span class="k">f</span>
           Subprefix for applying <a href="#help_named_operators">named operators</a>.
         </li>
       </ul>
 
       <h2 id="help_derivatives">
-        <span class="keybinding">/</span><span class="keybinding">d</span>
+        <span class="k">/</span><span class="k">d</span>
         Derivative Building
       </h2>
       <p>
@@ -1341,93 +1341,93 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">j</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial y}{\partial x}}</code></td>
-            <td><span class="keybinding">J</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial^2 y}{\partial x^2}}</code></td>
+            <td><span class="k">j</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial y}{\partial x}}</code></td>
+            <td><span class="k">J</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial^2 y}{\partial x^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">q</span> <code>x \Rightarrow \displaystyle{\frac{\partial}{\partial x}}</code></td>
-            <td><span class="keybinding">Q</span> <code>x \Rightarrow \displaystyle{\frac{\partial^2}{\partial x^2}}</code></td>
+            <td><span class="k">q</span> <code>x \Rightarrow \displaystyle{\frac{\partial}{\partial x}}</code></td>
+            <td><span class="k">Q</span> <code>x \Rightarrow \displaystyle{\frac{\partial^2}{\partial x^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">m</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code></td>
-            <td><span class="keybinding">M</span> <code>f\enspace x\enspace y \Rightarrow \displaystyle{\frac{\partial^2 f}{\partial x\,\partial y}}</code></td>
+            <td><span class="k">m</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code></td>
+            <td><span class="k">M</span> <code>f\enspace x\enspace y \Rightarrow \displaystyle{\frac{\partial^2 f}{\partial x\,\partial y}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{dy}{dx}}</code></td>
-            <td><span class="keybinding">K</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{d^2 y}{dx^2}}</code></td>
+            <td><span class="k">k</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{dy}{dx}}</code></td>
+            <td><span class="k">K</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{d^2 y}{dx^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>x \Rightarrow \displaystyle{\frac{d}{dx}}</code></td>
-            <td><span class="keybinding">X</span> <code>x \Rightarrow \displaystyle{\frac{d^2}{dx^2}}</code></td>
+            <td><span class="k">x</span> <code>x \Rightarrow \displaystyle{\frac{d}{dx}}</code></td>
+            <td><span class="k">X</span> <code>x \Rightarrow \displaystyle{\frac{d^2}{dx^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">p</span> <code>x \Rightarrow \partial x</code></td>
-            <td><span class="keybinding">P</span> <code>x\enspace y \Rightarrow \partial_y x</code></td>
+            <td><span class="k">p</span> <code>x \Rightarrow \partial x</code></td>
+            <td><span class="k">P</span> <code>x\enspace y \Rightarrow \partial_y x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">g</span> <code>x \Rightarrow \nabla x</code></td>
-            <td><span class="keybinding">G</span> <code>x\enspace y \Rightarrow \nabla_y x</code></td>
+            <td><span class="k">g</span> <code>x \Rightarrow \nabla x</code></td>
+            <td><span class="k">G</span> <code>x\enspace y \Rightarrow \nabla_y x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">.</span> <code>x \Rightarrow \nabla\cdot x</code></td>
-            <td><span class="keybinding">c</span> <code>x \Rightarrow \nabla\times x</code></td>
+            <td><span class="k">.</span> <code>x \Rightarrow \nabla\cdot x</code></td>
+            <td><span class="k">c</span> <code>x \Rightarrow \nabla\times x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">l</span> <code>x \Rightarrow \nabla^2 x</code></td>
-            <td><span class="keybinding">n</span> <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)</td>
+            <td><span class="k">l</span> <code>x \Rightarrow \nabla^2 x</code></td>
+            <td><span class="k">n</span> <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)</td>
           </tr>
           <tr>
-            <td><span class="keybinding">d</span> <code>x \Rightarrow dx</code></td>
-            <td><span class="keybinding">2</span> <code>x \Rightarrow d^2 x</code></td>
+            <td><span class="k">d</span> <code>x \Rightarrow dx</code></td>
+            <td><span class="k">2</span> <code>x \Rightarrow d^2 x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">3</span> <code>x \Rightarrow d^3 x</code></td>
-            <td><span class="keybinding">4</span> <code>x \Rightarrow d^4 x</code></td>
+            <td><span class="k">3</span> <code>x \Rightarrow d^3 x</code></td>
+            <td><span class="k">4</span> <code>x \Rightarrow d^4 x</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">f</span> <code>x\enspace y \Rightarrow dx \wedge dy</code></td>
-            <td><span class="keybinding">F</span> <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code></td>
+            <td><span class="k">f</span> <code>x\enspace y \Rightarrow dx \wedge dy</code></td>
+            <td><span class="k">F</span> <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code></td>
           </tr>
           <tr>
             <td colspan="2">
-              <span class="keybinding">i</span> or <span class="keybinding">I</span> or
-              <span class="keybinding">&nbsp;</span>
+              <span class="k">i</span> or <span class="k">I</span> or
+              <span class="k">&nbsp;</span>
               <code>x\enspace y \Rightarrow x\,dy</code> (see below)
             </td>
           </tr>
       </tbody></table>
       <p>
         <strong>Integral Spacing:</strong>
-        <span class="keybinding">i</span> and <span class="keybinding">I</span> and
-        <span class="keybinding">&nbsp;</span>
+        <span class="k">i</span> and <span class="k">I</span> and
+        <span class="k">&nbsp;</span>
         are meant for attaching a differential to an existing integral expression
         (or an ordinary expression as in <code>x^2\,dx</code>) with appropriate spacing.
         The difference between the three is where the spacing goes:
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">i</span> Space goes before the differential.  This is the usual
+          <span class="k">i</span> Space goes before the differential.  This is the usual
           "textbook" case, e.g.
           <code>\int x^2\,dx</code>
         </li>
         <li>
-          <span class="keybinding">I</span> Space goes after the differential, for when you want to
+          <span class="k">I</span> Space goes after the differential, for when you want to
           concatenate the integrand afterwards:
           <code>\int dx\,x^2</code>
         </li>
         <li>
-          <span class="keybinding">&nbsp;</span> No spacing around the differential, for simple cases like
+          <span class="k">&nbsp;</span> No spacing around the differential, for simple cases like
           <code>\int dx</code>
         </li>
       </ul>
       <p>
         <strong>Differential Forms:</strong>
-        The <span class="keybinding">f</span> <span class="keybinding">F</span> <span class="keybinding">E</span>
+        The <span class="k">f</span> <span class="k">F</span> <span class="k">E</span>
         commands for building differential forms will pull out minus signs as needed, as in:
         <code>-y\enspace x \Rightarrow -dy \wedge dx</code>.
         When concatenating differential forms to integral expressions, use
-        <span class="keybinding">,</span><span class="keybinding">&nbsp;</span>
-        instead of <span class="keybinding">&nbsp;</span> to avoid parenthesizing the differential form.
+        <span class="k">,</span><span class="k">&nbsp;</span>
+        instead of <span class="k">&nbsp;</span> to avoid parenthesizing the differential form.
         For example:
         <code>\int f{(x,y)}\,dx\wedge dy</code> instead of
         <code>\int f{(x,y)} \left(dx\wedge dy\right)</code>.
@@ -1439,13 +1439,13 @@
         <code>\frac{\mathrm{d}y}{\mathrm{d}x}</code> instead of
         <code>\frac{dy}{dx}</code>.
         This can be done by using the
-        <span class="keybinding">/</span><span class="keybinding">D</span>
+        <span class="k">/</span><span class="k">D</span>
         prefix instead of
-        <span class="keybinding">/</span><span class="keybinding">d</span>.
+        <span class="k">/</span><span class="k">d</span>.
       </p>
 
       <h2 id="help_integrals">
-        <span class="keybinding">/</span><span class="keybinding">i</span>
+        <span class="k">/</span><span class="k">i</span>
         Integral Limits
       </h2>
       <p>
@@ -1453,35 +1453,35 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">r</span> <code>\int \Rightarrow \int_{-\infty}^\infty</code></td>
+            <td><span class="k">r</span> <code>\int \Rightarrow \int_{-\infty}^\infty</code></td>
             <td><em>reals</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">R</span> <code>\int \Rightarrow \int_{\mathcal{R}}</code></td>
+            <td><span class="k">R</span> <code>\int \Rightarrow \int_{\mathcal{R}}</code></td>
             <td><em>alternative notation for reals</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">p</span> <code>\int \Rightarrow \int_0^\infty</code></td>
+            <td><span class="k">p</span> <code>\int \Rightarrow \int_0^\infty</code></td>
             <td><em>positive</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">n</span> <code>\int \Rightarrow \int_{-\infty}^0</code></td>
+            <td><span class="k">n</span> <code>\int \Rightarrow \int_{-\infty}^0</code></td>
             <td><em>negative</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">u</span> <code>\int \Rightarrow \int_0^1</code></td>
+            <td><span class="k">u</span> <code>\int \Rightarrow \int_0^1</code></td>
             <td><em>unit</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">U</span> <code>\int \Rightarrow \int_{-1}^1</code></td>
+            <td><span class="k">U</span> <code>\int \Rightarrow \int_{-1}^1</code></td>
             <td><em>symmetric unit</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">t</span> <code>\int \Rightarrow \int_0^{2\pi}</code></td>
+            <td><span class="k">t</span> <code>\int \Rightarrow \int_0^{2\pi}</code></td>
             <td><em>trigonometric</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">T</span> <code>\int \Rightarrow \int_{-\pi}^\pi</code></td>
+            <td><span class="k">T</span> <code>\int \Rightarrow \int_{-\pi}^\pi</code></td>
             <td><em>symmetric trigonometric</em></td>
           </tr>
       </tbody></table>
@@ -1492,66 +1492,66 @@
 
       <p>
         <strong>Integral Sign + Limits:</strong>
-        Using the prefix <span class="keybinding">/</span><span class="keybinding">I</span>
-        instead of <span class="keybinding">/</span><span class="keybinding">i</span>
+        Using the prefix <span class="k">/</span><span class="k">I</span>
+        instead of <span class="k">/</span><span class="k">i</span>
         works like the above, except that the integral sign itself is created too,
         rather than it having to exist beforehand.
         Example:
-        <span class="keybinding">/</span><span class="keybinding">I</span><span class="keybinding">r</span>
+        <span class="k">/</span><span class="k">I</span><span class="k">r</span>
         <code>\Rightarrow \int_{-\infty}^{\infty}</code>
       </p>
 
       <h2 id="help_named_operators">
-        <span class="keybinding">/</span><span class="keybinding">f</span>
+        <span class="k">/</span><span class="k">f</span>
         Named Operators
       </h2>
       <p>
         These commands attach named operators like <code>\max</code> to an expression from
         the stack.  Operators with multiple arguments need to have the arguments combined
         into one expression manually first
-        (e.g. with <span class="keybinding">,</span><span class="keybinding">,</span>).
+        (e.g. with <span class="k">,</span><span class="k">,</span>).
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">a</span> <code>\arg</code></td>
-            <td><span class="keybinding">d</span> <code>\dim</code></td>
-            <td><span class="keybinding">D</span> <code>\deg</code></td>
+            <td><span class="k">a</span> <code>\arg</code></td>
+            <td><span class="k">d</span> <code>\dim</code></td>
+            <td><span class="k">D</span> <code>\deg</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">e</span> <code>\operatorname{erf}</code></td>
-            <td><span class="keybinding">E</span> <code>\operatorname{erfc}</code></td>
-            <td><span class="keybinding">g</span> <code>\gcd</code></td>
+            <td><span class="k">e</span> <code>\operatorname{erf}</code></td>
+            <td><span class="k">E</span> <code>\operatorname{erfc}</code></td>
+            <td><span class="k">g</span> <code>\gcd</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">h</span> <code>\hom</code></td>
-            <td><span class="keybinding">i</span> <code>\inf</code></td>
-            <td><span class="keybinding">I</span> <code>\liminf</code></td>
+            <td><span class="k">h</span> <code>\hom</code></td>
+            <td><span class="k">i</span> <code>\inf</code></td>
+            <td><span class="k">I</span> <code>\liminf</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>\ker</code></td>
-            <td><span class="keybinding">l</span> <code>\lim</code></td>
-            <td><span class="keybinding">m</span> <code>\min</code></td>
+            <td><span class="k">k</span> <code>\ker</code></td>
+            <td><span class="k">l</span> <code>\lim</code></td>
+            <td><span class="k">m</span> <code>\min</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">M</span> <code>\argmin</code></td>
+            <td><span class="k">M</span> <code>\argmin</code></td>
             <td>
-              <span class="keybinding">n</span> <code>\operatorname{sgn}</code>
+              <span class="k">n</span> <code>\operatorname{sgn}</code>
               <em>(sig<strong>n</strong>)</em>
             </td>
             <td>
-              <span class="keybinding">r</span> <code>\operatorname{Tr}</code>
+              <span class="k">r</span> <code>\operatorname{Tr}</code>
               <em>(t<strong>r</strong>ace)</em>
             </td>
           </tr>
           <tr>
-            <td><span class="keybinding">s</span> <code>\sup</code></td>
-            <td><span class="keybinding">S</span> <code>\limsup</code></td>
-            <td><span class="keybinding">t</span> <code>\det</code>
+            <td><span class="k">s</span> <code>\sup</code></td>
+            <td><span class="k">S</span> <code>\limsup</code></td>
+            <td><span class="k">t</span> <code>\det</code>
               <em>(de<strong>t</strong>erminant)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">x</span> <code>\max</code></td>
-            <td><span class="keybinding">X</span> <code>\argmax</code></td>
+            <td><span class="k">x</span> <code>\max</code></td>
+            <td><span class="k">X</span> <code>\argmax</code></td>
             <td></td>
           </tr>
       </tbody></table>
@@ -1559,11 +1559,11 @@
       <p>
         <strong>NOTE:</strong> Arbitrarily-named operators can be created with
         <a href="#help_math_entry">math entry</a> mode by finishing the entry with
-        <span class="keybinding">Tab</span>.
+        <span class="k">Tab</span>.
       </p>
 
       <h2 id="help_delimiters">
-        <span class="keybinding">)</span> Delimiters
+        <span class="k">)</span> Delimiters
       </h2>
       <p>
         These commands enclose expressions in various kinds of delimiter pairs.
@@ -1571,55 +1571,55 @@
       </p>
       <p>
         Note that the most commonly-used delimiters are available directly as
-        <span class="keybinding">(</span> <span class="keybinding">[</span> <span class="keybinding">{</span>
+        <span class="k">(</span> <span class="k">[</span> <span class="k">{</span>
         without needing a prefix key.
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">b</span> <code>\left\langle x\right\vert</code> <em>(Dirac <strong>b</strong>ra)</em></td>
-            <td><span class="keybinding">c</span> <code>\left\lceil x\right\rceil</code> <em>(ceiling)</em></td>
-            <td><span class="keybinding">d</span> <code>\llbracket x\rrbracket</code></td>
+            <td><span class="k">b</span> <code>\left\langle x\right\vert</code> <em>(Dirac <strong>b</strong>ra)</em></td>
+            <td><span class="k">c</span> <code>\left\lceil x\right\rceil</code> <em>(ceiling)</em></td>
+            <td><span class="k">d</span> <code>\llbracket x\rrbracket</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">f</span> <code>\left\lfloor x\right\rfloor</code> <em>(floor)</em></td>
-            <td><span class="keybinding">g</span> <code>\left\lgroup x\right\rgroup</code> <em>(grouped)</em></td>
-            <td><span class="keybinding">i</span> <code>\left\langle x\,\middle\vert\,y\right\rangle</code> <em>(inner product)</em></td>
+            <td><span class="k">f</span> <code>\left\lfloor x\right\rfloor</code> <em>(floor)</em></td>
+            <td><span class="k">g</span> <code>\left\lgroup x\right\rgroup</code> <em>(grouped)</em></td>
+            <td><span class="k">i</span> <code>\left\langle x\,\middle\vert\,y\right\rangle</code> <em>(inner product)</em></td>
           </tr>
           <tr>
-            <td><span class="keybinding">I</span> <code>\left\langle x\,\middle\vert\,y\,\middle\vert\,z\right\rangle</code></td>
-            <td><span class="keybinding">k</span> <code>\left\vert x\right\rangle</code> <em>(Dirac <strong>k</strong>et)</em></td>
-            <td><span class="keybinding">m</span> <code>\left\lmoustache x\right\rmoustache</code></td>
+            <td><span class="k">I</span> <code>\left\langle x\,\middle\vert\,y\,\middle\vert\,z\right\rangle</code></td>
+            <td><span class="k">k</span> <code>\left\vert x\right\rangle</code> <em>(Dirac <strong>k</strong>et)</em></td>
+            <td><span class="k">m</span> <code>\left\lmoustache x\right\rmoustache</code></td>
           </tr>
           <tr>
             <td>
-              <span class="keybinding">n</span> or <span class="keybinding">N</span>
+              <span class="k">n</span> or <span class="k">N</span>
               <code>\left\lVert x\right\rVert</code> <em>(norm)</em>
             </td>
-            <td><span class="keybinding">o</span> <code>\left(x\right]</code> <em>(half-<strong>o</strong>pen)</em></td>
-            <td><span class="keybinding">O</span> <code>\left[x\right)</code></td>
+            <td><span class="k">o</span> <code>\left(x\right]</code> <em>(half-<strong>o</strong>pen)</em></td>
+            <td><span class="k">O</span> <code>\left[x\right)</code></td>
           </tr>
           <tr>
             <td>
-              <span class="keybinding">w</span> or <span class="keybinding">W</span>
+              <span class="k">w</span> or <span class="k">W</span>
               <code>\left. x\right\vert</code> <em>(where)</em>
             </td>
-            <td><span class="keybinding">|</span> <code>\left\vert x\right\vert</code></td>
-            <td><span class="keybinding">&lt;</span> <code>\left\langle x\right\rangle</code></td>
+            <td><span class="k">|</span> <code>\left\vert x\right\vert</code></td>
+            <td><span class="k">&lt;</span> <code>\left\langle x\right\rangle</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">(</span> <code>\left( x\right.</code></td>
-            <td><span class="keybinding">)</span> <code>\left. x\right)</code></td>
-            <td><span class="keybinding">[</span> <code>\left[ x\right.</code></td>
+            <td><span class="k">(</span> <code>\left( x\right.</code></td>
+            <td><span class="k">)</span> <code>\left. x\right)</code></td>
+            <td><span class="k">[</span> <code>\left[ x\right.</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">]</span> <code>\left. x\right]</code></td>
-            <td><span class="keybinding">{</span> <code>\left\{ x\right.</code></td>
-            <td><span class="keybinding">}</span> <code>\left. x\right\}</code></td>
+            <td><span class="k">]</span> <code>\left. x\right]</code></td>
+            <td><span class="k">{</span> <code>\left\{ x\right.</code></td>
+            <td><span class="k">}</span> <code>\left. x\right\}</code></td>
           </tr>
           <tr>
             <td colspan="3">
-              <span class="keybinding">.</span> or
-              <span class="keybinding">&nbsp;</span>
+              <span class="k">.</span> or
+              <span class="k">&nbsp;</span>
               <em>blank</em> (see below)
             </td>
           </tr>
@@ -1633,30 +1633,30 @@
             <td><code>x\,\vert\,y</code></td>
             <td>created by</td>
             <td>
-              <span class="keybinding">,</span><span class="keybinding">k</span> or
-              <span class="keybinding">,</span><span class="keybinding">|</span>
+              <span class="k">,</span><span class="k">k</span> or
+              <span class="k">,</span><span class="k">|</span>
             </td>
           </tr>
           <tr>
             <td><code>x\parallel y</code></td>
             <td>created by</td>
-            <td><span class="keybinding">,</span><span class="keybinding">l</span></td>
+            <td><span class="k">,</span><span class="k">l</span></td>
           </tr>
           <tr>
             <td><code>x/y</code></td>
             <td>created by</td>
-            <td><span class="keybinding">,</span><span class="keybinding">/</span></td>
+            <td><span class="k">,</span><span class="k">/</span></td>
           </tr>
           <tr>
             <td><code>x\backslash y</code></td>
             <td>created by</td>
-            <td><span class="keybinding">,</span><span class="keybinding">\</span></td>
+            <td><span class="k">,</span><span class="k">\</span></td>
           </tr>
       </tbody></table>
       <p>
         Because of this, you can give these operators a flexible size anywhere by using
-        <em>blank</em> delimiters via <span class="keybinding">)</span><span class="keybinding">.</span> or
-        <span class="keybinding">)</span><span class="keybinding">&nbsp;</span>.
+        <em>blank</em> delimiters via <span class="k">)</span><span class="k">.</span> or
+        <span class="k">)</span><span class="k">&nbsp;</span>.
         For example:
         <code>\displaystyle x/\frac{1}{\sqrt x} \Rightarrow \left.x\middle/\frac{1}{\sqrt x}\right.</code>
       </p>
@@ -1665,70 +1665,70 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">F</span>
+          <span class="k">F</span>
           Change the existing delimiters of the stack top to be of fixed size rather
           than expanding to fit their contents.
         </li>
         <li>
-          <span class="keybinding">x</span> or <span class="keybinding">X</span>
+          <span class="k">x</span> or <span class="k">X</span>
           Remove delimiters from the stack top if it has any.
         </li>
         <li>
-          <span class="keybinding">l</span> or <span class="keybinding">L</span>
+          <span class="k">l</span> or <span class="k">L</span>
           Alter the left delimiter of the stack top.
         </li>
         <li>
-          <span class="keybinding">r</span> or <span class="keybinding">R</span>
+          <span class="k">r</span> or <span class="k">R</span>
           Alter the right delimiter of the stack top.
         </li>
       </ul>
       <p>
-        These last two commands <span class="keybinding">l</span> and <span class="keybinding">r</span>
+        These last two commands <span class="k">l</span> and <span class="k">r</span>
         change an existing delimiter, or add a new one if none is present.
         After entering one of these commands, select the delimiter type from
         one of the following:
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">&lt;</span> <code>\left\langle\right.</code></td>
-            <td><span class="keybinding">&gt;</span> <code>\left.\right\rangle</code></td>
-            <td><span class="keybinding">(</span> <code>\left(\right.</code></td>
-            <td><span class="keybinding">)</span> <code>\left.\right)</code></td>
+            <td><span class="k">&lt;</span> <code>\left\langle\right.</code></td>
+            <td><span class="k">&gt;</span> <code>\left.\right\rangle</code></td>
+            <td><span class="k">(</span> <code>\left(\right.</code></td>
+            <td><span class="k">)</span> <code>\left.\right)</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">[</span> <code>\left[\right.</code></td>
-            <td><span class="keybinding">]</span> <code>\left.\right]</code></td>
-            <td><span class="keybinding">{</span> <code>\left\{\right.</code></td>
-            <td><span class="keybinding">}</span> <code>\left.\right\}</code></td>
+            <td><span class="k">[</span> <code>\left[\right.</code></td>
+            <td><span class="k">]</span> <code>\left.\right]</code></td>
+            <td><span class="k">{</span> <code>\left\{\right.</code></td>
+            <td><span class="k">}</span> <code>\left.\right\}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">g</span> <code>\left\lgroup\right.</code></td>
-            <td><span class="keybinding">G</span> <code>\left.\right\rgroup</code></td>
-            <td><span class="keybinding">m</span> <code>\left\lmoustache\right.</code></td>
-            <td><span class="keybinding">M</span> <code>\left.\right\rmoustache</code></td>
+            <td><span class="k">g</span> <code>\left\lgroup\right.</code></td>
+            <td><span class="k">G</span> <code>\left.\right\rgroup</code></td>
+            <td><span class="k">m</span> <code>\left\lmoustache\right.</code></td>
+            <td><span class="k">M</span> <code>\left.\right\rmoustache</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">n</span> <code>\left.\right\Vert</code></td>
-            <td><span class="keybinding">c</span> <code>\left\lceil\right.</code></td>
-            <td><span class="keybinding">C</span> <code>\left.\right\rceil</code></td>
-            <td><span class="keybinding">f</span> <code>\left\lfloor\right.</code></td>
+            <td><span class="k">n</span> <code>\left.\right\Vert</code></td>
+            <td><span class="k">c</span> <code>\left\lceil\right.</code></td>
+            <td><span class="k">C</span> <code>\left.\right\rceil</code></td>
+            <td><span class="k">f</span> <code>\left\lfloor\right.</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">F</span> <code>\left.\right\rfloor</code></td>
-            <td><span class="keybinding">|</span> <code>\left.\right|</code></td>
-            <td><span class="keybinding">/</span> <code>\left.\right/</code></td>
-            <td><span class="keybinding">\</span> <code>\left.\right\backslash</code></td>
+            <td><span class="k">F</span> <code>\left.\right\rfloor</code></td>
+            <td><span class="k">|</span> <code>\left.\right|</code></td>
+            <td><span class="k">/</span> <code>\left.\right/</code></td>
+            <td><span class="k">\</span> <code>\left.\right\backslash</code></td>
           </tr>
           <tr>
             <td colspan="4">
-              <span class="keybinding">.</span> or <span class="keybinding">&nbsp;</span>
+              <span class="k">.</span> or <span class="k">&nbsp;</span>
               <code>\left.\right.</code> (blank)
             </td>
           </tr>
       </tbody></table>
 
       <h2 id="help_arrays">
-        <span class="keybinding">|</span> Array Operations
+        <span class="k">|</span> Array Operations
       </h2>
       <p>
         These commands are for building and manipulating arrayed structures like
@@ -1738,9 +1738,9 @@
         <strong>NOTE:</strong>
         Several of these commands take required <em>prefix arguments</em> to indicate the number of
         items to work on.  These are entered by typing one or more digits after the
-        <span class="keybinding">|</span> key and before the subcommand key.  For example,
+        <span class="k">|</span> key and before the subcommand key.  For example,
         to build a matrix row with 3 columns you can type
-        <span class="keybinding">|</span><span class="keybinding">3</span><span class="keybinding">(</span>.
+        <span class="k">|</span><span class="k">3</span><span class="k">(</span>.
         This prefix argument is referred to as N in the descriptions below.
       </p>
       <p>
@@ -1750,46 +1750,46 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">(</span><code>\;\begin{pmatrix}a & b & c\end{pmatrix}</code></td>
-            <td><span class="keybinding">[</span><code>\;\begin{bmatrix}a & b & c\end{bmatrix}</code></td>
-            <td><span class="keybinding">{</span><code>\;\begin{Bmatrix}a & b & c\end{Bmatrix}</code></td>
+            <td><span class="k">(</span><code>\;\begin{pmatrix}a & b & c\end{pmatrix}</code></td>
+            <td><span class="k">[</span><code>\;\begin{bmatrix}a & b & c\end{bmatrix}</code></td>
+            <td><span class="k">{</span><code>\;\begin{Bmatrix}a & b & c\end{Bmatrix}</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">v</span><code>\;\begin{vmatrix}a & b & c\end{vmatrix}</code></td>
-            <td><span class="keybinding">V</span><code>\;\begin{Vmatrix}a & b & c\end{Vmatrix}</code></td>
+            <td><span class="k">v</span><code>\;\begin{vmatrix}a & b & c\end{vmatrix}</code></td>
+            <td><span class="k">V</span><code>\;\begin{Vmatrix}a & b & c\end{Vmatrix}</code></td>
             <td>
-              <span class="keybinding">m</span> or <span class="keybinding">&nbsp;</span>
+              <span class="k">m</span> or <span class="k">&nbsp;</span>
               <code>\;\begin{matrix}a & b & c\end{matrix}</code>
             </td>
           </tr>
       </tbody></table>
       <p>
         A column matrix can be entered by first building a row matrix, then transposing
-        with <span class="keybinding">|</span><span class="keybinding">T</span>.
+        with <span class="k">|</span><span class="k">T</span>.
       </p>
       <p>
         To change the bracket type of an existing matrix on the stack, use
-        <span class="keybinding">|</span><span class="keybinding">t</span> followed by one
+        <span class="k">|</span><span class="k">t</span> followed by one
         of the type keys above.  For example
-        <span class="keybinding">|</span><span class="keybinding">t</span><span class="keybinding">{</span>
+        <span class="k">|</span><span class="k">t</span><span class="k">{</span>
         changes the matrix to have curly braces.
       </p>
       <p>
         <strong>Full Matrix Building:</strong>
         An entire matrix may also be assembled at once from the stack with elements in row-major order
-        with the <span class="keybinding">x</span> command.  This takes a prefix argument indicating
+        with the <span class="k">x</span> command.  This takes a prefix argument indicating
         the number of rows, then switches into a new mode expecting the number of columns, followed by
         one of the matrix row building keys above to indicate the matrix type.
       </p>
       <p>
         For example, to build a <code>2\times 3</code> matrix from 6 elements on the stack, with square brackets, enter:
-        <span class="keybinding">|</span><span class="keybinding">2</span><span class="keybinding">x</span><span class="keybinding">3</span><span class="keybinding">[</span>.
+        <span class="k">|</span><span class="k">2</span><span class="k">x</span><span class="k">3</span><span class="k">[</span>.
       </p>
       <p>There are some shortcuts available for building common matrix and vector types:</p>
       <table class="keybindings"><tbody>
           <tr>
             <td>
-              <span class="keybinding">$</span>
+              <span class="k">$</span>
               <code>a\enspace b\enspace c\enspace d\Rightarrow
                 \begin{bmatrix} a & b \\ c & d \end{bmatrix}
               </code>
@@ -1798,13 +1798,13 @@
           </tr>
           <tr>
             <td>
-              <span class="keybinding">@</span>
+              <span class="k">@</span>
               <code>a\enspace b\Rightarrow
                 \begin{bmatrix} a \\ b \end{bmatrix}
               </code>
             </td>
             <td>
-              <span class="keybinding">#</span>
+              <span class="k">#</span>
               <code>a\enspace b\enspace c\Rightarrow
                 \begin{bmatrix} a \\ b \\ c\end{bmatrix}
               </code>
@@ -1818,28 +1818,28 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">E</span>
+          <span class="k">E</span>
           Insert spaces and ellipses before the last row and column in a matrix,
           in order to notate a matrix that is not fully written out.
         </li>
         <li>
-          <span class="keybinding">T</span>
+          <span class="k">T</span>
           Transpose a matrix by exchanging its rows and columns.
         </li>
         <li>
-          <span class="keybinding">s</span>
+          <span class="k">s</span>
           Split a matrix into its component rows, putting each row onto the stack.
-          To split by columns instead, use the <span class="keybinding">T</span> transpose
+          To split by columns instead, use the <span class="k">T</span> transpose
           command first.
         </li>
         <li>
-          <span class="keybinding">|</span> or <span class="keybinding">Enter</span>
+          <span class="k">|</span> or <span class="k">Enter</span>
           Stack N matrices (or other aligned structures) on top of each other (default 2).
           All must have the same number of columns.
           This is the main way to build matrices from individual rows.
         </li>
         <li>
-          <span class="keybinding">h</span>
+          <span class="k">h</span>
           Stack N matrices side by side (default 2).  All must have the same number of rows.
         </li>
       </ul>
@@ -1848,14 +1848,14 @@
         <strong>Row and Column Separators:</strong> These commands place separator lines between rows or columns of
         a matrix.  If lines are already there they will be removed instead.  A prefix argument may be used
         to specify which row or column the separator is to be placed after, otherwise the first row or column
-        will be used.  A <span class="keybinding">*</span> prefix argument will apply separator lines to all
+        will be used.  A <span class="k">*</span> prefix argument will apply separator lines to all
         rows or columns at once.
       </p>
       <ul class="keybindings">
-        <li><span class="keybinding">!</span> Place a solid line between columns.</li>
-        <li><span class="keybinding">:</span> Place a dashed line between columns.</li>
-        <li><span class="keybinding">-</span> Place a solid line between rows.</li>
-        <li><span class="keybinding">_</span> Place a dashed line between rows.</li>
+        <li><span class="k">!</span> Place a solid line between columns.</li>
+        <li><span class="k">:</span> Place a dashed line between columns.</li>
+        <li><span class="k">-</span> Place a solid line between rows.</li>
+        <li><span class="k">_</span> Place a dashed line between rows.</li>
       </ul>
 
       <p>
@@ -1866,18 +1866,18 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">a</span>
+          <span class="k">a</span>
           Stack N equations together aligned by their infix operator, if any.
         </li>
         <li>
-          <span class="keybinding">g</span>
+          <span class="k">g</span>
           Stack N equations together where each equation is centered on its own.
         </li>
         <li>
-          <span class="keybinding">c</span>
+          <span class="k">c</span>
           Build a list of N cases for a piecewise function definition.
           If the component items are infix expressions joined with a colon
-          (via <span class="keybinding">,</span><span class="keybinding">:</span>),
+          (via <span class="k">,</span><span class="k">:</span>),
           they will be split up and placed as the left and right parts of the case structure.
           For example:
           <br>
@@ -1894,12 +1894,12 @@
           </code>
         </li>
         <li>
-          <span class="keybinding">C</span>
+          <span class="k">C</span>
           Same as the above, but the brace is on the right instead of the left.
         </li>
         <li>
-          <span class="keybinding">f</span> and <span class="keybinding">F</span>
-          Same as <span class="keybinding">c</span> and <span class="keybinding">C</span>,
+          <span class="k">f</span> and <span class="k">F</span>
+          Same as <span class="k">c</span> and <span class="k">C</span>,
           but prepend the word "if" to the right-hand side of expressions joined with a colon.
           If there is no colon, the right-hand side becomes the word "otherwise" instead.
           For example:
@@ -1927,27 +1927,27 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">,</span>
+          <span class="k">,</span>
           <code>x_1,x_2,x_n</code>
         </li>
         <li>
-          <span class="keybinding">.</span>
+          <span class="k">.</span>
           <code>x_1,x_2,\dots,x_n</code>
         </li>
         <li>
-          <span class="keybinding">e</span>
+          <span class="k">e</span>
           <code>x_1,x_2,x_n,\dots</code>
         </li>
         <li>
-          <span class="keybinding">;</span>
+          <span class="k">;</span>
           <code>x_1;\,x_2;\,x_n</code>
         </li>
         <li>
-          <span class="keybinding">+</span>
+          <span class="k">+</span>
           <code>x_1 + x_2 + \cdots + x_n</code>
         </li>
         <li>
-          <span class="keybinding">p</span>
+          <span class="k">p</span>
           <code>x_1 + x_2 + x_n + \cdots</code>
         </li>
       </ul>
@@ -1955,7 +1955,7 @@
       <p><strong>Miscellaneous:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">k</span>
+          <span class="k">k</span>
           Build a <em>substack</em> object used for adding multiple subscripts or superscripts to a large
           operator such as <code>\sum</code>.  Place the resulting object as the subscript or superscript of
           the operator and they will be lined up in a stack underneath or above.
@@ -1963,10 +1963,10 @@
       </ul>
 
       <h2 id="help_dissect">
-        <span class="keybinding">_</span> Dissect
+        <span class="k">_</span> Dissect
       </h2>
       <p>
-        Entering <em>dissect</em> mode with <span class="keybinding">_</span> (underscore)
+        Entering <em>dissect</em> mode with <span class="k">_</span> (underscore)
         allows selecting and manipulating subexpressions of the stack top.
         This can be useful to copy out a part of an existing expression, or to replace a part
         with something else.
@@ -1984,54 +1984,54 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">]</span> or <span class="keybinding">}</span> or <span class="keybinding">&rarr;</span>
+          <span class="k">]</span> or <span class="k">}</span> or <span class="k">&rarr;</span>
           Move the selection to its nearest "sibling" to the right, if available.
         </li>
         <li>
-          <span class="keybinding">[</span> or <span class="keybinding">{</span> or <span class="keybinding">&larr;</span>
+          <span class="k">[</span> or <span class="k">{</span> or <span class="k">&larr;</span>
           Move the selection to the left instead.
         </li>
         <li>
-          <span class="keybinding">_</span> or <span class="keybinding">&darr;</span>
+          <span class="k">_</span> or <span class="k">&darr;</span>
           Descend further into the tree structure, if possible.  The leftmost subexpression will be selected.
         </li>
         <li>
-          <span class="keybinding">u</span> or <span class="keybinding">U</span> or <span class="keybinding">&uarr;</span>
+          <span class="k">u</span> or <span class="k">U</span> or <span class="k">&uarr;</span>
           Ascend the tree structure if possible, selecting a larger expression containing the current selection.
           Note that the top-level expression itself as a whole cannot be selected.
         </li>
         <li>
-          <span class="keybinding">x</span> or <span class="keybinding">X</span> or <span class="keybinding">&#39;</span>
+          <span class="k">x</span> or <span class="k">X</span> or <span class="k">&#39;</span>
           <strong>Extract</strong> the currently selected subexpression, replacing it with a
           <a href="#help_placeholders">placeholder</a>.  The extracted subexpression will be left on the stack
           top, where it can be further manipulated or replaced with normal commands, and then re-substituted
-          back into the original expression using <span class="keybinding">/</span><span class="keybinding">&#39;</span>.
+          back into the original expression using <span class="k">/</span><span class="k">&#39;</span>.
         </li>
         <li>
-          <span class="keybinding">d</span> or <span class="keybinding">D</span> or <span class="keybinding">Backspace</span>
+          <span class="k">d</span> or <span class="k">D</span> or <span class="k">Backspace</span>
           <strong>Delete</strong> the currently selected subexpression, replacing it with a placeholder.
-          Same as <span class="keybinding">x</span>, but the selected subexpression is not left on the stack.
+          Same as <span class="k">x</span>, but the selected subexpression is not left on the stack.
         </li>
         <li>
-          <span class="keybinding">c</span> or <span class="keybinding">C</span>
+          <span class="k">c</span> or <span class="k">C</span>
           <strong>Copy</strong> the currently selected subexpression.  Same as
-          <span class="keybinding">x</span>, but a placeholder is not inserted (the original
+          <span class="k">x</span>, but a placeholder is not inserted (the original
           expression is left unmodified).
         </li>
         <li>
-          <span class="keybinding">t</span> or <span class="keybinding">T</span>
+          <span class="k">t</span> or <span class="k">T</span>
           <strong>Trim</strong> down to the currently selected subexpression.
-          Same as <span class="keybinding">x</span>, but only the selected subexpression is left
+          Same as <span class="k">x</span>, but only the selected subexpression is left
           on the stack.
         </li>
         <li>
-          <span class="keybinding">q</span> or <span class="keybinding">Q</span> or <span class="keybinding">Esc</span>
+          <span class="k">q</span> or <span class="k">Q</span> or <span class="k">Esc</span>
           Cancel out of <em>dissect</em> mode.
         </li>
       </ul>
 
       <h2 id="help_cas">
-        <span class="keybinding">#</span> Symbolic Algebra
+        <span class="k">#</span> Symbolic Algebra
       </h2>
       <p>
         These commands perform symbolic algebra and calculus operations on expressions
@@ -2056,13 +2056,13 @@
       <p><strong>Algebra:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">#</span>
+          <span class="k">#</span>
           &quot;Run&quot; an expression through Algebrite, evaluating any indicated
           operations like <code>5^2</code> and performing default simplifications
           such as combining like terms.
         </li>
         <li>
-          <span class="keybinding">x</span> and <span class="keybinding">X</span>
+          <span class="k">x</span> and <span class="k">X</span>
           E<strong>x</strong>pand a polynomial or rational function, rewriting with partial fractions if possible:
           <code>\displaystyle{
             \frac{{\left(x+3\right)}^2}{\left(x+1\right)\left(x+2\right)}
@@ -2070,7 +2070,7 @@
           </code>
         </li>
         <li>
-          <span class="keybinding">f</span> and <span class="keybinding">F</span>
+          <span class="k">f</span> and <span class="k">F</span>
           Factor a polynomial over the integers:
           <code>\displaystyle{
             x^3-1 \Rightarrow \left(x-1\right)\left(x^2+x+1\right)}
@@ -2079,7 +2079,7 @@
           <code>123456 \Rightarrow 2^6\cdot 3\cdot 643</code>
         </li>
         <li>
-          <span class="keybinding">c</span> and <span class="keybinding">C</span>
+          <span class="k">c</span> and <span class="k">C</span>
           Complete the square in an expression by rewriting in a way that eliminates
           the term linear in a variable:
           <code>2x^2-3x+1 \Rightarrow
@@ -2088,14 +2088,14 @@
           Any extra terms like <code>x^3</code> or <code>\sin x</code> are left alone.
         </li>
         <li>
-          <span class="keybinding">r</span>
+          <span class="k">r</span>
           Rationalize an expression by putting everything over a common denominator:
           <code>\displaystyle{
             \frac{1}{x+1}+\frac{1}{x-1}\Rightarrow\frac{2x}{\left(x-1\right)\left(x+1\right)}}
           </code>
         </li>
         <li>
-          <span class="keybinding">s</span>
+          <span class="k">s</span>
           Attempt to rewrite an expression in a <strong>s</strong>impler form:
           <code>\displaystyle{
             \frac{\left(x+2\right)!}{x!} \Rightarrow
@@ -2103,42 +2103,42 @@
           </code>
         </li>
         <li>
-          <span class="keybinding">w</span> and <span class="keybinding">W</span>
+          <span class="k">w</span> and <span class="k">W</span>
           <em>(<strong>w</strong>here)</em>
           Substitute a value for a variable in an expression:
-          <span class="keybinding">w</span>
+          <span class="k">w</span>
           <code>x^2\enspace 10 \Rightarrow 100</code>
-          or <span class="keybinding">W</span>
+          or <span class="k">W</span>
           <code>x+y\enspace y\enspace 10 \Rightarrow x+10</code>.
-          Note that with <span class="keybinding">W</span>, the &quot;variable&quot;
+          Note that with <span class="k">W</span>, the &quot;variable&quot;
           can be any arbitrary expression:
           <code>3\mathrm{e}^x\enspace \mathrm{e}^x\enspace y\Rightarrow 3y</code>.
         </li>
         <li>
-          <span class="keybinding">e</span>
+          <span class="k">e</span>
           Rewrite trigonometric functions using <strong>e</strong>xponentials:
           <code>\displaystyle{
             \sin{x} \Rightarrow \frac{i{\mathrm e}^{-2ix}}{2}-\frac{i{\mathrm e}^{2ix}}{2}}
           </code>
         </li>
         <li>
-          <span class="keybinding">P</span> and <span class="keybinding">R</span>
-          Rewrite a complex value in <span class="keybinding">P</span> polar
-          or <span class="keybinding">R</span> rectangular form:
+          <span class="k">P</span> and <span class="k">R</span>
+          Rewrite a complex value in <span class="k">P</span> polar
+          or <span class="k">R</span> rectangular form:
           <code>
             \displaystyle{
               {\mathrm e}^{i\pi/3} \Leftrightarrow \frac{1}{2}+\frac{i\sqrt{3}}{2}}
           </code>
         </li>
         <li>
-          <span class="keybinding">*</span>
+          <span class="k">*</span>
           Complex conjugation:
           <code>\displaystyle{
             {\mathrm e}^{2ix}\Rightarrow{\mathrm e}^{-2ix}}
           </code>
         </li>
         <li>
-          <span class="keybinding">z</span> and <span class="keybinding">Z</span>
+          <span class="k">z</span> and <span class="k">Z</span>
           Find the (real or complex) exact roots of a polynomial if possible.
           Multiple roots are displayed as a list:
           <code>
@@ -2150,20 +2150,20 @@
           </code>
         </li>
         <li>
-          <span class="keybinding">m</span>
+          <span class="k">m</span>
           <code>f\enspace a\enspace b \Rightarrow \displaystyle{\sum_{x=a}^b f{(x)}}</code>
           or
-          <span class="keybinding">M</span>
+          <span class="k">M</span>
           <code>f\enspace x\enspace a\enspace b \Rightarrow \displaystyle{\sum_{x=a}^b f{(x)}}</code>:
           Su<strong>m</strong> <code>f{(x)}</code> for values of the variable
           ranging from <code>a</code> to <code>b</code>;
           <code>a</code> and <code>b</code> must be finite integers.
         </li>
         <li>
-          <span class="keybinding">o</span>
+          <span class="k">o</span>
           <code>f\enspace a\enspace b \Rightarrow \displaystyle{\prod_{x=a}^b f{(x)}}</code>
           or
-          <span class="keybinding">O</span>
+          <span class="k">O</span>
           <code>f\enspace x\enspace a\enspace b \Rightarrow \displaystyle{\prod_{x=a}^b f{(x)}}</code>:
           Pr<strong>o</strong>duct of <code>f{(x)}</code> values.
         </li>
@@ -2172,7 +2172,7 @@
       <p><strong>Calculus:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">d</span> and <span class="keybinding">D</span>
+          <span class="k">d</span> and <span class="k">D</span>
           Differentiate an expression:
           <code>\displaystyle{x^2\sin{x} \Rightarrow 2x\sin{x}+x^2\cos{x}}</code>.
           Generic functions like <code>f{(x)}</code> can also be handled
@@ -2183,14 +2183,14 @@
           </code>
         </li>
         <li>
-          <span class="keybinding">i</span> and <span class="keybinding">I</span>
+          <span class="k">i</span> and <span class="k">I</span>
           Attempt to calculate the indefinite integral of an expression:
           <code>\displaystyle{
             2\sin{x}\cos{x} \Rightarrow {\left(\sin{x}\right)}^2}
           </code>
         </li>
         <li>
-          <span class="keybinding">j</span>
+          <span class="k">j</span>
           <code>f\enspace a\enspace b \Rightarrow \int_a^b f{(x)}\,dx</code>:
           Attempt to calculate a definite integral.
           The integration bounds can be symbolic expressions or rational numbers.
@@ -2201,17 +2201,17 @@
           </code>
         </li>
         <li>
-          <span class="keybinding">J</span>
+          <span class="k">J</span>
           <code>f\enspace z\enspace a\enspace b \Rightarrow \int_a^b f{(z)}\,dz</code>:
           Specify the integration variable explicitly.
         </li>
         <li>
-          <span class="keybinding">t</span> and <span class="keybinding">T</span>
-          Expand a function in Taylor series.  Lowercase <span class="keybinding">t</span>
+          <span class="k">t</span> and <span class="k">T</span>
+          Expand a function in Taylor series.  Lowercase <span class="k">t</span>
           performs a default expansion about <code>x=0</code> to order 7:
           <code>\displaystyle{
               \sin{2x} \Rightarrow -\frac{8x^7}{315}+\frac{4x^5}{15}-\frac{4x^3}{3}+2x}
-          </code>.  Uppercase <span class="keybinding">T</span>
+          </code>.  Uppercase <span class="k">T</span>
           takes 4 arguments on the stack:
           <code>f\enspace x\enspace a\enspace n</code> and calculates the expansion
           about <code>f(x=a)</code> to order <code>n</code>.
@@ -2222,9 +2222,9 @@
       <p>
         These operations are performed by applying the usual
         math syntax to matrices or vectors created with the
-        <span class="keybinding">|</span> commands.
+        <span class="k">|</span> commands.
         Evaluating the expression with
-        <span class="keybinding">#</span><span class="keybinding">#</span>
+        <span class="k">#</span><span class="k">#</span>
         will then execute the matrix or vector operation(s).
       </p>
       <p>
@@ -2261,12 +2261,12 @@
         <li>
           <code>A^{\mathrm{T}}</code>: Matrix/vector transpose.
           <strong>NOTE:</strong> the
-          <span class="keybinding">|</span><span class="keybinding">T</span>
+          <span class="k">|</span><span class="k">T</span>
           command also performs transpose directly.
         </li>
         <li>
           <code>\det A</code>:
-          Determinant <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">t</span>
+          Determinant <span class="k">/</span><span class="k">f</span><span class="k">t</span>
           of a square matrix:
           <code>
             \det{\begin{bmatrix}a & b\\c & d\end{bmatrix}}
@@ -2275,7 +2275,7 @@
         </li>
         <li>
           <code>\operatorname{Tr} A</code>:
-          Trace <span class="keybinding">/</span><span class="keybinding">f</span><span class="keybinding">r</span>
+          Trace <span class="k">/</span><span class="k">f</span><span class="k">r</span>
           of a square matrix:
           <code>
             \operatorname{Tr}{\begin{bmatrix}a & b\\c & d\end{bmatrix}}
@@ -2291,40 +2291,40 @@
       <p><strong>Numerical Operations:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">=</span>
+          <span class="k">=</span>
           Evaluate constants in an expression, replacing them with
           decimal approximations:
           <code>(\ln{2})^3 \Rightarrow 0.333024651</code>
         </li>
         <li>
-          <span class="keybinding">/</span>
+          <span class="k">/</span>
           Given a decimal number, try to find a close rational approximation to that number.
           Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
           be detected: <code>1.644934066 \Rightarrow \pi^2/6</code>
         </li>
         <li>
-          <span class="keybinding">y</span> and <span class="keybinding">Y</span>
+          <span class="k">y</span> and <span class="k">Y</span>
           Numerically find all (real or complex) roots of a polynomial.
         </li>
         <li>
-          <span class="keybinding">q</span> and <span class="keybinding">Q</span>
+          <span class="k">q</span> and <span class="k">Q</span>
           Check whether an equation or inequality like
           <code>x^2 &gt; \sin x</code> is true or not.
           If this can be determined algebraically, it will be; otherwise,
           the expression will be evaluated randomly at several points in the
           range <code>(-10, 10)</code> to test for likely truth or falsehood.
-          <span class="keybinding">Q</span>
+          <span class="k">Q</span>
           <code>(f \enspace a\enspace b)</code>
           allows you to specify the <code>(a, b)</code> range to test explicitly.
         </li>
         <li>
-          <span class="keybinding">v</span>
+          <span class="k">v</span>
           Compute numerical eigenvalues of a matrix.  The matrix must be real, symmetrical, and contain
           only numeric values (no symbols).  A diagonal matrix containing the eigenvalues is
           returned.
         </li>
         <li>
-          <span class="keybinding">V</span>
+          <span class="k">V</span>
           Compute numerical eigenvectors of a matrix.  A matrix containing the eigenvectors as its columns is returned.
         </li>
       </ul>
@@ -2333,90 +2333,90 @@
       <p>
         These commands generate special functions and polynomials that
         occur frequently in mathematics.  They require the subprefix key
-        <span class="keybinding">p</span> to be pressed first.
+        <span class="k">p</span> to be pressed first.
         The resulting generated functions always use <code>x</code> as the variable
         (though this can be changed to something else using the
-        <span class="keybinding">#</span><span class="keybinding">w</span> command).
+        <span class="k">#</span><span class="k">w</span> command).
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">p</span><span class="keybinding">p</span>
+          <span class="k">p</span><span class="k">p</span>
           <code>n \Rightarrow P_n{(x)}</code>: Legendre polynomial of degree <code>n</code>.
         </li>
         <li>
-          <span class="keybinding">p</span><span class="keybinding">P</span>
+          <span class="k">p</span><span class="k">P</span>
           <code>n\enspace m \Rightarrow P_n^m{(x)}</code>: Associated Legendre function of order <code>(n,m)</code>.
         </li>
         <li>
-          <span class="keybinding">p</span><span class="keybinding">l</span>
+          <span class="k">p</span><span class="k">l</span>
           <code>n \Rightarrow L_n{(x)}</code>: Laguerre polynomial of degree <code>n</code>.
         </li>
         <li>
-          <span class="keybinding">p</span><span class="keybinding">L</span>
+          <span class="k">p</span><span class="k">L</span>
           <code>n\enspace m \Rightarrow L_n^{(m)}{(x)}</code>: Associated Laguerre polynomial of order <code>(n,m)</code>.
         </li>
         <li>
-          <span class="keybinding">p</span><span class="keybinding">h</span>
+          <span class="k">p</span><span class="k">h</span>
           <code>n \Rightarrow H_n{(x)}</code>: Hermite polynomial of degree <code>n</code>.
           These use the &quot;physicist's&quot; scaling convention.
         </li>
         <li>
-          <span class="keybinding">p</span><span class="keybinding">j</span>
+          <span class="k">p</span><span class="k">j</span>
           <code>\alpha \Rightarrow J_{\alpha}{(x)}</code>: Bessel function of the first kind.
         </li>
         <li>
-          <span class="keybinding">p</span><span class="keybinding">y</span>
+          <span class="k">p</span><span class="k">y</span>
           <code>\alpha \Rightarrow Y_{\alpha}{(x)}</code>: Bessel function of the second kind.
         </li>
       </ul>
 
           
       <h2 id="help_greek">
-        <span class="keybinding">;</span> Greek Letters
+        <span class="k">;</span> Greek Letters
       </h2>
       <p>
-        <strong>NOTE:</strong> <span class="keybinding">:</span> may optionally be used
-        as an alias for <span class="keybinding">;</span>.
+        <strong>NOTE:</strong> <span class="k">:</span> may optionally be used
+        as an alias for <span class="k">;</span>.
       </p>
       <p>Lowercase Greek letters:</p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">a</span> <code>\alpha</code></td>
-            <td><span class="keybinding">b</span> <code>\beta</code></td>
-            <td><span class="keybinding">c</span> <code>\xi</code></td>
-            <td><span class="keybinding">d</span> <code>\delta</code></td>
-            <td><span class="keybinding">e</span> <code>\epsilon</code></td>
+            <td><span class="k">a</span> <code>\alpha</code></td>
+            <td><span class="k">b</span> <code>\beta</code></td>
+            <td><span class="k">c</span> <code>\xi</code></td>
+            <td><span class="k">d</span> <code>\delta</code></td>
+            <td><span class="k">e</span> <code>\epsilon</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">f</span> <code>\phi</code></td>
-            <td><span class="keybinding">g</span> <code>\gamma</code></td>
-            <td><span class="keybinding">h</span> <code>\eta</code></td>
-            <td><span class="keybinding">i</span> <code>\iota</code></td>
-            <td><span class="keybinding">j</span> <code>\varphi</code></td>
+            <td><span class="k">f</span> <code>\phi</code></td>
+            <td><span class="k">g</span> <code>\gamma</code></td>
+            <td><span class="k">h</span> <code>\eta</code></td>
+            <td><span class="k">i</span> <code>\iota</code></td>
+            <td><span class="k">j</span> <code>\varphi</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">k</span> <code>\kappa</code></td>
-            <td><span class="keybinding">l</span> <code>\lambda</code></td>
-            <td><span class="keybinding">m</span> <code>\mu</code></td>
-            <td><span class="keybinding">n</span> <code>\nu</code></td>
-            <td><span class="keybinding">o</span> <code>\omega</code></td>
+            <td><span class="k">k</span> <code>\kappa</code></td>
+            <td><span class="k">l</span> <code>\lambda</code></td>
+            <td><span class="k">m</span> <code>\mu</code></td>
+            <td><span class="k">n</span> <code>\nu</code></td>
+            <td><span class="k">o</span> <code>\omega</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">p</span> <code>\pi</code></td>
-            <td><span class="keybinding">q</span> <code>\vartheta</code></td>
-            <td><span class="keybinding">r</span> <code>\rho</code></td>
-            <td><span class="keybinding">s</span> <code>\sigma</code></td>
-            <td><span class="keybinding">t</span> <code>\tau</code></td>
+            <td><span class="k">p</span> <code>\pi</code></td>
+            <td><span class="k">q</span> <code>\vartheta</code></td>
+            <td><span class="k">r</span> <code>\rho</code></td>
+            <td><span class="k">s</span> <code>\sigma</code></td>
+            <td><span class="k">t</span> <code>\tau</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">u</span> <code>\upsilon</code></td>
-            <td><span class="keybinding">v</span> <code>\theta</code></td>
-            <td><span class="keybinding">w</span> <code>\omega</code></td>
-            <td><span class="keybinding">x</span> <code>\chi</code></td>
-            <td><span class="keybinding">y</span> <code>\psi</code></td>
+            <td><span class="k">u</span> <code>\upsilon</code></td>
+            <td><span class="k">v</span> <code>\theta</code></td>
+            <td><span class="k">w</span> <code>\omega</code></td>
+            <td><span class="k">x</span> <code>\chi</code></td>
+            <td><span class="k">y</span> <code>\psi</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">z</span> <code>\zeta</code></td>
+            <td><span class="k">z</span> <code>\zeta</code></td>
             <td></td>
             <td></td>
             <td></td>
@@ -2427,74 +2427,74 @@
       <p>Uppercase Greek letters (and some variants):</p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">C</span> <code>\Xi</code></td>
-            <td><span class="keybinding">D</span> <code>\Delta</code></td>
-            <td><span class="keybinding">E</span> <code>\varepsilon</code></td>
-            <td><span class="keybinding">F</span> <code>\Phi</code></td>
+            <td><span class="k">C</span> <code>\Xi</code></td>
+            <td><span class="k">D</span> <code>\Delta</code></td>
+            <td><span class="k">E</span> <code>\varepsilon</code></td>
+            <td><span class="k">F</span> <code>\Phi</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">G</span> <code>\Gamma</code></td>
-            <td><span class="keybinding">H</span> <code>\mho</code> <em>(m<strong>h</strong>o)</em></td>
-            <td><span class="keybinding">K</span> <code>\varkappa</code></td>
-            <td><span class="keybinding">L</span> <code>\Lambda</code></td>
+            <td><span class="k">G</span> <code>\Gamma</code></td>
+            <td><span class="k">H</span> <code>\mho</code> <em>(m<strong>h</strong>o)</em></td>
+            <td><span class="k">K</span> <code>\varkappa</code></td>
+            <td><span class="k">L</span> <code>\Lambda</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">M</span> <code>\varpi</code></td>
-            <td><span class="keybinding">N</span> <code>\nabla</code> <em>(nabla)</em></td>
-            <td><span class="keybinding">O</span> <code>\Omega</code></td>
-            <td><span class="keybinding">P</span> <code>\Pi</code></td>
+            <td><span class="k">M</span> <code>\varpi</code></td>
+            <td><span class="k">N</span> <code>\nabla</code> <em>(nabla)</em></td>
+            <td><span class="k">O</span> <code>\Omega</code></td>
+            <td><span class="k">P</span> <code>\Pi</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">Q</span> <code>\Theta</code></td>
-            <td><span class="keybinding">R</span> <code>\varrho</code></td>
-            <td><span class="keybinding">S</span> <code>\Sigma</code></td>
-            <td><span class="keybinding">T</span> <code>\varsigma</code></td>
+            <td><span class="k">Q</span> <code>\Theta</code></td>
+            <td><span class="k">R</span> <code>\varrho</code></td>
+            <td><span class="k">S</span> <code>\Sigma</code></td>
+            <td><span class="k">T</span> <code>\varsigma</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">U</span> <code>\Upsilon</code></td>
-            <td><span class="keybinding">V</span> <code>\Theta</code></td>
-            <td><span class="keybinding">W</span> <code>\Omega</code></td>
-            <td><span class="keybinding">Y</span> <code>\Psi</code></td>
+            <td><span class="k">U</span> <code>\Upsilon</code></td>
+            <td><span class="k">V</span> <code>\Theta</code></td>
+            <td><span class="k">W</span> <code>\Omega</code></td>
+            <td><span class="k">Y</span> <code>\Psi</code></td>
           </tr>
       </tbody></table>
       <p>
         Italic-slanted variants of uppercase Greek letters are also available using
-        the <span class="keybinding">;</span><span class="keybinding">2</span> prefix:
+        the <span class="k">;</span><span class="k">2</span> prefix:
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">C</span> <code>\varXi</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">D</span> <code>\varDelta</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">F</span> <code>\varPhi</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">G</span> <code>\varGamma</code></td>
+            <td><span class="k">2</span><span class="k">C</span> <code>\varXi</code></td>
+            <td><span class="k">2</span><span class="k">D</span> <code>\varDelta</code></td>
+            <td><span class="k">2</span><span class="k">F</span> <code>\varPhi</code></td>
+            <td><span class="k">2</span><span class="k">G</span> <code>\varGamma</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">L</span> <code>\varLambda</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">O</span> <code>\varOmega</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">P</span> <code>\varPi</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">Q</span> <code>\varTheta</code></td>
+            <td><span class="k">2</span><span class="k">L</span> <code>\varLambda</code></td>
+            <td><span class="k">2</span><span class="k">O</span> <code>\varOmega</code></td>
+            <td><span class="k">2</span><span class="k">P</span> <code>\varPi</code></td>
+            <td><span class="k">2</span><span class="k">Q</span> <code>\varTheta</code></td>
           </tr>
           <tr>
-            <td><span class="keybinding">2</span><span class="keybinding">S</span> <code>\varSigma</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">U</span> <code>\varUpsilon</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">V</span> <code>\varTheta</code></td>
-            <td><span class="keybinding">2</span><span class="keybinding">Y</span> <code>\varPsi</code></td>
+            <td><span class="k">2</span><span class="k">S</span> <code>\varSigma</code></td>
+            <td><span class="k">2</span><span class="k">U</span> <code>\varUpsilon</code></td>
+            <td><span class="k">2</span><span class="k">V</span> <code>\varTheta</code></td>
+            <td><span class="k">2</span><span class="k">Y</span> <code>\varPsi</code></td>
           </tr>
       </tbody></table>
       <p>
         <strong>NOTE:</strong>
         The sequence
-        <span class="keybinding">;</span><span class="keybinding">;</span>
+        <span class="k">;</span><span class="k">;</span>
         can be used as an alternative to
-        <span class="keybinding">,</span><span class="keybinding">;</span>
+        <span class="k">,</span><span class="k">;</span>
         to join two expressions with a semicolon, and
-        <span class="keybinding">;</span><span class="keybinding">:</span>
+        <span class="k">;</span><span class="k">:</span>
         joins with a colon like
-        <span class="keybinding">,</span><span class="keybinding">:</span>.
+        <span class="k">,</span><span class="k">:</span>.
       </p>
 
       <h2 id="help_configuration">
-        <span class="keybinding">$</span> Configuration
+        <span class="k">$</span> Configuration
       </h2>
       <p>
         These commands let you change global configuration settings.
@@ -2502,85 +2502,85 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="keybinding">&uarr;</span><span class="keybinding">&darr;</span><span class="keybinding">&larr;</span><span class="keybinding">&rarr;</span>
+          <span class="k">&uarr;</span><span class="k">&darr;</span><span class="k">&larr;</span><span class="k">&rarr;</span>
           Switch the position of the stack panel relative to the document panel.
         </li>
         <li>
-          <span class="keybinding">s</span>
+          <span class="k">s</span>
           Set the percentage of the window width (or height) that the stack panel will occupy.
           The percentage is given by the prefix argument:
-          <span class="keybinding">$</span><span class="keybinding">0</span><span class="keybinding">s</span> to <span class="keybinding">$</span><span class="keybinding">9</span><span class="keybinding">s</span> for 0% to 90%, or <span class="keybinding">$</span><span class="keybinding">*</span><span class="keybinding">s</span> for 100%.  Default is 50%.
+          <span class="k">$</span><span class="k">0</span><span class="k">s</span> to <span class="k">$</span><span class="k">9</span><span class="k">s</span> for 0% to 90%, or <span class="k">$</span><span class="k">*</span><span class="k">s</span> for 100%.  Default is 50%.
         </li>
         <li>
-          <span class="keybinding">m</span>
+          <span class="k">m</span>
           Change the alignment of math expressions in the stack area.
           Cycles between left-aligned (the default), centered, and right-aligned.
         </li>
         <li>
-          <span class="keybinding">M</span>
-          Like <span class="keybinding">m</span> but for the document area instead.
+          <span class="k">M</span>
+          Like <span class="k">m</span> but for the document area instead.
         </li>
         <li>
-          <span class="keybinding">i</span>
+          <span class="k">i</span>
           Toggle between full-size math display (the default) and compact inline math display modes.
           <strong>NOTE:</strong> With inline math display mode, equations are always aligned to the left,
-          regardless of the setting chosen by <span class="keybinding">$</span><span class="keybinding">m</span>
-          and <span class="keybinding">$</span><span class="keybinding">M</span>.
+          regardless of the setting chosen by <span class="k">$</span><span class="k">m</span>
+          and <span class="k">$</span><span class="k">M</span>.
         </li>
         <li>
-          <span class="keybinding">z</span> or <span class="keybinding">+</span>
-          Increase the text zoom factor in steps of 5%.  A prefix argument can be used to jump up multiple steps at once.  A prefix argument of <span class="keybinding">*</span> resets the zoom factor back to the default.
+          <span class="k">z</span> or <span class="k">+</span>
+          Increase the text zoom factor in steps of 5%.  A prefix argument can be used to jump up multiple steps at once.  A prefix argument of <span class="k">*</span> resets the zoom factor back to the default.
         </li>
         <li>
-          <span class="keybinding">Z</span> or <span class="keybinding">-</span>
-          Like <span class="keybinding">z</span> or <span class="keybinding">+</span>
+          <span class="k">Z</span> or <span class="k">-</span>
+          Like <span class="k">z</span> or <span class="k">+</span>
           but decrease the zoom factor instead.
         </li>
         <li>
-          <span class="keybinding">f</span>
+          <span class="k">f</span>
           Enter fullscreen mode if your browser supports it.
-          <span class="keybinding">F</span> exits fullscreen.
+          <span class="k">F</span> exits fullscreen.
         </li>
         <li>
-          <span class="keybinding">H</span>
+          <span class="k">H</span>
           Toggle whether or not to hide the mouse cursor.
         </li>
         <li>
-          <span class="keybinding">I</span>
+          <span class="k">I</span>
           Toggle whether the prefix key mode indicator in the upper-right corner of the stack
           is visible or not.
         </li>
         <li>
-          <span class="keybinding">V</span>
+          <span class="k">V</span>
           Toggle inverse video or "dark" mode (by inverting all colors).
         </li>
         <li>
-          <span class="keybinding">S</span>
+          <span class="k">S</span>
           Toggle sepia color filter (mutually exclusive with inverse video mode).
         </li>
         <li>
-          <span class="keybinding">E</span>
+          <span class="k">E</span>
           Toggle E-ink mode, which adjusts some colors and styling to improve
           display on E-ink devices.
         </li>
         <li>
-          <span class="keybinding">r</span>
+          <span class="k">r</span>
           Reset all the configuration settings to their initial defaults.
         </li>
         <li>
-          <span class="keybinding">R</span>
+          <span class="k">R</span>
           Force a page reload (restarting the app).
         </li>
         <li>
-          <span class="keybinding">)</span>
+          <span class="k">)</span>
           Disable <em>autoparenthesization</em>.  Normally, parentheses are inserted
           automatically by certain operations where they are unambiguously required.
           For example, concatenating <code>a+b</code> and <code>c+d</code> yields <code>(a+b)(c+d)</code>.
-          <span class="keybinding">$</span><span class="keybinding">)</span>
+          <span class="k">$</span><span class="k">)</span>
           disables this behavior to yield <code>a+bc+d</code> instead.
         </li>
         <li>
-          <span class="keybinding">(</span>
+          <span class="k">(</span>
           Re-enable the default autoparenthesization behavior.
         </li>
       </ul>
@@ -2593,140 +2593,140 @@
       </p>
 
       <ul class="keybindings">
-        <li><span class="keybinding">Ctrl+0</span>
+        <li><span class="k">Ctrl+0</span>
           Add a 0 subscript: <code>x_0</code>
-          (same as <span class="keybinding">.</span><span class="keybinding">0</span>)
+          (same as <span class="k">.</span><span class="k">0</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+1</span> <span class="keybinding">Ctrl+2</span>
-          <span class="keybinding">Ctrl+3</span> <span class="keybinding">Ctrl+4</span>
+          <span class="k">Ctrl+1</span> <span class="k">Ctrl+2</span>
+          <span class="k">Ctrl+3</span> <span class="k">Ctrl+4</span>
           Add other superscripts: <code>x^{-1}, x^2, x^3, x^4</code>
-          (same as <span class="keybinding">.</span><span class="keybinding">1</span>, etc.)
+          (same as <span class="k">.</span><span class="k">1</span>, etc.)
         </li>
-        <li><span class="keybinding">Ctrl+a</span>
+        <li><span class="k">Ctrl+a</span>
           Swap the top two stack top items
-          (same as <span class="keybinding">Tab</span><span class="keybinding">a</span>)
+          (same as <span class="k">Tab</span><span class="k">a</span>)
         </li>
-        <li><span class="keybinding">Ctrl+b</span>
+        <li><span class="k">Ctrl+b</span>
           Apply a bold font to the stack top
-          (same as <span class="keybinding">]</span>)
+          (same as <span class="k">]</span>)
         </li>
-        <li><span class="keybinding">Ctrl+c</span>
+        <li><span class="k">Ctrl+c</span>
           Copy stack top to clipboard
-          (same as <span class="keybinding">Tab</span><span class="keybinding">c</span>)
+          (same as <span class="k">Tab</span><span class="k">c</span>)
         </li>
-        <li><span class="keybinding">Ctrl+e</span>
+        <li><span class="k">Ctrl+e</span>
           <code>x \Rightarrow \mathrm{e}^x</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">e</span>)
+          (same as <span class="k">/</span><span class="k">e</span>)
         </li>
-        <li><span class="keybinding">Ctrl+f</span>
+        <li><span class="k">Ctrl+f</span>
           <code>x \Rightarrow f(x)</code>
         </li>
-        <li><span class="keybinding">Ctrl+g</span>
+        <li><span class="k">Ctrl+g</span>
           <code>x \Rightarrow g(x)</code>
         </li>
-        <li><span class="keybinding">Ctrl+i</span>
+        <li><span class="k">Ctrl+i</span>
           Move the stack top into the document at the current selection position
-          (same as <span class="keybinding">Tab</span><span class="keybinding">i</span>)
+          (same as <span class="k">Tab</span><span class="k">i</span>)
         </li>
-        <li><span class="keybinding">Ctrl+j</span>
+        <li><span class="k">Ctrl+j</span>
           Move the current document selection back onto the stack
-          (same as <span class="keybinding">Tab</span><span class="keybinding">j</span>)
+          (same as <span class="k">Tab</span><span class="k">j</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+k</span>
+          <span class="k">Ctrl+k</span>
           <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">k</span>)
+          (same as <span class="k">/</span><span class="k">k</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+K</span>
+          <span class="k">Ctrl+K</span>
           <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">K</span>)
+          (same as <span class="k">/</span><span class="k">K</span>)
         </li>
-        <li><span class="keybinding">Ctrl+l</span>
+        <li><span class="k">Ctrl+l</span>
           Recenter the document view around the current document selection
-          (same as <span class="keybinding">Tab</span><span class="keybinding">l</span>)
+          (same as <span class="k">Tab</span><span class="k">l</span>)
         </li>
-        <li><span class="keybinding">Ctrl+m</span>
+        <li><span class="k">Ctrl+m</span>
           <code>x \Rightarrow -x</code>
-          (same as <span class="keybinding">.</span><span class="keybinding">-</span>)
+          (same as <span class="k">.</span><span class="k">-</span>)
         </li>
-        <li><span class="keybinding">Ctrl+o</span>
+        <li><span class="k">Ctrl+o</span>
           <code>f\enspace x \Rightarrow f(x)</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">o</span>)
+          (same as <span class="k">/</span><span class="k">o</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+p</span>
+          <span class="k">Ctrl+p</span>
           Enclose the stack top in parentheses
-          (same as <span class="keybinding">(</span>)
+          (same as <span class="k">(</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+r</span>
+          <span class="k">Ctrl+r</span>
           <code>f\enspace x\enspace y \Rightarrow f(x,y)</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">r</span>)
+          (same as <span class="k">/</span><span class="k">r</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+R</span>
+          <span class="k">Ctrl+R</span>
           <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">R</span>)
+          (same as <span class="k">/</span><span class="k">R</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+s</span>
+          <span class="k">Ctrl+s</span>
           Save the current document
-          (same as <span class="keybinding">Tab</span><span class="keybinding">s</span>)
+          (same as <span class="k">Tab</span><span class="k">s</span>)
         </li>
-        <li><span class="keybinding">Ctrl+t</span>
+        <li><span class="k">Ctrl+t</span>
           <code>f \Rightarrow f(t)</code>
         </li>
-        <li><span class="keybinding">Ctrl+u</span>
-          Make superscript (same as <span class="keybinding">`</span>)
+        <li><span class="k">Ctrl+u</span>
+          Make superscript (same as <span class="k">`</span>)
         </li>
-        <li><span class="keybinding">Ctrl+v</span>
+        <li><span class="k">Ctrl+v</span>
           Paste clipboard to stack top
-          (same as <span class="keybinding">Tab</span><span class="keybinding">v</span>)
+          (same as <span class="k">Tab</span><span class="k">v</span>)
         </li>
-        <li><span class="keybinding">Ctrl+w</span>
+        <li><span class="k">Ctrl+w</span>
           Put the stack top into a temporary &quot;floating&quot; spot, or put it back
           on the stack again
-          (same as <span class="keybinding">Tab</span><span class="keybinding">w</span>)
+          (same as <span class="k">Tab</span><span class="k">w</span>)
         </li>
-        <li><span class="keybinding">Ctrl+x</span>
+        <li><span class="k">Ctrl+x</span>
           <code>f \Rightarrow f(x)</code>
         </li>
-        <li><span class="keybinding">Ctrl+z</span>
+        <li><span class="k">Ctrl+z</span>
           Undo last action
-          (same as <span class="keybinding">Tab</span><span class="keybinding">z</span>)
+          (same as <span class="k">Tab</span><span class="k">z</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+y</span> Redo actions undone by 'undo'
-          (same as <span class="keybinding">Tab</span><span class="keybinding">y</span>)
+          <span class="k">Ctrl+y</span> Redo actions undone by 'undo'
+          (same as <span class="k">Tab</span><span class="k">y</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+/</span>
+          <span class="k">Ctrl+/</span>
           <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">/</span>)
+          (same as <span class="k">/</span><span class="k">/</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+\</span>
+          <span class="k">Ctrl+\</span>
           <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code>
-          (same as <span class="keybinding">/</span><span class="keybinding">1</span>)
+          (same as <span class="k">/</span><span class="k">1</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+,</span> Join two items with a comma
-          (same as <span class="keybinding">,</span><span class="keybinding">,</span>)
+          <span class="k">Ctrl+,</span> Join two items with a comma
+          (same as <span class="k">,</span><span class="k">,</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+Space</span> Join two items with a thin space
-          (same as <span class="keybinding">,</span><span class="keybinding">&nbsp;</span>)
+          <span class="k">Ctrl+Space</span> Join two items with a thin space
+          (same as <span class="k">,</span><span class="k">&nbsp;</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+Backspace</span> Delete the secondmost item from the stack top
-          (same as <span class="keybinding">Tab</span><span class="keybinding">n</span>)
+          <span class="k">Ctrl+Backspace</span> Delete the secondmost item from the stack top
+          (same as <span class="k">Tab</span><span class="k">n</span>)
         </li>
         <li>
-          <span class="keybinding">Ctrl+&larr;</span><span class="keybinding">Ctrl+&rarr;</span>
+          <span class="k">Ctrl+&larr;</span><span class="k">Ctrl+&rarr;</span>
           <em>(left/right arrows)</em> Scroll the document panel left or right if the contents are too wide
-          (same as <span class="keybinding">Tab</span>+<span class="keybinding">&larr;</span><span class="keybinding">&rarr;</span>)
+          (same as <span class="k">Tab</span>+<span class="k">&larr;</span><span class="k">&rarr;</span>)
         </li>
       </ul>
       <p><!-- small spacer --></p>

@@ -903,9 +903,11 @@ class InputContext {
   //     is applied recursively: j^2^3 -> \jmath^2^3 (but (j^2)^3 is left alone).
   //   - FontExprs are also examined recursively, but only if they're normal math
   //     typeface (no roman font, etc).  They can still be bolded and/or resized.
-  //       \bold{j}   => \bold{\jmath}
-  //       \bold{j^2} => \bold{\jmath^2}
-  //       \bold{j}^2 => \bold{\jmath}^2
+  //       \bold{j}   => \bold{\hat{\jmath}}
+  //       \bold{j^2} => \bold{\hat{\jmath}^2}
+  //       \bold{j}^2 => \bold{\hat{\jmath}}^2
+  //       \mathrm{j} => \hat{\mathrm{j}}
+  // TODO: maybe have an option to disable this behavior
   do_apply_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
     return new_stack.push_expr(this._do_apply_hat(expr, hat_op));
@@ -961,24 +963,17 @@ class InputContext {
   do_modify_delimiter(stack, delimiter_type, side) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr = expr;
-    if(expr.is_delimiter_expr()) {
+    if(expr.is_delimiter_expr())
       new_expr = new DelimiterExpr(
         side === 'left' ? delimiter_type : expr.left_type,
         side === 'right' ? delimiter_type : expr.right_type,
         expr.inner_expr,
         expr.fixed_size);
-      // If both delimiters are now blanks, decay into the inner_expr.
-      if(new_expr.left_type === '.' && new_expr.right_type === '.')
-        new_expr = new_expr.inner_expr;
-    }
-    else {
-      // Wrap in a new DelimiterExpr.
-      if(delimiter_type !== '.')
-        new_expr = new DelimiterExpr(
-          side === 'left' ? delimiter_type : '.',
-          side === 'right' ? delimiter_type : '.',
-          expr);
-    }
+    else if(delimiter_type !== '.')
+      new_expr = new DelimiterExpr(
+        side === 'left' ? delimiter_type : '.',
+        side === 'right' ? delimiter_type : '.',
+        expr);
     return new_stack.push_expr(new_expr);
   }
 
@@ -1097,15 +1092,14 @@ class InputContext {
   // (Default is to always autoparenthesize).
   do_concat(stack, autoparenthesize) {
     let [new_stack, left_item, right_item] = stack.pop(2);
-    const left_type = left_item.item_type(), right_type = right_item.item_type();
     const no_parenthesize = autoparenthesize === 'false' || !this.settings.autoparenthesize;
-    if(left_type === 'expr' && right_type === 'expr') {
-      let left_expr = left_item.expr, right_expr = right_item.expr;
-      const new_expr = Expr.combine_pair(left_expr, right_expr, no_parenthesize);
+    if(left_item.is_expr_item() && right_item.is_expr_item()) {
+      const new_expr = Expr.combine_pair(
+        left_item.expr, right_item.expr, no_parenthesize);
       return new_stack.push_expr(new_expr);
     }
-    else if((left_type === 'expr' || left_type === 'text') &&
-            (right_type === 'expr' || right_type === 'text')) {
+    else if((left_item.is_expr_item() || left_item.is_text_item()) &&
+            (left_item.is_expr_item() || right_item.is_text_item())) {
       const new_item = TextItem.concatenate_items(left_item, right_item);
       return new_stack.push(new_item);
     }
