@@ -240,23 +240,22 @@ class InputContext {
   do_cancel() {}
 
   do_subscript(stack, autoparenthesize) {
-    return this._build_subscript_superscript(
-      stack, false,
-      autoparenthesize === 'false' ? false : this.settings.autoparenthesize);
+    return this._build_subscript_superscript(stack, true, autoparenthesize);
   }
 
   do_superscript(stack, autoparenthesize) {
-    return this._build_subscript_superscript(
-      stack, true,
-      autoparenthesize === 'false' ? false : this.settings.autoparenthesize);
+    return this._build_subscript_superscript(stack, false, autoparenthesize);
   }
 
   // Second-to-top stack item becomes the base, while the stack top becomes the
-  // subscript or superscript depending on 'is_superscript'.
-  _build_subscript_superscript(stack, is_superscript, autoparenthesize) {
+  // subscript or superscript depending on 'is_subscript'.
+  _build_subscript_superscript(stack, is_subscript, autoparenthesize) {
     const [new_stack, base_expr, child_expr] = stack.pop_exprs(2);
-    const new_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
-      base_expr, child_expr, is_superscript, autoparenthesize);
+    const new_expr = base_expr.with_subscript_or_superscript(
+      child_expr, is_subscript,
+      autoparenthesize === 'false' ? false :
+        autoparenthesize === 'true' ? true :
+        this.settings.autoparenthesize);
     return new_stack.push_expr(new_expr);
   }
 
@@ -338,8 +337,7 @@ class InputContext {
     for(let row = 0; row < roots_matrix_expr.row_count; row++) {
       const root_expr = roots_matrix_expr.element_exprs[row][0];
       output_exprs.push(InfixExpr.combine_infix(
-        SubscriptSuperscriptExpr.build_subscript_superscript(
-          variable_expr, TextExpr.integer(row+1), false, false),
+        variable_expr.with_subscript(TextExpr.integer(row+1), false /* no parenthesize */),
         RationalizeToExpr.rationalize_expr(root_expr, false),
         new TextExpr('=')));
     }
@@ -900,31 +898,33 @@ class InputContext {
   //     or bolded i/j, it's first converted into a \imath or \jmath to remove the dot.
   //   - Adding a hat to a subscripted/superscripted expression instead applies
   //     to the base expression, for better horizontal positioning.
+  //   - If the 'base' expression itself is also subscripted/superscripted, this rule
+  //     is applied recursively: j^2^3 -> \jmath^2^3 (but (j^2)^3 is left alone).
   do_apply_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
     return new_stack.push_expr(this._do_apply_hat(expr, hat_op));
   }
 
   _do_apply_hat(expr, hat_op) {
+    let new_base_expr = expr;
     if(expr.is_subscriptsuperscript_expr())
-      return new SubscriptSuperscriptExpr(
-        this._do_apply_hat(expr.base_expr, hat_op),
-        expr.subscript_expr,
-        expr.superscript_expr);
-    if(expr.is_text_expr_with('i'))
-      expr = new CommandExpr('imath');
+      return expr.replace_subexpression(
+        0 /* base_expr */,
+        this._do_apply_hat(expr.base_expr, hat_op));
+    else if(expr.is_text_expr_with('i'))
+      new_base_expr = new CommandExpr('imath');
     else if(expr.is_text_expr_with('j'))
-      expr = new CommandExpr('jmath');
+      new_base_expr = new CommandExpr('jmath');
     else if(expr.is_font_expr() && expr.typeface === 'normal' && expr.is_bold) {
       // Check for bolded literal i/j
       const inner_expr = expr.expr;
       if(inner_expr.is_text_expr_with('i') ||
          inner_expr.is_text_expr_with('j'))
-        expr = new FontExpr(
-          new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'),
-          expr.typeface, expr.is_bold, expr.size_adjustment);
+        new_base_expr = expr.replace_subexpression(
+          0 /* expr.expr */,
+          new CommandExpr(inner_expr.text === 'i' ? 'imath' : 'jmath'));
     }
-    return new CommandExpr(hat_op, [expr]);
+    return new CommandExpr(hat_op, [new_base_expr]);
   }
 
   // Wrap expr in \htmlClass{...}
@@ -1918,8 +1918,9 @@ class InputContext {
     }
     else {
       // Put a transpose symbol on a generic expression.
-      const new_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
-        expr, FontExpr.roman_text('T'), true, true);
+      const new_expr = expr.with_superscript(
+        FontExpr.roman_text('T'),
+        this.settings.autoparenthesize);
       return new_stack.push_expr(new_expr);
     }
   }

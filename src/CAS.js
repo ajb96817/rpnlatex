@@ -269,7 +269,7 @@ function _variable_name_to_expr(pieces, allow_subscript) {
     base_expr = base_expr.as_bold();
   // Attach the subscript if there is one.
   if(subscript_expr)
-    base_expr = new SubscriptSuperscriptExpr(base_expr, subscript_expr);
+    base_expr = base_expr.with_subscript(subscript_expr);
   return base_expr;
 }
 
@@ -438,10 +438,10 @@ function double_to_scientific_notation_expr(x) {
   let exponent_expr = new TextExpr(exponent_text);
   if(exponent_is_negative)
     exponent_expr = PrefixExpr.unary_minus(exponent_expr);
+  // 3 \cdot 10^4
   return InfixExpr.combine_infix(
     coefficient_expr,
-    new SubscriptSuperscriptExpr(
-      TextExpr.integer(10), null, exponent_expr),
+    TextExpr.integer(10).with_superscript(exponent_expr),
     new CommandExpr('cdot'));
 }
 
@@ -560,8 +560,7 @@ class AlgebriteInterface {
           InfixExpr.add_exprs(
             variable_expr,
             this.algebrite_result_to_expr(shift_term));
-    let square_part_expr = SubscriptSuperscriptExpr.build_subscript_superscript(
-      shifted_var_expr, TextExpr.integer(2), true, true);
+    let square_part_expr = shifted_var_expr.with_superscript(TextExpr.integer(2));
     if(!testeq(a, 1))  // multiply the quadratic coefficient if needed
       square_part_expr = Expr.combine_pair(
         this.algebrite_result_to_expr(a), square_part_expr);
@@ -1680,11 +1679,8 @@ class AlgebriteToExpr {
       if(numer.isNegative() && denom.equals(1))
         return new CommandExpr('frac', [
           TextExpr.integer(1),
-          SubscriptSuperscriptExpr.build_subscript_superscript(
-            base_expr,
-            rational_to_expr(numer.multiply(-1), denom),
-            true, /* is_superscript */
-            true /* autoparenthesize */)]);
+          base_expr.with_superscript(
+            rational_to_expr(numer.multiply(-1), denom))]);
       // x^(1/2) => sqrt(x)
       if(numer.equals(1) && denom.equals(2))
         return new CommandExpr('sqrt', [base_expr]);
@@ -1703,19 +1699,12 @@ class AlgebriteToExpr {
           new CommandExpr('sqrt', [base_expr], '3')]);
       // x^n or x^(n/m)
       // For fractional n/m, render it as an inline fraction rather than using \frac.
-      return SubscriptSuperscriptExpr.build_subscript_superscript(
-        base_expr,
-        rational_to_expr(numer, denom, true /* inline_fraction */),
-        true, /* is_superscript */
-        true /* autoparenthesize */);
+      return base_expr.with_superscript(
+        rational_to_expr(numer, denom, true /* inline_fraction */));
     }
     else {
       // x^y, x and y arbitrary.
-      return SubscriptSuperscriptExpr.build_subscript_superscript(
-        base_expr,
-        this.to_expr(exponent_term),
-        true, /* is_superscript */
-        true /* autoparenthesize */);
+      return base_expr.with_superscript(this.to_expr(exponent_term));
     }
   }
 

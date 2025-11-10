@@ -1021,6 +1021,9 @@ class ExprPath {
 
 // Parse simple "algebraic" snippets, for use in math_entry mode.
 //
+// NOTE: This has been superseded by Algebrite's expression parser,
+// but may want to come back to this eventually.
+//
 // Rules:
 //   - Spaces are ignored except to separate numbers.
 //   - "Symbols" are one-letter substrings like 'x'.
@@ -1177,8 +1180,7 @@ class ExprParser {
         const exponent_text = binary_token.text === '-' ? ('-' + rhs.text) : rhs.text;
         result_expr = InfixExpr.combine_infix(
           lhs.exprs[0],
-          new SubscriptSuperscriptExpr(
-            TextExpr.integer(10), null, TextExpr.integer(exponent_text)),
+          TextExpr.integer(10).with_superscript(exponent_text),
           new CommandExpr('cdot'));
       }
       else result_expr = InfixExpr.combine_infix(
@@ -1230,7 +1232,7 @@ class ExprParser {
         // Negative exponents are handled in parse_expr instead.
         return InfixExpr.combine_infix(
           lhs,
-          new SubscriptSuperscriptExpr(TextExpr.integer(10), null, rhs.exprs[1]),
+          TextExpr.integer(10).with_superscript(rhs.exprs[1]),
           new CommandExpr('cdot'));
       }
       else
@@ -1403,8 +1405,7 @@ class RationalizeToExpr {
     // needs to be chosen carefully.
     result = this._try_rationalize_with_factor(  // pi^2
       value, Math.PI*Math.PI,
-      new SubscriptSuperscriptExpr(
-        pi_expr, null, make_text(2)), null);
+      pi_expr.with_superscript(make_text(2)));
     result ||= this._try_rationalize_with_factor(  // pi
       value, Math.PI, pi_expr, null);
     result ||= this._try_rationalize_with_factor(  // 1/pi
@@ -1434,7 +1435,10 @@ class RationalizeToExpr {
       null);
     result ||= this._try_rationalize_with_factor(
       value, Math.sqrt(5)-1,  // NOTE: keep positive sign, 1-sqrt(5) is negative
-      InfixExpr.combine_infix(make_sqrt(TextExpr.integer(5)), make_text(1), new TextExpr('-')),
+      InfixExpr.combine_infix(
+        make_sqrt(TextExpr.integer(5)),
+        make_text(1),
+        new TextExpr('-')),
       null);
     // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
     // Finally, rationalize the number itself with no factors

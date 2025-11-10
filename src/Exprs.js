@@ -355,13 +355,40 @@ class Expr {
     return FontExpr.wrap(this).with_bold(true).unwrap_if_possible();
   }
 
+  with_subscript(subscript_expr, autoparenthesize = true) {
+    return this.with_subscript_or_superscript(
+      subscript_expr, true, autoparenthesize);
+  }
+
+  with_superscript(superscript_expr, autoparenthesize = true) {
+    return this.with_subscript_or_superscript(
+      superscript_expr, false, autoparenthesize);
+  }
+
+  // NOTE: SubscriptSuperscriptExpr overrides this so expressions with
+  // both subscripts and superscripts are "packed" into the same
+  // SubscriptSuperscriptExpr.
+  with_subscript_or_superscript(expr, is_subscript, autoparenthesize = true) {
+    if(expr)
+      return new SubscriptSuperscriptExpr(
+        autoparenthesize ?
+          DelimiterExpr.parenthesize_for_power(this) : this,
+        is_subscript ? expr : null,
+        is_subscript ? null : expr);
+    else {
+      // "Removing" the (nonexistent) subscript or superscript.
+      // This is for compatibility with passing expr===null for
+      // the SubscriptSuperscriptExpr version.
+      return this;
+    }
+  }
+
   // Add a \prime superscript to this Expr.
   // SubscriptSuperscriptExpr overrides this to handle the case of multiple
   // \primes attached to the same Expr, which should be rendered as:
   // x^{\prime\prime\prime}.
   with_prime(autoparenthesize) {
-    return SubscriptSuperscriptExpr.build_subscript_superscript(
-      this, new CommandExpr('prime'), true, autoparenthesize);
+    return this.with_superscript(new CommandExpr('prime'), autoparenthesize);
   }
 }
 
@@ -1597,31 +1624,6 @@ class SubscriptSuperscriptExpr extends Expr {
     this.superscript_expr = superscript_expr;
   }
 
-  // If the base already has a subscript, and is_superscript is true, the superscript
-  // is placed into the existing base.  Otherwise, a new subscript/superscript node
-  // is created.  A similar rule applies if is_superscript is false.
-  static build_subscript_superscript(base_expr, child_expr, is_superscript, autoparenthesize) {
-    // Check to see if we can put the child into an empty sub/superscript "slot".
-    if(base_expr.is_subscriptsuperscript_expr() &&
-       ((!base_expr.subscript_expr && !is_superscript) ||
-        (!base_expr.superscript_expr && is_superscript))) {
-      // There's "room" for it in this expr.
-      return new this(
-        base_expr.base_expr,
-        (is_superscript ? base_expr.subscript_expr : child_expr),
-        (is_superscript ? child_expr : base_expr.superscript_expr));
-    }
-    else {
-      // Create a new expr instead, parenthesizing the base if needed.
-      if(autoparenthesize)
-        base_expr = DelimiterExpr.parenthesize_for_power(base_expr);
-      return new this(
-        base_expr,
-        (is_superscript ? null : child_expr),
-        (is_superscript ? child_expr : null));
-    }
-  }
-
   expr_type() { return 'subscriptsuperscript'; }
 
   to_json() {
@@ -1702,11 +1704,18 @@ class SubscriptSuperscriptExpr extends Expr {
 
   with_prime(autoparenthesize) {
     const prime_count = this.count_primes();
-    if(prime_count > 0)
-      return new SubscriptSuperscriptExpr(
-        this.base_expr, this.subscript_expr,
-        new SequenceExpr(
-          new Array(prime_count+1).fill(new CommandExpr('prime'))));
+    if(prime_count > 0) {
+      // NOTE: with_superscript(null) first strips the existing primes before
+      // replacing them with the new set.
+      // NOTE: In some edge cases, this may end up parenthesizing the base expression
+      // (which already has at least one prime) if it wasn't before.  For example,
+      // entering x+y, turning off autoparenthesization with [$][)], adding a prime
+      // with [.]['] to get x+y', turning autoparenthesization back on with [$][(]
+      // and then adding another prime creates (x+y)''.  Later removing primes with
+      // .remove_prime() will not remove the parenthesization.
+      return this.with_superscript(null).with_superscript(
+        new SequenceExpr(new Array(prime_count+1).fill(new CommandExpr('prime'))));
+    }
     else
       return super.with_prime(autoparenthesize);
   }
@@ -1716,18 +1725,47 @@ class SubscriptSuperscriptExpr extends Expr {
     const prime_count = this.count_primes();
     if(prime_count === 0)
       return this;
-    else if(prime_count === 1) {
-      if(this.subscript_expr)
+    else if(prime_count === 1)
+      return this.with_superscript(null);
+    else
+      return this.with_superscript(null).with_superscript(
+        new SequenceExpr(new Array(prime_count-1).fill(new CommandExpr('prime'))));
+  }
+
+  // Overridden from Expr superclass.
+  // If the base already has a superscript but no subscript, and is_subscript is true
+  // (i.e., adding a subscript), the subscript is placed into the subscript slot
+  // so that both slots will be populated.  Otherwise, this SubscriptSuperscriptExpr is
+  // nested inside another subscript/superscript node (e.g. x^2^3).
+  // A similar rule applies if is_subscript is false.
+  // Passing expr===null will remove the existing subscript/superscript if present.
+  with_subscript_or_superscript(expr, is_subscript, autoparenthesize = true) {
+    if(!expr) {
+      // Removing the existing subscript/superscript if present.
+      // This may end up returning the base expression itself,
+      // which might not be a SubscriptSuperscriptExpr.
+      const new_subscript = is_subscript ? null : this.subscript_expr;
+      const new_superscript = is_subscript ? this.superscript_expr : null;
+      if(new_subscript || new_superscript)
         return new SubscriptSuperscriptExpr(
-          this.base_expr, this.subscript_expr);
-      else
-        return this.base_expr;
+          this.base_expr, new_subscript, new_superscript);
+      else return this.base_expr;
     }
-    else 
+    // Check to see if we can put the child into an empty sub/superscript "slot".
+    else if((is_subscript && !this.subscript_expr) ||
+            (!is_subscript && !this.superscript_expr)) {
+      // There's "room" for it in this expr.
+      // NOTE: In this case, the base expression is not (re-)parenthesized,
+      // regardless of the setting of 'autoparenthesize', because it should
+      // have already been parenthesized if needed when the original subscript
+      // or superscript was added.
       return new SubscriptSuperscriptExpr(
-        this.base_expr, this.subscript_expr,
-        new SequenceExpr(
-          new Array(prime_count-1).fill(new CommandExpr('prime'))));
+        this.base_expr,
+        is_subscript ? expr : this.subscript_expr,
+        is_subscript ? this.superscript_expr : expr);
+    }
+    else return super.with_subscript_or_superscript(
+      expr, is_subscript, autoparenthesize);
   }
 }
 
