@@ -2277,24 +2277,37 @@ class Document {
       return null;
   }
 
-  // Insert a new item below the current selection, and select the inserted item.
-  insert_item(new_item) {
+  // Insert one or more items below the current selection.
+  // The last inserted item becomes the new selection.
+  insert_items(new_items) {
     const index = this.selection_index;
-    const new_items = this.items.slice(0, index).concat([new_item], this.items.slice(index));
-    return new Document(new_items, index+1);
+    return new Document(
+      [...this.items.slice(0, index),
+       ...new_items,
+       ...this.items.slice(index)],
+      index+new_items.length);
   }
 
-  // Return the new Document if the selection was deleted successfully.
-  // Selects the item that was before this one (or select the 'document top' if this was the first).
-  // Return null if the selection is "invalid" (e.g., empty document).
-  delete_selection() {
+  // Delete one or more items starting at the current selection index and
+  // working backwards (to match the insertion order of insert_items()).
+  // Returns [new_document, deleted_items].
+  // Deleting at selection_index 0 (the top "spacer") is silently ignored.
+  // Trying to delete more items than there are available trims the item_count
+  // to match what is actually available.  After the deletion, the item before
+  // the old selection_index will become selected (possibly the top spacer).
+  delete_selection(item_count = 1) {
     const index = this.selection_index;
-    if(index > 0) {
-      const new_items = this.items.slice(0, index-1).concat(this.items.slice(index));
-      return new Document(new_items, index-1);
-    }
-    else
-      return null;
+    if(index === 0)
+      return [this, []];
+    if(item_count > index)
+      item_count = index;
+    const new_items = [
+      ...this.items.slice(0, index-item_count),
+      ...this.items.slice(index)];
+    const deleted_items = this.items.slice(index-item_count, index);
+    return [
+      new Document(new_items, index-item_count),
+      deleted_items];
   }
 
   move_selection_by(offset) {
@@ -2312,8 +2325,10 @@ class Document {
        this.selection_index + offset <= 0 ||
        this.selection_index + offset > this.items.length)
       return null;
-    else
-      return this.delete_selection().move_selection_by(offset).insert_item(item);
+    else {
+      const new_document = this.delete_selection()[0];
+      return new_document.move_selection_by(offset).insert_items([item]);
+    }
   }
 
   // See Stack.clone_all_items()

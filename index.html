@@ -29,6 +29,7 @@
       <p>
         Close the user guide and return to the editor with
         <span class="k">q</span> or <span class="k">Esc</span>.
+        Return to it at any time with <span class="k">?</span>.
       </p>
       <p>
         The editor is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
@@ -408,6 +409,8 @@
         <li>
           <span class="k">j</span>
           Move N items (default 1) from the document back onto the stack.
+          If N is more than 1, items are taken from the current selection position and <em>above</em>,
+          to match what <span class="k">i</span> does.
         </li>
         <li>
           <span class="k">I</span>
@@ -2319,7 +2322,7 @@
         </li>
         <li>
           <span class="k">v</span>
-          Compute numerical eigenvalues of a matrix.  The matrix must be real, symmetrical, and contain
+          Compute numerical eigenvalues of a matrix.  The matrix must be real, symmetric, and contain
           only numeric values (no symbols).  A diagonal matrix containing the eigenvalues is
           returned.
         </li>

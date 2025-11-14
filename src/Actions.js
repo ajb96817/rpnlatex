@@ -729,26 +729,20 @@ class InputContext {
   do_pop_to_document(stack, preserve) {
     const arg = this._get_prefix_argument(1, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
-    let new_document = this.app_state.document;
-    for(let n = 0; n < items.length; n++)
-      new_document = new_document.insert_item(items[n].clone());
+    let new_items = items.map(item => item.clone());
+    new_items.reverse();  // preserve visual ordering between stack and document
+    let new_document = this.app_state.document.insert_items(new_items);
     this.update_document(new_document);
     return preserve ? new_stack.push_all(items) : new_stack;
   }
 
   do_extract_from_document(stack, preserve) {
-    const arg = this._get_prefix_argument(1, this.app_state.document.items.length);
-    if(arg <= 0) return stack;
-    let new_document = this.app_state.document;
-    // Make sure there are enough items above the current document selection to extract.
-    if(new_document.selection_index < arg)
-      return this.error_flash_document();
-    let new_items = [];
-    for(let n = 0; n < arg; n++) {
-      const item = new_document.selected_item();
-      new_document = new_document.delete_selection();
-      new_items.push(item.clone());
-    }
+    const document = this.app_state.document;
+    const item_count = this._get_prefix_argument(1, document.items.length);
+    if(document.selection_index < item_count)
+      return this.error_flash_document();  // not enough items available at/above selection
+    const [new_document, deleted_items] = document.delete_selection(item_count);
+    let new_items = deleted_items.map(item => item.clone());
     new_items.reverse();
     if(!preserve)
       this.update_document(new_document);
