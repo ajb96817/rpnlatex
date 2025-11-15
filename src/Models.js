@@ -1387,10 +1387,9 @@ class RationalizeToExpr {
   // Return an Expr if successful, otherwise null.
   value_to_expr(value) {
     let result = null;
-    const make_text = n => this._int_to_expr(n);
     const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
     const pi_expr = new CommandExpr('pi');
-    const two_pi_expr = Expr.combine_pair(make_text(2), pi_expr);
+    const two_pi_expr = Expr.combine_pair(this._int_to_expr(2), pi_expr);
     // Don't try to rationalize anything too large in magnitude.
     if(Math.abs(value) > 1e8)
       return null;
@@ -1405,7 +1404,7 @@ class RationalizeToExpr {
     // needs to be chosen carefully.
     result = this._try_rationalize_with_factor(  // pi^2
       value, Math.PI*Math.PI,
-      pi_expr.with_superscript(make_text(2)));
+      pi_expr.with_superscript(this._int_to_expr(2)));
     result ||= this._try_rationalize_with_factor(  // pi
       value, Math.PI, pi_expr, null);
     result ||= this._try_rationalize_with_factor(  // 1/pi
@@ -1420,24 +1419,24 @@ class RationalizeToExpr {
       value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
     // Check factors of ln(2)
     result ||= this._try_rationalize_with_factor(
-      value, Math.log(2), new CommandExpr('ln', [make_text(2)]), null);
+      value, Math.log(2), new CommandExpr('ln', [this._int_to_expr(2)]), null);
     // Try sqrt(n) in the numerator for small square-free n.
     // No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
     const small_squarefree = [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19];
     for(let i = 0; i < small_squarefree.length; i++)
       result ||= this._try_rationalize_with_factor(
         value, Math.sqrt(small_squarefree[i]),
-        make_sqrt(make_text(small_squarefree[i])), null);
+        make_sqrt(this._int_to_expr(small_squarefree[i])), null);
     // Try golden ratio-like factors
     result ||= this._try_rationalize_with_factor(
       value, 1+Math.sqrt(5),
-      InfixExpr.add_exprs(make_text(1), make_sqrt(TextExpr.integer(5))),
+      InfixExpr.add_exprs(this._int_to_expr(1), make_sqrt(this._int_to_expr(5))),
       null);
     result ||= this._try_rationalize_with_factor(
       value, Math.sqrt(5)-1,  // NOTE: keep positive sign, 1-sqrt(5) is negative
       InfixExpr.combine_infix(
-        make_sqrt(TextExpr.integer(5)),
-        make_text(1),
+        make_sqrt(this._int_to_expr(5)),
+        this._int_to_expr(1),
         new TextExpr('-')),
       null);
     // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
@@ -2282,7 +2281,7 @@ class Document {
   insert_items(new_items) {
     const index = this.selection_index;
     return new Document(
-      [...this.items.slice(0, index),
+      [...this.items.slice(0, index),  // TODO: use toSpliced() (check compatibility)
        ...new_items,
        ...this.items.slice(index)],
       index+new_items.length);

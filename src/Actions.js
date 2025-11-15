@@ -356,7 +356,7 @@ class InputContext {
             AlgebriteInterface.guess_variable(expr);
       variable_expr = guessed_variable_expr;
       if(!variable_expr) {
-        this.report_erorr('Could not guess variable');
+        this.report_error('Could not guess variable');
         return this.error_flash_stack();
       }
     }
@@ -729,11 +729,10 @@ class InputContext {
   do_pop_to_document(stack, preserve) {
     const arg = this._get_prefix_argument(1, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
-    let new_items = items.map(item => item.clone());
-    new_items.reverse();  // preserve visual ordering between stack and document
+    const new_items = items.map(item => item.clone());
     let new_document = this.app_state.document.insert_items(new_items);
     this.update_document(new_document);
-    return preserve ? new_stack.push_all(items) : new_stack;
+    return preserve ? stack : new_stack;
   }
 
   do_extract_from_document(stack, preserve) {
@@ -742,8 +741,7 @@ class InputContext {
     if(document.selection_index < item_count)
       return this.error_flash_document();  // not enough items available at/above selection
     const [new_document, deleted_items] = document.delete_selection(item_count);
-    let new_items = deleted_items.map(item => item.clone());
-    new_items.reverse();
+    const new_items = deleted_items.map(item => item.clone());
     if(!preserve)
       this.update_document(new_document);
     return stack.push_all(new_items);
@@ -1432,40 +1430,51 @@ class InputContext {
 
   // Start text entry mode using the item on the stack top.
   // Because the minieditor is so limited, only these cases are allowed:
+  //   - Items with the original source_string available (i.e. if it was created
+  //     with the minieditor to begin with, and not combined with anything yet).
   //   - TextItems without anything too "complicated" (see TextItem.as_editable_string);
   //     these will start with the minieditor in text-entry mode.
   //   - ExprItems that are only a simple CommandExpr with a no-argument LaTeX command;
-  //     in this case the minieditor will start directly in LaTeX-entry mode.
+  //     in this case the minieditor will start directly in LaTeX-entry mode
+  //     (or math-entry mode for special cases like \&).
   //   - ExprItems that represent a simple text string like '123' or 'xyz'.
   //   - ExprItems that represent \mathrm{x} where x is a simple string like '123' or 'xyz'
   //     (this is to allow expressions created via Shift+Enter in the minieditor to be editable).
   //   - ExprItems that represent \operatorname{x}.
   do_edit_item(stack) {
     const [new_stack, item] = stack.pop(1);
+    let is_editable = true;  // set to false if it turns out to be uneditable
     if(item.is_text_item()) {
-      if(item.source_string) {
-        this.do_start_text_entry(
-          new_stack, 'text_entry', item.source_string);
-        this.text_entry.edited_item = item;
-        return new_stack;
-      }
+      if(item.source_string)
+        this.do_start_text_entry(new_stack, 'text_entry', item.source_string);
+      else is_editable = false;
     }
     else if(item.is_expr_item()) {
-      let expr = item.expr;
-      if(expr.is_command_expr_with(0)) {
-        // LaTeX command with no arguments, e.g. \circledast
-        this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
-        this.text_entry.edited_item = item;
-        return new_stack;
+      const expr = item.expr;
+      if(expr.is_command_expr_with(0) && expr.is_special_latex_command()) {
+        // "Special" LaTeX command like \&.  These use math_entry mode with
+        // the underlying escaped character (without the \).
+        this.do_start_text_entry(new_stack, 'math_entry', expr.command_name);
       }
-      const s = item.source_string || expr.as_editable_string();
-      if(s) {
-        this.do_start_text_entry(new_stack, 'math_entry', s);
-        this.text_entry.edited_item = item;
-        return new_stack;
+      else if(expr.is_command_expr_with(0)) {
+        // LaTeX command with no arguments, e.g. \circledast
+        // These use latex_entry mode with the command name.
+        this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
+      }
+      else {
+        // Anything else.
+        const s = item.source_string || expr.as_editable_string();
+        if(s)
+          this.do_start_text_entry(new_stack, 'math_entry', s);
+        else is_editable = false;
       }
     }
-    return this.error_flash_stack();
+    else is_editable = false;  // CodeItem, etc.
+    if(is_editable) {
+      this.text_entry.edited_item = item;
+      return new_stack;
+    }
+    else return this.error_flash_stack();
   }
 
   // Dissect mode commands:
@@ -1659,8 +1668,8 @@ class InputContext {
 
   // If expr_count_string is provided, exactly that many expressions from the stack
   // are autoparenthesized.  If any of them is not actually an ExprItem, nothing is done.
-  do_autoparenthesize(stack, expr_count_string) {
-    const expr_count = (expr_count_string === undefined) ? 1 : parseInt(expr_count_string);
+  do_autoparenthesize(stack, expr_count_string = '1') {
+    const expr_count = parseInt(expr_count_string);
     const [new_stack, ...items] = stack.pop(expr_count);
     if(this.settings.autoparenthesize &&
        items.every(item => item.is_expr_item()))

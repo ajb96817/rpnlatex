@@ -435,6 +435,14 @@ class CommandExpr extends Expr {
     return json;
   }
 
+  // "Special" LaTeX commands like \& and \%.  (Anything not starting with a letter).
+  // These need a little extra handling.  In particular, editing one of them as text
+  // should use the normal math-entry mode & or % representation, instead of switching
+  // to the LaTeX math-entry mode as would be done for a normal command like \alpha.
+  is_special_latex_command() {
+    return !/^[a-zA-Z]/.test(this.command_name);
+  }
+
   emit_latex(emitter) {
     if(this.is_command_expr_with(2, 'atop')) {
       // \atop is a special case.  It needs to be written as
@@ -571,6 +579,7 @@ class FontExpr extends Expr {
   subexpressions() { return [this.expr]; }
 
   replace_subexpression(index, new_expr) {
+    // 'index' is always 0.
     return new FontExpr(new_expr, this.typeface, this.is_bold, this.size_adjustment);
   }
 
@@ -581,14 +590,16 @@ class FontExpr extends Expr {
       this.size_adjustment === expr.size_adjustment;
   }
 
+  // "Special" typefaces like calligraphic are considered uneditable
+  // (e.g., as created by [&][c]).
+  // Otherwise, the font changes (including bold and size-adjustment)
+  // are stripped out and the base expression is used.
   as_editable_string() {
-    // Strip any font information.
-    // This allows things like calligraphic letters to be editable
-    // as normal uppercase letters, for example, which isn't necessarily
-    // ideal, but not worth explicitly preventing.
-    // It also allows things like & to be editable in latex-entry mode
-    // as \&, which isn't normally allowed, but doesn't cause problems.
-    return this.expr.as_editable_string();
+    if(['blackboard', 'calligraphic', 'script' /* , 'fraktur' is ok */
+       ].includes(this.typeface))
+      return null;
+    else
+      return this.expr.as_editable_string();
   }
 
   dissolve() { return [this.expr]; }
