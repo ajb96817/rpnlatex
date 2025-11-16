@@ -717,7 +717,7 @@ const KeybindingTable = {
     'f': "infix \\Leftarrow", // "[f]rom"
     'G': "infix \\gg",
     'i': "infix \\in",
-    'I': "infix \\in;negate_comparison",  // \not\in
+    'I': "infix \\notin",
     'l': "infix <",
     'L': "infix \\ll",
     'm': "infix \\mapsto",
@@ -726,12 +726,12 @@ const KeybindingTable = {
     'o': "infix \\circeq",
     'p': "infix \\propto",
     'q': "infix =",
+    '=': "infix =",
     's': "infix \\subset",
     'S': "infix \\subseteq",
     't': "infix \\sim",
     'u': "infix \\supset",
     'U': "infix \\supseteq",
-    '=': "infix =",
     '^': "infix \\triangleq",
     '<': "infix \\le",
     '>': "infix \\ge",

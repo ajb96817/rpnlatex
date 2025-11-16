@@ -367,6 +367,7 @@ class Expr {
   //   - SequenceExprs like \not\subset turn back into \subset.
   //   - InfixExprs try to negate the operator at their split_at_index
   //     (e.g. x = y  =>  x != y).
+  //   - PrefixExprs try to negate their prefix operator (=x  =>  !=x).
   as_logical_negation() { return null; }
 
   with_subscript(subscript_expr, autoparenthesize = true) {
@@ -520,6 +521,8 @@ class CommandExpr extends Expr {
       case 'ge': text = 'ngeq'; break;
       case 'nleq': text = 'le'; break;
       case 'ngeq': text = 'ge'; break;
+      case 'in':  text = 'notin'; break;
+      case 'notin':  text = 'in'; break;
       }
       if(text) return new CommandExpr(text);
       // Default case: \subset => \not\subset
@@ -1156,6 +1159,15 @@ class PrefixExpr extends Expr {
     if(base_string && operator_string)
       return [operator_string, base_string].join('');
     else return null;
+  }
+
+  as_logical_negation() {
+    const negated_operator_expr =
+          this.operator_expr.as_logical_negation();
+    if(negated_operator_expr)
+      return new PrefixExpr(this.base_expr, negated_operator_expr);
+    else
+      return super.as_logical_negation();
   }
 
   dissolve() { return this.subexpressions(); }
