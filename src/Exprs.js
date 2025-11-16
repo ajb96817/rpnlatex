@@ -521,8 +521,8 @@ class CommandExpr extends Expr {
       case 'ge': text = 'ngeq'; break;
       case 'nleq': text = 'le'; break;
       case 'ngeq': text = 'ge'; break;
-      case 'in':  text = 'notin'; break;
-      case 'notin':  text = 'in'; break;
+      case 'in': text = 'notin'; break;
+      case 'notin': text = 'in'; break;
       }
       if(text) return new CommandExpr(text);
       // Default case: \subset => \not\subset
@@ -1173,9 +1173,10 @@ class PrefixExpr extends Expr {
   dissolve() { return this.subexpressions(); }
 
   as_bold() {
+    // Don't bold the operator (analogous to what InfixExpr does).
     return new PrefixExpr(
       this.base_expr.as_bold(),
-      this.operator_expr.as_bold());
+      this.operator_expr);
   }
 }
 
@@ -1331,6 +1332,9 @@ class PostfixExpr extends Expr {
   dissolve() { return this.subexpressions(); }
 
   as_bold() {
+    // Unlike Infix/PrefixExpr, the postfix operator is also bolded here.
+    // This is mainly because '!' is not exactly a normal operator, but
+    // more like a concatenation like 'x!'.
     return new PostfixExpr(
       this.base_expr.as_bold(),
       this.operator_expr.as_bold());

@@ -1355,14 +1355,13 @@ class RationalizeToExpr {
     const rationalized_expr = this._try_rationalize_real_expr(expr);
     if(rationalized_expr)
       return rationalized_expr;
-    else {
-      // Check subexpressions recursively.
-      const subexpressions = expr.subexpressions();
-      for(let i = 0; i < subexpressions.length; i++)
-        expr = expr.replace_subexpression(
-          i, this.rationalize_expr(subexpressions[i]));
-      return expr;
-    }
+    // Check subexpressions recursively.
+    return expr.subexpressions().reduce(
+      (new_expr, subexpression, subexpression_index) => new_expr
+        .replace_subexpression(
+          subexpression_index,
+          this.rationalize_expr(subexpression)),
+      expr);
   }
 
   _try_rationalize_real_expr(expr) {
@@ -1374,8 +1373,7 @@ class RationalizeToExpr {
     if(expr.is_text_expr() && expr.looks_like_floating_point()) {
       let value = parseFloat(expr.text);
       if(!isNaN(value)) {
-        if(negated)
-          value *= 1.0;
+        if(negated) value *= -1.0;
         return this.value_to_expr(value);
       }
     }
@@ -1399,7 +1397,7 @@ class RationalizeToExpr {
       return this._int_to_expr(value);
     // Try different variations on \pi
     // NOTE: pi is a little weird because a close rational approximation 
-    // (335/113) both has small denominator and is very close to the actual
+    // (355/113) both has small denominator and is very close to the actual
     // value of pi.  So the epsilon value in _try_rationalize_with_factor()
     // needs to be chosen carefully.
     result = this._try_rationalize_with_factor(  // pi^2
