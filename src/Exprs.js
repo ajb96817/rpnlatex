@@ -355,6 +355,20 @@ class Expr {
     return FontExpr.wrap(this).with_bold(true).unwrap_if_possible();
   }
 
+  // Return the "logical negation" of this expression, if it makes
+  // sense (e.g. turning '=' into '!=' or vice-versa).
+  // Null is returned if negation doesn't have a clear meaning for
+  // this expression.  Subclasses override this to do various things:
+  //   - TextExprs representing comparison operators like '=' or '<'
+  //     convert into CommandExprs like \neq or \nless.
+  //   - CommandExprs like \nless can convert back into TextExpr('<').
+  //   - Other CommandExprs like \subset are "negated" by prepending a \not
+  //     command (resulting in a SequenceExpr).
+  //   - SequenceExprs like \not\subset turn back into \subset.
+  //   - InfixExprs try to negate the operator at their split_at_index
+  //     (e.g. x = y  =>  x != y).
+  as_logical_negation() { return null; }
+
   with_subscript(subscript_expr, autoparenthesize = true) {
     return this.with_subscript_or_superscript(
       subscript_expr, true, autoparenthesize);
@@ -486,6 +500,33 @@ class CommandExpr extends Expr {
       return this.operand_exprs[0].text;
     else
       return null;
+  }
+
+  as_logical_negation() {
+    if(this.operand_count() === 0) {
+      // Check some special cases that have TextExpr counterparts.
+      let text = null;
+      switch(this.command_name) {
+      case 'nless': text = '<'; break;
+      case 'ngtr': text = '>'; break;
+      case 'neq': case 'ne': text = '='; break;
+      }
+      if(text) return new TextExpr(text);
+      // Check CommandExpr->CommandExpr special cases.
+      switch(this.command_name) {
+      case 'lt': text = 'nless'; break;
+      case 'gt': text = 'ngtr'; break;
+      case 'le': text = 'nleq'; break;
+      case 'ge': text = 'ngeq'; break;
+      case 'nleq': text = 'le'; break;
+      case 'ngeq': text = 'ge'; break;
+      }
+      if(text) return new CommandExpr(text);
+      // Default case: \subset => \not\subset
+      return new SequenceExpr([new CommandExpr('not'), this]);
+    }
+    else
+      return super.as_logical_negation();
   }
 
   // 0-argument commands are left as-is (\alpha, etc)
@@ -1008,51 +1049,21 @@ class InfixExpr extends Expr {
     }
   }
 
-  // Try to "negate" an operator using \not (which puts a slash through the operator).
-  // This only works for simple operators like \le (more complex expressions don't
-  // format right); otherwise null is returned.  If the operator already has a \not,
-  // remove it instead.
-  negate_operator_at(operator_index) {
-    // Special cases to handle; things like '=' are TextExprs instead of CommandExprs.
-    const special_pairs = [
-      ['<', 'nless'],
-      ['>', 'ngtr'],
-      ['=', 'neq'],
-      ['=', 'ne']
-    ];
-    const expr = this.operator_exprs[operator_index];
-    let new_expr = null;
-    if(expr.is_sequence_expr() && expr.exprs.length === 2 &&
-       expr.exprs[0].is_command_expr_with(0, 'not')) {
-      // \not\le -> \le
-      new_expr = expr.exprs[1];
-    }
-    else if(expr.is_text_expr()) {
-      // Check the special cases for "plain text" operators (not LaTeX \commands).
-      const pair = special_pairs.find(pair => pair[0] === expr.text);
-      if(pair)
-        new_expr = new CommandExpr(pair[1]);
-    }
-    else if(expr.is_command_expr_with(0)) {
-      // Check special cases to convert: \nless => <
-      const pair = special_pairs.find(pair => pair[1] === expr.command_name);
-      if(pair)
-        new_expr = new TextExpr(pair[0]);
-      else {
-        // Default case: \le => \not\le
-        new_expr = new SequenceExpr([new CommandExpr('not'), expr]);
-      }
-    }
-    if(new_expr) {
+  as_logical_negation() {
+    // Try to negate the split_at operator.
+    const negated_operator_expr =
+          this.operator_exprs[this.split_at_index].as_logical_negation();
+    if(negated_operator_expr) {
       let new_operator_exprs = [...this.operator_exprs];
-      new_operator_exprs[operator_index] = new_expr;
+      new_operator_exprs[this.split_at_index] = negated_operator_expr;
       return new InfixExpr(
         this.operand_exprs,
         new_operator_exprs,
         this.split_at_index,
         this.linebreaks_at);
     }
-    else return null;
+    else
+      return super.as_logical_negation();
   }
 
   // InfixExprs dissolve into their operand expressions.
@@ -1384,6 +1395,21 @@ class TextExpr extends Expr {
     return LatexEmitter.latex_unescape(this.text);
   }
 
+  as_logical_negation() {
+    // Some TextExpr comparison operators have explicit
+    // 'not' LaTeX command counterparts.
+    let command = null;
+    switch(this.text) {
+    case '<': command = 'nless'; break;
+    case '>': command = 'ngtr'; break;
+    case '=': command = 'neq'; break;
+    }
+    if(command)
+      return new CommandExpr(command);
+    else
+      return super.as_logical_negation();
+  }
+
   looks_like_number() { return /^-?\d*\.?\d+$/.test(this.text); }
   looks_like_floating_point() { return !isNaN(parseFloat(this.text)); }
   looks_like_negative_number() { return /^-\d*\.?\d+$/.test(this.text); }
@@ -1422,6 +1448,14 @@ class SequenceExpr extends Expr {
 
   as_bold() {
     return new SequenceExpr(this.exprs.map(expr => expr.as_bold()));
+  }
+
+  as_logical_negation() {
+    if(this.exprs.length === 2 &&
+       this.exprs[0].is_command_expr_with(0, 'not'))
+      return this.exprs[1];  // \not\le -> \le
+    else
+      return super.as_logical_negation();
   }
 }
 

@@ -450,7 +450,7 @@ const KeybindingTable = {
     '}': "swap;operator underbrace;swap;subscript",
     '<': "extract_infix_side left",
     '>': "extract_infix_side right",
-    '!': "negate_infix",
+    '!': "negate_comparison",
     '-': "mode inverse",
     '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
     '+': "infix \\ge;push \\sum;swap;subscript",
@@ -717,7 +717,7 @@ const KeybindingTable = {
     'f': "infix \\Leftarrow", // "[f]rom"
     'G': "infix \\gg",
     'i': "infix \\in",
-    'I': "infix \\in;negate_infix",
+    'I': "infix \\in;negate_comparison",  // \not\in
     'l': "infix <",
     'L': "infix \\ll",
     'm': "infix \\mapsto",

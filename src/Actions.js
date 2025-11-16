@@ -1084,17 +1084,16 @@ class InputContext {
   // (Default is to always autoparenthesize).
   do_concat(stack, autoparenthesize) {
     let [new_stack, left_item, right_item] = stack.pop(2);
-    const no_parenthesize = autoparenthesize === 'false' || !this.settings.autoparenthesize;
-    if(left_item.is_expr_item() && right_item.is_expr_item()) {
-      const new_expr = Expr.combine_pair(
-        left_item.expr, right_item.expr, no_parenthesize);
-      return new_stack.push_expr(new_expr);
-    }
+    const no_parenthesize = autoparenthesize === 'false' ||
+          !this.settings.autoparenthesize;
+    if(left_item.is_expr_item() && right_item.is_expr_item())
+      return new_stack.push_expr(
+        Expr.combine_pair(
+          left_item.expr, right_item.expr, no_parenthesize));
     else if((left_item.is_expr_item() || left_item.is_text_item()) &&
-            (left_item.is_expr_item() || right_item.is_text_item())) {
-      const new_item = TextItem.concatenate_items(left_item, right_item);
-      return new_stack.push(new_item);
-    }
+            (left_item.is_expr_item() || right_item.is_text_item()))
+      return new_stack.push(
+        TextItem.concatenate_items(left_item, right_item));
     else
       return stack.type_error();
   }
@@ -1104,14 +1103,16 @@ class InputContext {
   do_build_function_call(stack) {
     const [new_stack, fn_expr, args_expr] = stack.pop_exprs(2);
     if(args_expr.is_delimiter_expr())
-      return new_stack.push_expr(new FunctionCallExpr(fn_expr, args_expr));
+      return new_stack.push_expr(
+        new FunctionCallExpr(fn_expr, args_expr));
     else
       return stack.type_error();
   }
 
   do_prefix(stack, operator_text) {
     const [new_stack, base_expr] = stack.pop_exprs(1);
-    const new_expr = new PrefixExpr(base_expr, Expr.text_or_command(operator_text));
+    const new_expr = new PrefixExpr(
+      base_expr, Expr.text_or_command(operator_text));
     return new_stack.push_expr(new_expr);
   }
 
@@ -1163,18 +1164,17 @@ class InputContext {
     return new_stack.push_expr(extracted_expr);
   }
 
-  // Attempt to "negate" the operator of an infix expression at it's split_at_index point.
-  // If the operator is already negated, the negation is removed (if possible - explicit
-  // negated relations such as \nless are not handled).
-  // TODO: Allow negating literal operators on the stack (not part of an infix expression).
-  do_negate_infix(stack) {
+  // Attempt to "negate" a comparison operator like '=' (resulting in \neq).
+  // If the operator is already negated, the negation is removed if possible.
+  // Using this command on an InfixExpr will try to negate the operator
+  // at its split_at_index point.
+  do_negate_comparison(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_infix_expr()) {
-      const new_expr = expr.negate_operator_at(expr.split_at_index);
-      if(new_expr)
-        return new_stack.push_expr(new_expr);
-    }
-    return stack.type_error();
+    const negated_expr = expr.as_logical_negation();
+    if(negated_expr)
+      return new_stack.push_expr(negated_expr);
+    else
+      return stack.type_error();
   }
 
   // For an equation or relational expression like x^2 + x < 3,

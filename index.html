@@ -1261,11 +1261,12 @@
         </li>
         <li>
           <span class="k">!</span>
-          &quot;Negate&quot; a relational operator in an infix expression by putting a slash through it.
-          If already negated, the slash is removed instead.  As with
-          <span class="k">&lt;</span><span class="k">&gt;</span>,
-          the operator most recently used to create the infix expression is the one negated.
-          Example: <code>x&le;y \Rightarrow x\nleq y</code>
+          &quot;Negate&quot; a relational operator by putting a slash through it.
+          If already negated, the slash is removed instead
+          (<code>\subseteq \,\Leftrightarrow\, \not\subseteq</code>).
+          For infix expressions, the operator most recently used to create the expression
+          is the one negated.
+          Example: <code>x&le;y \Leftrightarrow x\nleq y</code>
         </li>
         <li>
           <span class="k">&#39;</span>

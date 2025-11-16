@@ -1501,7 +1501,7 @@ class AlgebriteToExpr {
     case 'not':
       // not(equals(x,y)) => not(x=y) => x!=y
       if(nargs === 1 && arg_exprs[0].is_infix_expr())
-        return arg_exprs[0].negate_operator_at(arg_exprs[0].split_at_index);
+        return arg_exprs[0].as_logical_negation();
     case 'component':
       // Comes from Algebrite x[4] input syntax.
       // Convert to a function call with square brackets instead.
