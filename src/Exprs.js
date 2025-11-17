@@ -2179,7 +2179,18 @@ class ArrayExpr extends Expr {
     return [].concat(...this.element_exprs);
   }
 
-  dissolve() { return this.subexpressions(); }
+  // Matrices "dissolve" into their element expressions in row-major order.
+  // Non-matrices break up into their component rows, with each row becoming
+  // a 1xN row array of the same type as this one.  For example, a case
+  // structure with 3 rows becomes 3 separate case structures (each with its
+  // own "case brace").  However, dissolving something that's already a single
+  // row will split into the individual elements and lose the array structure.
+  dissolve() {
+    if(this.is_matrix() || this.row_count <= 1)
+      return this.subexpressions();
+    else
+      return this.split_rows();
+  }
 
   matches(expr) {
     // NOTE: row/column separators are disregarded for matching purposes

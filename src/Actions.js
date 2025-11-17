@@ -1432,8 +1432,7 @@ class InputContext {
   // Because the minieditor is so limited, only these cases are allowed:
   //   - Items with the original source_string available (i.e. if it was created
   //     with the minieditor to begin with, and not combined with anything yet).
-  //   - TextItems without anything too "complicated" (see TextItem.as_editable_string);
-  //     these will start with the minieditor in text-entry mode.
+  //     For TextItems, the minieditor will be started in text-entry mode.
   //   - ExprItems that are only a simple CommandExpr with a no-argument LaTeX command;
   //     in this case the minieditor will start directly in LaTeX-entry mode
   //     (or math-entry mode for special cases like \&).
