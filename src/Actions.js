@@ -1,4 +1,8 @@
 
+// Editor action commands, invoked from keybindings (from Keymap.js).
+// The main class InputContext here manages the editor state and dispatches
+// commands from the keymap according to user input.
+
 import {
   AppState, Document, Stack, TextEntryState,
   ExprPath, ExprParser, RationalizeToExpr,
@@ -6,15 +10,14 @@ import {
 } from './Models';
 
 import {
-  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr, FunctionCallExpr,
-  PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
-  SubscriptSuperscriptExpr, ArrayExpr
+  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr,
+  FunctionCallExpr, PlaceholderExpr, TextExpr, SequenceExpr,
+  DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
 
 import {
   AlgebriteInterface
 } from './CAS';
-
 
 
 // This acts as a sort of extension to the main App component.
@@ -78,8 +81,7 @@ class InputContext {
   // that the command succeeded without error.
   handle_key(app_state, key) {
     if(key === 'Shift' || key === 'Alt' || key === 'Control')
-      return [false, app_state];
-
+      return [false, app_state];  // discard standalone modifier keys
     // If the popup panel is active, always use its dedicated keymap.
     const effective_mode = this.settings.popup_mode || this.mode;
     const command = this.settings.current_keymap.lookup_binding(effective_mode, key);
@@ -116,33 +118,9 @@ class InputContext {
       if(!handler_function)
         return null;
       try {
-        // Set up context variables for the handler functions to use:
         this.app_state = app_state;
-
-        // TODO: maybe have this.changed.mode, this.changed.document etc.
-
-        // Watch to see if the handler sets new_mode.  If it does, switch to that
-        // mode after the command is finished, but otherwise switch back to base mode.
-        this.new_mode = null;
-
-        // The handler function will set this if the document changes.
-        // (Stack changes are expected to be returned by the handler function.)
-        this.new_document = null;
-
-        // Likewise this will be set to true if anything changed about the file list / file selection.
-        this.files_changed = false;  // TODO: rename -> selected_file_changed
-
-        // This will be set to true if the current file was saved by this action.
-        // This indicates that the app state's dirty flag should be cleared.
-        this.file_saved = false;
-
-        // If this is set to true, the prefix_argument will be kept as it as (otherwise it's reset to
-        // null after each action).
-        this.preserve_prefix_argument = false;
-
-        this.notification_text = null;
-        this.error_message = null;
-
+        // Reset context variables for the handler functions to use.
+        this._reset();
         // Execute the handler and assemble the new state.
         const new_stack = (handler_function.bind(this))(app_state.stack, ...parameters);
         let new_app_state = new AppState(
@@ -153,10 +131,8 @@ class InputContext {
         if(this.file_saved)  // Current file was saved; explicitly clear the dirty flag.
           new_app_state.is_dirty = false;
         app_state = new_app_state;
-
         // Switch back into base mode if the mode was not explicitly set by the handler.
         this.mode = this.new_mode || 'base';
-
         // Clear the prefix argument if the last command was not explicitly 'prefix_argument'.
         if(!this.preserve_prefix_argument)
           this.prefix_argument = null;
@@ -183,6 +159,27 @@ class InputContext {
       }
     }
     return app_state;
+  }
+
+  // Clear the input context variables in preparation to handle a new command.
+  // TODO: maybe have this.changed.mode, this.changed.document etc.
+  _reset() {
+    // Watch to see if the handler sets new_mode.  If it does, switch to that
+    // mode after the command is finished, but otherwise switch back to base mode.
+    this.new_mode = null;
+    // The handler function will set this if the document changes.
+    // (Stack changes are expected to be returned by the handler function.)
+    this.new_document = null;
+    // Likewise this will be set to true if anything changed about the file list / file selection.
+    this.files_changed = false;  // TODO: rename -> selected_file_changed
+    // This will be set to true if the current file was saved by this action.
+    // This indicates that the app state's dirty flag should be cleared.
+    this.file_saved = false;
+    // If this is set to true, the prefix_argument will be kept as it as (otherwise it's reset to
+    // null after each action).
+    this.preserve_prefix_argument = false;
+    this.notification_text = null;
+    this.error_message = null;
   }
 
   // NOTE: This doesn't raise an exception, it only records the error message
@@ -797,6 +794,13 @@ class InputContext {
     const [new_stack, ...popped_exprs] = stack.pop_exprs(arity);
     const result_expr = new CommandExpr(opname, popped_exprs)
     return new_stack.push_expr(result_expr);
+  }
+
+  // Shortcut for 'operator frac 2'.
+  do_fraction(stack) {
+    const [new_stack, numerator_expr, denominator_expr] = stack.pop_exprs(2);
+    return new_stack.push_expr(
+      CommandExpr.frac(numerator_expr, denominator_expr));
   }
 
   // Set the typeface of the stack top, wrapping it in a FontExpr if it's not already.

@@ -104,8 +104,8 @@ const KeybindingTable = {
     'Ctrl+z': "undo",
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
     'Ctrl+,': "infix ,",
-    'Ctrl+/': "operator frac 2",
-    "Ctrl+\\": "integer 1;swap;operator frac 2",  // 1/x, same as [/][1]
+    'Ctrl+/': "fraction",
+    "Ctrl+\\": "integer 1;swap;fraction",  // 1/x, same as [/][1]
     'Ctrl+ArrowRight': "scroll document_container horizontal 75",
     'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
     'Ctrl+Backspace': "nip"
@@ -394,9 +394,9 @@ const KeybindingTable = {
 
   // [/] prefix: assorted functions/operators
   operator: {
-    '1': "integer 1;swap;operator frac 2",
+    '1': "integer 1;swap;fraction",
     '2': "mode squared",
-    'a': "operator frac 2",
+    'a': "fraction",
     'b': "operator binom 2",
     'c': "named_function cos",
     'C': "named_function csc",
@@ -442,7 +442,7 @@ const KeybindingTable = {
     ' ': "swap;concat",
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
-    '/': "operator frac 2",
+    '/': "fraction",
     '[': "parenthesize [ ];build_function_call",  // f x -> f[x]
     ']': "parenthesize \\{ \\};build_function_call",  // f x -> f{x}
     '{': "swap;operator overbrace;swap;superscript",
@@ -572,25 +572,25 @@ const KeybindingTable = {
   // [/][d] prefix: derivative operations
   derivative: {
     // \partial y / \partial x
-    'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;operator frac 2",
+    'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;fraction",
     // \partial^2 y / \partial x^2
-    'J': "integer 2;superscript;push \\partial;swap;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;operator frac 2",
+    'J': "integer 2;superscript;push \\partial;swap;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
     // dy/dx
-    'k': "differential_form 1;swap;differential_form 1;swap;operator frac 2",
+    'k': "differential_form 1;swap;differential_form 1;swap;fraction",
     // d^2(y) / dx^2 (NOTE: differential_form(1) can't be used in the numerator because of the exponent)
-    'K': "integer 2;superscript;differential_form 1;swap;differential_form 0;integer 2;superscript;swap;concat;swap;operator frac 2",
+    'K': "integer 2;superscript;differential_form 1;swap;differential_form 0;integer 2;superscript;swap;concat;swap;fraction",
     // \partial / \partial x
-    'q': "push \\partial;swap;concat;push \\partial;swap;operator frac 2",
+    'q': "push \\partial;swap;concat;push \\partial;swap;fraction",
     // \partial^2 / \partial x^2
-    'Q': "integer 2;superscript;push \\partial;swap;concat;push \\partial;integer 2;superscript;swap;operator frac 2",
+    'Q': "integer 2;superscript;push \\partial;swap;concat;push \\partial;integer 2;superscript;swap;fraction",
     // d/dx
-    'x': "differential_form 1;differential_form 0;swap;operator frac 2",
+    'x': "differential_form 1;differential_form 0;swap;fraction",
     // d^2 / dx^2
-    'X': "integer 2;superscript;differential_form 1;differential_form 0;integer 2;superscript;swap;operator frac 2",
+    'X': "integer 2;superscript;differential_form 1;differential_form 0;integer 2;superscript;swap;fraction",
     // \partial^2 / \partial x\,\partial y
-    'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;operator frac 2",
+    'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;fraction",
     // \partial^2 z / \partial x\,\partial y
-    'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;operator frac 2",
+    'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
     // gradient
     'g': "push \\nabla;swap;concat",
     // gradient with respect to x
@@ -637,10 +637,10 @@ const KeybindingTable = {
     'i': "differential_form 1 roman;swap;push \\,;concat;swap;concat",
     'I': "differential_form 1 roman;push \\,;concat;concat",
     ' ': "differential_form 1 roman;concat",
-    'k': "differential_form 1 roman;swap;differential_form 1 roman;swap;operator frac 2",
-    'K': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;operator frac 2",
-    'x': "differential_form 1 roman;differential_form 0 roman;swap;operator frac 2",
-    'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;operator frac 2",
+    'k': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
+    'K': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;fraction",
+    'x': "differential_form 1 roman;differential_form 0 roman;swap;fraction",
+    'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;fraction",
     'delegate': "derivative"
   },
 
@@ -767,7 +767,7 @@ const KeybindingTable = {
   symbol: {
     '0': "push \\varnothing",
     '1': "integer -1",
-    '2': "integer 1;integer 2;operator frac 2",  // 1/2 (display)
+    '2': "integer 1;integer 2;fraction",  // 1/2 (display)
     '3': "integer 1;integer 2;infix /",  // 1/2 (inline)
     '8': "push \\infty",
     'a': "push \\forall",

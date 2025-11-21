@@ -1,7 +1,7 @@
 
 // Interface to Algebrite: http://algebrite.org/
 //
-// Algebrite uses Lisp-like data structures internally, so most of the code
+// Algebrite uses Lisp-like data structures internally; most of the code
 // here is involved with converting expressions between it and the editor.
 //
 // - Conversion of Expr structures into Algebrite's input syntax is handled
@@ -170,12 +170,10 @@ function expr_to_variable_name(expr, ignore_superscript=false,
       expr.expr, ignore_superscript, allow_subscript, false);
     return unbolded_name ? ('bold_' + unbolded_name) : null;
   }
-
   // Remove (ignore) roman font if present.
   // Other fonts like sans-serif are considered unconvertable.
   if(expr.is_font_expr() && expr.typeface === 'roman')
     expr = expr.expr;
-
   // Check for expressions with a subscript.  Subscripted expressions
   // are converted to 'basename_subscriptname'.  Only one level of
   // subscripts is allowed (no x_a_b).
@@ -191,7 +189,6 @@ function expr_to_variable_name(expr, ignore_superscript=false,
     else
       return null;
   }
-
   let variable_name = null;
   if(expr.is_text_expr() &&
      is_valid_variable_name(expr.text, !allow_subscript)) {
@@ -377,10 +374,9 @@ function rational_to_expr(numerator, denominator, inline_fraction) {
       bigint_to_expr(denominator),
       new TextExpr('/'));
   else
-    expr = new CommandExpr(
-      'frac', [
-        bigint_to_expr(numerator.abs()),
-        bigint_to_expr(denominator)]);
+    expr = CommandExpr.frac(
+      bigint_to_expr(numerator.abs()),
+      bigint_to_expr(denominator));
   return numerator.isNegative() ?
     PrefixExpr.unary_minus(expr) : expr;
 }
@@ -1126,13 +1122,11 @@ class ExprToAlgebrite {
       nargs = expr.operand_count();
       command_name = expr.command_name;
     }
-
     if(command_name === 'frac' && nargs === 2)
       return new AlgebriteCall(
         'multiply', [
           this.expr_to_node(args[0]),
           new AlgebriteCall('reciprocal', [this.expr_to_node(args[1])])]);
-
     if(command_name === 'sqrt' && nargs === 1) {
       if(expr.options) {
         // sqrt[3], etc.  The option is assumed to be valid (positive integer).
@@ -1144,7 +1138,6 @@ class ExprToAlgebrite {
       else
         return new AlgebriteCall('sqrt', [this.expr_to_node(args[0])]);
     }
-
     // Check for unary functions like sin(x).
     // Translate 'Tr' => 'contract', etc. if needed.
     const algebrite_command = translate_function_name(command_name, true);
@@ -1154,13 +1147,11 @@ class ExprToAlgebrite {
         this.error('Matrix argument required', args[0]);
       return new AlgebriteCall(algebrite_command, [this.expr_to_node(args[0])]);
     }
-
     // Special case for \binom{n}{m}; this is the only two-argument
     // function used with Algebrite.
     if(command_name === 'binom' && nargs === 2)
       return new AlgebriteCall('choose', [
         this.expr_to_node(args[0]), this.expr_to_node(args[1])]);
-
     // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
     // having the command_name be a literal 'sin^2'.  This needs to be translated
     // as sin^2(x) => sin(x)^2 for Algebrite.  Also, reciprocal trig functions
@@ -1176,7 +1167,6 @@ class ExprToAlgebrite {
       return new AlgebriteCall('power', [
         new AlgebriteCall(match[1], [this.expr_to_node(args[0])]),
         new AlgebriteNumber(match[2].toString())]);
-
     // Zero-argument commands like \alpha are converted to their corresponding
     // alphanumeric variable name ('alpha').
     if(nargs === 0) {
@@ -1184,14 +1174,12 @@ class ExprToAlgebrite {
       if(variable_name)
         return new AlgebriteVariable(variable_name);
     }
-
     return this.error('Cannot use "' + command_name + '" here', expr);
   }
 
   subscriptsuperscript_expr_to_node(expr) {
     const [base_expr, subscript_expr, superscript_expr] =
           [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
-    
     // Check for for "where" expressions of the form: f|_{x=y}.
     if(base_expr.is_delimiter_expr() &&
        base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
@@ -1207,7 +1195,6 @@ class ExprToAlgebrite {
           this.expr_to_node(lhs),
           this.expr_to_node(rhs)]);
     }
-
     // Check for subscripted variable names (x_1).
     // A possible superscript becomes the exponent.
     if(subscript_expr) {
@@ -1222,11 +1209,9 @@ class ExprToAlgebrite {
       else
         return new AlgebriteVariable(variable_name);
     }
-    
     // Anything else with a subscript isn't allowed.
     if(subscript_expr)
       return this.error('Cannot use subscript here', expr);
-
     // Check for matrix_expr^{\textrm{T}} (transpose).
     // Perform the transpose internally rather than calling
     // transpose(A) with Algebrite.
@@ -1237,14 +1222,12 @@ class ExprToAlgebrite {
          superscript_expr.expr.is_text_expr_with('T')))) {
       return this.expr_to_node(base_expr.transposed());
     }
-
     // Check for e^x (both roman and normal 'e').
     if(superscript_expr &&
        (base_expr.is_text_expr_with('e') ||
         (base_expr.is_font_expr() && base_expr.typeface === 'roman' &&
          base_expr.expr.is_text_expr_with('e'))))
       return new AlgebriteCall('exp', [this.expr_to_node(superscript_expr)]);
-
     // Check for x^{\circ} (degrees notation).  Becomes x*pi/180.
     if(superscript_expr &&
        superscript_expr.is_command_expr_with(0, 'circ'))
@@ -1252,14 +1235,12 @@ class ExprToAlgebrite {
         this.expr_to_node(base_expr),
         new AlgebriteVariable('pi'),
         new AlgebriteCall('reciprocal', [new AlgebriteNumber('180')])]);
-
     // x^y with no subscript on x.
     if(superscript_expr)
       return new AlgebriteCall(
         'power', [
           this.expr_to_node(base_expr),
           this.expr_to_node(superscript_expr)]);
-
     // Shouldn't get here.
     return this.expr_to_node(base_expr);
   }
@@ -1464,14 +1445,11 @@ class AlgebriteToExpr {
     const args = this.unpack_list(arg_list);
     const nargs = args.length;
     const arg_exprs = args.map(arg => this.to_expr(arg));
-
     // Check forms that have special Expr representations.
-
     // testlt(x, y) => x<y, etc.
     const match = algebrite_relation_types.find(pair => pair[2] === f);
     if(nargs === 2 && match)
       return InfixExpr.combine_infix(...arg_exprs, Expr.text_or_command(match[1]));
-
     // Other special cases:
     switch(f) {
     case 'multiply':
@@ -1518,7 +1496,6 @@ class AlgebriteToExpr {
           new CommandExpr('operatorname', [new TextExpr(f)]),
           arg_exprs[0]]);
     }
-    
     // Check "built-in" unary LaTeX command like \sin{x}.
     if(allowed_algebrite_unary_functions.has(f) && args.length === 1) {
       const command_name = translate_function_name(f, false);
@@ -1536,7 +1513,6 @@ class AlgebriteToExpr {
           new TextExpr(command_name),
           DelimiterExpr.parenthesize_for_argument(arg_exprs[0])]);
     }
-
     // Anything else becomes f(x,y,z).
     // NOTE: The syntax allows 0-argument calls: f().
     return new FunctionCallExpr(
@@ -1614,10 +1590,9 @@ class AlgebriteToExpr {
       // like 1/x * 1/y = 1/(xy).
       if(numerator_exprs.length === 0)
         numerator_exprs.push(TextExpr.integer(1));
-      const frac_expr = new CommandExpr(
-        'frac', [
-          this._multiply_exprs(numerator_exprs),
-          this._multiply_exprs(denominator_exprs)]);
+      const frac_expr = CommandExpr.frac(
+        this._multiply_exprs(numerator_exprs),
+        this._multiply_exprs(denominator_exprs));
       // Finally add the overall unary minus if there is one.
       return unary_minus ? PrefixExpr.unary_minus(frac_expr) : frac_expr;
     }
@@ -1674,13 +1649,13 @@ class AlgebriteToExpr {
         return base_expr;
       // x^(-1) => 1/x
       if(numer.equals(-1) && denom.equals(1))
-        return new CommandExpr('frac', [TextExpr.integer(1), base_expr]);
+        return CommandExpr.frac(TextExpr.integer(1), base_expr);
       // x^(-n) => 1/(x)^n
       if(numer.isNegative() && denom.equals(1))
-        return new CommandExpr('frac', [
+        return CommandExpr.frac(
           TextExpr.integer(1),
           base_expr.with_superscript(
-            rational_to_expr(numer.multiply(-1), denom))]);
+            rational_to_expr(numer.multiply(-1), denom)));
       // x^(1/2) => sqrt(x)
       if(numer.equals(1) && denom.equals(2))
         return new CommandExpr('sqrt', [base_expr]);
@@ -1689,14 +1664,14 @@ class AlgebriteToExpr {
         return new CommandExpr('sqrt', [base_expr], '3');
       // x^(-1/2) => 1/sqrt(x)
       if(numer.equals(-1) && denom.equals(2))
-        return new CommandExpr('frac', [
+        return CommandExpr.frac(
           TextExpr.integer(1),
-          new CommandExpr('sqrt', [base_expr])]);
+          new CommandExpr('sqrt', [base_expr]));
       // x^(-1/3) => 1/sqrt[3](x)
       if(numer.equals(-1) && denom.equals(3))
-        return new CommandExpr('frac', [
+        return CommandExpr.frac(
           TextExpr.integer(1),
-          new CommandExpr('sqrt', [base_expr], '3')]);
+          new CommandExpr('sqrt', [base_expr], '3'));
       // x^n or x^(n/m)
       // For fractional n/m, render it as an inline fraction rather than using \frac.
       return base_expr.with_superscript(
@@ -1711,7 +1686,6 @@ class AlgebriteToExpr {
   derivative_to_expr(base_p, variable_p) {
     const base_expr = this.to_expr(base_p);
     const variable_expr = this.to_expr(variable_p);
-
     // Try to convert forms like d(f(x), x) to f^{\prime}(x):
     //   - f has to be a simple variable name (possibly with a subscript)
     //   - f may also already be "primed", in which case another prime is added,
@@ -1741,15 +1715,12 @@ class AlgebriteToExpr {
     //   - the arguments to f must all be simple variable names
     //     (no f(x, y^2, z))
     //   - the derivative variable must match one of the argument variables
-
     // TODO: handle mixed partial derivatives too
-
     // Render everything else with the "default" d/dx notation.
     // NOTE: this doesn't allow for a (cosmetic) roman-font 'd'.
-    const d_dx_expr = new CommandExpr(
-      'frac', [
-        new TextExpr('d'),
-        new SequenceExpr([new TextExpr('d'), variable_expr])]);
+    const d_dx_expr = CommandExpr.frac(
+      new TextExpr('d'),
+      new SequenceExpr([new TextExpr('d'), variable_expr]));
     return Expr.combine_pair(
       d_dx_expr, DelimiterExpr.parenthesize_for_argument(base_expr));
   }
