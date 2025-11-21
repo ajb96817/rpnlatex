@@ -85,13 +85,13 @@ const KeybindingTable = {
     'Ctrl+g': "parenthesize;push g;swap;build_function_call",
     'Ctrl+j': "extract_from_document",
     'Ctrl+k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f(x|y): same as [/][k]
-    'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K]
+    'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K] - undocumented
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
     'Ctrl+o': "parenthesize;build_function_call",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
     'Ctrl+r': "infix ,;parenthesize;build_function_call",  // -> f(x,y): same as [/][r]
-    'Ctrl+R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z): same as [/][R]
+    'Ctrl+R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z): same as [/][R] - undocumented
     'Ctrl+s': "save_file",
     'Ctrl+t': "autoparenthesize;push t;parenthesize;build_function_call",  // y -> y(t)
     'Ctrl+T': "push y;push t;parenthesize;build_function_call",  // y(t) - undocumented
@@ -171,7 +171,6 @@ const KeybindingTable = {
     '$': "scroll_to help_configuration",
     'Backspace': "scroll_to help_prefix_keys",
     'c': "scroll_to help_control_keys",  // undocumented
-
     'q': "toggle_popup help",
     '?': "toggle_popup help;config dock_helptext on",
     'default': "toggle_popup help"

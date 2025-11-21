@@ -450,7 +450,7 @@ class CommandExpr extends Expr {
     return json;
   }
 
-  // "Special" LaTeX commands like \& and \%.  (Anything not starting with a letter).
+  // "Special" LaTeX commands like \& and \%.  (Anything not starting with a letter.)
   // These need a little extra handling.  In particular, editing one of them as text
   // should use the normal math-entry mode & or % representation, instead of switching
   // to the LaTeX math-entry mode as would be done for a normal command like \alpha.
@@ -1656,12 +1656,12 @@ class DelimiterExpr extends Expr {
   }
 
   // An inline division infix expression surrounded by "blank" delimiters
-  // i.e.: \left. x/y \right.
+  // e.g.: \left. x/y \right.
   // is in some cases treated like a \frac{x}{y} command.
   is_flex_inline_fraction() {
     return this.left_type === '.' && this.right_type === '.' &&
       this.inner_expr.is_infix_expr() &&
-      this.inner_expr.operator_exprs.length === 1 &&
+      this.inner_expr.operand_count() === 1 &&
       this.inner_expr.operator_text_at(0) === '/';
   }
 

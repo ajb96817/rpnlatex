@@ -791,7 +791,7 @@ class InputContext {
     else return stack;
   }
 
-  // Pop arity_string items (default 1) and turn them into an CommandExpr.
+  // Pop arity_string items and turn them into an CommandExpr.
   do_operator(stack, opname, arity_string = '1') {
     const arity = parseInt(arity_string);
     const [new_stack, ...popped_exprs] = stack.pop_exprs(arity);
@@ -1083,7 +1083,7 @@ class InputContext {
   // otherwise the behavior depends on the global settings.
   // (Default is to always autoparenthesize).
   do_concat(stack, autoparenthesize) {
-    let [new_stack, left_item, right_item] = stack.pop(2);
+    const [new_stack, left_item, right_item] = stack.pop(2);
     const no_parenthesize = autoparenthesize === 'false' ||
           !this.settings.autoparenthesize;
     if(left_item.is_expr_item() && right_item.is_expr_item())
@@ -1150,6 +1150,8 @@ class InputContext {
   // Extract either the left or right side of an expression.
   //   - InfixExpr yields the part to the left or right of the split_at_index point.
   //   - CommandExpr \frac yields the numerator or denominator of the fraction.
+  //   - Flex-mode inline fractions (empty delimiter infix with '/' operator)
+  //     also yield their numerator or denominator.
   do_extract_infix_side(stack, which_side) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let extracted_expr = null;
@@ -1401,7 +1403,7 @@ class InputContext {
       const new_item = item.with_tag(
         trimmed_text.length === 0 ? null :
           textstyle === 'tag_with_parentheses' ?
-          ['(', trimmed_text, ')'] : trimmed_text);
+          ['(', trimmed_text, ')'].join('') : trimmed_text);
       this._cancel_text_entry(new_stack);
       return new_stack.push(new_item);
     }
