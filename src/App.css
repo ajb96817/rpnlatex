@@ -55,14 +55,14 @@ body.sepia div.panel {
   height: 100%;
   overflow-x: scroll;
   overflow-y: auto;
-  scrollbar-width: none;  /* hide scrollbars in stack panel (but not document) */
+  /* scrollbar-width: none; */ /* hide scrollbars in stack panel (but not document) */
   box-shadow: inset 0 0 1.5em 0 #ccc;
   box-sizing: border-box;
   border: 1px solid #ccc;
 }
+/* webkit version of scrollbar-width: none */
 #stack_panel::-webkit-scrollbar {
-  /* webkit version of scrollbar-width: none */
-  display: none;
+  /* display: none; */
 }
 body.eink_mode #stack_panel {
   /* Remove "tinting" for E-ink displays. */
@@ -196,7 +196,6 @@ div.item {
   /* Snap margins for scrolling when the document selection changes. */
   scroll-margin-top: 0.5em;
   scroll-margin-bottom: 0.5em;
-
   /* These three rules expand the selection indicator (when the .selected class
      is applied) to the entire content of large items so that the indicator is
      still visible when scrolling the content, while still taking up the full
@@ -482,7 +481,7 @@ table.keybindings td { padding: 0.1em 0.5em; }
 
 /* Adjust spacing and alignment of display math to make things more compact. */
 .katex-display {
-  margin: 3px 0;
+  margin: 3px 0;  /* should match what is in div.latex_fragment */
   padding: 2px 0;
   text-align: left;
 }

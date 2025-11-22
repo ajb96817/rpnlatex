@@ -752,7 +752,7 @@
           <tr>
             <td><span class="k">X</span> <code>\sout x</code> <em>(crossout)</em></td>
             <td><span class="k">Y</span> <code>\widetilde{x\dots}</code></td>
-            <td><span class="k">z</span> <code>\cancel x</code> <em>(cancel)</em></td>
+            <td><span class="k">z</span> <code>\bcancel x</code></td>
           </tr>
           <tr>
             <td><span class="k">.</span> <code>\dot x</code></td>
@@ -775,12 +775,12 @@
             <td><span class="k">~</span> <code>\tilde x</code></td>
           </tr>
           <tr>
-            <td><span class="k">/</span> <code>1/x</code></td>
-            <td><span class="k">_</span> <code>\underline{x\dots}</code></td>
+            <td><span class="k">/</span> <code>\cancel x</code></td>
+            <td><span class="k">\</span> <code>1/x</code></td>
             <td><span class="k">!</span> <code>\neg x</code> <em>(not)</em></td>
           </tr>
           <tr>
-            <td><span class="k">\</span> <code>\bcancel x</code></td>
+            <td><span class="k">_</span> <code>\underline{x\dots}</code></td>
             <td><span class="k">[</span> <code>\small x</code> <em>(smaller)</em></td>
             <td><span class="k">]</span> <code>\large x</code> <em>(larger)</em></td>
           </tr>
@@ -1048,16 +1048,34 @@
       <p><strong>Algebra and Calculus:</strong></p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="k">1</span> <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code></td>
-            <td><span class="k">a</span> or <span class="k">/</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code></td>
+            <td>
+              <span class="k">1</span> or <span class="k">\</span>
+              <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code>
+            </td>
+            <td>
+              <span class="k">a</span> or <span class="k">/</span>
+              <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code>
+            </td>
           </tr>
           <tr>
-            <td><span class="k">l</span> <code>x \Rightarrow \lim\limits_x</code></td>
-            <td><span class="k">L</span> <code>x\enspace y \Rightarrow \lim\limits_{x\to y}</code></td>
+            <td>
+              <span class="k">l</span>
+              <code>x \Rightarrow \lim\limits_x</code>
+            </td>
+            <td>
+              <span class="k">L</span>
+              <code>x\enspace y \Rightarrow \lim\limits_{x\to y}</code>
+            </td>
           </tr>
           <tr>
-            <td><span class="k">b</span> <code>x\enspace y \Rightarrow \displaystyle{\binom{x}{y}}</code></td>
-            <td><span class="k">g</span> <code>x\enspace y \Rightarrow \displaystyle{\int_x^y}</code></td>
+            <td>
+              <span class="k">b</span>
+              <code>x\enspace y \Rightarrow \displaystyle{\binom{x}{y}}</code>
+            </td>
+            <td>
+              <span class="k">g</span>
+              <code>x\enspace y \Rightarrow \displaystyle{\int_x^y}</code>
+            </td>
           </tr>
           <tr>
             <td>
@@ -1426,7 +1444,7 @@
       </ul>
       <p>
         <strong>Differential Forms:</strong>
-        The <span class="k">f</span> <span class="k">F</span> <span class="k">E</span>
+        The <span class="k">f</span> and <span class="k">F</span>
         commands for building differential forms will pull out minus signs as needed, as in:
         <code>-y\enspace x \Rightarrow -dy \wedge dx</code>.
         When concatenating differential forms to integral expressions, use
@@ -1844,7 +1862,8 @@
         </li>
         <li>
           <span class="k">h</span>
-          Stack N matrices side by side (default 2).  All must have the same number of rows.
+          Stack N matrices <strong>h</strong>orizontally (default 2).
+          All must have the same number of rows.
         </li>
       </ul>
 
@@ -1870,15 +1889,15 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="k">a</span>
+          <span class="k">a</span> <em>(align)</em>
           Stack N equations together aligned by their infix operator, if any.
         </li>
         <li>
-          <span class="k">g</span>
+          <span class="k">g</span> <em>(gather)</em>
           Stack N equations together where each equation is centered on its own.
         </li>
         <li>
-          <span class="k">c</span>
+          <span class="k">c</span> <em>(case)</em>
           Build a list of N cases for a piecewise function definition.
           If the component items are infix expressions joined with a colon
           (via <span class="k">,</span><span class="k">:</span>),
@@ -2527,9 +2546,11 @@
         <li>
           <span class="k">i</span>
           Toggle between full-size math display (the default) and compact inline math display modes.
-          <strong>NOTE:</strong> With inline math display mode, equations are always aligned to the left,
+          With inline display mode, equations are always aligned to the left,
           regardless of the setting chosen by <span class="k">$</span><span class="k">m</span>
-          and <span class="k">$</span><span class="k">M</span>.
+          and <span class="k">$</span><span class="k">M</span>.  Long equations will wrap around to
+          multiple lines in inline display mode, while full-size mode requires the use of the
+          <span class="k">/</span><span class="k">,</span> equation splitting command to insert line breaks.
         </li>
         <li>
           <span class="k">z</span> or <span class="k">+</span>

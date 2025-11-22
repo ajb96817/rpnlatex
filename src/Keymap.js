@@ -395,6 +395,7 @@ const KeybindingTable = {
   // [/] prefix: assorted functions/operators
   operator: {
     '1': "integer 1;swap;fraction",
+    "\\": "integer 1;swap;fraction",
     '2': "mode squared",
     'a': "fraction",
     'b': "operator binom 2",
@@ -877,7 +878,8 @@ const KeybindingTable = {
     'x': "operator boxed",
     'X': "operator sout",  // strikeout
     'Y': "operator widetilde",
-    'z': "operator cancel",
+    'z': "operator bcancel",
+    '/': "operator cancel",
     '.': "apply_hat dot",
     '>': "push .;concat",
     "\"": "apply_hat ddot",
@@ -890,10 +892,9 @@ const KeybindingTable = {
     '-': "autoparenthesize;negate",
     '+': "autoparenthesize;prefix +",
     '`': "push T;typeface roman;superscript",  // transpose
-    '/': "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
+    "\\": "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
     '_': "operator underline",
     '!': "autoparenthesize;prefix \\neg",
-    "\\": "operator bcancel",
     '[': "adjust_size smaller",
     ']': "adjust_size larger",
     '{': "operator overbrace",
