@@ -575,18 +575,18 @@ const KeybindingTable = {
     'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;fraction",
     // \partial^2 y / \partial x^2
     'J': "integer 2;superscript;push \\partial;swap;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
-    // dy/dx
-    'k': "differential_form 1;swap;differential_form 1;swap;fraction",
-    // d^2(y) / dx^2 (NOTE: differential_form(1) can't be used in the numerator because of the exponent)
-    'K': "integer 2;superscript;differential_form 1;swap;differential_form 0;integer 2;superscript;swap;concat;swap;fraction",
-    // \partial / \partial x
-    'q': "push \\partial;swap;concat;push \\partial;swap;fraction",
-    // \partial^2 / \partial x^2
-    'Q': "integer 2;superscript;push \\partial;swap;concat;push \\partial;integer 2;superscript;swap;fraction",
     // d/dx
     'x': "differential_form 1;differential_form 0;swap;fraction",
     // d^2 / dx^2
     'X': "integer 2;superscript;differential_form 1;differential_form 0;integer 2;superscript;swap;fraction",
+    // dy/dx
+    'y': "differential_form 1;swap;differential_form 1;swap;fraction",
+    // d^2(y) / dx^2 (NOTE: differential_form(1) can't be used in the numerator because of the exponent)
+    'Y': "integer 2;superscript;differential_form 1;swap;differential_form 0;integer 2;superscript;swap;concat;swap;fraction",
+    // \partial / \partial x
+    'q': "push \\partial;swap;concat;push \\partial;swap;fraction",
+    // \partial^2 / \partial x^2
+    'Q': "integer 2;superscript;push \\partial;swap;concat;push \\partial;integer 2;superscript;swap;fraction",
     // \partial^2 / \partial x\,\partial y
     'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;fraction",
     // \partial^2 z / \partial x\,\partial y
@@ -637,10 +637,10 @@ const KeybindingTable = {
     'i': "differential_form 1 roman;swap;push \\,;concat;swap;concat",
     'I': "differential_form 1 roman;push \\,;concat;concat",
     ' ': "differential_form 1 roman;concat",
-    'k': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
-    'K': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;fraction",
     'x': "differential_form 1 roman;differential_form 0 roman;swap;fraction",
     'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;fraction",
+    'y': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
+    'Y': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;fraction",
     'delegate': "derivative"
   },
 
