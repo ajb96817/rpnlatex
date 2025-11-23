@@ -135,7 +135,9 @@ const KeybindingTable = {
     'ArrowLeft': 'cancel',  // 'cancel' here means don't hide the help text
     'ArrowRight': 'cancel',
     'PageDown': 'scroll popup_panel vertical 95',
+    ' ': 'scroll popup_panel vertical 95',
     'PageUp': 'scroll popup_panel vertical -95',
+    'Ctrl+ ': 'scroll popup_panel vertical -95',
     'J': 'scroll popup_panel vertical 95',
     'K': 'scroll popup_panel vertical -95',
     'Home': 'scroll popup_panel top',

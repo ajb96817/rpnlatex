@@ -42,33 +42,46 @@ body.hide_mouse_cursor { cursor: none; }
 #panel_layout { height: 100%; }
 
 div.panel {
-  /* This ends up being the stack panel color. */
-  background-color: #f8f8f8;
+  /* Default panel background color; should never be seen
+     (each panel type should override the background color). */
+  background-color: yellow;
 }  
-body.sepia div.panel {
-  /* For better contrast against document panel. */
-  background-color: #f0f0f0;
-}
 
 #stack_panel {
   position: absolute;
   height: 100%;
   overflow-x: scroll;
   overflow-y: auto;
+  /* Hide horizontal scrollbars for a cleaner look (disabled for now). */
   /* scrollbar-width: none; */ /* hide scrollbars in stack panel (but not document) */
   box-shadow: inset 0 0 1.5em 0 #ccc;
   box-sizing: border-box;
   border: 1px solid #ccc;
+  background-color: #f8f8f8;
 }
 /* webkit version of scrollbar-width: none */
-#stack_panel::-webkit-scrollbar {
-  /* display: none; */
+/* #stack_panel::-webkit-scrollbar { display: none; } */
+body.sepia #stack_panel {
+  /* For better contrast against document panel. */
+  background-color: #f0f0f0;
 }
 body.eink_mode #stack_panel {
   /* Remove "tinting" for E-ink displays. */
   box-shadow: none;
   background-color: white;
 }
+
+#document_panel {
+  position: absolute;
+  overflow: hidden;
+  background-color: white;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  box-shadow: inset 0 0 0.5em 0 #ccc;
+}
+/* NOTE: body.sepia #document_panel and body.eink_mode #document_panel rules
+   could be added here to tune the panel background-color.  Not currently used. */
+
 body.eink_mode #stack_panel.stack_on_bottom { border-top: 2px solid #888; }
 body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
 body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
@@ -120,24 +133,64 @@ div.floating_item div.tag_string {
   display: none;  /* tags get in the way in the "floating" item spot */
 }
 
-#stack_panel.errorflash {
-  animation-name: errorflash_stack;
-  animation-duration: 0.3s;
+/* Error-flash CSS animations for stack and document panels.
+   This requires a few hacks; see the comment in InputContext.error_flash_element().
+   Note that:
+     - The error flash animations start paused, and when triggered immediately ramp
+       up to the error flash color before ramping back down to the original color.
+     - The initial and final colors depend on the user-selected "theme" mode/filter
+       (default, sepia, e-ink) so 3 versions of each animation are required.
+     - Inverse-video (dark) filter mode needs no special handling here and is treated
+       as the default mode as far as error flashes are concerned.
+     - Due to the hack needed to retrigger the animation for subsequent error flashes,
+       two identical copies of each animation are needed (suffixed with _1 and _2).
+       These are alternated for each flash in code.
+     - The document and stack panels can themselves have different backgrounds/styling,
+       so this again doubles the number of @keyframe definitions needed.
+     - Altogether, then, this takes 3*2*2 = 12 separate animations.
+  TODO: Maybe make the error flash color (#fdd) into a CSS variable.
+  TODO: Maybe try to modulate/mix background colors, or do something with the alpha
+        channel instead of all the duplicated animations.
+*/
+/* NOTE: The following 2 rules are not strictly needed. */
+#stack_panel { animation-name: errorflash_stack_1; }
+#document_panel { animation-name: errorflash_document_1; }
+
+#stack_panel, #document_panel {
+  animation-duration: 0.5s;
+  animation-play-state: paused;
 }
-body.sepia #stack_panel.errorflash { animation-name: errorflash_stack_sepia; }
-body.eink_mode #stack_panel.errorflash { animation-name: errorflash_stack_eink; }
-@keyframes errorflash_stack {
-  from { background-color: #fdd; }
-  to { background-color: #f8f8f8; /* match div.panel */ }
-}
-@keyframes errorflash_stack_sepia {
-  from { background-color: #fdd; }
-  to { background-color: #f0f0f0; /* match body.sepia div.panel */ }
-}
-@keyframes errorflash_stack_eink {
-  from { background-color: #fdd; }
-  to { background-color: white; /* match body.eink_mode #stack_panel */ }
-}
+
+@keyframes errorflash_stack_1 {
+  /* Normal stack flash background color should match what is in the #stack_panel rule. */
+  from { background-color: #f8f8f8; } 1% { background-color: #fdd; } to { background-color: #f8f8f8; } }
+@keyframes errorflash_stack_2 {
+  from { background-color: #f8f8f8; } 1% { background-color: #fdd; } to { background-color: #f8f8f8; } }
+@keyframes errorflash_stack_sepia_1 {
+  /* Sepia background matches body.sepia #stack_panel rule. */
+  from { background-color: #f0f0f0; } 1% { background-color: #fdd; } to { background-color: #f0f0f0; } }
+@keyframes errorflash_stack_sepia_2 {
+  from { background-color: #f0f0f0; } 1% { background-color: #fdd; } to { background-color: #f0f0f0; } }
+@keyframes errorflash_stack_eink_1 {
+  /* E-ink mode background matches body.eink_mode #stack_panel. */
+  from { background-color: white; } 1% { background-color: #fdd; } to { background-color: white; } }
+@keyframes errorflash_stack_eink_2 {
+  from { background-color: white; } 1% { background-color: #fdd; } to { background-color: white; } }
+
+/* NOTE: Document panel initial/final flash background colors happen to not vary depending
+   on the sepia/e-ink theme setting.  This could change at some point. */
+@keyframes errorflash_document_1 {
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
+@keyframes errorflash_document_2 {
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
+@keyframes errorflash_document_sepia_1 {
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
+@keyframes errorflash_document_sepia_2 {
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
+@keyframes errorflash_document_eink_1 {
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
+@keyframes errorflash_document_eink_2 {
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
 
 
 #document_panel {
@@ -147,14 +200,6 @@ body.eink_mode #stack_panel.errorflash { animation-name: errorflash_stack_eink; 
   box-sizing: border-box;
   border: 1px solid #ccc;
   box-shadow: inset 0 0 0.5em 0 #ccc;
-}
-#document_panel.errorflash {
-  animation-name: errorflash_document;
-  animation-duration: 0.3s;
-}
-@keyframes errorflash_document {
-  from { background-color: #fdd; }
-  to { background-color: #fff; }
 }
 #document_panel div.selected {
   background-color: #eee;

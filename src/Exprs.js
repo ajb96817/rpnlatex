@@ -392,7 +392,7 @@ class Expr {
         is_subscript ? null : expr);
     else {
       // "Removing" the (nonexistent) subscript or superscript.
-      // This is for compatibility with passing expr===null for
+      // This is for compatibility with passing expr=null for
       // the SubscriptSuperscriptExpr version.
       return this;
     }
@@ -411,9 +411,7 @@ class Expr {
 // Represents a LaTeX command such as \sqrt or \frac{x}{y}.
 class CommandExpr extends Expr {
   static frac(numer_expr, denom_expr) {
-    return new CommandExpr(
-      'frac',
-      [numer_expr, denom_expr]);
+    return new this('frac', [numer_expr, denom_expr]);
   }
   
   // NOTES:

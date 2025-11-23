@@ -206,30 +206,58 @@ class InputContext {
   // Don't include the results of this action in the undo stack.
   suppress_undo() { this.perform_undo_or_redo = 'suppress'; }
 
-  error_flash_element(dom_element) {
-    dom_element.classList.remove('errorflash');
-    // eslint-disable-next-line no-unused-expressions
-    dom_element.offsetWidth;  // force reflow
-    dom_element.classList.add('errorflash');
+  // "Flash" the element with a CSS animation.  This requires some special
+  // handling due to a limitation of CSS animations:
+  // 
+  // The stack and document panel elements both start with a paused error-flash
+  // animation that runs for 1 cycle.  We trigger the animation by setting the
+  // play-state to running.  Unfortunately, with CSS, there is no clean way of
+  // actually restarting the animation to prepare for the next error.  The usual
+  // hack to get around this is to remove a CSS class with the animation rule,
+  // trigger a browser re-layout (by querying a property such as elt.offsetWidth),
+  // and then re-adding the CSS class to reset the animation.  Instead of that,
+  // we alternate between two identical sets of keyframe by changing the animation
+  // name itself (no manipulation of CSS classes).  Once the animation name is
+  // changed, the "new" animation starts again at the beginning in the paused state,
+  // and we can immediately trigger it by setting the play state to running.
+  //
+  // 'animation_base_name' is either 'errorflash_stack' or 'errorflash_document'
+  // and the "theme" (sepia/eink) and '_1' or '_2' are appended to this to flip
+  // between the alternate identical animations.
+  error_flash_element(dom_element, animation_base_name) {
+    // NOTE: 'inverse_video' needs no special handling here.
+    // It's treated as if it were the default theme/filter.
+    const theme_suffix =
+          this.settings.filter === 'sepia' ? '_sepia' :
+          this.settings.filter === 'eink' ? '_eink' : '';
+    // First, explicitly pause the animation in case a second error-flash
+    // is being triggered during the brief interval where a previous one
+    // is running.
+    dom_element.style.animationPlayState = 'paused';
+    const animation_names = [
+      [animation_base_name, theme_suffix, '_1'].join(''),
+      [animation_base_name, theme_suffix, '_2'].join('')];
+    dom_element.style.animationName = animation_names[
+      dom_element.style.animationName === animation_names[0] ? 1 : 0];
+    dom_element.style.animationPlayState = 'running';
   }
 
   error_flash_stack() {
     if(this.settings.layout.stack_split === 0)
       return this.error_flash_document();
     else
-      return this.error_flash_element(document.getElementById('stack_panel'));
+      return this.error_flash_element(
+        document.getElementById('stack_panel'),
+        'errorflash_stack');
   }
 
   error_flash_document() {
     if(this.settings.layout.stack_split === 100)
       return this.error_flash_stack();
     else
-      return this.error_flash_element(document.getElementById('document_panel'));
-  }
-
-  clear_all_flashes() {
-    ['stack_panel', 'document_panel'].forEach(elt_id =>
-      document.getElementById(elt_id).classList.remove('errorflash'));
+      return this.error_flash_element(
+        document.getElementById('document_panel'),
+      'errorflash_document');
   }
 
   notify(text) { this.notification_text = text; }
@@ -1479,7 +1507,8 @@ class InputContext {
       this.text_entry.edited_item = item;
       return new_stack;
     }
-    else return this.error_flash_stack();
+    else
+      return this.error_flash_stack();
   }
 
   // Dissect mode commands:
@@ -1791,10 +1820,11 @@ class InputContext {
       break;
     case 'sepia':
       settings.filter = settings.filter === 'sepia' ? null : 'sepia';
+      this.notify("Sepia filter " + (settings.filter === 'sepia' ? "on" : "off"));
       break;
     case 'eink_mode':
-      settings.eink_mode = !settings.eink_mode;
-      this.notify("E-ink mode " + (settings.eink_mode ? "on" : "off"));
+      settings.filter = settings.filter === 'eink' ? null : 'eink';
+      this.notify("E-ink mode " + (settings.filter === 'eink' ? "on" : "off"));
       break;
     case 'dock_helptext':
       settings.dock_helptext = (value === 'on');
@@ -1806,7 +1836,6 @@ class InputContext {
     case 'reset_layout':
       settings.layout = settings.default_layout();
       settings.filter = null;
-      settings.eink_mode = false;
       settings.show_mode_indicator = true;
       full_refresh_needed = true;
       break;
@@ -1823,7 +1852,6 @@ class InputContext {
     settings.save();
     this.suppress_undo();
     this.app_component.apply_layout_to_dom();
-    this.clear_all_flashes();
     if(full_refresh_needed) {
       // All displayed ItemComponents need to be re-rendered.
       this.update_document(this.app_state.document.clone_all_items());
