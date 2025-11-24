@@ -206,8 +206,8 @@ class InputContext {
   // Don't include the results of this action in the undo stack.
   suppress_undo() { this.perform_undo_or_redo = 'suppress'; }
 
-  // "Flash" the element with a CSS animation.  This requires some special
-  // handling due to a limitation of CSS animations:
+  // "Flash" the stack or document panel with a CSS animation to indicate an error.
+  // This requires some special handling due to a limitation of CSS animations:
   // 
   // The stack and document panel elements both start with a paused error-flash
   // animation that runs for 1 cycle.  We trigger the animation by setting the
@@ -216,7 +216,7 @@ class InputContext {
   // hack to get around this is to remove a CSS class with the animation rule,
   // trigger a browser re-layout (by querying a property such as elt.offsetWidth),
   // and then re-adding the CSS class to reset the animation.  Instead of that,
-  // we alternate between two identical sets of keyframe by changing the animation
+  // we alternate between two identical sets of keyframes by changing the animation
   // name itself (no manipulation of CSS classes).  Once the animation name is
   // changed, the "new" animation starts again at the beginning in the paused state,
   // and we can immediately trigger it by setting the play state to running.
@@ -230,13 +230,12 @@ class InputContext {
     const theme_suffix =
           this.settings.filter === 'sepia' ? '_sepia' :
           this.settings.filter === 'eink' ? '_eink' : '';
-    // First, explicitly pause the animation in case a second error-flash
-    // is being triggered during the brief interval where a previous one
-    // is running.
+    // First, explicitly pause the animation to re-arm it before the new
+    // animation name is set.
     dom_element.style.animationPlayState = 'paused';
-    const animation_names = [
-      [animation_base_name, theme_suffix, '_1'].join(''),
-      [animation_base_name, theme_suffix, '_2'].join('')];
+    // Switch to the alternate animation name and set it running.
+    const animation_names = ['_1', '_2'].map(suffix =>
+      [animation_base_name, theme_suffix, suffix].join(''));
     dom_element.style.animationName = animation_names[
       dom_element.style.animationName === animation_names[0] ? 1 : 0];
     dom_element.style.animationPlayState = 'running';

@@ -69,7 +69,7 @@ class Expr {
     }
   }
 
-  // Helper routines for from_json
+  // Helper routines for from_json().
   static _expr(json) { return json ? this.from_json(json) : null; }
   static _list(json_array) { return json_array.map(expr_json => this.from_json(expr_json)); }
   static _list2d(json_array) { return json_array.map(row_exprs => this._list(row_exprs)); }
@@ -195,7 +195,6 @@ class Expr {
   static combine_command_pair(left_expr, right_expr) {
     const [left_name, right_name] =
           [left_expr.command_name, right_expr.command_name];
-
     // Try combining adjacent integral symbols into multiple-integral commands.
     let new_command_name = null;
     if(left_expr.operand_count() === 0 && right_expr.operand_count() === 0) {
@@ -208,7 +207,6 @@ class Expr {
     }
     if(new_command_name)
       return new CommandExpr(new_command_name);
-
     // Everything else just becomes a SequenceExpr.
     return new SequenceExpr([left_expr, right_expr]);
   }
@@ -521,6 +519,8 @@ class CommandExpr extends Expr {
       case 'ngeq': text = 'ge'; break;
       case 'in': text = 'notin'; break;
       case 'notin': text = 'in'; break;
+      case 'exists': text = 'nexists'; break;
+      case 'nexists': text = 'exists'; break;
       }
       if(text) return new CommandExpr(text);
       // Default case: \subset => \not\subset
@@ -553,7 +553,7 @@ class CommandExpr extends Expr {
 }
 
 
-// FontExpr wraps another existing Expr and adds typeface/font information to it.
+// FontExpr wraps another Expr and adds typeface/font information to it.
 // A FontExpr sets both the overall typeface (normal math, upright roman, etc)
 // and a flag indicating bold/normal, plus an optional size adjustment that changes the
 // size of the expression.
@@ -710,7 +710,8 @@ class FontExpr extends Expr {
   }
 
   // Returns true if the given typeface's bold variant should be rendered using \pmb
-  // on top of the non-bolded version (instead of using a dedicated command like \boldsymbol).
+  // (poor man's bold) on top of the non-bolded version (instead of using a dedicated
+  // command like \boldsymbol).
   use_pmb_for(typeface) {
     return [
       'sans_serif', 'sans_serif_italic', 'typewriter',

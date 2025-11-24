@@ -108,7 +108,6 @@ class Settings {
       {x: 0, y: 0, w: 100, h: 100},
       layout.stack_side,
       layout.stack_split);
-
     this._apply_bounds(stack_panel_elt, stack_bounds);
     this._apply_bounds(document_panel_elt, document_bounds);
   }
@@ -478,10 +477,8 @@ class UndoStack {
   constructor() {
     // Stack of saved AppState instances (most recent one at the end).
     this.state_stack = [];
-
     // Maximum size of this.state_stack
     this.max_stack_depth = 100;
-    
     // Number of consecutive undo operations that have been performed so far.
     // If this is greater that zero, 'redo' operations can revert the undos.
     this.undo_count = 0;
@@ -500,13 +497,15 @@ class UndoStack {
     if(this.undo_count > 0) {
       // Truncate already-undone saved states.  This means that 'redo' will no longer work
       // until some more undos are performed.
-      this.state_stack = this.state_stack.slice(0, this.state_stack.length - this.undo_count);
+      this.state_stack = this.state_stack.slice(
+        0, this.state_stack.length - this.undo_count);
       this.undo_count = 0;
     }
     this.state_stack.push(state);
     // Prevent the undo list from growing indefinitely.
     if(this.state_stack.length > this.max_stack_depth)
-      this.state_stack = this.state_stack.slice(this.state_stack.length - this.max_stack_depth);
+      this.state_stack = this.state_stack.slice(
+        this.state_stack.length - this.max_stack_depth);
     return state;
   }
 
