@@ -243,6 +243,7 @@ const KeybindingTable = {
     '_': "config zoom_factor decrease",  // undocumented alias for z/-
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
+    '~': "debug",  // debugging command hook: calls do_debug()
     '$': "push \\$"  // undocumented
   },
 

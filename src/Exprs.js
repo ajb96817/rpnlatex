@@ -73,6 +73,22 @@ class Expr {
   static _expr(json) { return json ? this.from_json(json) : null; }
   static _list(json_array) { return json_array.map(expr_json => this.from_json(expr_json)); }
   static _list2d(json_array) { return json_array.map(row_exprs => this._list(row_exprs)); }
+
+  // Counterpart of expr.to_msgpack().
+  static from_msgpack(packed) {
+    const [typecode, ...state] = packed;
+    const expr_class = msgpack_typecode_to_class_map[typecode];
+    if(!expr_class)
+      throw new Error('unexpected typecode in from_msgpack: ' + typecode);
+    return expr_class._from_msgpack(state);
+  }
+
+  // Each subclass needs to implement this to reconstitute the Expr
+  // from saved state.
+  static _from_msgpack(state) {
+    throw new Error('_from_msgpack not implemented in ' + this);  // shouldn't happen
+    return null;
+  }
   
   // Concatenate two Exprs into one.  This will merge Exprs into adjacent SequenceExprs
   // when possible, instead of creating nested SequenceExprs.
@@ -273,6 +289,33 @@ class Expr {
     return { expr_type: this.expr_type() };
   }
 
+  // Return a minimized representation of this Expr suitable for storage using
+  // the msgpack format.  The general format is [expr_type_code, ...expr_state].
+  // For example, a TextExpr('abc') becomes [1, 'abc'].  In JSON, this would instead be
+  // { 'expr_type': 'text', 'text': 'abc' } which is much longer and contains
+  // repetitive strings like 'expr_type'.  Exprs with subexpressions can encode
+  // and embed them by recursively calling to_msgpack() on them.
+  // Expr.from_msgpack() can be used to reconstitute these packed Exprs.
+  // This to_msgpack() method builds the [expr_type_code, ...] part but the '...'
+  // must be implemented by each subclass in the _to_msgpack() method.
+  to_msgpack() {
+    const typecode = msgpack_class_name_to_typecode_map[this.constructor.name];
+    if(typecode === undefined) {
+      // Shouldn't happen - make sure any new Expr subclasses are added into the typecode map.
+      alert("Unknown Expr subclass (to_msgpack()): " + this.constructor.name);
+      return null;
+    }
+    return [typecode, ...this._to_msgpack()];
+  }
+
+  // Each Expr subclass must implement this to return an array of its state
+  // variables.  For example, TextExpr returns ['abc'] (containing its expr.text
+  // property).  Subclasses without state should return [].  Exprs with subexpressions
+  // can embed the subexpression into the state by calling subexpr.to_msgpack() on them.
+  _to_msgpack() {
+    alert("_to_msgpack() not implemented for " + this.constructor.name);
+  }
+
   // Try to convert this Expr into a string for use in math entry mode.
   // The string should be something that will recreate this Expr when parsed.
   // Generally, we use the source_string from the ExprItem wrapping this Expr
@@ -408,6 +451,13 @@ class Expr {
 
 // Represents a LaTeX command such as \sqrt or \frac{x}{y}.
 class CommandExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      state[0],
+      state[1].map(s => Expr.from_msgpack(s)),
+      state[2]);
+  }
+  
   static frac(numer_expr, denom_expr) {
     return new this('frac', [numer_expr, denom_expr]);
   }
@@ -444,6 +494,14 @@ class CommandExpr extends Expr {
     if(this.options)
       json.options = this.options;
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.command_name,
+      this.operand_exprs.length > 0 ?
+        this.operand_exprs.map(expr => expr.to_msgpack()) : null,
+      this.options];
   }
 
   // "Special" LaTeX commands like \& and \%.  (Anything not starting with a letter.)
@@ -558,6 +616,12 @@ class CommandExpr extends Expr {
 // and a flag indicating bold/normal, plus an optional size adjustment that changes the
 // size of the expression.
 class FontExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      Expr.from_msgpack(state[0]),
+      state[1], state[2], state[3]);
+  }
+
   // typeface:
   //   'normal': regular italic math font
   //   'roman': \mathrm
@@ -614,6 +678,14 @@ class FontExpr extends Expr {
     if(this.size_adjustment !== 0)
       json.size_adjustment = this.size_adjustment;
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.expr.to_msgpack(),
+      this.typeface,
+      this.is_bold,
+      this.size_adjustment];
   }
 
   // See comment in Expr.has_subexpressions().
@@ -763,6 +835,13 @@ class FontExpr extends Expr {
 //   index=0 breaks after the 'x', index=1 breaks after the '+', etc.
 //   Note that these indexes are different from the sense of 'split_at_index'.
 class InfixExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      state[0].map(s => Expr.from_msgpack(s)),
+      state[1].map(s => Expr.from_msgpack(s)),
+      state[2], state[3]);
+  }
+  
   constructor(operand_exprs, operator_exprs, split_at_index, linebreaks_at) {
     super();
     this.operand_exprs = operand_exprs;
@@ -882,6 +961,14 @@ class InfixExpr extends Expr {
     if(this.linebreaks_at.length > 0)
       json.linebreaks_at = this.linebreaks_at;
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.operand_exprs.map(expr => expr.to_msgpack()),
+      this.operator_exprs.map(expr => expr.to_msgpack()),
+      this.split_at_index,
+      this.linebreaks_at.length === 0 ? null : this.linebreaks_at];
   }
 
   // If the given infix operator is a simple command like '+' or '\cap',
@@ -1086,6 +1173,8 @@ class InfixExpr extends Expr {
 // Represents a "placeholder marker" that can be used with the
 // 'substitute_placeholder' command.
 class PlaceholderExpr extends Expr {
+  static _from_msgpack(state) { return new this(); }
+  
   expr_type() { return 'placeholder'; }
 
   emit_latex(emitter) {
@@ -1101,6 +1190,8 @@ class PlaceholderExpr extends Expr {
 
   as_editable_string() { return '[]'; }
 
+  to_msgpack() { return []; }
+
   // NOTE: overrides superclass method
   _find_placeholder_expr_path(expr_path) { return expr_path; }
 }
@@ -1108,6 +1199,12 @@ class PlaceholderExpr extends Expr {
 
 // Prefixed unary expressions such as: +x, -x, \neg x
 class PrefixExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      Expr.from_msgpack(state[0]),
+      Expr.from_msgpack(state[1]));
+  }
+
   static unary_minus(expr) {
     return new this(expr, new TextExpr('-'));
   }
@@ -1125,6 +1222,12 @@ class PrefixExpr extends Expr {
     json.base_expr = this.base_expr.to_json();
     json.operator_expr = this.operator_expr.to_json();
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.base_expr.to_msgpack(),
+      this.operator_expr.to_msgpack()];
   }
 
   emit_latex(emitter) {
@@ -1184,6 +1287,12 @@ class PrefixExpr extends Expr {
 // Here fn_expr = f, args_expr = (x,y,z).
 // Note that "operator-style" functions like 'sin x' use CommandExpr, not this.
 class FunctionCallExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      Expr.from_msgpack(state[0]),
+      Expr.from_msgpack(state[1]));
+  }
+  
   constructor(fn_expr, args_expr) {
     super();
     this.fn_expr = fn_expr;
@@ -1197,6 +1306,12 @@ class FunctionCallExpr extends Expr {
     json.fn_expr = this.fn_expr.to_json();
     json.args_expr = this.args_expr.to_json();
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.fn_expr.to_msgpack(),
+      this.args_expr.to_msgpack()];
   }
 
   emit_latex(emitter) {
@@ -1277,6 +1392,12 @@ class FunctionCallExpr extends Expr {
 // NOTE: Double factorials (x!!) are actually represented as
 //       PostfixExpr(PostfixExpr(x, '!'), '!') instead of PostfixExpr(x, '!!').
 class PostfixExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      Expr.from_msgpack(state[0]),
+      Expr.from_msgpack(state[1]));
+  }
+
   // Create a factorial expression with 'factorial_depth' exclamation points.
   static factorial_expr(base_expr, factorial_depth) {
     return this._factorial_expr(
@@ -1304,6 +1425,12 @@ class PostfixExpr extends Expr {
     json.base_expr = this.base_expr.to_json();
     json.operator_expr = this.operator_expr.to_json();
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.base_expr.to_msgpack(),
+      this.operator_expr.to_msgpack()];
   }
 
   emit_latex(emitter) {
@@ -1361,6 +1488,10 @@ class PostfixExpr extends Expr {
 
 // Represents a snippet of LaTeX source text.
 class TextExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(state[0]);
+  }
+
   static blank() { return new this(''); }
 
   // Generally, we want to make sure negative numbers are
@@ -1385,6 +1516,8 @@ class TextExpr extends Expr {
     json.text = this.text;
     return json;
   }
+
+  _to_msgpack() { return [this.text]; }
 
   emit_latex(emitter) {
     if(this.text === '') {
@@ -1434,6 +1567,10 @@ class TextExpr extends Expr {
 // Represents a sequence of expressions all concatenated together.
 // Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
 class SequenceExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(state.map(s => Expr.from_msgpack(s)));
+  }
+
   constructor(exprs) {
     super();
     this.exprs = exprs;
@@ -1447,6 +1584,10 @@ class SequenceExpr extends Expr {
     return json;
   }
 
+  _to_msgpack() {
+    return this.exprs.map(expr => expr.to_msgpack());
+  }
+  
   emit_latex(emitter) {
     this.exprs.forEach((expr, index) => emitter.expr(expr, index));
   }
@@ -1483,6 +1624,13 @@ class SequenceExpr extends Expr {
 // infix operators to their flex-size equivalent if they have one.
 // For example: <x|y>  -> \left\langle x\middle\vert y\right\rangle
 class DelimiterExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      state[0], state[1],
+      Expr.from_msgpack(state[2]),
+      state[3]);
+  }
+
   constructor(left_type, right_type, inner_expr, fixed_size) {
     super();
     this.left_type = left_type;
@@ -1604,6 +1752,14 @@ class DelimiterExpr extends Expr {
     return json;
   }
 
+  _to_msgpack() {
+    return [
+      this.left_type,
+      this.right_type,
+      this.inner_expr.to_msgpack(),
+      this.fixed_size];
+  }
+
   emit_latex(emitter) {
     if(this.fixed_size)
       this.emit_latex_fixed_size(emitter);
@@ -1677,6 +1833,13 @@ class DelimiterExpr extends Expr {
 
 // Represents a base expression with either a subscript or superscript, or both.
 class SubscriptSuperscriptExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      Expr.from_msgpack(state[0]),
+      state[1] ? Expr.from_msgpack(state[1]) : null,
+      state[2] ? Expr.from_msgpack(state[2]) : null);
+  }
+  
   constructor(base_expr, subscript_expr, superscript_expr) {
     super();
     this.base_expr = base_expr;
@@ -1694,6 +1857,13 @@ class SubscriptSuperscriptExpr extends Expr {
     if(this.superscript_expr)
       json.superscript_expr = this.superscript_expr.to_json();
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.base_expr.to_msgpack(),
+      this.subscript_expr ? this.subscript_expr.to_msgpack() : null,
+      this.superscript_expr ? this.superscript_expr.to_msgpack() : null];
   }
 
   emit_latex(emitter) {
@@ -1835,6 +2005,13 @@ class SubscriptSuperscriptExpr extends Expr {
 //   - Matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
 //   - Alignment environments: gathered, gather, cases, rcases, substack
 class ArrayExpr extends Expr {
+  static _from_msgpack(state) {
+    return new this(
+      state[0], state[1], state[2],
+      state[3].map(s => Expr.from_msgpack(s)),
+      state[4], state[5]);
+  }
+
   // element_exprs is a nested array of length 'row_count', each of which is
   // an array of 'column_count' Exprs.
   // row_separators and column_separators can either be null or an array of N-1
@@ -1986,6 +2163,17 @@ class ArrayExpr extends Expr {
     if(!this.column_separators.every(s => s === null))
       json.column_separators = this.column_separators;
     return json;
+  }
+
+  _to_msgpack() {
+    return [
+      this.array_type,
+      this.row_count,
+      this.column_count,
+      this.element_exprs.map(
+        row_exprs => row_exprs.map(expr => expr.to_msgpack())),
+      this.row_separators ? this.row_separators : null,
+      this.column_separators ? this.column_separators : null];
   }
 
   // Return a new ArrayExpr like this one, but with ellipses inserted before the
@@ -2235,6 +2423,30 @@ class ArrayExpr extends Expr {
   }
 }
 
+
+// Type-codes used by to_msgpack() and from_msgpack().
+// Each Expr subclass must have an entry here.
+const msgpack_typecode_to_class_map = {
+  1:  TextExpr,
+  2:  CommandExpr,
+  3:  SequenceExpr,
+  4:  DelimiterExpr,
+  5:  SubscriptSuperscriptExpr,
+  6:  InfixExpr,
+  7:  PrefixExpr,
+  8:  PostfixExpr,
+  9:  FontExpr,
+  10: PlaceholderExpr,
+  11: FunctionCallExpr,
+  12: ArrayExpr
+};
+// Inverse map used by to_msgpack().  Note that the keys are the
+// string class names, as there is no real way to access an object's
+// class itself from an instance.
+const msgpack_class_name_to_typecode_map = Object.fromEntries(
+  Object.entries(msgpack_typecode_to_class_map).map(
+    ([code, cls]) => [cls.name, code]));
+    
 
 export {
   Expr, CommandExpr, FontExpr, InfixExpr,

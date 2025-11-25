@@ -1,6 +1,10 @@
 
 
 import KeybindingTable from './Keymap';
+import {
+  encode as msgpack_encode,
+  decode as msgpack_decode
+} from '@msgpack/msgpack';
 import JSZip from 'jszip';
 import {
   Expr, CommandExpr, FontExpr, PrefixExpr, InfixExpr, PlaceholderExpr,
@@ -444,6 +448,13 @@ class AppState {
       Document.from_json(json.document)
     );
   }
+
+  static from_msgpack(packed) {
+    // TODO: check version code (packed[0])
+    return new this(
+      Stack.from_msgpack(packed[1]),
+      Document.from_msgpack(packed[2]));
+  }
   
   constructor(stack, document) {
     this.stack = stack || this._default_stack();
@@ -469,6 +480,13 @@ class AppState {
       document: this.document.to_json(),
       format: 1
     };
+  }
+
+  to_msgpack() {
+    return [
+      1,  // version code
+      this.stack.to_msgpack(),
+      this.document.to_msgpack()];
   }
 }
 
@@ -525,6 +543,15 @@ class UndoStack {
     }
     else
       return null;
+  }
+}
+
+
+class DocumentStorage2 {
+  static msgpack_encode(obj) {
+    const packed_repr = obj.to_msgpack();
+    const encoded_uint8array = msgpack_encode(packed_repr);
+//    const encoded_string = new TextDecoder().decode(
   }
 }
 
@@ -927,14 +954,10 @@ class ExprPath {
   // This comparison is needed by the LatexEmitter to determine when the
   // rendering path matches up with the selected expression path.
   equals(other_path) {
-    if(this.expr !== other_path.expr)
-      return false;
-    if(this.subexpr_indexes.length !== other_path.subexpr_indexes.length)
-      return false;
-    for(let i = 0; i < this.subexpr_indexes.length; i++)
-      if(this.subexpr_indexes[i] !== other_path.subexpr_indexes[i])
-        return false;
-    return true;
+    return this.expr === other_path.expr &&
+      this.subexpr_indexes.length === other_path.subexpr_indexes.length &&
+      this.subexpr_indexes.every((subexpr_index, i) =>
+        subexpr_index === other_path.subexpr_indexes[i]);
   }
 
   // Return the 'n'th parent of the selected subexpression.
@@ -2151,6 +2174,12 @@ class Stack {
       json.floating_item ? Item.from_json(json.floating_item) : null);
   }
 
+  static from_msgpack(packed) {
+    return new Stack(
+      packed[0] ? Item.from_msgpack(packed[0]) : null,
+      packed[1].map(p => Item.from_msgpack(p)));
+  }
+
   // NOTE: floating_item is a temporary holding slot to keep an item off to
   // the side, as a user convenience.
   constructor(items, floating_item) {
@@ -2171,7 +2200,7 @@ class Stack {
   }
 
   // Fetch item at position n (stack top = 1, next = 2, etc).
-  peek(n=1) {
+  peek(n = 1) {
     if(!this.check(n)) this.underflow();
     return this.items[this.items.length - n];
   }
@@ -2184,7 +2213,7 @@ class Stack {
 
   // Like pop(n) but all the items have to be ExprItems, and the wrapped Expr
   // instances are returned, not the ExprItems.
-  pop_exprs(n=1) {
+  pop_exprs(n = 1) {
     if(!this.check(n)) this.underflow();
     if(!this.check_exprs(n)) this.type_error();
     const [new_stack, ...items] = this._unchecked_pop(n);
@@ -2246,6 +2275,12 @@ class Stack {
       floating_item: this.floating_item ? this.floating_item.to_json() : null
     };
   }
+
+  to_msgpack() {
+    return [
+      this.floating_item ? this.floating_item.to_msgpack() : null,
+      this.items.map(item => item.to_msgpack())];
+  }
 }
 
 
@@ -2256,6 +2291,12 @@ class Document {
     return new Document(
       json.items.map(item_json => Item.from_json(item_json)),
       json.selection_index || 0);
+  }
+
+  static from_msgpack(packed) {
+    return new this(
+      packed[1].map(p => Item.from_msgpack(p)),
+      packed[0]);
   }
 
   // NOTE: selection_index can be in the range 0..items.length (inclusive).
@@ -2338,6 +2379,12 @@ class Document {
       items: this.items.map(item => item.to_json()),
       selection_index: this.selection_index
     };
+  }
+
+  to_msgpack() {
+    return [
+      this.selection_index,
+      this.items.map(item => item.to_msgpack())];
   }
 }
 

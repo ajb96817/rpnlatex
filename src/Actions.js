@@ -263,6 +263,14 @@ class InputContext {
 
   do_cancel() {}
 
+  do_debug(stack) {
+    const [new_stack, expr, child_expr] = stack.pop_exprs(1);
+    const packed = expr.to_msgpack();
+    const s = JSON.stringify(packed);
+    const code_item = new CodeItem('latex', s);
+    return new_stack.push(code_item);
+  }
+
   do_subscript(stack, autoparenthesize) {
     return this._build_subscript_superscript(stack, true, autoparenthesize);
   }
