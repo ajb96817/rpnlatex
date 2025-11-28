@@ -727,7 +727,7 @@ class FileManagerComponent extends React.Component {
   }
 
   render_shortcuts() {
-    const keybinding = key => $e('span', {className: 'keybinding'}, key);
+    const keybinding = key => $e('span', {className: 'k'}, key);
     const helptext = text => $e('span', {}, text);
     const helpline = items => {
       // Interleave spaces between each item.

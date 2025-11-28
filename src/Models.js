@@ -1,14 +1,15 @@
 
 
-import KeybindingTable from './Keymap';
 import {
   encode as msgpack_encode,
   decode as msgpack_decode
 } from '@msgpack/msgpack';
 import JSZip from 'jszip';
+import KeybindingTable from './Keymap';
 import {
-  Expr, CommandExpr, FontExpr, PrefixExpr, PostfixExpr, InfixExpr, PlaceholderExpr,
-  TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr, ArrayExpr
+  Expr, TextExpr, CommandExpr, SequenceExpr, DelimiterExpr,
+  SubscriptSuperscriptExpr, InfixExpr, PrefixExpr, PostfixExpr,
+  FontExpr, PlaceholderExpr, FunctionCallExpr, ArrayExpr
 } from './Exprs.js';
 import {
   AlgebriteInterface, double_to_expr
@@ -442,18 +443,22 @@ class LatexEmitter {
 
 // Overall app state, holding the stack and document.
 class AppState {
+  // Unserialize an AppState including all its contents (document/stack).
+  // s can be either a Base64-encoded msgpack string (created by MsgpackEncoder),
+  // or a JSON object created by this.to_json().
+  // Eventually the JSON format will be retired.
+  static from_serialized(s) {
+    if(typeof(s) === 'string')
+      return MsgpackDecoder.decode_app_state_base64(s);
+    else
+      return this.from_json(s);
+  }
+  
   static from_json(json) {
     return new AppState(
       Stack.from_json(json.stack),
       Document.from_json(json.document)
     );
-  }
-
-  static from_msgpack(packed) {
-    // TODO: check version code (packed[0])
-    return new this(
-      Stack.from_msgpack(packed[1]),
-      Document.from_msgpack(packed[2]));
   }
   
   constructor(stack, document) {
@@ -472,6 +477,10 @@ class AppState {
     // NOTE: AppState stuff is never modified in-place, so all that needs to be
     // done here is check object identities.
     return this.stack === app_state.stack && this.document === app_state.document;
+  }
+
+  to_msgpack() {
+    return MsgpackEncoder.encode_app_state_base64(this);
   }
 
   to_json() {
@@ -611,9 +620,16 @@ class DocumentStorage {
     request.onsuccess = () => {
       // NOTE: request.result will be undefined if the filename key wasn't
       // found.  This still counts as a 'success'.
-      const json = request.result;
-      if(json) {
-        const app_state = AppState.from_json(request.result);
+      const serialized = request.result;
+      if(serialized) {
+        // msgpack serialized: { filename: filename, data: base64_string }
+        // JSON serialized: { filename: filename, other_stuff_not_data: ... }
+        // TODO: eventually remove the JSON case
+        let app_state = null;
+        if(serialized.data)
+          app_state = AppState.from_serialized(serialized.data);
+        else
+          app_state = AppState.from_serialized(serialized);
         onsuccess(filename, app_state);
       }
       else
@@ -626,13 +642,13 @@ class DocumentStorage {
 
   save_state(app_state, filename, onsuccess, onerror) {
     if(!this.database) return onerror();
-    let serialized_json = app_state.to_json();
-    serialized_json.filename = filename;
+    let serialized = app_state.to_msgpack() // was: .to_json();
 
-    // Estimate the file size by serializing JSON.
+/*    // Estimate the file size by serializing JSON.
     // IndexedDB also does this serialization itself, but there doesn't
     // seem to be any way to reuse that result directly.
-    const filesize = JSON.stringify(serialized_json).length;
+    const filesize = JSON.stringify(serialized_json).length; */
+    const filesize = serialized.length;
     const metadata_json = {
       filename: filename,
       filesize: filesize,
@@ -642,7 +658,10 @@ class DocumentStorage {
       timestamp: new Date()
     };
     let transaction = this.create_transaction(true);
-    transaction.objectStore('documents').put(serialized_json);
+    transaction.objectStore('documents').put({
+      filename: filename,
+      data: serialized
+    });
     transaction.objectStore('documents_metadata').put(metadata_json);
     if(onsuccess) transaction.oncomplete = onsuccess;
     if(onerror) transaction.onabort = onerror;
@@ -2265,12 +2284,6 @@ class Document {
       json.selection_index);
   }
 
-  static from_msgpack(packed) {
-    return new this(
-      packed[1].map(p => Item.from_msgpack(p)),
-      packed[0]);
-  }
-
   // NOTE: selection_index can be in the range 0..items.length (inclusive).
   constructor(items, selection_index) {
     this.items = items || [];
@@ -2377,13 +2390,22 @@ class MsgpackEncoder {
   // only accept UTF-8 strings like the browser's localStorage
   // (or for things like pasting into emails).
   static encode_app_state_base64(app_state) {
-    return this.encode_app_state_base64(app_state).toBase64();
+    return this.split_lines(
+      this.encode_app_state_binary(app_state).toBase64());
   }
 
   // Encode a single Item (only used for debugging currently).
   static encode_item_base64(item) {
     const encoded = msgpack_encode((new this()).pack_item(item));
-    return encoded.toBase64();
+    return this.split_lines(encoded.toBase64());
+  }
+
+  // Break a (base64-encoded) string into separate lines for "readability".
+  static split_lines(s, line_length = 64) {
+    let lines = [];
+    for(let i = 0; i < s.length; i += line_length)
+      lines.push(s.slice(i, i+line_length));
+    return lines.join("\n");
   }
   
   pack_app_state(app_state) {
@@ -2540,14 +2562,20 @@ class MsgpackDecoder {
   }
 
   static decode_app_state_base64(base64_string) {
-    const encoded = Uint8Array.fromBase64(base64_string);
+    const encoded = Uint8Array.fromBase64(
+      this.unsplit_lines(base64_string));
     return this.decode_app_state_binary(encoded);
   }
 
   static decode_item_base64(base64_string) {
-    const encoded = Uint8Array.fromBase64(base64_string);
+    const encoded = Uint8Array.fromBase64(
+      this.unsplit_lines(base64_string));
     const packed = msgpack_decode(encoded);
     return (new this()).unpack_item(packed);
+  }
+
+  static unsplit_lines(s) {
+    return s.replaceAll("\n", '');
   }
 
   error(msg) { throw new Error(msg); }
@@ -2612,15 +2640,15 @@ class MsgpackDecoder {
   unpack_expr(array) {
     const [typecode, ...state] = array;
     switch(typecode) {
-    case 1: return this.unpack_text_expr(state);
-    case 2: return this.unpack_command_expr(state);
-    case 3: return this.unpack_sequence_expr(state);
-    case 4: return this.unpack_delimiter_expr(state);
-    case 5: return this.unpack_subscriptsuperscript_expr(state);
-    case 6: return this.unpack_infix_expr(state);
-    case 7: return this.unpack_prefix_expr(state);
-    case 8: return this.unpack_postfix_expr(state);
-    case 9: return this.unpack_font_expr(state);
+    case 1:  return this.unpack_text_expr(state);
+    case 2:  return this.unpack_command_expr(state);
+    case 3:  return this.unpack_sequence_expr(state);
+    case 4:  return this.unpack_delimiter_expr(state);
+    case 5:  return this.unpack_subscriptsuperscript_expr(state);
+    case 6:  return this.unpack_infix_expr(state);
+    case 7:  return this.unpack_prefix_expr(state);
+    case 8:  return this.unpack_postfix_expr(state);
+    case 9:  return this.unpack_font_expr(state);
     case 10: return this.unpack_placeholder_expr(state);
     case 11: return this.unpack_function_call_expr(state);
     case 12: return this.unpack_array_expr(state);
