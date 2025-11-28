@@ -16,11 +16,11 @@ const KeybindingTable = {
     // Immediate action special keys
     'Enter': "subscript",
     'Shift+Enter': "edit_item",
-    // NOTE: ! receives special processing in do_concat (cf. Expr.combine_pair),
+    'Backspace': "pop",
+    // NOTE: ! receives special processing in do_concat (Expr.combine_pair),
     //       becoming a PostfixExpr.
     '!': "autoparenthesize;push !;concat",
     '^': "superscript",
-    'Backspace': "pop",
     "`": "superscript",
     ' ': "concat",
     '<': "infix <",
@@ -106,8 +106,6 @@ const KeybindingTable = {
     'Ctrl+,': "infix ,",
     'Ctrl+/': "fraction",
     "Ctrl+\\": "integer 1;swap;fraction",  // 1/x, same as [/][1]
-    'Ctrl+ArrowRight': "scroll document_container horizontal 75",
-    'Ctrl+ArrowLeft': "scroll document_container horizontal -75",
     'Ctrl+Backspace': "nip"
   },
 
@@ -122,6 +120,7 @@ const KeybindingTable = {
     'S': "save_file_as",
     'ArrowUp': "select_adjacent_file -1",
     'ArrowDown': "select_adjacent_file 1",
+    // TODO: PageUp/PageDown/Home/End
     'j': 'scroll popup_panel vertical 25',
     'k': 'scroll popup_panel vertical -25'
   },
@@ -240,7 +239,7 @@ const KeybindingTable = {
     '+': "config zoom_factor increase",
     'Z': "config zoom_factor decrease",
     '-': "config zoom_factor decrease",
-    '_': "config zoom_factor decrease",  // undocumented alias for z/-
+    '_': "config zoom_factor decrease",  // undocumented
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
     '~': "debug",  // debugging command hook: calls do_debug()
@@ -315,19 +314,19 @@ const KeybindingTable = {
     'f': "delimiters \\lfloor \\rfloor",
     'F': "toggle_fixed_size_delimiters",
     'g': "delimiters \\lgroup \\rgroup",
-    'i': "infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y>; mnemonic: [i]nner product
+    'i': "infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y> [i]nner product
     'I': "infix \\,\\vert\\,;infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y|z>
     'k': "delimiters \\vert \\rangle",  // |x> Dirac ket
     'l': "mode modify_left",
     'L': "mode modify_left",
     'm': "delimiters \\lmoustache \\rmoustache",
-    'n': "delimiters \\lVert \\rVert",  // n = Norm
+    'n': "delimiters \\lVert \\rVert",  // [n]orm
     'N': "delimiters \\lVert \\rVert",  // alias for n
     'o': "delimiters ( ]",  // half-closed interval
     'O': "delimiters [ )",
     'r': "mode modify_right",
     'R': "mode modify_right",
-    'w': "delimiters . \\vert",  // "where"
+    'w': "delimiters . \\vert",  // [w]here
     'W': "delimiters . \\vert",  // alias for w
     'x': "remove_delimiters",
     'X': "remove_delimiters",
@@ -550,17 +549,17 @@ const KeybindingTable = {
 
   // [/][i] prefix - add limits to an existing integral sign
   integral_limits: {
-    'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -oo..oo : [r]eals
-    'R': "push R;typeface calligraphic;subscript",  // integral over reals
-    'n': "push \\infty;negate;subscript;integer 0;superscript",  // -oo..0 : [n]egative 
-    'p': "integer 0;subscript;push \\infty;superscript",  // 0..oo : [p]ositive
+    'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -inf..inf : [r]eals
+    'R': "push R;typeface calligraphic;subscript",  // reals alternative notation
+    'n': "push \\infty;negate;subscript;integer 0;superscript",  // -inf..0 : [n]egative 
+    'p': "integer 0;subscript;push \\infty;superscript",  // 0..inf : [p]ositive
     'u': "integer 0;subscript;integer 1;superscript",  // 0..1 : [u]nit
     'U': "integer -1;subscript;integer 1;superscript",  // -1..1 : symmetric [U]nit
     't': "integer 0;subscript;integer 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
     'T': "push \\pi;negate;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
   },
 
-  // [/][j] prefix
+  // [/][I] prefix
   // (same as /i, but create the integral sign too)
   integral_with_limits: {
     'r': "push \\int;push \\infty;negate;subscript;push \\infty;superscript",
@@ -713,7 +712,7 @@ const KeybindingTable = {
   relational: {
     '2': "mode variant_relational",
     'a': "infix \\approx",
-    'c': "infix \\cong",  // =~  congruent
+    'c': "infix \\cong",  // =~ [c]ongruent
     'e': "infix \\equiv",
     'E': "infix \\iff",
     'g': "infix >",
@@ -847,7 +846,7 @@ const KeybindingTable = {
     '4': "integer 4;superscript",
     '8': "push \\infty;infix \\to",
     'A': "apply_hat acute",
-    'b': "typeface roman;make_bold",  // becomes \bold{...}
+    'b': "typeface roman;make_bold",
     'c': "autoparenthesize;push 1;swap;infix -",
     'd': "push \\dagger;superscript",
     'D': "push \\ddagger;superscript",
@@ -889,7 +888,7 @@ const KeybindingTable = {
     ' ': "push \\,;concat",  // append thin space
     "'": "autoparenthesize;prime",
     ',': "push \\circ;superscript",  // degree marker
-    '*': "push *;superscript",
+    '*': "push *;superscript",  // conjugation
     '~': "apply_hat tilde",
     '=': "prefix \\Rightarrow",
     '-': "autoparenthesize;negate",
@@ -1055,20 +1054,20 @@ const KeybindingTable = {
     'y': "push x;swap;algebrite default bessely 2"
   },
 
-  // [@] prefix
+  // [@] prefix: \mathcal letters (uppercase only)
   calligraphic: {
     '[alpha]': "push_last_keypress;to_case uppercase;typeface calligraphic",
     '@': "push @"  // undocumented
   },
 
-  // [%] prefix
+  // [%] prefix: \mathbb letters (uppercase only except 'k')
   blackboard: {
     '[alpha]': "push_last_keypress;to_case uppercase;typeface blackboard",
     'k': "push k;typeface blackboard",  // there's (only) a lowercase k in LaTeX (aka \Bbbk).
     '%': "push \\%"  // undocumented
   },
 
-  // [&] prefix
+  // [&] prefix: \mathscr letters (uppercase only)
   script: {
     '[alpha]': "push_last_keypress;to_case uppercase;typeface script",
     '&': "push \\&"  // undocumented

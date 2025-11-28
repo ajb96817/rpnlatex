@@ -360,6 +360,7 @@ div.latex_source_item div.latex_source {
   padding-left: var(--item-margin-width);
   background-color: #dde8dd;
   padding: 0.2em 0.5em;
+  overflow-wrap: anywhere;
 }
 
 div.tag_string {

@@ -6,7 +6,9 @@
 import {
   AppState, Document, Stack, TextEntryState,
   ExprPath, ExprParser, RationalizeToExpr,
-  ExprItem, TextItem, CodeItem
+  ExprItem, TextItem, CodeItem,
+
+  MsgpackEncoder, MsgpackDecoder  // TODO: temporary
 } from './Models';
 
 import {
@@ -256,7 +258,7 @@ class InputContext {
     else
       return this.error_flash_element(
         document.getElementById('document_panel'),
-      'errorflash_document');
+        'errorflash_document');
   }
 
   notify(text) { this.notification_text = text; }
@@ -264,11 +266,16 @@ class InputContext {
   do_cancel() {}
 
   do_debug(stack) {
-    const [new_stack, expr, child_expr] = stack.pop_exprs(1);
-    const packed = expr.to_msgpack();
-    const s = JSON.stringify(packed);
-    const code_item = new CodeItem('latex', s);
-    return new_stack.push(code_item);
+    const [new_stack, item] = stack.pop(1);
+    if(item.item_type() === 'code') {
+      const new_item = MsgpackDecoder.decode_item_base64(item.source);
+      return new_stack.push(new_item);
+    }
+    else {
+      const base64_string = MsgpackEncoder.encode_item_base64(item);
+      const code_item = new CodeItem('latex', base64_string);
+      return new_stack.push(code_item);
+    }
   }
 
   do_subscript(stack, autoparenthesize) {
@@ -899,7 +906,7 @@ class InputContext {
   // typeface='roman' typesets the 'd' with \mathrm.
   // Unary minus signs are pulled out into the differential, e.g. -x -> -dx,
   // and the 'x' expressions are autoparenthesized if the autoparenthesization mode is on.
-  do_differential_form(stack, degree_string, typeface) {
+  do_differential_form(stack, degree_string, typeface = null) {
     const degree = parseInt(degree_string);
     const d_expr = typeface === 'roman' ?
           FontExpr.roman_text('d') : new TextExpr('d');
@@ -939,6 +946,8 @@ class InputContext {
   //       \bold{j}^2 => \bold{\hat{\jmath}}^2
   //       \mathrm{j} => \hat{\mathrm{j}}
   // TODO: maybe have an option to disable this behavior
+  // NOTE: This only applies to "small" hats; commands like \widehat don't
+  // get this treatment.
   do_apply_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
     return new_stack.push_expr(this._do_apply_hat(expr, hat_op));
@@ -1031,9 +1040,9 @@ class InputContext {
     const [new_stack, left_item, right_item] = stack.pop(2);
     if(left_item.is_expr_item() && right_item.is_expr_item()) {
       // Expr+Expr (the usual case).
-      let operator_expr = Expr.text_or_command(opname);
       const new_expr = InfixExpr.combine_infix(
-        left_item.expr, right_item.expr, operator_expr);
+        left_item.expr, right_item.expr,
+        Expr.text_or_command(opname));
       return new_stack.push_expr(new_expr);
     }
     else if((left_item.is_expr_item() || left_item.is_text_item()) &&
@@ -1101,10 +1110,8 @@ class InputContext {
   //   - Line break before the operator
   do_infix_linebreak(stack) {
     const [new_stack, infix_expr] = stack.pop_exprs(1);
-    if(!infix_expr.is_infix_expr()) {
-      this.error_flash_stack();
-      return;
-    }
+    if(!infix_expr.is_infix_expr())
+      return stack.type_error();
     const index_before = 2*infix_expr.split_at_index;
     const index_after = index_before+1;
     let new_expr;
@@ -1179,7 +1186,7 @@ class InputContext {
     return stack.type_error();
   }
 
-  // x y z => 'x', with expressions matching 'y' replaced by 'z'.
+  // x y z => new_x, with expressions matching 'y' replaced by 'z'.
   do_substitute(stack) {
     const [new_stack, expr, search_expr, substitution_expr] = stack.pop_exprs(3);
     const result_expr = expr.substitute(search_expr, substitution_expr);

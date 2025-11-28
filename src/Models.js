@@ -7,8 +7,8 @@ import {
 } from '@msgpack/msgpack';
 import JSZip from 'jszip';
 import {
-  Expr, CommandExpr, FontExpr, PrefixExpr, InfixExpr, PlaceholderExpr,
-  TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr /* , ArrayExpr */
+  Expr, CommandExpr, FontExpr, PrefixExpr, PostfixExpr, InfixExpr, PlaceholderExpr,
+  TextExpr, DelimiterExpr, SequenceExpr, SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs.js';
 import {
   AlgebriteInterface, double_to_expr
@@ -481,13 +481,6 @@ class AppState {
       format: 1
     };
   }
-
-  to_msgpack() {
-    return [
-      1,  // version code
-      this.stack.to_msgpack(),
-      this.document.to_msgpack()];
-  }
 }
 
 
@@ -543,15 +536,6 @@ class UndoStack {
     }
     else
       return null;
-  }
-}
-
-
-class DocumentStorage2 {
-  static msgpack_encode(obj) {
-    const packed_repr = obj.to_msgpack();
-    const encoded_uint8array = msgpack_encode(packed_repr);
-//    const encoded_string = new TextDecoder().decode(
   }
 }
 
@@ -2174,12 +2158,6 @@ class Stack {
       json.floating_item ? Item.from_json(json.floating_item) : null);
   }
 
-  static from_msgpack(packed) {
-    return new Stack(
-      packed[0] ? Item.from_msgpack(packed[0]) : null,
-      packed[1].map(p => Item.from_msgpack(p)));
-  }
-
   // NOTE: floating_item is a temporary holding slot to keep an item off to
   // the side, as a user convenience.
   constructor(items, floating_item) {
@@ -2275,12 +2253,6 @@ class Stack {
       floating_item: this.floating_item ? this.floating_item.to_json() : null
     };
   }
-
-  to_msgpack() {
-    return [
-      this.floating_item ? this.floating_item.to_msgpack() : null,
-      this.items.map(item => item.to_msgpack())];
-  }
 }
 
 
@@ -2290,7 +2262,7 @@ class Document {
   static from_json(json) {
     return new Document(
       json.items.map(item_json => Item.from_json(item_json)),
-      json.selection_index || 0);
+      json.selection_index);
   }
 
   static from_msgpack(packed) {
@@ -2380,11 +2352,346 @@ class Document {
       selection_index: this.selection_index
     };
   }
+}
 
-  to_msgpack() {
+
+// Serialize (encode) the app state (stack, document, and all their contents)
+// into 'msgpack' format (https://msgpack.org/).  This is a compact binary
+// representation suitable for storage.
+//
+// For Expr objects, the general format is [expr_type_code, ...expr_state].
+// For example, a TextExpr('abc') becomes [1, 'abc'].  In JSON, this would instead be
+// { 'expr_type': 'text', 'text': 'abc' } which is much longer and contains
+// repetitive strings like 'expr_type'.
+//
+// MsgpackDecoder can be used to reconstitute the serialized objects.
+class MsgpackEncoder {
+  // Encode an entire AppState, returning a binary Uint8Array.
+  static encode_app_state_binary(app_state) {
+    return msgpack_encode(
+      (new this()).pack_app_state(app_state));
+  }
+
+  // Like encode_app_state_binary() but return an ordinary String
+  // in base64 encoding.  This can be used for storage methods that
+  // only accept UTF-8 strings like the browser's localStorage
+  // (or for things like pasting into emails).
+  static encode_app_state_base64(app_state) {
+    return this.encode_app_state_base64(app_state).toBase64();
+  }
+
+  // Encode a single Item (only used for debugging currently).
+  static encode_item_base64(item) {
+    const encoded = msgpack_encode((new this()).pack_item(item));
+    return encoded.toBase64();
+  }
+  
+  pack_app_state(app_state) {
     return [
-      this.selection_index,
-      this.items.map(item => item.to_msgpack())];
+      1,  // version code
+      'rpnlatex',  // magic identifier
+      this.pack_stack(app_state.stack),
+      this.pack_document(app_state.document)];
+  }
+  pack_stack(stack) {
+    return [
+      stack.floating_item ? this.pack_item(stack.floating_item) : null,
+      stack.items.map(item => this.pack_item(item))];
+  }
+  pack_document(document) {
+    return [
+      document.selection_index,
+      document.items.map(item => this.pack_item(item))];
+  }
+
+  // Item subclasses:
+  pack_item(item) {
+    switch(item.item_type()) {
+    case 'expr': return this.pack_expr_item(item);
+    case 'text': return this.pack_text_item(item);
+    case 'code': return this.pack_code_item(item);
+    default:
+      throw new Error("Unknown Item type in MsgpackEncoder: " + item.item_type());
+    }
+  }
+  pack_expr_item(item) {
+    return [
+      1, this.pack_expr(item.expr),
+      item.tag_string, item.source_string];
+  }
+  pack_text_item(item) {
+    return [
+      2, item.elements.map(element => this.pack_text_item_element(element)),
+      item.tag_string, item.source_string, item.is_heading];
+  }
+  pack_code_item(item) {
+    return [3, item.language, item.source];
+  }
+
+  // TextItemElement subclasses:
+  pack_text_item_element(element) {
+    if(element.is_text()) return this.pack_text_item_text_element(element);
+    else if(element.is_expr()) return this.pack_text_item_expr_element(element);
+    else if(element.is_raw()) return this.pack_text_item_raw_element(element);
+    else this.error("Unknown TextItemElement type");
+  }
+  pack_text_item_text_element(element) {
+    return [1, element.text, element.is_bold, element.is_italic];
+  }
+  pack_text_item_expr_element(element) {
+    return [2, this.pack_expr(element.expr)];
+  }
+  pack_text_item_raw_element(element) {
+    return [3, element.string];
+  }
+
+  // Convert an Expr into a (possibly nested) array of basic values like
+  // strings and numbers.  Each Expr subclass is assigned a typecode that
+  // identifies the class.  This is done explicitly here instead of via inherited
+  // methods in Expr classes to keep things cleaner and make it easier to handle
+  // possible new versions of the binary format (new versions can be implemented
+  // as subclasses of MsgpackEncoder/Decoder).
+  pack_expr(expr) {
+    switch(expr.expr_type()) {
+    case 'text': return this.pack_text_expr(expr);
+    case 'command': return this.pack_command_expr(expr);
+    case 'sequence': return this.pack_sequence_expr(expr);
+    case 'delimiter': return this.pack_delimiter_expr(expr);
+    case 'subscriptsuperscript': return this.pack_subscriptsuperscript_expr(expr);
+    case 'infix': return this.pack_infix_expr(expr);
+    case 'prefix': return this.pack_prefix_expr(expr);
+    case 'postfix': return this.pack_postfix_expr(expr);
+    case 'font': return this.pack_font_expr(expr);
+    case 'placeholder': return this.pack_placeholder_expr(expr);
+    case 'function_call': return this.pack_function_call_expr(expr);
+    case 'array': return this.pack_array_expr(expr);
+    default:
+      throw new Error("Unknown Expr type in MsgpackEncoder: " + expr.expr_type());
+    }
+  }
+  pack_text_expr(expr) { return [1, expr.text]; }
+  pack_command_expr(expr) {
+    return [
+      2, expr.command_name,
+      expr.operand_exprs.length > 0 ?
+        expr.operand_exprs.map(operand_expr => this.pack_expr(operand_expr)) : null,
+      expr.options];
+  }
+  pack_sequence_expr(expr) {
+    return [3, expr.exprs.map(subexpr => this.pack_expr(subexpr))];
+  }
+  pack_delimiter_expr(expr) {
+    return [
+      4, expr.left_type, expr.right_type,
+      this.pack_expr(expr.inner_expr), expr.fixed_size];
+  }
+  pack_subscriptsuperscript_expr(expr) {
+    return [
+      5, this.pack_expr(expr.base_expr),
+      expr.subscript_expr ? this.pack_expr(expr.subscript_expr) : null,
+      expr.superscript_expr ? this.pack_expr(expr.superscript_expr) : null];
+  }
+  pack_infix_expr(expr) {
+    return [
+      6,
+      expr.operand_exprs.map(operand_expr => this.pack_expr(operand_expr)),
+      expr.operator_exprs.map(operator_expr => this.pack_expr(operator_expr)),
+      expr.split_at_index,
+      expr.linebreaks_at.length === 0 ? null : expr.linebreaks_at];
+  }
+  pack_prefix_expr(expr) {
+    return [
+      7, this.pack_expr(expr.base_expr),
+      this.pack_expr(expr.operator_expr)];
+  }
+  pack_postfix_expr(expr) {
+    return [
+      8, this.pack_expr(expr.base_expr),
+      this.pack_expr(expr.operator_expr)];
+  }
+  pack_font_expr(expr) {
+    return [
+      9, this.pack_expr(expr.expr),
+      expr.typeface, expr.is_bold, expr.size_adjustment];
+  }
+  pack_placeholder_expr(expr) { return [10]; }
+  pack_function_call_expr(expr) {
+    return [
+      11, this.pack_expr(expr.fn_expr),
+      this.pack_expr(expr.args_expr)];
+  }
+  pack_array_expr(expr) {
+    return [
+      12, expr.array_type,
+      expr.row_count, expr.column_count,
+      expr.element_exprs.map(row_exprs =>
+        row_exprs.map(element_expr => this.pack_expr(element_expr))),
+      expr.row_separators.some(sep => sep !== null) ? expr.row_separators : null,
+      expr.column_separators.some(sep => sep !== null) ? expr.column_separators : null];
+  }
+}
+
+
+// Unserialize the AppState from msgpack format.
+class MsgpackDecoder {
+  static decode_app_state_binary(uint8_array) {
+    const packed = msgpack_decode(uint8_array);
+    return (new this()).unpack_app_state(packed);
+  }
+
+  static decode_app_state_base64(base64_string) {
+    const encoded = Uint8Array.fromBase64(base64_string);
+    return this.decode_app_state_binary(encoded);
+  }
+
+  static decode_item_base64(base64_string) {
+    const encoded = Uint8Array.fromBase64(base64_string);
+    const packed = msgpack_decode(encoded);
+    return (new this()).unpack_item(packed);
+  }
+
+  error(msg) { throw new Error(msg); }
+
+  unpack_app_state([version_code, magic, stack_state, document_state]) {
+    if(version_code !== 1) this.error("Unknown version code: " + version_code);
+    if(magic !== 'rpnlatex') this.error("Invalid magic identifier");
+    return new AppState(
+      this.unpack_stack(stack_state),
+      this.unpack_document(document_state));
+  }
+  unpack_stack([floating_item_state, item_states]) {
+    return new Stack(
+      item_states.map(item_state => this.unpack_item(item_state)),
+      floating_item_state ? this.unpack_item(floating_item_state) : null);
+  }
+  unpack_document([selection_index, item_states]) {
+    return new Document(
+      item_states.map(item_state => this.unpack_item(item_state)),
+      selection_index);
+  }
+
+  unpack_item([type_code, ...item_state]) {
+    switch(type_code) {
+    case 1: return this.unpack_expr_item(item_state);
+    case 2: return this.unpack_text_item(item_state);
+    case 3: return this.unpack_code_item(item_state);
+    default: this.error("Unknown Item typecode in MsgpackDecoder: " + type_code);
+    }
+  }
+  unpack_expr_item([expr_state, tag_string, source_string]) {
+    return new ExprItem(
+      this.unpack_expr(expr_state),
+      tag_string, source_string);
+  }
+  unpack_text_item([element_states, tag_string, source_string, is_heading]) {
+    return new TextItem(
+      element_states.map(element_state => this.unpack_text_item_element(element_state)),
+      tag_string, source_string, is_heading);
+  }
+  unpack_code_item([language, source]) {
+    return new CodeItem(language, source);
+  }
+  unpack_text_item_element([type_code, ...element_state]) {
+    switch(type_code) {
+    case 1: return this.unpack_text_item_text_element(element_state);
+    case 2: return this.unpack_text_item_expr_element(element_state);
+    case 3: return this.unpack_text_item_raw_element(element_state);
+    default: this.error("Unknown TextItemElement typecode in MsgpackDecoder: " + type_code);
+    }
+  }
+  unpack_text_item_text_element([text, is_bold, is_italic]) {
+    return new TextItemTextElement(text, is_bold, is_italic);
+  }
+  unpack_text_item_expr_element([expr_state]) {
+    return new TextItemExprElement(this.unpack_expr(expr_state));
+  }
+  unpack_text_item_raw_element([string]) {
+    return new TextItemRawElement(string);
+  }
+
+  unpack_expr(array) {
+    const [typecode, ...state] = array;
+    switch(typecode) {
+    case 1: return this.unpack_text_expr(state);
+    case 2: return this.unpack_command_expr(state);
+    case 3: return this.unpack_sequence_expr(state);
+    case 4: return this.unpack_delimiter_expr(state);
+    case 5: return this.unpack_subscriptsuperscript_expr(state);
+    case 6: return this.unpack_infix_expr(state);
+    case 7: return this.unpack_prefix_expr(state);
+    case 8: return this.unpack_postfix_expr(state);
+    case 9: return this.unpack_font_expr(state);
+    case 10: return this.unpack_placeholder_expr(state);
+    case 11: return this.unpack_function_call_expr(state);
+    case 12: return this.unpack_array_expr(state);
+    default: this.error("Unknown Expr typecode in MsgpackDecoder: " + typecode);
+    }
+  }
+  unpack_text_expr([text]) {
+    return new TextExpr(text);
+  }
+  unpack_command_expr([command_name, operand_expr_states, options]) {
+    return new CommandExpr(
+      command_name,
+      operand_expr_states ?
+        operand_expr_states.map(expr_state => this.unpack_expr(expr_state)) : null,
+      options);
+  }
+  unpack_sequence_expr([expr_states]) {
+    return new SequenceExpr(
+      expr_states.map(expr_state => this.unpack_expr(expr_state)));
+  }
+  unpack_delimiter_expr([left_type, right_type, inner_expr_state, fixed_size]) {
+    return new DelimiterExpr(
+      left_type, right_type,
+      this.unpack_expr(inner_expr_state),
+      fixed_size);
+  }
+  unpack_subscriptsuperscript_expr([base_expr_state,
+                                    subscript_expr_state, superscript_expr_state]) {
+    return new SubscriptSuperscriptExpr(
+      this.unpack_expr(base_expr_state),
+      subscript_expr_state ? this.unpack_expr(subscript_expr_state) : null,
+      superscript_expr_state ? this.unpack_expr(superscript_expr_state) : null);
+  }
+  unpack_infix_expr([operand_expr_states, operator_expr_states,
+                     split_at_index, linebreaks_at]) {
+    return new InfixExpr(
+      operand_expr_states.map(expr_state => this.unpack_expr(expr_state)),
+      operator_expr_states.map(expr_state => this.unpack_expr(expr_state)),
+      split_at_index, linebreaks_at);
+  }
+  unpack_prefix_expr([base_expr_state, operator_expr_state]) {
+    return new PrefixExpr(
+      this.unpack_expr(base_expr_state),
+      this.unpack_expr(operator_expr_state));
+  }
+  unpack_postfix_expr([base_expr_state, operator_expr_state]) {
+    return new PostfixExpr(
+      this.unpack_expr(base_expr_state),
+      this.unpack_expr(operator_expr_state));
+  }
+  unpack_font_expr([expr_state, typeface, is_bold, size_adjustment]) {
+    return new FontExpr(
+      this.unpack_expr(expr_state),
+      typeface, is_bold, size_adjustment);
+  }
+  unpack_placeholder_expr() {
+    return new PlaceholderExpr();
+  }
+  unpack_function_call_expr([fn_expr_state, args_expr_state]) {
+    return new FunctionCallExpr(
+      this.unpack_expr(fn_expr_state),
+      this.unpack_expr(args_expr_state));
+  }
+  unpack_array_expr([array_type, row_count, column_count,
+                     element_expr_states,
+                     row_separators, column_separators]) {
+    return new ArrayExpr(
+      array_type, row_count, column_count,
+      element_expr_states.map(row_expr_states =>
+        row_expr_states.map(expr_state => this.unpack_expr(expr_state))),
+      row_separators, column_separators);
   }
 }
 
@@ -2393,6 +2700,7 @@ export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
   UndoStack, DocumentStorage, ImportExportState, FileManagerState,
   ExprPath, ExprParser, RationalizeToExpr, Item, ExprItem,
-  TextItem, CodeItem, Stack, Document
+  TextItem, CodeItem, Stack, Document,
+  MsgpackEncoder, MsgpackDecoder
 };
 
