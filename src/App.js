@@ -24,7 +24,7 @@ class App extends React.Component {
       settings.popup_mode = null;
     // Try to load the most recently used file on startup.
     if(settings.last_opened_filename)
-      file_manager.current_filename = settings.last_opened_filename;
+      file_manager.current_filename = file_manager.selected_filename = settings.last_opened_filename;
     let app_state = null;
     if(file_manager.check_storage_availability())
       app_state = file_manager.load_file(file_manager.current_filename);
@@ -226,7 +226,7 @@ class App extends React.Component {
         new_app_state = scratch;
       else   // undo/redo "failed"
         this.state.input_context.error_flash_stack();
-      let state_updates = { app_state: new_app_state };
+      let state_updates = {app_state: new_app_state};
       if(this.state.input_context.files_changed) {
         // Re-render the file manager panel with the updated file list.
         state_updates.file_manager = this.state.file_manager;
@@ -252,10 +252,10 @@ class App extends React.Component {
     // Try to auto-save when the app is being "hidden" or closed.
     // This 'visibilitychange' event is used in preference to the
     // unreliable 'beforeunload' event.
-    if(document.visibilityState === 'hidden' && this.state.app_state.is_dirty) {
+    if(document.visibilityState === 'hidden' && this.state.app_state.is_dirty)
       this.state.file_manager.save_file(
-        this.state.file_manager.current_filename, this.state.app_state);
-    }
+        this.state.file_manager.current_filename,
+        this.state.app_state);
     // On iOS Safari (and maybe others), the scroll positions may be reset when
     // the app becomes visible again, but a re-render takes care of that via
     // DocumentComponent.ensure_selection_visible().
@@ -346,7 +346,8 @@ class StackItemsComponent extends React.Component {
     const item_components = this.props.stack.items.map((item, index) => {
       // If there's an active prefix argument for stack commands, highlight the
       // corresponding stack item(s) that will (probably) be affected.
-      const highlighted = this.should_highlight_item_index(this.props.stack.items.length-index);
+      const highlighted = this.should_highlight_item_index(
+        this.props.stack.items.length-index);
       return $e(
         ItemComponent, {
           item: item,
@@ -619,19 +620,19 @@ class FileManagerComponent extends React.Component {
       helpline([keybinding("\u2191"), keybinding("\u2193"), helptext('Select next/previous file')]),
       helpline([keybinding('j'), keybinding('k'), helptext('Scroll this panel down or up')]),
       helpline([keybinding('Enter'), helptext('Open selected file')]),
-      helpline([keybinding('x'), helptext('Export selected file as JSON')]),
-      helpline([keybinding('d'), helptext('Delete selected file')]),
-      helpline([keybinding('n'), helptext('Start a new empty file')]),
       helpline([keybinding('s'), helptext('Save current file'),
                 helptext(current_filename ? ('(' + current_filename + ')') : '')]),
-      helpline([keybinding('S'), helptext('Save as...')])
+      helpline([keybinding('S'), helptext('Save as...')]),
+      helpline([keybinding('n'), helptext('Start a new empty file')]),
+      helpline([keybinding('x'), helptext('Export selected file as JSON')]),
+      helpline([keybinding('d'), helptext('Delete selected file')]),
+      helpline([keybinding('D'), helptext('Delete ALL files')])
     ];
     return $e('ul', {className: 'keybindings'}, ...keyhelp_elements);
   }
 
   // Needs to be an async function to await the uploaded file.text() Promises.
   async handle_file_upload(event) {
-    //const file_manager = this.props.file_manager;
     const file_input_elt = this.file_input_ref.current;
     const file_manager = this.props.file_manager;
     if(!file_input_elt) return;
@@ -651,11 +652,12 @@ class FileManagerComponent extends React.Component {
               decode_app_state_base64(base64_string);
         if(!imported_app_state)
           error_message = 'file contents are invalid';
-        if(error_message) {
-          alert('Error importing ' + file.name + ': ' + error_message);
-          break;  // cancel the rest if one of the imports fails
-        }
-        file_manager.save_file(filename, imported_app_state);
+        if(!error_message)
+          file_manager.save_file(filename, imported_app_state);
+      }
+      if(error_message) {
+        alert('Error importing ' + file.name + ': ' + error_message);
+        break;  // cancel the rest if one of the imports fails
       }
     }
     file_manager.refresh_available_files();

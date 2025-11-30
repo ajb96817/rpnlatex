@@ -649,27 +649,26 @@ class InputContext {
   // TODO: factor with do_save_file
   do_save_file_as(stack) {
     const file_manager = this.app_component.state.file_manager;
-    // TODO: use generate_unused_filename
     let new_filename = window.prompt(
       'Enter the filename to save as',
-      this.file_manager.current_filename);
+      file_manager.generate_unused_filename(file_manager.current_filename));
     if(!new_filename)
-      return;
+      return stack;  // cancel
     new_filename = file_manager.sanitize_filename(new_filename);
     if(!new_filename) {
       alert('Invalid filename (must only contain letters, numbers and underscores)');
-      return;
+      return stack;
     }
     const save_result = file_manager.save_file(new_filename, this.app_state);
     if(save_result)
       this.notify('Error saving ' + new_filename + ': ' + save_result);
     else {
       this.notify('Saved as: ' + new_filename);
-      file_manager.selected_filename = file_manager.current_filename = new_filename;
+      file_manager.current_filename = new_filename;
       this.settings.last_opened_filename = new_filename;
       file_manager.save_settings(this.settings);
+      this.change_selected_filename(new_filename);
       this.perform_undo_or_redo = 'clear';
-      this.files_changed = true;
       this.file_saved_or_loaded = true;
     }
   }
@@ -680,8 +679,11 @@ class InputContext {
     if(!filename)
       return this.error_flash_document();
     if(this.app_state.is_dirty &&
-       window.confirm("The current document has been modified.  Save it now?"))
+       window.confirm("The current document has unsaved changes.  Save it now?")) {
       this.do_save_file(stack);
+      if(!this.file_saved_or_loaded)
+        return stack;  // save failed
+    }
     const new_app_state = file_manager.load_file(filename);
     if(new_app_state) {
       const settings = this.settings;
@@ -729,6 +731,12 @@ class InputContext {
     let file_manager = this.app_component.state.file_manager;
     let new_filename = file_manager.generate_unused_filename(
       file_manager.current_filename || 'untitled');
+    if(this.app_state.is_dirty &&
+       window.confirm("The current document has unsaved changes.  Save it now?")) {
+      this.do_save_file(stack);
+      if(!this.file_saved_or_loaded)
+        return stack;  // save failed
+    }
     new_filename = window.prompt('Enter a filename for the new document', new_filename);
     if(!new_filename) return;
     new_filename = file_manager.sanitize_filename(new_filename || '');
@@ -736,20 +744,20 @@ class InputContext {
       alert('Invalid filename (must only contain letters, numbers and underscores)');
       return stack;
     }
-    // Save the current document first.
-    // NOTE: Don't put up the notification flash here, unlike with an explicit save_document.
-    file_manager.save_file(
-      file_manager.current_filename,
-      this.app_state);
+    if(file_manager.has_file_named(new_filename)) {
+      alert('A file named ' + new_filename + ' already exists.');
+      return stack;
+    }
     // This basically works like loading from a blank file.
+    // The new file with its initial contents is saved immediately.
     const new_state = new AppState();
     const settings = this.settings;
-    file_manager.selected_filename = file_manager.current_filename = new_filename;
-    settings.last_opened_filename = new_filename;
+    file_manager.save_file(new_filename, new_state);  // ignore errors saving new file
+    settings.last_opened_filename = file_manager.current_filename = new_filename;
     file_manager.save_settings(settings);
+    this.change_selected_filename(new_filename);
     this.notify('Started new file: ' + new_filename);
     this.perform_undo_or_redo = 'clear';
-    this.files_changed = true;
     this.file_saved_or_loaded = true;
     this.do_toggle_popup(new_state.stack, 'files');  // close file manager
     this.update_document(new_state.document);
@@ -778,6 +786,20 @@ class InputContext {
       this.notify('Deleted: ' + filename);
       this.files_changed = true;
     }      
+  }
+
+  do_delete_all_files(stack) {
+    const file_manager = this.app_component.state.file_manager;
+    if(!(window.confirm("Really delete ALL files?  This cannot be undone, make sure to export anything you want to keep first.")
+         && window.confirm("Please confirm once more that you want to delete all files.")))
+      return stack;
+    file_manager.delete_all_files();
+    this.notify('All files deleted');
+    this.files_changed = true;
+    // NOTE: The current filename (document in memory) is still preserved,
+    // so saving immediately with do_save_file() will recreate the current file.
+    this.change_selected_filename(null);
+    return stack;
   }
 
   // If 'preserve' is set, items are kept on the stack after copying them

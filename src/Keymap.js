@@ -113,6 +113,7 @@ const KeybindingTable = {
   files: {
     'default': "toggle_popup files",
     'd': "delete_selected_file",
+    'D': "delete_all_files",
     'n': "start_new_file",
     'Enter': "load_selected_file",
     'x': "export_selected_file",

@@ -642,6 +642,15 @@ class FileManager {
     return MsgpackDecoder.decode_app_state_base64(base64_string);
   }
 
+  has_file_named(filename) {
+    const [result_code, exists] = this.with_local_storage(() => {
+      const file_info = this._fetch_available_file_infos()
+            .find(file_info => file_info.filename === filename);
+      return !!file_info;
+    });
+    return result_code === 'success' && exists;
+  }
+
   // Return the loaded AppState if successful, null if not.
   load_file(filename) {
     const [result_code, app_state] = this.with_local_storage(() => {
@@ -730,6 +739,8 @@ class FileManager {
   // so they need to be re-saved after things are cleared.
   delete_all_files() {
     this.with_local_storage(() => {
+      // TODO: If we ever use any non-file keys besides $settings,
+      // make sure to preserve them here too.
       const settings_key = '$settings';
       const settings_data = this.storage.getItem(settings_key);
       this.storage.clear();
