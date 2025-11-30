@@ -19,6 +19,9 @@ class App extends React.Component {
     super(props);
     let file_manager = new FileManager();
     const settings = file_manager.load_settings();
+    // Don't start up with the File Manager popup even if it was saved like that.
+    if(settings.popup_mode === 'files')
+      settings.popup_mode = null;
     // Try to load the most recently used file on startup.
     if(settings.last_opened_filename)
       file_manager.current_filename = settings.last_opened_filename;
@@ -37,18 +40,6 @@ class App extends React.Component {
     this.state.undo_stack.clear(this.state.app_state);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-  }
-
-  // TODO
-  file_load_finished(filename, new_app_state) {
-    const file_manager = this.state.file_manager;
-    const settings = this.state.settings;
-    file_manager.selected_filename = file_manager.current_filename = filename;
-    settings.last_opened_filename = filename;
-    file_manager.save_settings(settings);
-    this.setState({app_state: new_app_state, file_manager: file_manager});
-    this.state.undo_stack.clear(new_app_state);
-    this.state.input_context.notify('Loaded: ' + filename);
   }
 
   file_load_for_export_finished(filename, app_state) {
@@ -536,11 +527,12 @@ class FileManagerComponent extends React.Component {
       $e('h2', {}, 'File Manager'),
       this.render_current_filename(),
       this.render_file_table(),
-      this.render_shortcuts()
+      this.render_shortcuts(),
+      this.render_import_section()
     );
   }
 
-  render_export_import_section() {
+  render_import_section() {
     const subcomponents = [
       $e('p', {}, 'Upload (import) a .rpn document:'),
       $e('p', {},
@@ -637,49 +629,37 @@ class FileManagerComponent extends React.Component {
     return $e('ul', {className: 'keybindings'}, ...keyhelp_elements);
   }
 
-  handle_file_upload(event) {
+  // Needs to be an async function to await the uploaded file.text() Promises.
+  async handle_file_upload(event) {
+    //const file_manager = this.props.file_manager;
     const file_input_elt = this.file_input_ref.current;
+    const file_manager = this.props.file_manager;
     if(!file_input_elt) return;
     const file_list = file_input_elt.files;
-    if(file_list.length === 1)
-      this.start_importing(file_list[0]);
-    else if(file_list.length > 1)
-      alert('Please select a single .zip file to import.');
-    else
-      alert('Please select a .zip file to import.');
-  }
-
-  handle_json_file_upload(event) {
-    const file_input_elt = this.json_file_input_ref.current;
-    if(!file_input_elt) return;
-    const file_list = [...file_input_elt.files];
-    if(file_list.length === 0)
-      alert('Please select a .json file to import.');
-    if(!file_list.every(file => file.name.endsWith('.json')))
-      alert('Files must have a .json extension.');
-    for(let i = 0; i < file_list.length; i++)
-      this.import_json_file(file_list[i]);
-  }
-
-  import_json_file(file) {
-    if(!file.name.endsWith('.json')) return;  // should be always true
-    const filename = file.name.slice(0, file.name.length-5);
-    file.text().then(json => {
-      this.props.import_export_state.import_json_file(filename, json);
-      this.props.app.request_file_list();
-    });
-  }
-
-  start_importing(file) {
-    const import_export_state = this.props.import_export_state;
-    if(import_export_state.state === 'idle')
-      import_export_state.start_importing(file);
-  }
-
-  start_exporting() {
-    const import_export_state = this.props.import_export_state;
-    if(import_export_state.state === 'idle')
-      import_export_state.start_exporting();
+    for(let i = 0; i < file_list.length; i++) {
+      let error_message = null;
+      const file = file_list[i];
+      const filename = file_manager.sanitize_filename(
+        file.name.slice(0, file.name.length-4));
+      if(!filename)
+        error_message = 'invalid filename';
+      else if(file.size > 5000000)
+        error_message = 'file too large (limit 5MB)';
+      else {
+        const base64_string = await file.text();
+        const imported_app_state = file_manager.
+              decode_app_state_base64(base64_string);
+        if(!imported_app_state)
+          error_message = 'file contents are invalid';
+        if(error_message) {
+          alert('Error importing ' + file.name + ': ' + error_message);
+          break;  // cancel the rest if one of the imports fails
+        }
+        file_manager.save_file(filename, imported_app_state);
+      }
+    }
+    file_manager.refresh_available_files();
+    this.setState({});
   }
 }
 

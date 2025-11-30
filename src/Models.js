@@ -636,17 +636,36 @@ class FileManager {
     return fn.length === 0 ? null : fn;
   }
 
+  // Used by FileManagerComponent.import_file(), so needs to be its
+  // own method.
+  decode_app_state_base64(base64_string) {
+    return MsgpackDecoder.decode_app_state_base64(base64_string);
+  }
+
   // Return the loaded AppState if successful, null if not.
   load_file(filename) {
     const [result_code, app_state] = this.with_local_storage(() => {
       const file_info = this._fetch_available_file_infos()
             .find(file_info => file_info.filename === filename);
       if(file_info)
-        return MsgpackDecoder.decode_app_state_base64(
+        return this.decode_app_state_base64(
           this.storage.getItem(file_info.key));
       else return null;  // file not found, shouldn't normally happen
     });
     return result_code === 'success' ? app_state : null;
+  }
+
+  // TODO: factor with load_file()
+  fetch_file_base64(filename) {
+    const [result_code, base64_string] = this.with_local_storage(() => {
+      const file_info = this._fetch_available_file_infos()
+            .find(file_info => file_info.filename === filename);
+      if(file_info)
+        return this.storage.getItem(file_info.key);
+    });
+    if(result_code === 'success')
+      return base64_string;
+    else return null;
   }
 
   // Save an AppState in serialized format with the document metadata

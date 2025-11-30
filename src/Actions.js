@@ -7,16 +7,12 @@ import {
   AppState, Document, Stack, TextEntryState,
   ExprPath, ExprParser, RationalizeToExpr,
   ExprItem, TextItem, CodeItem,
-
-  MsgpackEncoder, MsgpackDecoder  // TODO: temporary
 } from './Models';
-
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr,
   FunctionCallExpr, PlaceholderExpr, TextExpr, SequenceExpr,
   DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr
 } from './Exprs';
-
 import {
   AlgebriteInterface
 } from './CAS';
@@ -39,7 +35,12 @@ class InputContext {
     // do_* actions can set this to update the document state.
     this.new_document = null;
     
+    // If set to true, the file_manager.available_files will be reloaded
+    // from localStorage and the FileManagerComponent will be re-rendered
+    // (so this is set even for things like changing the selected_filename).
     this.files_changed = false;
+
+    // If set to true, the AppState's is_dirty flag will be cleared.
     this.file_saved_or_loaded = false;
 
     // If set, this will be displayed as a transient notification in
@@ -274,18 +275,7 @@ class InputContext {
 
   do_cancel() {}
 
-  do_debug(stack) {
-    const [new_stack, item] = stack.pop(1);
-    if(item.item_type() === 'code') {
-      const new_item = MsgpackDecoder.decode_item_base64(item.source);
-      return new_stack.push(new_item);
-    }
-    else {
-      const base64_string = MsgpackEncoder.encode_item_base64(item);
-      const code_item = new CodeItem('latex', base64_string);
-      return new_stack.push(code_item);
-    }
-  }
+  do_debug(stack) { /* hook for [$][~] debugging command */ }
 
   do_subscript(stack, autoparenthesize) {
     return this._build_subscript_superscript(stack, true, autoparenthesize);
@@ -709,7 +699,30 @@ class InputContext {
   }
 
   do_export_selected_file(stack) {
-    borked();
+    const file_manager = this.app_component.state.file_manager;
+    const filename = file_manager.selected_filename;
+    if(!filename) {
+      this.error_message = { message: 'No file selected to export' };
+      return stack;
+    }
+    const base64_string = file_manager.fetch_file_base64(filename);
+    if(!base64_string) {
+      this.error_message = { message: 'Could not load file to export' };
+      return stack;
+    }
+    // Send the file by creating a temporary <a> element and clicking it.
+    const blob = new Blob([base64_string]);  // TODO: MIME type
+    const anchor_elt = document.createElement('a');
+    const file_url = URL.createObjectURL(blob);
+    anchor_elt.href = file_url;
+    anchor_elt.download = filename + '.rpn';
+    document.body.appendChild(anchor_elt);
+    anchor_elt.click();
+    setTimeout(() => {
+      document.body.removeChild(anchor_elt);
+      URL.revokeObjectURL(file_url);
+    }, 0);
+    return stack;
   }
 
   do_start_new_file(stack) {
