@@ -1176,7 +1176,7 @@ class InputContext {
         Expr.combine_pair(
           left_item.expr, right_item.expr, no_parenthesize));
     else if((left_item.is_expr_item() || left_item.is_text_item()) &&
-            (left_item.is_expr_item() || right_item.is_text_item()))
+            (right_item.is_expr_item() || right_item.is_text_item()))
       return new_stack.push(
         TextItem.concatenate_items(left_item, right_item));
     else

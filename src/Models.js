@@ -2116,7 +2116,9 @@ class Document {
 class MsgpackEncoder {
   // Encode an entire AppState, returning a binary Uint8Array.
   static encode_app_state_binary(app_state) {
-    return msgpack_encode(new this().pack_app_state(app_state));
+    return msgpack_encode(
+      new this().pack_app_state(app_state),
+      {'maxDepth': 200});
   }
 
   // Like encode_app_state_binary() but return an ordinary String
