@@ -40,7 +40,7 @@ class InputContext {
     this.new_document = null;
     
     this.files_changed = false;
-    this.file_saved = false;
+    this.file_saved_or_loaded = false;
 
     // If set, this will be displayed as a transient notification in
     // the stack area.  Cleared after every keypress.
@@ -51,7 +51,7 @@ class InputContext {
     // Special indicator to help control the undo stack:
     //   null - save state to undo stack after this action as normal
     //   'undo' - request an undo
-    //   'redo' - request a redo of saved undo states
+    //   'redo' - request a redo of last saved undo state (if any)
     //   'suppress' - perform action as normal, but don't save state to the undo state
     //                (used for 'minor' actions that don't warrant undo tracking)
     //   'clear' - undo stack will be reset (e.g. when loading a new document)
@@ -60,7 +60,7 @@ class InputContext {
     // Current prefix argument for commands like Swap; can be one of:
     //   null - no current prefix argument
     //   >= 1 - normal prefix argument
-    //   -1   - "all" prefix argument (apply to all available items)
+    //   < 0  - "all" prefix argument (apply to all available items)
     // Prefix arguments are cleared after any normal command is executed
     // or if there's an error.  "Normal" command means anything that's not
     // another prefix argument key.
@@ -130,7 +130,7 @@ class InputContext {
           this.new_document || app_state.document
         );
         new_app_state.is_dirty = app_state.is_dirty || !new_app_state.same_as(app_state);
-        if(this.file_saved)  // Current file was saved; explicitly clear the dirty flag.
+        if(this.file_saved_or_loaded)
           new_app_state.is_dirty = false;
         app_state = new_app_state;
         // Switch back into base mode if the mode was not explicitly set by the handler.
@@ -174,9 +174,9 @@ class InputContext {
     this.new_document = null;
     // Likewise this will be set to true if anything changed about the file list / file selection.
     this.files_changed = false;  // TODO: rename -> selected_file_changed
-    // This will be set to true if the current file was saved by this action.
+    // This will be set to true if the current app_state was saved or loaded by this action.
     // This indicates that the app state's dirty flag should be cleared.
-    this.file_saved = false;
+    this.file_saved_or_loaded = false;
     // If this is set to true, the prefix_argument will be kept as it as (otherwise it's reset to
     // null after each action).
     this.preserve_prefix_argument = false;
@@ -204,6 +204,15 @@ class InputContext {
   switch_to_mode(new_mode) { this.new_mode = new_mode; }
 
   update_document(new_document) { this.new_document = new_document;  }
+
+  // TODO: revisit
+  change_selected_filename(filename) {
+    let file_manager = this.app_component.state.file_manager
+    const settings = this.settings;
+    file_manager.selected_filename = filename;
+    file_manager.save_settings(settings);
+    this.files_changed = true;
+  }
 
   // Don't include the results of this action in the undo stack.
   suppress_undo() { this.perform_undo_or_redo = 'suppress'; }
@@ -532,8 +541,7 @@ class InputContext {
   // Drop the top N stack items (default=1).
   do_pop(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
-    // eslint-disable-next-line no-unused-vars
-    const [new_stack, ...items] = stack.pop(arg);
+    const [new_stack, ] = stack.pop(arg);
     return new_stack;
   }
 
@@ -635,132 +643,128 @@ class InputContext {
   }
 
   do_save_file(stack) {
-    const file_manager_state = this.app_component.state.file_manager_state;
-    const filename = file_manager_state.current_filename;
-    if(!filename)
-      return this.do_save_file_as(stack);
-    this.app_component.state.document_storage.save_state(
-      this.app_state, filename,
-      () => {
-        this.notify('Saved: ' + filename);
-        this.settings.last_opened_filename = filename;
-        this.settings.save();
-        this.perform_undo_or_redo = 'clear';
-        this.app_component.request_file_list();
-      },
-      () => this.notify('Error saving:' + filename)
-    );
-    this.file_saved = true;
+    const file_manager = this.app_component.state.file_manager;
+    const filename = file_manager.current_filename;
+    const save_result = file_manager.save_file(filename, this.app_state);
+    if(save_result)
+      this.notify('Error saving ' + filename + ': ' + save_result);
+    else {
+      this.change_selected_filename(filename);
+      this.notify('Saved: ' + filename);
+      this.perform_undo_or_redo = 'clear';
+      this.file_saved_or_loaded = true;
+    }
   }
 
   // TODO: factor with do_save_file
   do_save_file_as(stack) {
-    let new_filename = window.prompt('Enter the filename to save as', this.settings.current_filename);
+    const file_manager = this.app_component.state.file_manager;
+    // TODO: use generate_unused_filename
+    let new_filename = window.prompt(
+      'Enter the filename to save as',
+      this.file_manager.current_filename);
     if(!new_filename)
       return;
-    let document_storage = this.app_component.state.document_storage;
-    new_filename = document_storage.sanitize_filename(new_filename);
-    document_storage.save_state(
-      this.app_state, new_filename,
-      () => {
-        this.notify('Saved as: ' + new_filename);
-        let file_manager_state = this.app_component.state.file_manager_state;
-        file_manager_state.selected_filename = file_manager_state.current_filename = new_filename;
-        this.settings.last_opened_filename = new_filename;
-        this.settings.save();
-        this.perform_undo_or_redo = 'clear';
-        this.app_component.request_file_list();
-      },
-      () => this.notify('Error saving: ' + new_filename)
-    );
-    this.file_saved = true;
-  }
-
-  do_load_selected_file(stack) {
-    const selected_filename = this.app_component.state.file_manager_state.selected_filename;
-    if(!selected_filename)
-      return this.error_flash_document();
-    if(this.app_state.is_dirty) {
-      if(window.confirm("The current document has been modified.  Save it now?")) {
-        // Abort actually loading the new file; otherwise a
-        // race condition between save and load is created due
-        // to document_storage calls being asynchronous.  This
-        // could be worked around by chaining the load after
-        // the save but this is the only place it's a problem.
-        return this.do_save_file(stack);
-      }
-    }
-    this.app_component.start_loading_filename(selected_filename);
-  }
-
-  do_export_selected_file(stack) {
-    const selected_filename = this.app_component.state.file_manager_state.selected_filename;
-    if(!selected_filename)
-      return this.error_flash_document();
-    this.app_component.start_exporting_filename(selected_filename);
-  }
-
-  do_start_new_file(stack) {
-    let file_manager_state = this.app_component.state.file_manager_state;
-    let document_storage = this.app_component.state.document_storage;
-    let new_filename = file_manager_state.generate_unused_filename(file_manager_state.current_filename || 'untitled');
-    new_filename = window.prompt('Enter a filename for the new document', new_filename);
-    if(!new_filename) return;
-    new_filename = document_storage.sanitize_filename(new_filename || '');
+    new_filename = file_manager.sanitize_filename(new_filename);
     if(!new_filename) {
       alert('Invalid filename (must only contain letters, numbers and underscores)');
       return;
     }
-
-    // Save the current document if needed first.
-    if(file_manager_state.current_filename) {
-      // NOTE: don't put up the notification flash here, unlike with an explicit save_document.
-      document_storage.save_state(this.app_state, file_manager_state.current_filename);
+    const save_result = file_manager.save_file(new_filename, this.app_state);
+    if(save_result)
+      this.notify('Error saving ' + new_filename + ': ' + save_result);
+    else {
+      this.notify('Saved as: ' + new_filename);
+      file_manager.selected_filename = file_manager.current_filename = new_filename;
+      this.settings.last_opened_filename = new_filename;
+      file_manager.save_settings(this.settings);
+      this.perform_undo_or_redo = 'clear';
+      this.files_changed = true;
+      this.file_saved_or_loaded = true;
     }
+  }
 
+  do_load_selected_file(stack) {
+    let file_manager = this.app_component.state.file_manager
+    const filename = file_manager.selected_filename;
+    if(!filename)
+      return this.error_flash_document();
+    if(this.app_state.is_dirty &&
+       window.confirm("The current document has been modified.  Save it now?"))
+      this.do_save_file(stack);
+    const new_app_state = file_manager.load_file(filename);
+    if(new_app_state) {
+      const settings = this.settings;
+      file_manager.selected_filename = file_manager.current_filename = filename;
+      settings.last_opened_filename = filename;
+      file_manager.save_settings(settings);
+      this.notify('Loaded: ' + filename);
+      this.perform_undo_or_redo = 'clear';
+      this.update_document(new_app_state.document);
+      this.file_saved_or_loaded = true;
+      return new_app_state.stack;
+    }
+    else
+      this.notify('Could not load ' + filename);
+  }
+
+  do_export_selected_file(stack) {
+    borked();
+  }
+
+  do_start_new_file(stack) {
+    let file_manager = this.app_component.state.file_manager;
+    let new_filename = file_manager.generate_unused_filename(
+      file_manager.current_filename || 'untitled');
+    new_filename = window.prompt('Enter a filename for the new document', new_filename);
+    if(!new_filename) return;
+    new_filename = file_manager.sanitize_filename(new_filename || '');
+    if(!new_filename) {
+      alert('Invalid filename (must only contain letters, numbers and underscores)');
+      return stack;
+    }
+    // Save the current document first.
+    // NOTE: Don't put up the notification flash here, unlike with an explicit save_document.
+    file_manager.save_file(
+      file_manager.current_filename,
+      this.app_state);
     // This basically works like loading from a blank file.
-    let new_state = new AppState();
-    this.update_document(new_state.document);
-    file_manager_state.selected_filename = file_manager_state.current_filename = new_filename;
-    this.settings.last_opened_filename = new_filename;
-    this.settings.save();
-    this.perform_undo_or_redo = 'clear';
+    const new_state = new AppState();
+    const settings = this.settings;
+    file_manager.selected_filename = file_manager.current_filename = new_filename;
+    settings.last_opened_filename = new_filename;
+    file_manager.save_settings(settings);
     this.notify('Started new file: ' + new_filename);
+    this.perform_undo_or_redo = 'clear';
     this.files_changed = true;
-    this.file_saved = true;
+    this.file_saved_or_loaded = true;
     this.do_toggle_popup(new_state.stack, 'files');  // close file manager
+    this.update_document(new_state.document);
     return new_state.stack;
   }
 
   do_select_adjacent_file(stack, offset_string) {
     const offset = parseInt(offset_string);
-    const file_manager_state = this.app_component.state.file_manager_state;
-    const new_filename = file_manager_state.find_adjacent_filename(file_manager_state.selected_filename, offset);
-    if(new_filename) {
-      file_manager_state.selected_filename = new_filename;
-      this.files_changed = true;
-    }
+    const file_manager = this.app_component.state.file_manager;
+    const new_selected_filename = file_manager.select_adjacent_filename(offset);
+    this.change_selected_filename(new_selected_filename);
   }
 
+  // TODO: select next adjacent file in list after deleting
   do_delete_selected_file(stack) {
-    const file_manager_state = this.app_component.state.file_manager_state;
-    const document_storage = this.app_component.state.document_storage;
-    const filename = file_manager_state.selected_filename;
+    const file_manager = this.app_component.state.file_manager;
+    const filename = file_manager.selected_filename;
     if(!filename) return this.error_flash_document();
     if(!window.confirm("Really delete \"" + filename + "\"?")) return;
-    document_storage.delete_state(
-      filename,
-      () => {
-        this.notify('Deleted: ' + filename);
-        const new_filename = file_manager_state.find_adjacent_filename(filename, 1);
-        // TODO: might need this.files_changed = true
-        file_manager_state.selected_filename = new_filename;
-        this.settings.last_opened_filename = new_filename;
-        this.settings.save();
-        this.app_component.request_file_list();
-      },
-      () => this.notify('Error deleting: ' + filename)
-    );
+    const result = file_manager.delete_file(filename);
+    if(result) {
+      // Error deleting file.
+      this.notify(result);
+    }
+    else {
+      this.notify('Deleted: ' + filename);
+      this.files_changed = true;
+    }      
   }
 
   // If 'preserve' is set, items are kept on the stack after copying them
@@ -1554,8 +1558,7 @@ class InputContext {
   }
 
   do_cancel_dissect_mode(stack) {
-    // eslint-disable-next-line no-unused-vars
-    const [new_stack, expr] = stack.pop_exprs(1);  // expr will be discarded
+    const [new_stack, ] = stack.pop_exprs(1);  // the expr is discarded
     this.suppress_undo();
     const original_expr = this.dissect_mode_initial_expr;
     this.dissect_mode_initial_expr = null;
@@ -1765,7 +1768,7 @@ class InputContext {
     }
     this.settings.popup_mode =
       (this.settings.popup_mode === mode_string) ? null : mode_string;
-    this.settings.save();
+    this.app_component.state.file_manager.save_settings(this.settings);
     this.app_component.apply_layout_to_dom();
     this.suppress_undo();
   }
@@ -1863,7 +1866,7 @@ class InputContext {
     default:
       break;
     }
-    settings.save();
+    this.app_component.state.file_manager.save_settings(this.settings);
     this.suppress_undo();
     this.app_component.apply_layout_to_dom();
     if(full_refresh_needed) {
@@ -2141,7 +2144,7 @@ class InputContext {
   //   'top' or 'bottom' to go to the beginning or end (vertically)
   // percentage_string: fraction of the current popup height (or width) to scroll by
   do_scroll(stack, panel_name, direction_string, percentage_string) {
-    let panel_elt = document.getElementById(panel_name);
+    const panel_elt = document.getElementById(panel_name);
     if(!panel_elt) return;
     const percentage = parseInt(percentage_string || '50') / 100.0;
     if(direction_string === 'top')
@@ -2171,8 +2174,7 @@ class InputContext {
 
   do_export_stack_items_as_text(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
-    // eslint-disable-next-line no-unused-vars
-    const [new_stack, ...items] = stack.pop(arg);
+    const [, ...items] = stack.pop(arg);
     const exported_text = items.map(item => item.to_latex(true)).join("\n\n");
     navigator.clipboard.writeText(exported_text);
     this.notify("Copied " + arg + " item" + (arg === 1 ? "" : "s") + " to clipboard");

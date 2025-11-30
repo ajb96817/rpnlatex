@@ -268,11 +268,6 @@ class Expr {
 
   emit_latex(emitter) { emitter.text('INVALID'); }
 
-  // Subclasses should extend this to serialize their own fields.
-  to_json() {
-    return { expr_type: this.expr_type() };
-  }
-
   // Try to convert this Expr into a string for use in math entry mode.
   // The string should be something that will recreate this Expr when parsed.
   // Generally, we use the source_string from the ExprItem wrapping this Expr
@@ -436,16 +431,6 @@ class CommandExpr extends Expr {
 
   operand_count() { return this.operand_exprs.length; }
 
-  to_json() {
-    let json = super.to_json();
-    json.command_name = this.command_name;
-    if(this.operand_exprs.length > 0)
-      json.operand_exprs = this.operand_exprs.map(expr => expr.to_json());
-    if(this.options)
-      json.options = this.options;
-    return json;
-  }
-
   // "Special" LaTeX commands like \& and \%.  (Anything not starting with a letter.)
   // These need a little extra handling.  In particular, editing one of them as text
   // should use the normal math-entry mode & or % representation, instead of switching
@@ -604,17 +589,6 @@ class FontExpr extends Expr {
   }
 
   expr_type() { return 'font'; }
-
-  to_json() {
-    let json = super.to_json();
-    json.expr = this.expr.to_json();
-    json.typeface = this.typeface;
-    if(this.is_bold)
-      json.is_bold = true;
-    if(this.size_adjustment !== 0)
-      json.size_adjustment = this.size_adjustment;
-    return json;
-  }
 
   // See comment in Expr.has_subexpressions().
   has_subexpressions() { return this.expr.has_subexpressions(); }
@@ -873,17 +847,6 @@ class InfixExpr extends Expr {
 
   expr_type() { return 'infix'; }
 
-  to_json() {
-    let json = super.to_json();
-    json.operand_exprs = this.operand_exprs.map(expr => expr.to_json());
-    json.operator_exprs = this.operator_exprs.map(expr => expr.to_json());
-    if(this.split_at_index > 0)
-      json.split_at_index = this.split_at_index;
-    if(this.linebreaks_at.length > 0)
-      json.linebreaks_at = this.linebreaks_at;
-    return json;
-  }
-
   // If the given infix operator is a simple command like '+' or '\cap',
   // return the command name (without the initial \ if it has one).
   // If it's anything more complex, return null.
@@ -1120,13 +1083,6 @@ class PrefixExpr extends Expr {
 
   expr_type() { return 'prefix'; }
 
-  to_json() {
-    let json = super.to_json();
-    json.base_expr = this.base_expr.to_json();
-    json.operator_expr = this.operator_expr.to_json();
-    return json;
-  }
-
   emit_latex(emitter) {
     emitter.expr(this.operator_expr, 0);
     emitter.expr(this.base_expr, 1);
@@ -1191,13 +1147,6 @@ class FunctionCallExpr extends Expr {
   }
 
   expr_type() { return 'function_call'; }
-
-  to_json() {
-    let json = super.to_json();
-    json.fn_expr = this.fn_expr.to_json();
-    json.args_expr = this.args_expr.to_json();
-    return json;
-  }
 
   emit_latex(emitter) {
     // The args_expr gets wrapped in an "empty" latex command
@@ -1299,13 +1248,6 @@ class PostfixExpr extends Expr {
 
   expr_type() { return 'postfix'; }
 
-  to_json() {
-    let json = super.to_json();
-    json.base_expr = this.base_expr.to_json();
-    json.operator_expr = this.operator_expr.to_json();
-    return json;
-  }
-
   emit_latex(emitter) {
     emitter.expr(this.base_expr, 0);
     emitter.expr(this.operator_expr, 1);
@@ -1380,12 +1322,6 @@ class TextExpr extends Expr {
 
   expr_type() { return 'text'; }
 
-  to_json() {
-    let json = super.to_json();
-    json.text = this.text;
-    return json;
-  }
-
   emit_latex(emitter) {
     if(this.text === '') {
       // An "empty" TextExpr is a special case, emitted as an empty LaTeX group {}.
@@ -1440,12 +1376,6 @@ class SequenceExpr extends Expr {
   }
 
   expr_type() { return 'sequence'; }
-
-  to_json() {
-    let json = super.to_json();
-    json.exprs = this.exprs.map(expr => expr.to_json());
-    return json;
-  }
 
   emit_latex(emitter) {
     this.exprs.forEach((expr, index) => emitter.expr(expr, index));
@@ -1594,16 +1524,6 @@ class DelimiterExpr extends Expr {
   
   expr_type() { return 'delimiter'; }
 
-  to_json() {
-    let json = super.to_json();
-    json.left_type = this.left_type;
-    json.right_type = this.right_type;
-    json.inner_expr = this.inner_expr.to_json();
-    if(this.fixed_size)
-      json.fixed_size = true;
-    return json;
-  }
-
   emit_latex(emitter) {
     if(this.fixed_size)
       this.emit_latex_fixed_size(emitter);
@@ -1685,16 +1605,6 @@ class SubscriptSuperscriptExpr extends Expr {
   }
 
   expr_type() { return 'subscriptsuperscript'; }
-
-  to_json() {
-    let json = super.to_json();
-    json.base_expr = this.base_expr.to_json();
-    if(this.subscript_expr)
-      json.subscript_expr = this.subscript_expr.to_json();
-    if(this.superscript_expr)
-      json.superscript_expr = this.superscript_expr.to_json();
-    return json;
-  }
 
   emit_latex(emitter) {
     // If the base_expr is a command, don't put it inside grouping braces.
@@ -1971,21 +1881,6 @@ class ArrayExpr extends Expr {
       this.element_exprs.map(row_exprs => row_exprs.map(expr => expr.as_bold())),
       this.row_separators,
       this.column_separators);
-  }
-
-  to_json() {
-    let json = super.to_json();
-    json.array_type = this.array_type;
-    json.row_count = this.row_count;
-    json.column_count = this.column_count;
-    json.element_exprs = this.element_exprs.map(
-      row_exprs => row_exprs.map(expr => expr.to_json()));
-    // Don't emit row/column separators if they are all turned off (to keep the JSON smaller).
-    if(!this.row_separators.every(s => s === null))
-      json.row_separators = this.row_separators;
-    if(!this.column_separators.every(s => s === null))
-      json.column_separators = this.column_separators;
-    return json;
   }
 
   // Return a new ArrayExpr like this one, but with ellipses inserted before the

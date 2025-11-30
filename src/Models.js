@@ -4,7 +4,6 @@ import {
   encode as msgpack_encode,
   decode as msgpack_decode
 } from '@msgpack/msgpack';
-import JSZip from 'jszip';
 import KeybindingTable from './Keymap';
 import {
   Expr, TextExpr, CommandExpr, SequenceExpr, DelimiterExpr,
@@ -39,14 +38,6 @@ class Keymap {
 
 
 class Settings {
-  static load_from_local_storage() {
-    const serialized_string = localStorage.getItem('settings');
-    if(serialized_string)
-      return Settings.from_json(JSON.parse(serialized_string));
-    else
-      return new Settings();
-  }
-  
   static from_json(json) {
     let s = new Settings();
     Settings.saved_keys().forEach(key => { s[key] = json[key]; });
@@ -147,11 +138,6 @@ class Settings {
     elt.style.top = bounds.y + '%';
     elt.style.width = bounds.w + '%';
     elt.style.height = bounds.h + '%';
-  }
-
-  save() {
-    const serialized_string = JSON.stringify(this.to_json());
-    localStorage.setItem('settings', serialized_string);
   }
 
   to_json() {
@@ -443,24 +429,6 @@ class LatexEmitter {
 
 // Overall app state, holding the stack and document.
 class AppState {
-  // Unserialize an AppState including all its contents (document/stack).
-  // s can be either a Base64-encoded msgpack string (created by MsgpackEncoder),
-  // or a JSON object created by this.to_json().
-  // Eventually the JSON format will be retired.
-  static from_serialized(s) {
-    if(typeof(s) === 'string')
-      return MsgpackDecoder.decode_app_state_base64(s);
-    else
-      return this.from_json(s);
-  }
-  
-  static from_json(json) {
-    return new AppState(
-      Stack.from_json(json.stack),
-      Document.from_json(json.document)
-    );
-  }
-  
   constructor(stack, document) {
     this.stack = stack || this._default_stack();
     this.document = document || new Document();
@@ -479,16 +447,11 @@ class AppState {
     return this.stack === app_state.stack && this.document === app_state.document;
   }
 
-  to_msgpack() {
-    return MsgpackEncoder.encode_app_state_base64(this);
-  }
-
-  to_json() {
-    return {
-      stack: this.stack.to_json(),
-      document: this.document.to_json(),
-      format: 1
-    };
+  // Total number of contained items (stack+document).
+  item_count() {
+    return this.stack.depth() +
+      this.document.items.length +
+      (this.stack.floating_item ? 1 : 0);
   }
 }
 
@@ -497,7 +460,7 @@ class UndoStack {
   constructor() {
     // Stack of saved AppState instances (most recent one at the end).
     this.state_stack = [];
-    // Maximum size of this.state_stack
+    // Maximum size of this.state_stack.
     this.max_stack_depth = 100;
     // Number of consecutive undo operations that have been performed so far.
     // If this is greater that zero, 'redo' operations can revert the undos.
@@ -549,361 +512,210 @@ class UndoStack {
 }
 
 
-// Interface to the browser's IndexedDB storage.
-// https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
-class DocumentStorage {
+// FileState maintains the 'state' for the file manager popup (the current
+// list of files and currently selected file).
+//
+// It is also the interface to the browser's localStorage and handles
+// loading/saving of files (serialized AppStates).
+//
+// https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+//
+// Files are saved in localStorage with keys of the form:
+//   "filename:filesize_in_bytes:item_count:timestamp".
+// localStorage keys starting with "$" are reserved for things like Settings.
+// Generally, there should be only one localStorage key for a given filename,
+// but in case there wind up being multiples, the one with the most recent
+// timestamp is used.
+//
+// localStorage doesn't support 8-bit byte arrays, so the msgpack-serialized
+// AppStates are encoded with Base64 before being saved.
+class FileManager {
   constructor() {
-    this.open_request = null;
-    this.database = null;
+    // This could be changed to sessionStorage if wanted (not really useful though).
+    this.storage = localStorage;
+
+    // User-visible sorted list of available stored file infos.
+    // Uniquified if there happens to be multiples of a filename
+    // (with different timestamps).
+    this.available_files = null;
+
+    // Filename of the AppState (stack/document) currently being edited.
+    // This is always "something" (never null), even if the file isn't saved to storage.
+    this.current_filename = 'untitled_1';
+
+    // Currently selected file in the file manager (not necessarily the same
+    // as current_filename until the selected file is loaded).
+    this.selected_filename = null;
   }
 
-  open_database(onsuccess) {
-    if(!indexedDB) return;
-    this.on_open_success = onsuccess;
-    this.open_request = indexedDB.open('rpnlatex', 1);
-    this.open_request.onupgradeneeded = this.handle_upgrade_database.bind(this);
-    this.open_request.onsuccess = this.handle_open_success.bind(this);
-    this.open_request.onerror = this.handle_open_error.bind(this);
-  }
-
-  handle_upgrade_database(event) {
-    this.database = this.open_request.result;
-    switch(event.oldVersion) {
-    case 0: this.build_initial_schema(); break;
-    default: break;
+  // Execute fn() while handling storage-related (and other) exceptions.
+  // Returns one of:
+  //   ['success', fn_return_value]
+  //   ['quota_exceeded', null]  (localStorage space full)
+  //   ['error', error_message]  (any other exception)
+  with_local_storage(fn) {
+    try { return ['success', fn()]; }
+    catch(e) {
+      if(e instanceof DOMException && e.name === 'QuotaExceededError')
+        return ['quota_exceeded', null];
+      else
+        return ['error', e.toString()];
     }
   }
 
-  // 'documents' is a map of filename->json document content
-  // 'documents_metadata' is a map of filename->filesize, etc.
-  // The metadata is needed because otherwise the entire file contents have to be loaded and parsed
-  // just to show the filesize and object count in the file selector.
-  // IndexedDB indexes could probably be used for this instead (by having the index key be
-  // "filename:filesize:object_counts:timestamp:etc").
-  build_initial_schema() {
-    this.database.createObjectStore('documents', {keyPath: 'filename'});
-    this.database.createObjectStore('documents_metadata', {keyPath: 'filename'});
-  }
-
-  handle_open_error(event) {
-    //alert("Unable to open IndexedDB for document storage.  You will be unable to save or load documents.\nThis may happen in Private Browsing mode on some browsers.\nError message: " + this.open_request.error);
-    this.open_request = null;
-  }
-
-  handle_open_success(event) {
-    this.database = this.open_request.result;
-    this.open_request = null;
-    this.database.onversionchange = () => {
-      this.database.close();
-      this.database = null;
-      alert('Warning: database is outdated, please reload the page.');
-    };
-    if(this.on_open_success) this.on_open_success();
-  }
-
-  create_transaction(readwrite) {
-    return this.database.transaction(
-      ['documents', 'documents_metadata'],
-      readwrite ? 'readwrite' : 'readonly');
-  }
-
-  sanitize_filename(filename) {
-    const fn = filename.replaceAll(/[^a-zA-Z0-9_ ]/g, '').trim();
-    return (fn.length === 0 || fn.length > 200) ? null : fn;
-  }
-
-  load_state(filename, onsuccess, onerror) {
-    if(!this.database) return onerror();
-    let transaction = this.create_transaction(false);
-    let document_store = transaction.objectStore('documents');
-    let request = document_store.get(filename);
-    request.onsuccess = () => {
-      // NOTE: request.result will be undefined if the filename key wasn't
-      // found.  This still counts as a 'success'.
-      const serialized = request.result;
-      if(serialized) {
-        // msgpack serialized: { filename: filename, data: base64_string }
-        // JSON serialized: { filename: filename, other_stuff_not_data: ... }
-        // TODO: eventually remove the JSON case
-        let app_state = null;
-        if(serialized.data)
-          app_state = AppState.from_serialized(serialized.data);
-        else
-          app_state = AppState.from_serialized(serialized);
-        onsuccess(filename, app_state);
-      }
-      else
-        onerror(filename, '???');  // TODO
-    };
-    request.onerror = () => {
-      onerror(filename, '???');  // TODO
-    };
-  }
-
-  save_state(app_state, filename, onsuccess, onerror) {
-    if(!this.database) return onerror();
-    let serialized = app_state.to_msgpack() // was: .to_json();
-
-/*    // Estimate the file size by serializing JSON.
-    // IndexedDB also does this serialization itself, but there doesn't
-    // seem to be any way to reuse that result directly.
-    const filesize = JSON.stringify(serialized_json).length; */
-    const filesize = serialized.length;
-    const metadata_json = {
-      filename: filename,
-      filesize: filesize,
-      description: '',  // TODO
-      stack_item_count: app_state.stack.depth(),
-      document_item_count: app_state.document.items.length,
-      timestamp: new Date()
-    };
-    let transaction = this.create_transaction(true);
-    transaction.objectStore('documents').put({
-      filename: filename,
-      data: serialized
+  // Check if we can use the localStorage at all.
+  check_storage_availability() {
+    const [result_code, ] = this.with_local_storage(() => {
+      const key = '$storage_test';
+      this.storage.setItem(key, 'test');
+      this.storage.removeItem(key);
     });
-    transaction.objectStore('documents_metadata').put(metadata_json);
-    if(onsuccess) transaction.oncomplete = onsuccess;
-    if(onerror) transaction.onabort = onerror;
+    return result_code === 'success';
   }
 
-  delete_state(filename, onsuccess, onerror) {
-    if(!this.database) return onerror();
-    let transaction = this.create_transaction(true);
-    transaction.objectStore('documents').delete(filename);
-    transaction.objectStore('documents_metadata').delete(filename);
-    if(onsuccess) transaction.oncomplete = onsuccess;
-    if(onerror) transaction.onabort = onerror;
+  // Try to load the user Settings from localStorage.
+  // If unable to load, return a Settings initialized to the defaults.
+  // Settings are stored as a JSON string.
+  load_settings() {
+    const [result_code, settings] = this.with_local_storage(() => {
+      const json_string = this.storage.getItem('$settings');
+      if(json_string)
+        return Settings.from_json(JSON.parse(json_string));
+      else return null;
+    });
+    if(result_code === 'success' && settings !== null)
+      return settings;
+    else return new Settings();
   }
 
-  fetch_file_list(onsuccess, onerror) {
-    if(!this.database) return onerror();
-    let transaction = this.create_transaction(false);
-    let request = transaction.objectStore('documents_metadata').getAll();
-    request.onsuccess = () => {
-      request.result.forEach(row => {
-        const ts_value = Date.parse(row.timestamp);
-        row.timestamp = ts_value ? new Date(ts_value) : null;
-      });
-      onsuccess(request.result);
-    };
-    request.onerror = onerror;
-  }
-
-  // Fetch all documents using a cursor.  'onrowfetched' is invoked once per document
-  // and then 'onfinished' is invoked at the end.
-  fetch_all_documents(onrowfetched, onfinished, onerror) {
-    if(!this.database) return onerror();
-    let transaction = this.create_transaction(false);
-    let cursor = transaction.objectStore('documents').openCursor();
-    cursor.onsuccess = (event) => {
-      const c = event.target.result;
-      if(c) {
-        onrowfetched(c.value);
-        c.continue();
-      }
-      else
-        onfinished();
-    };
-    cursor.onerror = onerror;
-  }
-}
-
-
-// Manage state of importing/exporting zip archives.
-class ImportExportState {
-  constructor() {
-    // States:
-    //   'idle' - if this.download_url is populated, an export download is ready
-    //   'error' - export failed, this.error_message is populated
-    //   'loading' - in the process of loading from the database cursor
-    //   'zipping' - creation of zip file in progress
-    //   'uploading' - user is uploading an archive zipfile
-    //   'importing' - uploaded zipfile is being processed/imported
-    this.state = 'idle';
-
-    this.document_storage = null;  // will be initialized by AppState
-
-    // Number of imported documents handled so far.
-    this.import_count = 0;
-
-    // Number of failures noted this import (if >0, this.error_message will also be set).
-    this.failed_count = 0;
-    this.error_message = null;
-
-    // Holds the last-generated blob download URL, if any.
-    this.download_url = null;
-
-    // This will be set on a successful import.
-    this.import_result_string = null;
-
-    // This will be set to true if the main file list (FileManagerState) needs to be refreshed from the DB.
-    this.file_list_needs_update = false;
-
-    // This can be set to a function to monitor state changes.
-    this.onstatechange = null;
-  }
-
-  // TODO: -> state_description()
-  textual_state() {
-    switch(this.state) {
-    case 'idle': return this.download_url ? 'Download ready' : 'Ready for export or import';
-    case 'error': return 'Error: ' + this.error_message;
-    case 'loading': return 'Extacting database...';
-    case 'zipping': return 'Compressing files...';
-    case 'uploading': return 'Uploading data...';
-    case 'importing': return 'Importing documents: ' + this.import_count + ' so far';
-    default: return '???';
-    }
-  }
-
-  download_available() {
-    return this.state === 'idle' && this.download_url;
-  }
-
-  generate_download_filename() {
-    const date = new Date();
-    return [
-      'rpnlatex_', date.getFullYear().toString(), '_',
-      date.toLocaleString('default', {month: 'short'}).toLowerCase(),
-      '_', date.getDate().toString().padStart(2, '0'), '.zip'
-    ].join('');
-  }
-
-  change_state(new_state) {
-    this.state = new_state;
-    if(this.onstatechange)
-      this.onstatechange(this);
-  }
-  
-  start_exporting() {
-    let document_storage = this.document_storage;
-    this.zip = new JSZip();
-    document_storage.fetch_all_documents(
-      (row) => this.add_document_json_to_zip(row),
-      () => this.start_compressing(),
-      () => {
-        this.error_message = 'Unable to export the document database.';
-        this.change_state('error');
-      });
-    this.change_state('loading');
-  }
-
-  add_document_json_to_zip(json) {
-    this.zip.file(json.filename + '.json', JSON.stringify(json));
-  }
-
-  start_compressing() {
-    this.change_state('zipping');
-    this.zip.generateAsync({type: 'blob'}).then(content_blob => {
-      this.finished_compressing(content_blob);
+  save_settings(settings) {
+    this.with_local_storage(() => {
+      const json_string = JSON.stringify(settings.to_json());
+      this.storage.setItem('$settings', json_string);
     });
   }
 
-  clear_download_url() {
-    if(this.download_url) {
-      URL.revokeObjectURL(this.download_url);
-      this.download_url = null;
-    }
-  }
-
-  finished_compressing(content_blob) {
-    this.clear_download_url();
-    this.download_url = URL.createObjectURL(content_blob);
-    this.zip = null;
-    this.change_state('idle');
-  }
-
-  // zipfile is a File object from a <input type="file"> element.
-  start_importing(zipfile) {
-    this.clear_download_url();
-    this.import_result_string = null;
-    if(zipfile.type !== 'application/zip') {
-      alert('Import files must be zip archives.');
-      return;
-    }
-    this.change_state('uploading');
-    let reader = new FileReader();
-    reader.addEventListener(
-      'load',
-      event => this.process_uploaded_data(event.target.result));
-    reader.readAsArrayBuffer(zipfile);
-  }
-
-  process_uploaded_data(data) {
-    this.import_count = 0;
-    this.failed_count = 0;
-    this.error_message = null;
-    this.change_state('importing');
-    JSZip.loadAsync(data).then(zipfile => {
-      let promises = [];
-      for(let filename in zipfile.files) {
-        const file = zipfile.files[filename];
-        if(filename.endsWith('.json')) {
-          promises.push(
-            file.async('string').then(
-              content => this.import_file(file.name.slice(0, file.name.length-5), content)));
-        }
-        else {
-          this.error_message = 'Invalid filename in archive: ' + filename;
-          this.failed_count++;
-        }
-      }
-      Promise.all(promises).then(
-        () => {
-          if(this.failed_count > 0)
-            this.import_result_string = 'Errors encountered: ' + this.error_message;
-          else
-            this.import_result_string = 'Successfully imported ' + this.import_count + ' document' + (this.import_count === 1 ? '' : 's');
-          this.change_state('idle');
-          this.file_list_needs_update = true;
+  // Scan the available localStorage keys and returns the metadata
+  // for each file found.
+  _fetch_available_file_infos() {
+    let file_infos = [];
+    // NOTE: localStorage is not iterable directly, so can't use a for-of loop.
+    for(let i = 0; i < this.storage.length; i++) {
+      const key = this.storage.key(i) || '';
+      const pieces = key.split(':');
+      if(pieces.length === 4)
+        file_infos.push({
+          key: key,
+          filename: pieces[0],
+          filesize: parseInt(pieces[1]),
+          item_count: parseInt(pieces[2]),
+          timestamp: parseInt(pieces[3])  // integer milliseconds from epoch
         });
+    }
+    file_infos.sort((a, b) => {
+      // Sort by filename, and if there is more than one key for a given
+      // filename (shouldn't happen but might), subsort by timestamp (newest first).
+      if(a.filename === b.filename) return b.timestamp - a.timestamp;
+      else return a.filename < b.filename ? -1 : 1;
     });
+    return file_infos;
   }
 
-  import_file(filename, content) {
-    let document_storage = this.document_storage;
-    let parsed, app_state;
-    try {
-      parsed = JSON.parse(content);
-      app_state = AppState.from_json(parsed);
-    } catch(e) {
-      this.error_message = 'Invalid document found in zip file: ' + filename;
-      this.failed_count++;
-      return;
+  total_used_storage_bytes() {
+    return this._fetch_available_file_infos()
+      .reduce((total, file_info) => total + file_info.filesize, 0);
+  }
+
+  // Filenames can only contain letters and digits and underscores and
+  // spaces, and are limited to 100 characters.  Return null if the
+  // filename cannot be sanitized.
+  sanitize_filename(filename) {
+    const fn = filename
+          .replaceAll(/[^a-zA-Z0-9_ ]/g, '')
+          .trim().slice(0, 100);
+    return fn.length === 0 ? null : fn;
+  }
+
+  // Return the loaded AppState if successful, null if not.
+  load_file(filename) {
+    const [result_code, app_state] = this.with_local_storage(() => {
+      const file_info = this._fetch_available_file_infos()
+            .find(file_info => file_info.filename === filename);
+      if(file_info)
+        return MsgpackDecoder.decode_app_state_base64(
+          this.storage.getItem(file_info.key));
+      else return null;  // file not found, shouldn't normally happen
+    });
+    return result_code === 'success' ? app_state : null;
+  }
+
+  // Save an AppState in serialized format with the document metadata
+  // in the localStorage key.  Return null on success, or an error message
+  // string on failure.
+  save_file(filename, app_state) {
+    filename = this.sanitize_filename(filename);  // caller should have already done this
+    if(!filename) return 'Invalid filename';
+    const [result_code, result] = this.with_local_storage(() => {
+      const serialized_base64 = MsgpackEncoder
+            .encode_app_state_base64(app_state);
+      const key = [
+        filename,
+        serialized_base64.length.toString(),
+        app_state.item_count().toString(),
+        Date.now().toString()
+      ].join(':');
+      // Save the new file first (with a 'probably' new key because of the timestamp),
+      // then delete the old keys for this filename that don't match the new key.
+      this.storage.setItem(key, serialized_base64);
+      for(const file_info of this._fetch_available_file_infos())
+        if(file_info.filename === filename && file_info.key !== key)
+          this.storage.removeItem(file_info.key);
+    });
+    switch(result_code) {
+    case 'success': return null;
+    case 'quota_exceeded': return 'Local storage is full';
+    case 'error': return result;  // the exception's error message
     }
-    document_storage.save_state(app_state, filename);
-    this.import_count++;
-    this.change_state('importing');
   }
 
-  import_json_file(filename, content) {
-    let document_storage = this.document_storage;
-    let parsed, app_state;
-    try {
-      parsed = JSON.parse(content);
-      app_state = AppState.from_json(parsed);
-    } catch(e) {
-      alert('Invalid .json file: ' + filename);
-      return;
+  rename_file(old_filename, new_filename) {
+    not_yet_implemented();
+  }
+
+  // Delete the filename from storage.  Return null on success, or an error
+  // string on failure.
+  delete_file(filename) {
+    const [result_code, result] = this.with_local_storage(() => {
+      let any_deleted = false;
+      for(const file_info of this._fetch_available_file_infos()) {
+        if(file_info.filename === filename) {
+          this.storage.removeItem(file_info.key);
+          any_deleted = true;
+        }
+      }
+      return any_deleted ? null : 'File not found'
+    });
+    switch(result_code) {
+    case 'success':
+      // Select the next available file in the list if deleting the
+      // currently-selected file.
+      if(filename === this.selected_filename)
+        this.select_adjacent_filename(1);
+      return result;
+    case 'quota_exceeded': return 'Local storage is full';  // shouldn't happen since we're deleting
+    case 'error': return result;
     }
-    document_storage.save_state(app_state, filename);
-  }
-}
-
-
-class FileManagerState {
-  constructor(file_list, selected_filename, current_filename) {
-    this.file_list = file_list;
-    this.selected_filename = selected_filename;
-    this.current_filename = current_filename;
-    this.unavailable = false;  // set to true if there's a database error
   }
 
-  sort_file_list(field, ascending) {
-    this.file_list.sort((a, b) => {
-      const a_value = a[field], b_value = b[field];
-      return (ascending ? 1 : -1)*(a_value === b_value ? 0 : (a_value < b_value ? -1 : 1));
+  // Clear all localStorage.  User settings are in localStorage too,
+  // so they need to be re-saved after things are cleared.
+  delete_all_files() {
+    this.with_local_storage(() => {
+      const settings_key = '$settings';
+      const settings_data = this.storage.getItem(settings_key);
+      this.storage.clear();
+      if(settings_data)
+        this.storage.setItem(settings_key, settings_data);
     });
   }
 
@@ -912,33 +724,46 @@ class FileManagerState {
   // The first available name is used, so basename_50 -> basename_2
   // if basename_2 is available but basename_1 is taken.
   generate_unused_filename(basename) {
-    if(this.unavailable || !this.file_list)
-      return basename;
+    const file_infos = this._fetch_available_file_infos();
     basename = basename.replace(/_\d+$/, '')
     for(let n = 1; n < 1000; n++) {
-      const candidate = basename + '_' + n;
-      if(!this.file_list.some(file => file.filename === candidate))
+      const candidate = basename + '_' + n.toString();
+      if(!file_infos.some(file_info => file_info.filename === candidate))
         return candidate;
     }
     return basename + '_toomany';
   }
 
-  // For moving up or down in the list of files.
-  find_adjacent_filename(filename, offset) {
-    if(this.unavailable || !this.file_list) return null;
-    let new_filename = null;
-    let file_list = this.file_list;
-    file_list.forEach((f, index) => {
-      if(f.filename === filename) {
-        let new_index = index+offset;
-        if(new_index < 0) new_index = 0;
-        if(new_index >= file_list.length) new_index = file_list.length-1;
-        new_filename = file_list[new_index].filename;
+  refresh_available_files() {
+    let filenames_set = new Set();
+    this.available_files = [];
+    this.with_local_storage(() => {
+      for(const file_info of this._fetch_available_file_infos()) {
+        if(!filenames_set.has(file_info.filename)) {
+          filenames_set.add(file_info.filename);
+          this.available_files.push(file_info);
+        }
       }
     });
-    if(!new_filename && file_list.length > 0)
-      new_filename = file_list[0].filename;
-    return new_filename;
+    return this.available_files;
+  }
+
+  // For moving up or down in the list of files.
+  select_adjacent_filename(offset) {
+    this.refresh_available_files();
+    let current_index = 0;
+    this.available_files.forEach((file_info, i) => {
+      if(file_info.filename === this.selected_filename)
+        current_index = i;
+    });
+    current_index = Math.max(
+      0, Math.min(current_index + offset,
+                  this.available_files.length-1));
+    if(current_index < 0)
+      return null;  // i.e., no available files at all
+    this.selected_filename =
+      this.available_files[current_index].filename;
+    return this.selected_filename;
   }
 }
 
@@ -1361,13 +1186,11 @@ class ExprParser {
 // rational fractions or rational multiples of common numbers like sqrt(2).
 class RationalizeToExpr {
   static rationalize_expr(expr, full_size_fraction=true) {
-    return new RationalizeToExpr(
-      full_size_fraction).rationalize_expr(expr);
+    return new this(full_size_fraction).rationalize_expr(expr);
   }
   
   static rationalize(value, full_size_fraction=true) {
-    return new RationalizeToExpr(
-      full_size_fraction).value_to_expr(value);
+    return new this(full_size_fraction).value_to_expr(value);
   }
 
   constructor(full_size_fraction) {
@@ -1404,8 +1227,8 @@ class RationalizeToExpr {
   }
   
   // Try to find a close rational approximation to a floating-point
-  // value, or up to a factor of some common constants like sqrt(2) or pi.
-  // Return an Expr if successful, otherwise null.
+  // value, or up to a rational factor of some common constants
+  // like sqrt(2) or pi.  Return an Expr if successful, otherwise null.
   value_to_expr(value) {
     let result = null;
     const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
@@ -1438,7 +1261,7 @@ class RationalizeToExpr {
       value, Math.sqrt(2*Math.PI), make_sqrt(two_pi_expr), null);
     result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(2pi)
       value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
-    // Check factors of ln(2)
+    // Try factors of ln(2).
     result ||= this._try_rationalize_with_factor(
       value, Math.log(2), new CommandExpr('ln', [this._int_to_expr(2)]), null);
     // Try sqrt(n) in the numerator for small square-free n.
@@ -1448,7 +1271,7 @@ class RationalizeToExpr {
       result ||= this._try_rationalize_with_factor(
         value, Math.sqrt(small_squarefree[i]),
         make_sqrt(this._int_to_expr(small_squarefree[i])), null);
-    // Try golden ratio-like factors
+    // Try golden ratio-like factors.
     result ||= this._try_rationalize_with_factor(
       value, 1+Math.sqrt(5),
       InfixExpr.add_exprs(this._int_to_expr(1), make_sqrt(this._int_to_expr(5))),
@@ -1461,7 +1284,7 @@ class RationalizeToExpr {
         new TextExpr('-')),
       null);
     // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
-    // Finally, rationalize the number itself with no factors
+    // Finally, rationalize the number itself with no factors.
     result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
     return result;
   }
@@ -1514,7 +1337,7 @@ class RationalizeToExpr {
         let denom_expr = this._int_to_expr(final_denom);
         if(denom_factor_expr)
           denom_expr = Expr.combine_pair(denom_expr, denom_factor_expr);
-        let frac_expr = CommandExpr.frac(numer_expr, denom_expr);
+        const frac_expr = CommandExpr.frac(numer_expr, denom_expr);
         if(sign < 0)
           final_expr = PrefixExpr.unary_minus(frac_expr);
         else final_expr = frac_expr;
@@ -1565,77 +1388,6 @@ class RationalizeToExpr {
 }
 
 
-// class SpecialFunctions {
-//   static factorial(x) {
-//     if(x >= 0 && this.is_integer(x)) {
-//       if(x <= 1) return 1;
-//       if(x > 20) return Infinity;
-//       let value = 1;
-//       for(let i = 2; i <= x; i++)
-//         value *= i;
-//       return value;
-//     }
-//     else
-//       return this.gamma(x+1);
-//   }
-
-//   static gamma(x) {
-//     const g = 7;
-//     const C = [
-//       0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-//       771.32342877765313, -176.61502916214059, 12.507343278686905,
-//       -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
-//     if(x <= 0)
-//       return NaN;
-//     if(x < 0.5)
-//       return Math.PI / (Math.sin(Math.PI*x) * this.gamma(1-x));
-//     x -= 1;
-//     let y = C[0];
-//     for(let i = 1; i < g+2; i++)
-//       y += C[i] / (x + i);
-//     const t = x + g + 0.5;
-//     const result = Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
-//     return isNaN(result) ? Infinity : result;
-//   }
-
-//   // Basic iterative evaluation of double factorial.
-//   // 7!! = 7*5*3*1, 8!! = 8*6*4*2, 0!! = 1
-//   // x must be a nonnegative integer and its magnitude is limited to something reasonable
-//   // to avoid long loops or overflow.
-//   static double_factorial(x) {
-//     if(!this.is_integer(x) || x < 0) return NaN;
-//     if(x > 100) return Infinity;
-//     let result = 1;
-//     while(x > 1) {
-//       result *= x;
-//       x -= 2;
-//     }
-//     return result;
-//   }
-
-//   static is_integer(x) {
-//     return x === Math.floor(x);
-//   }
-
-//   static binom(n, k) {
-//     // k must be a nonnegative integer, but n can be anything
-//     if(!this.is_integer(k) || k < 0) return null;
-//     if(k > 1000) return NaN;  // Limit loop length below
-//     // Use falling factorial-based algorithm n_(k) / k!
-//     let value = 1;
-//     for(let i = 1; i <= k; i++)
-//       value *= (n + 1 - i) / i;
-//     if(this.is_integer(n)) {
-//       // Resulting quotient is an integer mathematically if n is,
-//       // but round it because of the limited floating point precision.
-//       return Math.round(value);
-//     }
-//     else
-//       return value;
-//   }
-// }
-
-
 // Represents an entry in the stack or document.
 class Item {
   // Used for React collection keys.  Each entry in a React component list is
@@ -1676,9 +1428,8 @@ class Item {
 
   react_key(prefix) { return prefix + '_' + this.serial; }
 
-  // Subclasses need to override these:
+  // Subclasses must override this.
   item_type() { return '???'; }
-  to_json() { return {}; }
 
   is_expr_item() { return this.item_type() === 'expr'; }
   is_text_item() { return this.item_type() === 'text'; }
@@ -1712,13 +1463,6 @@ class ExprItem extends Item {
       return ["$$\n", rendered_latex, "\n$$"].join('');
     else
       return rendered_latex;
-  }
-  
-  to_json() {
-    let json = {item_type: 'expr', expr: this.expr.to_json()};
-    if(this.tag_string) json.tag_string = this.tag_string;
-    if(this.source_string) json.source_string = this.source_string;
-    return json;
   }
 
   clone() {
@@ -1769,13 +1513,6 @@ class TextItemTextElement extends TextItemElement {
 
   is_text() { return true; }
   as_bold() { return new TextItemTextElement(this.text, true); }
-
-  to_json() {
-    let json = {'text': this.text};
-    if(this.is_bold) json.is_bold = true;
-    if(this.is_italic) json.is_italic = true;
-    return json;
-  }
 
   to_latex(export_mode) {
     if(export_mode)
@@ -1848,7 +1585,6 @@ class TextItemExprElement extends TextItemElement {
   constructor(expr) { super(); this.expr = expr; }
   is_expr() { return true; }
   as_bold() { return new TextItemExprElement(this.expr.as_bold()); }
-  to_json() { return {'expr': this.expr.to_json()}; }
 
   to_latex(export_mode) {
     if(export_mode) {
@@ -1875,7 +1611,6 @@ class TextItemRawElement extends TextItemElement {
   constructor(string) { super(); this.string = string; }
   is_raw() { return true; }
   as_bold() { return this; }
-  to_json() { return {'raw': this.string}; }
   to_latex(export_mode) { return this.string; }
   is_explicit_space() { return this.string === "\\,"; }
 }
@@ -2061,18 +1796,6 @@ class TextItem extends Item {
 
   item_type() { return 'text'; }
 
-  to_json() {
-    let json = {
-      item_type: 'text',
-      elements: this.elements.map(element => element.to_json())
-    };
-    // Avoid lots of useless is_heading:false / tag_string:null in the JSON.
-    if(this.is_heading) json.is_heading = true;
-    if(this.tag_string) json.tag_string = this.tag_string;
-    if(this.source_string) json.source_string = this.source_string;
-    return json;
-  }
-
   // Empty TextItems are displayed as "separator lines" (visually, the underline part
   // of an ordinary section header).  Currently empty TextItems can only be created by
   // the ['][=] and [Tab][=] commands, and they are always created with is_heading=true.
@@ -2146,14 +1869,6 @@ class CodeItem extends Item {
   }
 
   item_type() { return 'code'; }
-
-  to_json() {
-    return {
-      item_type: 'code',
-      language: this.language,
-      source: this.source
-    };
-  }
 
   to_latex(export_mode) {
     if(this.language === 'latex')
@@ -2264,14 +1979,6 @@ class Stack {
 
   underflow() { throw new Error('stack_underflow'); }
   type_error() { throw new Error('stack_type_error'); }
-
-  to_json() {
-    return {
-      object_type: 'stack',
-      items: this.items.map(item => item.to_json()),
-      floating_item: this.floating_item ? this.floating_item.to_json() : null
-    };
-  }
 }
 
 
@@ -2357,14 +2064,6 @@ class Document {
       this.items.map(item => item.clone()),
       this.selection_index);
   }
-
-  to_json() {
-    return {
-      object_type: 'document',
-      items: this.items.map(item => item.to_json()),
-      selection_index: this.selection_index
-    };
-  }
 }
 
 
@@ -2373,16 +2072,21 @@ class Document {
 // representation suitable for storage.
 //
 // For Expr objects, the general format is [expr_type_code, ...expr_state].
-// For example, a TextExpr('abc') becomes [1, 'abc'].  In JSON, this would instead be
+// For example, a TextExpr('abc') becomes [1, 'abc'] (and then encoded by
+// by msgpack).  In JSON, this would instead be:
 // { 'expr_type': 'text', 'text': 'abc' } which is much longer and contains
-// repetitive strings like 'expr_type'.
+// repetitive strings like 'expr_type'.  The msgpack format takes roughly
+// 15-20% the space of JSON, even after Base64 encoding.
+//
+// Base64 encoding is needed if saving to localStorage which doesn't support raw
+// binary strings/arrays.  IndexedDB allows it, but Base64 is used for that too
+// for simplicity.
 //
 // MsgpackDecoder can be used to reconstitute the serialized objects.
 class MsgpackEncoder {
   // Encode an entire AppState, returning a binary Uint8Array.
   static encode_app_state_binary(app_state) {
-    return msgpack_encode(
-      (new this()).pack_app_state(app_state));
+    return msgpack_encode(new this().pack_app_state(app_state));
   }
 
   // Like encode_app_state_binary() but return an ordinary String
@@ -2396,8 +2100,8 @@ class MsgpackEncoder {
 
   // Encode a single Item (only used for debugging currently).
   static encode_item_base64(item) {
-    const encoded = msgpack_encode((new this()).pack_item(item));
-    return this.split_lines(encoded.toBase64());
+    return this.split_lines(
+      msgpack_encode(new this().pack_item(item)).toBase64());
   }
 
   // Break a (base64-encoded) string into separate lines for "readability".
@@ -2558,20 +2262,18 @@ class MsgpackEncoder {
 class MsgpackDecoder {
   static decode_app_state_binary(uint8_array) {
     const packed = msgpack_decode(uint8_array);
-    return (new this()).unpack_app_state(packed);
+    return new this().unpack_app_state(packed);
   }
 
   static decode_app_state_base64(base64_string) {
-    const encoded = Uint8Array.fromBase64(
-      this.unsplit_lines(base64_string));
+    const encoded = Uint8Array.fromBase64(this.unsplit_lines(base64_string));
     return this.decode_app_state_binary(encoded);
   }
 
   static decode_item_base64(base64_string) {
-    const encoded = Uint8Array.fromBase64(
-      this.unsplit_lines(base64_string));
+    const encoded = Uint8Array.fromBase64(this.unsplit_lines(base64_string));
     const packed = msgpack_decode(encoded);
-    return (new this()).unpack_item(packed);
+    return new this().unpack_item(packed);
   }
 
   static unsplit_lines(s) {
@@ -2581,7 +2283,7 @@ class MsgpackDecoder {
   error(msg) { throw new Error(msg); }
 
   unpack_app_state([version_code, magic, stack_state, document_state]) {
-    if(version_code !== 1) this.error("Unknown version code: " + version_code);
+    if(version_code !== 1) this.error("Unsupported version code: " + version_code);
     if(magic !== 'rpnlatex') this.error("Invalid magic identifier");
     return new AppState(
       this.unpack_stack(stack_state),
@@ -2726,9 +2428,10 @@ class MsgpackDecoder {
 
 export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
-  UndoStack, DocumentStorage, ImportExportState, FileManagerState,
+  UndoStack, FileManager,
   ExprPath, ExprParser, RationalizeToExpr, Item, ExprItem,
   TextItem, CodeItem, Stack, Document,
   MsgpackEncoder, MsgpackDecoder
 };
+
 

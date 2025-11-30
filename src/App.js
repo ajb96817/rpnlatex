@@ -6,8 +6,7 @@ import './App.css';
 import React from 'react';
 import katex from 'katex';
 import {
-  Settings, AppState, UndoStack, DocumentStorage,
-  ImportExportState, FileManagerState
+  Settings, AppState, UndoStack, FileManager
 } from './Models';
 import InputContext from './Actions';
 
@@ -18,104 +17,38 @@ const $e = React.createElement;
 class App extends React.Component {
   constructor(props) {
     super(props);
-
-    // NOTE: settings are stored in the localStorage, but documents use indexedDB.
-    // This is mainly because we need the settings before the indexedDB may be ready.
-    let settings = Settings.load_from_local_storage();
-
+    let file_manager = new FileManager();
+    const settings = file_manager.load_settings();
+    // Try to load the most recently used file on startup.
+    if(settings.last_opened_filename)
+      file_manager.current_filename = settings.last_opened_filename;
+    let app_state = null;
+    if(file_manager.check_storage_availability())
+      app_state = file_manager.load_file(file_manager.current_filename);
+    app_state ||= new AppState();
     this.state = {
-      app_state: new AppState(),
+      app_state: app_state,
       settings: settings,
-      file_manager_state: new FileManagerState(),
-      import_export_state: new ImportExportState(),
-      document_storage: new DocumentStorage(),
+      file_manager: file_manager,
       input_context: new InputContext(this, settings),
       undo_stack: new UndoStack(),
       clipboard_items: {}
     };
     this.state.undo_stack.clear(this.state.app_state);
-    this.state.import_export_state.document_storage = this.state.document_storage;
-    this.state.import_export_state.onstatechange = () => this.import_export_state_changed();
-
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-
-    this.state.document_storage.open_database(this.on_open_database.bind(this));
   }
 
-  // Database has been opened; request the list of documents, and try to load the last-opened file.
-  on_open_database() {
-    this.request_file_list();
-    if(this.state.settings.last_opened_filename)
-      this.start_loading_filename(this.state.settings.last_opened_filename);
-    else {
-      let file_manager_state = this.state.file_manager_state;
-      let settings = this.state.settings;
-      const filename = 'untitled';
-      file_manager_state.current_filename = file_manager_state.selected_filename = filename;
-      settings.last_opened_filename = filename;
-      settings.save();
-    }
-  }
-
-  file_manager_state_changed() {
-    this.setState({file_manager_state: this.state.file_manager_state});
-  }
-
-  import_export_state_changed() {
-    const import_export_state = this.state.import_export_state;
-    this.setState({import_export_state: import_export_state});
-    if(import_export_state.file_list_needs_update) {
-      import_export_state.file_list_needs_update = false;
-      this.request_file_list();
-    }
-  }
-
-  // Start loading the current list of documents from the IndexedDB database.
-  request_file_list() {
-    this.state.document_storage.fetch_file_list(
-      this.file_list_request_finished.bind(this),
-      this.file_list_request_error.bind(this));
-  }
-
-  file_list_request_finished(file_list) {
-    let file_manager_state = this.state.file_manager_state;
-    file_manager_state.unavailable = false;
-    file_manager_state.file_list = file_list;
-    file_manager_state.sort_file_list('filename', true);
-    this.setState({file_manager_state: file_manager_state});
-  }
-
-  file_list_request_error() {
-    let file_manager_state = this.state.file_manager_state;
-    file_manager_state.unavailable = true;
-    this.setState({file_manager_state: file_manager_state});
-  }
-
-  start_loading_filename(filename) {
-    this.state.document_storage.load_state(
-      filename,
-      this.file_load_finished.bind(this),
-      this.file_load_error.bind(this));
-  }
-
+  // TODO
   file_load_finished(filename, new_app_state) {
-    const file_manager_state = this.state.file_manager_state;
+    const file_manager = this.state.file_manager;
     const settings = this.state.settings;
-    file_manager_state.selected_filename = file_manager_state.current_filename = filename;
+    file_manager.selected_filename = file_manager.current_filename = filename;
     settings.last_opened_filename = filename;
-    settings.save();
-    this.setState({app_state: new_app_state, file_manager_state: file_manager_state});
+    file_manager.save_settings(settings);
+    this.setState({app_state: new_app_state, file_manager: file_manager});
     this.state.undo_stack.clear(new_app_state);
     this.state.input_context.notify('Loaded: ' + filename);
-  }
-
-  // Export (download) a single file as .json
-  start_exporting_filename(filename) {
-    this.state.document_storage.load_state(
-      filename,
-      this.file_load_for_export_finished.bind(this),
-      this.file_load_error.bind(this));
   }
 
   file_load_for_export_finished(filename, app_state) {
@@ -136,18 +69,10 @@ class App extends React.Component {
     document.body.removeChild(download_link);
   }
 
-  // TODO: It's not necessarily an error if the file doesn't exist,
-  // but we should make sure to clear stack/document in that case
-  // (same as do_start_new_file).
-  file_load_error(filename, error) {
-    //alert("Unable to load file \"" + filename + "\".");
-  }
-
   componentDidMount() {
     this.apply_layout_to_dom();
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
-    this.request_file_list();
   }
 
   apply_layout_to_dom() {
@@ -199,7 +124,7 @@ class App extends React.Component {
 
   componentDidUpdate() {
     // Show the currently opened file in the browser's document title.
-    const filename = this.state.file_manager_state.current_filename;
+    const filename = this.state.file_manager.current_filename;
     const new_title = '[' + (filename || 'rpnlatex') + ']';
     if(new_title !== document.title)
       document.title = new_title;
@@ -264,7 +189,7 @@ class App extends React.Component {
       document_component = $e(DocumentComponent, {
         settings: settings,
         document: app_state.document,
-        filename: this.state.file_manager_state.current_filename,
+        filename: this.state.file_manager.current_filename,
         is_dirty: app_state.is_dirty  /* TODO: revisit, maybe remove this */
       });
 
@@ -281,9 +206,7 @@ class App extends React.Component {
         app: this,
         settings: settings,
         popup_panel_ref: this.popup_panel_ref,
-        import_export_state: this.state.import_export_state,
-        document_storage: this.state.document_storage,
-        file_manager_state: this.state.file_manager_state
+        file_manager: this.state.file_manager
       }));
   }
 
@@ -302,7 +225,8 @@ class App extends React.Component {
        ].includes(key))
       return;  // ignore isolated modifier key presses
     let app_state = this.state.app_state;
-    let [was_handled, new_app_state] = this.state.input_context.handle_key(app_state, key);
+    let [was_handled, new_app_state] = this.state
+        .input_context.handle_key(app_state, key);
     if(was_handled) {
       event.preventDefault();
       // TODO: event.stopPropagation();
@@ -311,10 +235,10 @@ class App extends React.Component {
         new_app_state = scratch;
       else   // undo/redo "failed"
         this.state.input_context.error_flash_stack();
-      let state_updates = {app_state: new_app_state};
+      let state_updates = { app_state: new_app_state };
       if(this.state.input_context.files_changed) {
-        this.request_file_list();
-        state_updates.file_manager_state = this.state.file_manager_state;  // TODO: revisit
+        // Re-render the file manager panel with the updated file list.
+        state_updates.file_manager = this.state.file_manager;
       }
       this.setState(state_updates);
     }
@@ -338,8 +262,8 @@ class App extends React.Component {
     // This 'visibilitychange' event is used in preference to the
     // unreliable 'beforeunload' event.
     if(document.visibilityState === 'hidden' && this.state.app_state.is_dirty) {
-      const filename = this.state.file_manager_state.current_filename;
-      if(filename) this.state.document_storage.save_state(this.state.app_state, filename);
+      this.state.file_manager.save_file(
+        this.state.file_manager.current_filename, this.state.app_state);
     }
     // On iOS Safari (and maybe others), the scroll positions may be reset when
     // the app becomes visible again, but a re-render takes care of that via
@@ -359,7 +283,7 @@ class App extends React.Component {
       undo_stack.clear(new_app_state);
       return new_app_state;
     default:
-      // Normal action; save undo state
+      // Normal action; save undo state.
       undo_stack.push_state(new_app_state);
       return new_app_state;
     }
@@ -606,79 +530,34 @@ class TextEntryComponent extends React.Component {
 
 class FileManagerComponent extends React.Component {
   render() {
-    const show_import_export = !this.props.file_manager_state.unavailable;
     this.file_input_ref = React.createRef();
-    this.json_file_input_ref = React.createRef();
     return $e(
       'div', {className: 'file_header', id: 'files_panel'},
       $e('h2', {}, 'File Manager'),
       this.render_current_filename(),
       this.render_file_table(),
-      this.render_shortcuts(),
-      show_import_export && $e('h2', {}, 'Export/Import'),
-      show_import_export && this.render_export_import_section()
+      this.render_shortcuts()
     );
   }
 
   render_export_import_section() {
-    const import_export_state = this.props.import_export_state;
     const subcomponents = [
-      $e('p', {}, 'Upload (import) a single .json document:'),
+      $e('p', {}, 'Upload (import) a .rpn document:'),
       $e('p', {},
          $e('input', {
            type: 'file',
-           ref: this.json_file_input_ref
+           ref: this.file_input_ref
          }),
          $e('input', {
            type: 'button',
            value: 'Upload',
-           onClick: this.handle_json_file_upload.bind(this)
-         })),
-      $e(
-        'p', {},
-        'Import or export all documents as a .zip file:'),
-      $e('p', {}, $e('strong', {}, import_export_state.textual_state()))
-    ];
-    if(import_export_state.state === 'idle')
-      subcomponents.push(
-        $e('p', {},
-           $e('a', {
-             href: '#',
-             onClick: this.start_exporting.bind(this)
-           }, 'Prepare Export')));
-    if(import_export_state.download_available()) {
-      const export_filename = import_export_state.generate_download_filename();
-      subcomponents.push(
-        $e('p', {},
-           $e('a', {href: import_export_state.download_url, download: export_filename},
-              'Download: ' + export_filename)));
-    }
-    // Show file upload element if ready to accept uploads.
-    if(import_export_state.state === 'idle') {
-      subcomponents.push(
-        $e('p', {},
-           $e('span', {}, 'Upload zip file: '),
-           $e('input', {
-             type: 'file',
-             ref: this.file_input_ref
-           }),
-           $e('input', {
-             type: 'button',
-             value: 'Upload',
-             onClick: this.handle_file_upload.bind(this)
-           })));
-    }
-    // Show import results when import finished.
-    if(import_export_state.state === 'idle' && import_export_state.import_result_string)
-      subcomponents.push(
-        $e('p', {},
-           $e('span', {style: {fontWeight: 'bold'}}, 'Import result: '),
-           $e('span', {}, import_export_state.import_result_string)));
+           onClick: this.handle_file_upload.bind(this)
+         }))];
     return $e('div', {}, ...subcomponents);
   }
 
   render_current_filename() {
-    const current_filename = this.props.file_manager_state.current_filename;
+    const current_filename = this.props.file_manager.current_filename;
     if(!current_filename) return null;
     return $e(
       'div', {className: 'current_file'},
@@ -687,10 +566,12 @@ class FileManagerComponent extends React.Component {
   }
 
   render_file_table() {
-    const file_manager_state = this.props.file_manager_state;
-    if(file_manager_state.unavailable)
-      return $e('p', {}, 'IndexedDB support unavailable in your browser.  You will be unable to save or load documents.  Note that IndexedDB may be disabled when in Private Browsing mode.');
-    else if(file_manager_state.file_list && file_manager_state.file_list.length > 0) {
+    const file_manager = this.props.file_manager;
+    if(!file_manager.check_storage_availability())
+      return $e('p', {}, 'Local storage support unavailable in your browser.  You will be unable to save or load documents.');
+    file_manager.refresh_available_files();
+    if(file_manager.available_files &&
+       file_manager.available_files.length > 0) {
       return $e(
         'div', {},
         $e('table', {className: 'file_table'},
@@ -700,30 +581,30 @@ class FileManagerComponent extends React.Component {
                  $e('th', {className: 'filesize', colSpan: '2'}, 'Size'),
                  $e('th', {className: 'timestamp', colSpan: '2'}, 'Last Modified'))),
            $e('tbody', {},
-              file_manager_state.file_list.map(
-                (file, index) => this._render_file_list_row(file, index)))));
+              file_manager.available_files.map(
+                (file_info, index) => this._render_file_list_row(file_info, index)))));
     }
-    else if(file_manager_state.file_list)
-      return $e('p', {}, 'No files created yet.');
     else
-      return $e('p', {}, 'Fetching file list...');
+      return $e('p', {}, 'No files created yet.');
   }
 
-  _render_file_list_row(file, index) {
-    const file_manager_state = this.props.file_manager_state;
+  _render_file_list_row(file_info, index) {
+    const file_manager = this.props.file_manager;
     let class_names = [];
-    if(file.filename === file_manager_state.selected_filename) class_names.push('selected_file');
-    if(file.filename === file_manager_state.current_filename) class_names.push('current_file');
-    const item_count = file.document_item_count + file.stack_item_count;
+    if(file_info.filename === file_manager.selected_filename)
+      class_names.push('selected_file');
+    if(file_info.filename === file_manager.current_filename)
+      class_names.push('current_file');
+    const timestamp_date = new Date(file_info.timestamp);
     return $e(
-      'tr', {className: class_names.join(' '), key: 'file_' + file.filename},
-      $e('td', {className: 'filename'}, file.filename),
+      'tr', {className: class_names.join(' '), key: 'file_' + file_info.filename},
+      $e('td', {className: 'filename'}, file_info.filename),
       $e('td', {className: 'filesize'},
-         Math.floor((file.filesize+1023)/1024) + ' kb'),
+         Math.floor((file_info.filesize+1023)/1024) + ' kb'),
       $e('td', {className: 'filesize'},
-         item_count + ' object' + (item_count === 1 ? '' : 's')),
-      $e('td', {className: 'timestamp'}, file.timestamp.toLocaleDateString()),
-      $e('td', {className: 'timestamp'}, file.timestamp.toLocaleTimeString()));
+         file_info.item_count + ' object' + (file_info.item_count === 1 ? '' : 's')),
+      $e('td', {className: 'timestamp'}, timestamp_date.toLocaleDateString()),
+      $e('td', {className: 'timestamp'}, timestamp_date.toLocaleTimeString()));
   }
 
   render_shortcuts() {
@@ -740,7 +621,7 @@ class FileManagerComponent extends React.Component {
       });
       return $e('li', {}, ...pieces);
     }
-    const current_filename = this.props.file_manager_state.current_filename;
+    const current_filename = this.props.file_manager.current_filename;
     const keyhelp_elements = [
       helpline([keybinding('Esc'), helptext('or'), keybinding('q'), helptext('Close file manager')]),
       helpline([keybinding("\u2191"), keybinding("\u2193"), helptext('Select next/previous file')]),
@@ -936,9 +817,7 @@ class PopupPanelComponent extends React.Component {
         'div', {id: 'files_container'},
         $e(FileManagerComponent, {
           app: this.props.app,
-          import_export_state: this.props.import_export_state,
-          document_storage: this.props.document_storage,
-          file_manager_state: this.props.file_manager_state
+          file_manager: this.props.file_manager
         }));
     }
     return $e(
