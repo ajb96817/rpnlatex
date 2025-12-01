@@ -522,12 +522,14 @@ class TextEntryComponent extends React.Component {
 
 class FileManagerComponent extends React.Component {
   render() {
+    this.props.file_manager.refresh_available_files();
     this.file_input_ref = React.createRef();
     return $e(
       'div', {className: 'file_header', id: 'files_panel'},
       $e('h2', {}, 'File Manager'),
       this.render_current_filename(),
       this.render_file_table(),
+      this.render_storage_used(),
       this.render_shortcuts(),
       this.render_import_section()
     );
@@ -562,7 +564,6 @@ class FileManagerComponent extends React.Component {
     const file_manager = this.props.file_manager;
     if(!file_manager.check_storage_availability())
       return $e('p', {}, 'Local storage support unavailable in your browser.  You will be unable to save or load documents.');
-    file_manager.refresh_available_files();
     if(file_manager.available_files &&
        file_manager.available_files.length > 0) {
       return $e(
@@ -592,12 +593,30 @@ class FileManagerComponent extends React.Component {
     return $e(
       'tr', {className: class_names.join(' '), key: 'file_' + file_info.filename},
       $e('td', {className: 'filename'}, file_info.filename),
-      $e('td', {className: 'filesize'},
-         Math.floor((file_info.filesize+1023)/1024) + ' kb'),
+      $e('td', {className: 'filesize'}, this._kilobytes(file_info.filesize)),
       $e('td', {className: 'filesize'},
          file_info.item_count + ' object' + (file_info.item_count === 1 ? '' : 's')),
       $e('td', {className: 'timestamp'}, timestamp_date.toLocaleDateString()),
       $e('td', {className: 'timestamp'}, timestamp_date.toLocaleTimeString()));
+  }
+
+  _kilobytes(bytes) {
+    return Math.floor((bytes+1023)/1024).toString() + 'k';
+  }
+
+  render_storage_used() {
+    const file_manager = this.props.file_manager;
+    let pieces = [
+      'Storage used:',
+      this._kilobytes(file_manager.storage_used)];
+    if(file_manager.storage_quota)
+      pieces.push(
+        'of', this._kilobytes(file_manager.storage_quota),
+        '(' + Math.round(100*(
+          file_manager.storage_used / file_manager.storage_quota)) + '%)');
+    return $e(
+      'div', {className: 'storage_used'},
+      $e('span', {}, pieces.join(' ')));
   }
 
   render_shortcuts() {
@@ -607,11 +626,11 @@ class FileManagerComponent extends React.Component {
       // Interleave spaces between each item.
       let pieces = [];
       let first = true;
-      items.forEach(item => {
+      for(const item of items) {
         if(!first) pieces.push($e('span', {}, ' '));
         first = false;
         pieces.push(item)
-      });
+      }
       return $e('li', {}, ...pieces);
     }
     const current_filename = this.props.file_manager.current_filename;

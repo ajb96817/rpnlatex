@@ -319,8 +319,8 @@ function _guess_variable_in_expr(expr, var_map) {
   }
   else
     subexpressions = expr.subexpressions();
-  subexpressions.forEach(
-    subexpr => _guess_variable_in_expr(subexpr, var_map));
+  for(const subexpr of subexpressions)
+    _guess_variable_in_expr(subexpr, var_map);
 }
 
 

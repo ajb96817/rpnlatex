@@ -447,22 +447,16 @@ class InputContext {
 
   _format_algebrite_check_result(result) {
     let show_variable_value = false;
-    const pieces = ['**', result.result, '**.'];
-    if(result.message) {
-      pieces.push(' ');
-      pieces.push(result.message);
-      pieces.push('.');
-    }
+    let pieces = ['**', result.result, '**.'];
+    if(result.message)
+      pieces.push(' ', result.message, '.');
     if(!result.exact && result.tries) {
-      pieces.push(' Checked ');
-      pieces.push(result.tries.toString());
-      pieces.push(' point' + (result.tries === 1 ? '' : 's'));
+      pieces.push(
+        ' Checked ', result.tries.toString(),
+        ' point' + (result.tries === 1 ? '' : 's'), '.');
       // TODO: show 'where -10 < x < 10' maybe
-      pieces.push('.');
       if(result.false_for !== undefined && result.variable !== undefined) {
-        pieces.push(' False for [] = ');
-        pieces.push(result.false_for);
-        pieces.push('.');
+        pieces.push(' False for [] = ', result.false_for, '.');
         show_variable_value = true;
       }
     }
@@ -487,7 +481,7 @@ class InputContext {
     if(/^[0-9]$/.test(key)) {
       const value = parseInt(key);
       if(this.prefix_argument !== null && this.prefix_argument > 0) {
-        // Multi-digit prefix argument
+        // Multi-digit prefix argument.
         new_prefix_argument = 10*this.prefix_argument + value;
       }
       else new_prefix_argument = value;

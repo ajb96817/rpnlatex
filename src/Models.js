@@ -40,7 +40,8 @@ class Keymap {
 class Settings {
   static from_json(json) {
     let s = new Settings();
-    Settings.saved_keys().forEach(key => { s[key] = json[key]; });
+    for(const key of this.saved_keys())
+      s[key] = json[key];
     return s;
   }
 
@@ -142,7 +143,8 @@ class Settings {
 
   to_json() {
     let json = {};
-    Settings.saved_keys().forEach(key => { json[key] = this[key]; });
+    for(const key of Settings.saved_keys())
+      json[key] = this[key];
     return json;
   }
 }
@@ -539,6 +541,15 @@ class FileManager {
     // (with different timestamps).
     this.available_files = null;
 
+    // Total (approximate) storage used currently in bytes.
+    this.storage_used = null;
+
+    // Storage quota in bytes.  Currently just an estimate; localStorage
+    // limit is generally 5-10MB.  There's no way to get the actual limit
+    // besides trying to store more and more until it fails.
+    // If this is null it means there is an unlimited quota.
+    this.storage_quota = 5000*1024;
+
     // Filename of the AppState (stack/document) currently being edited.
     // This is always "something" (never null), even if the file isn't saved to storage.
     this.current_filename = 'untitled_1';
@@ -619,11 +630,6 @@ class FileManager {
       else return a.filename < b.filename ? -1 : 1;
     });
     return file_infos;
-  }
-
-  total_used_storage_bytes() {
-    return this._fetch_available_file_infos()
-      .reduce((total, file_info) => total + file_info.filesize, 0);
   }
 
   // Filenames can only contain letters and digits and underscores and
@@ -764,11 +770,14 @@ class FileManager {
     return basename + '_toomany';
   }
 
+  // Update this.available_files and this.storage_used
   refresh_available_files() {
     let filenames_set = new Set();
     this.available_files = [];
+    this.storage_used = 0;
     this.with_local_storage(() => {
       for(const file_info of this._fetch_available_file_infos()) {
+        this.storage_used += file_info.filesize;
         if(!filenames_set.has(file_info.filename)) {
           filenames_set.add(file_info.filename);
           this.available_files.push(file_info);

@@ -466,8 +466,7 @@ body.eink_mode div.help h1 { border-bottom-color: #666; }
 table.file_table {
   border: 1px solid #ddd;
   border-collapse: collapse;
-  margin: 1em 0;
-  margin-top: 0.25em;
+  margin: 0.5em 0;
 }
 body.eink_mode table.file_table { border: 1px solid black; }
 table.file_table th { background-color: #ddd; text-align: left; }
@@ -476,6 +475,9 @@ table.file_table td.filename { font-family: monospace; }
 table.file_table tr.current_file td.filename { font-weight: bold; }
 table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: left; }
 
+#files_panel div.storage_used {
+  margin-bottom: 0.5em;
+}
 
 div.help { padding: 0.5em 1em; }
 #document_container.help {
