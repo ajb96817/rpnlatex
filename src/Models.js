@@ -51,10 +51,11 @@ class Settings {
       'filter',
       'last_opened_filename',
       'popup_mode',
-      'layout',
+      'dock_helptext',
       'show_mode_indicator',
       'hide_mouse_cursor',
-      'autoparenthesize'
+      'autoparenthesize',
+      'layout'  // nested layout object
     ];
   }
   
@@ -64,6 +65,7 @@ class Settings {
     this.filter = null;  // null, 'inverse_video', 'sepia', 'eink'
     this.last_opened_filename = null;
     this.popup_mode = null;  // null, 'help', 'files'
+    this.dock_helptext = false;  // true if user guide docked to document area
     this.show_mode_indicator = true;
     this.hide_mouse_cursor = false;
     this.autoparenthesize = true;
@@ -81,11 +83,18 @@ class Settings {
     };
   }
 
-  apply_layout_to_dom(stack_panel_elt, document_panel_elt, popup_panel_elt) {
+  // Set stack/document panel bounds based on current user settings.
+  // Hide or unhide file manager / helptext popup panels depending on
+  // what is active.  If the helptext is "docked", it is positioned to
+  // overlay the documents panel (with a higher z-index).
+  apply_layout_to_dom(stack_panel_elt, document_panel_elt,
+                      file_manager_panel_elt, helptext_panel_elt) {
     const layout = this.layout;
 
-    // Show or hide popup panel.
-    popup_panel_elt.style.display = this.popup_mode ? 'block' : 'none';
+    file_manager_panel_elt.style.display =
+      this.popup_mode === 'files' ? 'block' : 'none';
+    helptext_panel_elt.style.display =
+      this.popup_mode === 'help' ? 'block' : 'none';
 
     // Set overall font scale factor.
     const root_elt = document.getElementById('root');
@@ -103,10 +112,29 @@ class Settings {
     // Set up panel layout.
     let [stack_bounds, document_bounds] = this._split_rectangle(
       {x: 0, y: 0, w: 100, h: 100},
-      layout.stack_side,
-      layout.stack_split);
+      layout.stack_side, layout.stack_split);
     this._apply_bounds(stack_panel_elt, stack_bounds);
     this._apply_bounds(document_panel_elt, document_bounds);
+
+    // Set up User Guide layout.
+    if(this.popup_mode === 'help') {
+      helptext_panel_elt.className = 'popup';
+      helptext_panel_elt.style.display = 'block';
+      this._remove_bounds(helptext_panel_elt);
+    }
+    else if(this.dock_helptext) {
+      helptext_panel_elt.className = 'docked';
+      helptext_panel_elt.style.display = 'block';
+      this._apply_bounds(helptext_panel_elt, document_bounds);
+    }
+    else {
+      helptext_panel_elt.className = '';
+      helptext_panel_elt.style.display = 'none';
+    }
+
+    // Show or hide File Manager depending on mode.
+    file_manager_panel_elt.style.display =
+      this.popup_mode === 'files' ? 'block' : 'none';
   }
 
   // Split a parent bounding rectangle into "primary" and "secondary"
@@ -139,6 +167,14 @@ class Settings {
     elt.style.top = bounds.y + '%';
     elt.style.width = bounds.w + '%';
     elt.style.height = bounds.h + '%';
+  }
+
+  // Clear explicit bounds style properties.
+  // (For the helptext popup panel, this is used when 'undocking' it
+  // from the document area.)
+  _remove_bounds(elt) {
+    for(const p of ['left', 'top', 'width', 'height'])
+      elt.style.removeProperty(p);
   }
 
   to_json() {

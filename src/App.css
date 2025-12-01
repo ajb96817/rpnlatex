@@ -218,23 +218,8 @@ body.eink_mode #document_panel div.selected {
   z-index: 1;
 }
 
-#helptext { font-size: 105%; }
-
 div.document_items div.top_spacer { min-height: 0.5em; }
 div.document_items div.bottom_spacer { min-height: 8em; }
-
-#popup_panel {
-  position: absolute;
-  overflow: auto;
-  top: 5%;
-  height: 90%;
-  left: 8%;
-  width: 84%;
-  z-index: 30;
-  background-color: white;
-  box-shadow: 0 0 1em 2px #bbb;
-}
-body.eink_mode #popup_panel { border: 2px solid black; }
 
 /* Containing box for a complete "Item" either in the stack or the document. */
 div.item {
@@ -452,7 +437,25 @@ span.k {
 body.eink_mode span.k { border-color: black; }
 
 
-#files_panel { padding: 0.5em 1em; }
+#files_panel {
+  display: none;
+  position: absolute;
+  overflow: auto;
+  z-index: 4;
+  top: 5%;
+  height: 90%;
+  left: 8%;
+  width: 84%;
+  background-color: white;
+  box-shadow: 0 0 1em 2px #bbb;
+  margin: 0;
+  padding: 0;
+}
+div.files_container {
+  margin: 0;
+  padding: 0.5em 1em;
+}
+body.eink_mode #files_panel { border: 2px solid black; }
 #files_panel h2, div.help h1 {
   border-bottom: 2px solid #ddf;
   margin: 0.5em 0;
@@ -474,18 +477,34 @@ table.file_table tr.selected_file td { background-color: #ddf; }
 table.file_table td.filename { font-family: monospace; }
 table.file_table tr.current_file td.filename { font-weight: bold; }
 table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: left; }
+#files_panel div.storage_used { margin-bottom: 0.5em; }
 
-#files_panel div.storage_used {
-  margin-bottom: 0.5em;
+#helptext { font-size: 105%; }
+#helptext_panel {
+  display: none;  /* will be set to display: block in code as needed */
+  position: absolute;
+  overflow: scroll;
+  z-index: 3;  /* appear above #document_container */
+  background-color: white;
+  box-shadow: 0 0 1em 2px #bbb;
 }
-
-div.help { padding: 0.5em 1em; }
-#document_container.help {
-  /* For when the helptext is 'docked'. */
-  width: auto;
-  padding: 0 1em;
+body.eink_mode #helptext_panel.popup { border: 2px solid black; }
+/* User Guide is visible in popup mode when 'popup' class is set. */
+#helptext_panel.popup {
+  z-index: 3;
+  top: 5%;
+  height: 90%;
+  left: 8%;
+  width: 84%;
+}
+/* User Guide is visible and docked into the documents area.
+   In this case, it gets an absolute position and the bounds are set in code,
+   same as #document_container. */
+#helptext_panel.docked {
+  padding: 0;
   margin-bottom: 1em;
 }
+div.help { padding: 0.5em 1em; }
 div.help .version_info {
   float: right;
   color: #888;

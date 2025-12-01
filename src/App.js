@@ -19,9 +19,9 @@ class App extends React.Component {
     super(props);
     let file_manager = new FileManager();
     const settings = file_manager.load_settings();
-    // Don't start up with the File Manager popup even if it was saved like that.
-    if(settings.popup_mode === 'files')
-      settings.popup_mode = null;
+    // Start without any popups or docked helptext even if it was saved like that.
+    settings.popup_mode = null;
+    settings.dock_helptext = false;
     // Try to load the most recently used file on startup.
     if(settings.last_opened_filename)
       file_manager.current_filename = file_manager.selected_filename = settings.last_opened_filename;
@@ -92,26 +92,25 @@ class App extends React.Component {
     case 'right': stack_panel.classList.add('stack_on_right'); break;
     }
     
-    if(this.stack_panel_ref.current && this.document_panel_ref.current &&
-       this.popup_panel_ref.current) {
-      this.state.settings.apply_layout_to_dom(
-        this.stack_panel_ref.current,
-        this.document_panel_ref.current,
-        this.popup_panel_ref.current);
-    }
-    this.dock_helptext(this.state.settings.dock_helptext);
+    this.state.settings.apply_layout_to_dom(
+      this.stack_panel_ref.current,
+      this.document_panel_ref.current,
+      this.file_manager_panel_ref.current,
+      this.helptext_panel_ref.current);
+  // this.dock_helptext(this.state.settings.dock_helptext);
   }
 
-  dock_helptext(is_docked) {
-    const helptext_elt = document.getElementById('helptext');
-    const help_dest_elt = is_docked ?
-          document.getElementById('document_container') :
-          document.getElementById('help_content');
-    if(helptext_elt && helptext_elt.parentNode !== help_dest_elt) {
-      helptext_elt.parentNode.removeChild(helptext_elt);
-      help_dest_elt.appendChild(helptext_elt);
-    }
-  }
+  // TODO
+  // dock_helptext(is_docked) {
+  //   const helptext_elt = document.getElementById('helptext');
+  //   const help_dest_elt = is_docked ?
+  //         document.getElementById('document_container') :
+  //         document.getElementById('help_content');
+  //   if(helptext_elt && helptext_elt.parentNode !== help_dest_elt) {
+  //     helptext_elt.parentNode.removeChild(helptext_elt);
+  //     help_dest_elt.appendChild(helptext_elt);
+  //   }
+  // }
 
   componentDidUpdate() {
     // Show the currently opened file in the browser's document title.
@@ -136,7 +135,8 @@ class App extends React.Component {
 
     this.stack_panel_ref = React.createRef();
     this.document_panel_ref = React.createRef();
-    this.popup_panel_ref = React.createRef();
+    this.file_manager_panel_ref = React.createRef();
+    this.helptext_panel_ref = React.createRef();
 
     let stack_panel_components = [];
     // TODO: floating item and mode indicator could go inside StackItemsComponent instead
@@ -174,30 +174,36 @@ class App extends React.Component {
         stack: stack,
         input_context: input_context
       }));
-
-    let document_component = null;
-    if(!settings.dock_helptext)
-      document_component = $e(DocumentComponent, {
-        settings: settings,
-        document: app_state.document,
-        filename: this.state.file_manager.current_filename,
-        is_dirty: app_state.is_dirty  /* TODO: revisit, maybe remove this */
-      });
-
+    const document_panel_component = $e(DocumentComponent, {
+      settings: settings,
+      document: app_state.document,
+      filename: this.state.file_manager.current_filename,
+      is_dirty: app_state.is_dirty  // TODO: revisit, maybe remove this
+    });
     return $e(
       'div', {id: 'panel_layout'},
-      $e('div', {className: 'panel stack_panel', id: 'stack_panel', ref: this.stack_panel_ref},
-         ...stack_panel_components),
-      $e('div', {className: 'panel document_panel', id: 'document_panel', ref: this.document_panel_ref},
-         $e('div', {
-           id: 'document_container',
-           className: settings.dock_helptext ? 'help' : null
-         }, document_component)),
-      $e(PopupPanelComponent, {
+      $e('div', {
+        className: 'panel stack_panel',
+        id: 'stack_panel',
+        ref: this.stack_panel_ref
+      }, ...stack_panel_components),
+      $e('div', {
+        className: 'panel document_panel',
+        id: 'document_panel',
+        ref: this.document_panel_ref
+      }, document_panel_component),
+      // File Manager and User Guide panels are always present, just hidden with
+      // CSS if they're not currently in use.  The user guide is repositioned
+      // dynamically when "docked/undocked" in the document section.
+      $e(FileManagerPanelComponent, {
         app: this,
         settings: settings,
-        popup_panel_ref: this.popup_panel_ref,
-        file_manager: this.state.file_manager
+        file_manager: this.state.file_manager,
+        popup_panel_ref: this.file_manager_panel_ref
+      }),
+      $e(HelptextPanelComponent, {
+        app: this,
+        popup_panel_ref: this.helptext_panel_ref
       }));
   }
 
@@ -474,7 +480,7 @@ class DocumentComponent extends React.Component {
 
     // Use the nonstandard scrollIntoViewIfNeeded method if available.
     // (Chrome has this, but not Firefox)
-    const container = document.getElementById('document_container');
+    const container = document.getElementById('document_panel');
     if(item.scrollIntoViewIfNeeded) {
       // scrollIntoViewIfNeeded resets the document container's horizontal scroll position
       // to zero, so it needs to be explicitly restored here.  Otherwise, left/right
@@ -520,19 +526,23 @@ class TextEntryComponent extends React.Component {
 }
 
 
-class FileManagerComponent extends React.Component {
+class FileManagerPanelComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.file_input_ref = React.createRef();
+  }
+  
   render() {
     this.props.file_manager.refresh_available_files();
-    this.file_input_ref = React.createRef();
     return $e(
-      'div', {className: 'file_header', id: 'files_panel'},
-      $e('h2', {}, 'File Manager'),
-      this.render_current_filename(),
-      this.render_file_table(),
-      this.render_storage_used(),
-      this.render_shortcuts(),
-      this.render_import_section()
-    );
+      'div', {id: 'files_panel', ref: this.props.popup_panel_ref},
+      $e('div', {className: 'files_container'},
+         $e('h2', {}, 'File Manager'),
+         this.render_current_filename(),
+         this.render_file_table(),
+         this.render_storage_used(),
+         this.render_shortcuts(),
+         this.render_import_section()));
   }
 
   render_import_section() {
@@ -805,51 +815,33 @@ class ItemComponent extends React.Component {
 }
 
 
-class PopupPanelComponent extends React.Component {
+class HelptextPanelComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.help_content_ref = React.createRef();
+  }
+  
   render() {
-    this.refs = {
-      help: React.createRef(),
-      help_content: React.createRef()
-    };
-    const popup_mode = this.props.settings.popup_mode;
-    let subcomponent = null;
-    if(popup_mode === 'files') {
-      subcomponent = $e(
-        'div', {id: 'files_container'},
-        $e(FileManagerComponent, {
-          app: this.props.app,
-          file_manager: this.props.file_manager
-        }));
-    }
     return $e(
-      'div', {id: 'popup_panel', ref: this.props.popup_panel_ref},
-      subcomponent,
-      $e('div', {id: 'help_container', ref: this.refs.help},
-         $e('div', {id: 'help_content', className: 'help', ref: this.refs.help_content})));
+      'div', {id: 'helptext_panel', ref: this.props.popup_panel_ref},
+      $e('div', {id: 'help_container'},
+         $e('div', {
+           id: 'help_content',
+           className: 'help',
+           ref: this.help_content_ref
+         })));
   }
 
   componentDidMount() {
-    const help_source_elt = document.getElementById('helptext');
-    const help_dest_elt = this.refs.help_content.current;
+    const help_source_elt =
+          document.getElementById('helptext');  // User Guide base node from index.html
+    const help_dest_elt = this.help_content_ref.current;
     if(help_source_elt) {
       help_source_elt.style.display = 'block';
       this._render_helptext_latex(help_source_elt);
       this._setup_helptext_anchors(help_source_elt);
       help_source_elt.parentNode.removeChild(help_source_elt);
       help_dest_elt.appendChild(help_source_elt);
-    }
-  }
-
-  componentDidUpdate() {
-    const mode = this.props.settings.popup_mode;
-    if(this.refs.help.current)
-      this.refs.help.current.style.display = (mode === 'help' ? 'block' : 'none');
-    if(mode === 'help' &&
-       this.props.settings.help_scroll_top !== undefined &&
-       this.props.popup_panel_ref.current) {
-      // Restore helptext scroll position previously saved by 'do_toggle_popup'.
-      this.props.popup_panel_ref.current.scrollTop = this.props.settings.help_scroll_top;
-      this.props.settings.help_scroll_top = undefined;
     }
   }
 

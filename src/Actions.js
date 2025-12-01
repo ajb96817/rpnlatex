@@ -680,14 +680,14 @@ class InputContext {
     }
     const new_app_state = file_manager.load_file(filename);
     if(new_app_state) {
-      const settings = this.settings;
       file_manager.selected_filename = file_manager.current_filename = filename;
-      settings.last_opened_filename = filename;
-      file_manager.save_settings(settings);
+      this.settings.last_opened_filename = filename;
+      file_manager.save_settings(this.settings);
       this.notify('Loaded: ' + filename);
       this.perform_undo_or_redo = 'clear';
-      this.update_document(new_app_state.document);
       this.file_saved_or_loaded = true;
+      this.do_toggle_popup(new_app_state.stack, 'files');  // close file manager
+      this.update_document(new_app_state.document);
       return new_app_state.stack;
     }
     else
@@ -698,12 +698,12 @@ class InputContext {
     const file_manager = this.app_component.state.file_manager;
     const filename = file_manager.selected_filename;
     if(!filename) {
-      this.error_message = { message: 'No file selected to export' };
+      this.report_error('No file selected to export');
       return stack;
     }
     const base64_string = file_manager.fetch_file_base64(filename);
     if(!base64_string) {
-      this.error_message = { message: 'Could not load file to export' };
+      this.report_error('Could not load file to export');
       return stack;
     }
     // Send the file by creating a temporary <a> element and clicking it.
@@ -1786,15 +1786,6 @@ class InputContext {
       this.settings.dock_helptext = false;
       mode_string = null;
     }
-    // Hack: Save help panel scroll position so we can restore it next
-    // time the help is displayed.  This isn't very good because browser
-    // window/font resizings will throw it off.  Needs revisiting.
-    // Maybe the help should be its own iframe.
-    if(this.settings.popup_mode === 'help') {
-      const elt = document.getElementById('popup_panel');
-      if(elt && elt.scrollTop)
-        this.settings.help_scroll_top = elt.scrollTop;
-    }
     this.settings.popup_mode =
       (this.settings.popup_mode === mode_string) ? null : mode_string;
     this.app_component.state.file_manager.save_settings(this.settings);
@@ -1873,6 +1864,7 @@ class InputContext {
       this.notify("E-ink mode " + (settings.filter === 'eink' ? "on" : "off"));
       break;
     case 'dock_helptext':
+      settings.popup_mode = null;  // close help popup
       settings.dock_helptext = (value === 'on');
       break;
     case 'autoparenthesize':
@@ -1895,8 +1887,8 @@ class InputContext {
     default:
       break;
     }
-    this.app_component.state.file_manager.save_settings(this.settings);
     this.suppress_undo();
+    this.app_component.state.file_manager.save_settings(this.settings);
     this.app_component.apply_layout_to_dom();
     if(full_refresh_needed) {
       // All displayed ItemComponents need to be re-rendered.
@@ -2173,6 +2165,10 @@ class InputContext {
   //   'top' or 'bottom' to go to the beginning or end (vertically)
   // percentage_string: fraction of the current popup height (or width) to scroll by
   do_scroll(stack, panel_name, direction_string, percentage_string) {
+    // When the helptext is docked, redirect document scrolling commands
+    // to the helptext container instead.
+    if(this.settings.dock_helptext && panel_name === 'document_container')
+      panel_name = 'helptext_panel';
     const panel_elt = document.getElementById(panel_name);
     if(!panel_elt) return;
     const percentage = parseInt(percentage_string || '50') / 100.0;

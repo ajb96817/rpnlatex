@@ -122,26 +122,26 @@ const KeybindingTable = {
     'ArrowUp': "select_adjacent_file -1",
     'ArrowDown': "select_adjacent_file 1",
     // TODO: PageUp/PageDown/Home/End
-    'j': 'scroll popup_panel vertical 25',
-    'k': 'scroll popup_panel vertical -25'
+    'j': 'scroll files_panel vertical 25',
+    'k': 'scroll files_panel vertical -25'
   },
 
   // User Guide mode
   help: {
-    'ArrowDown': 'scroll popup_panel vertical 25',
-    'ArrowUp': 'scroll popup_panel vertical -25',
-    'j': 'scroll popup_panel vertical 25',
-    'k': 'scroll popup_panel vertical -25',
+    'ArrowDown': 'scroll helptext_panel vertical 25',
+    'ArrowUp': 'scroll helptext_panel vertical -25',
+    'j': 'scroll helptext_panel vertical 25',
+    'k': 'scroll helptext_panel vertical -25',
     'ArrowLeft': 'cancel',  // 'cancel' here means don't hide the help text
     'ArrowRight': 'cancel',
-    'PageDown': 'scroll popup_panel vertical 95',
-    ' ': 'scroll popup_panel vertical 95',
-    'PageUp': 'scroll popup_panel vertical -95',
-    'Ctrl+ ': 'scroll popup_panel vertical -95',
-    'J': 'scroll popup_panel vertical 95',
-    'K': 'scroll popup_panel vertical -95',
-    'Home': 'scroll popup_panel top',
-    'End': 'scroll popup_panel bottom',
+    'PageDown': 'scroll helptext_panel vertical 95',
+    ' ': 'scroll helptext_panel vertical 95',
+    'PageUp': 'scroll helptext_panel vertical -95',
+    'Ctrl+ ': 'scroll helptext_panel vertical -95',
+    'J': 'scroll helptext_panel vertical 95',
+    'K': 'scroll helptext_panel vertical -95',
+    'Home': 'scroll helptext_panel top',
+    'End': 'scroll helptext_panel bottom',
 
     // Quick navigation to each section:
     '&': "scroll_to help_insert_script",
@@ -174,7 +174,7 @@ const KeybindingTable = {
     'Backspace': "scroll_to help_prefix_keys",
     'c': "scroll_to help_control_keys",  // undocumented
     'q': "toggle_popup help",
-    '?': "toggle_popup help;config dock_helptext on",
+    '?': "config dock_helptext on",
     'default': "toggle_popup help"
   },
 
