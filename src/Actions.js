@@ -765,7 +765,6 @@ class InputContext {
     this.change_selected_filename(new_selected_filename);
   }
 
-  // TODO: select next adjacent file in list after deleting
   do_delete_selected_file(stack) {
     const file_manager = this.app_component.state.file_manager;
     const filename = file_manager.selected_filename;

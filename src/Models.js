@@ -755,6 +755,7 @@ class FileManager {
   // Delete the filename from storage.  Return null on success, or an error
   // string on failure.
   delete_file(filename) {
+    const old_selected_index = this.selected_file_index();
     const [result_code, result] = this.with_local_storage(() => {
       let any_deleted = false;
       for(const file_info of this._fetch_available_file_infos()) {
@@ -769,8 +770,16 @@ class FileManager {
     case 'success':
       // Select the next available file in the list if deleting the
       // currently-selected file.
-      if(filename === this.selected_filename)
-        this.select_adjacent_filename(1);
+      this.refresh_available_files();
+      if(filename === this.selected_filename) {
+        const new_selected_index =
+              Math.max(
+                Math.min(old_selected_index === null ? 0 : old_selected_index,
+                         this.available_files.length-1), 0);
+        this.selected_filename = 
+          new_selected_index < this.available_files.length ?
+          this.available_files[new_selected_index].filename : null;
+      }
       return result;
     case 'quota_exceeded': return 'Local storage is full';  // shouldn't happen since we're deleting
     case 'error': return result;
@@ -786,6 +795,7 @@ class FileManager {
       const settings_key = '$settings';
       const settings_data = this.storage.getItem(settings_key);
       this.storage.clear();
+      this.selected_filename = null;
       if(settings_data)
         this.storage.setItem(settings_key, settings_data);
     });
@@ -809,12 +819,14 @@ class FileManager {
   // Update this.available_files and this.storage_used
   refresh_available_files() {
     let filenames_set = new Set();
+    let index = 0;
     this.available_files = [];
     this.storage_used = 0;
     this.with_local_storage(() => {
       for(const file_info of this._fetch_available_file_infos()) {
         this.storage_used += file_info.filesize;
         if(!filenames_set.has(file_info.filename)) {
+          file_info.index = index++;
           filenames_set.add(file_info.filename);
           this.available_files.push(file_info);
         }
@@ -823,21 +835,22 @@ class FileManager {
     return this.available_files;
   }
 
+  selected_file_index() {
+    this.refresh_available_files();
+    const file_info = this.available_files
+          .find(file_info => file_info.filename === this.selected_filename);
+    return file_info ? file_info.index : null;
+  }
+
   // For moving up or down in the list of files.
   select_adjacent_filename(offset) {
-    this.refresh_available_files();
-    let current_index = 0;
-    this.available_files.forEach((file_info, i) => {
-      if(file_info.filename === this.selected_filename)
-        current_index = i;
-    });
-    current_index = Math.max(
-      0, Math.min(current_index + offset,
-                  this.available_files.length-1));
-    if(current_index < 0)
-      return null;  // i.e., no available files at all
-    this.selected_filename =
-      this.available_files[current_index].filename;
+    const current_index = this.selected_file_index();
+    const new_index = current_index === null ? 0 :
+          Math.max(0, Math.min(current_index + offset,
+                               this.available_files.length-1));
+    this.selected_filename = 
+      new_index < this.available_files.length ?
+      this.available_files[new_index].filename : null;
     return this.selected_filename;
   }
 }

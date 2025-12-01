@@ -17,6 +17,10 @@ const $e = React.createElement;
 class App extends React.Component {
   constructor(props) {
     super(props);
+    this.stack_panel_ref = React.createRef();
+    this.document_panel_ref = React.createRef();
+    this.file_manager_panel_ref = React.createRef();
+    this.helptext_panel_ref = React.createRef();
     let file_manager = new FileManager();
     const settings = file_manager.load_settings();
     // Start without any popups or docked helptext even if it was saved like that.
@@ -132,11 +136,6 @@ class App extends React.Component {
     const stack = app_state.stack;
     const settings = this.state.settings;
     const input_context = this.state.input_context;
-
-    this.stack_panel_ref = React.createRef();
-    this.document_panel_ref = React.createRef();
-    this.file_manager_panel_ref = React.createRef();
-    this.helptext_panel_ref = React.createRef();
 
     let stack_panel_components = [];
     // TODO: floating item and mode indicator could go inside StackItemsComponent instead
