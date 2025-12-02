@@ -52,15 +52,15 @@ div.panel {
   height: 100%;
   overflow-x: scroll;
   overflow-y: auto;
-  /* Hide horizontal scrollbars for a cleaner look (disabled for now). */
-  /* scrollbar-width: none; */ /* hide scrollbars in stack panel (but not document) */
+  /* Hide horizontal scrollbars for a cleaner look. */
+  scrollbar-width: none;  /* hide scrollbars in stack panel (but not document) */
   box-shadow: inset 0 0 1.5em 0 #ccc;
   box-sizing: border-box;
   border: 1px solid #ccc;
   background-color: #f8f8f8;
 }
 /* webkit version of scrollbar-width: none */
-/* #stack_panel::-webkit-scrollbar { display: none; } */
+#stack_panel::-webkit-scrollbar { display: none; }
 body.sepia #stack_panel {
   /* For better contrast against document panel. */
   background-color: #f0f0f0;
@@ -71,14 +71,6 @@ body.eink_mode #stack_panel {
   background-color: white;
 }
 
-#document_panel {
-  position: absolute;
-  overflow: hidden;
-  background-color: white;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  box-shadow: inset 0 0 0.5em 0 #ccc;
-}
 /* NOTE: body.sepia #document_panel and body.eink_mode #document_panel rules
    could be added here to tune the panel background-color.  Not currently used. */
 
@@ -195,7 +187,12 @@ div.floating_item div.tag_string {
 
 #document_panel {
   position: absolute;
-  overflow: hidden;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
   background-color: white;
   box-sizing: border-box;
   border: 1px solid #ccc;
@@ -207,15 +204,6 @@ div.floating_item div.tag_string {
 }
 body.eink_mode #document_panel div.selected {
   box-shadow: inset 0 0 1px 1px black;
-}
-#document_container {
-  position: absolute;
-  overflow: scroll;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
 }
 
 div.document_items div.top_spacer { min-height: 0.5em; }
@@ -484,7 +472,7 @@ table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: lef
   display: none;  /* will be set to display: block in code as needed */
   position: absolute;
   overflow: scroll;
-  z-index: 3;  /* appear above #document_container */
+  z-index: 3;  /* appear above #document_panel */
   background-color: white;
   box-shadow: 0 0 1em 2px #bbb;
 }
@@ -499,7 +487,7 @@ body.eink_mode #helptext_panel.popup { border: 2px solid black; }
 }
 /* User Guide is visible and docked into the documents area.
    In this case, it gets an absolute position and the bounds are set in code,
-   same as #document_container. */
+   same as #document_panel. */
 #helptext_panel.docked {
   padding: 0;
   margin-bottom: 1em;

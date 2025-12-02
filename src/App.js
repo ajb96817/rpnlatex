@@ -41,6 +41,7 @@ class App extends React.Component {
       undo_stack: new UndoStack(),
       clipboard_items: {}
     };
+    this.update_page_title();
     this.state.undo_stack.clear(this.state.app_state);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
@@ -95,28 +96,18 @@ class App extends React.Component {
     case 'left': document_panel.classList.add('stack_on_left'); break;
     case 'right': stack_panel.classList.add('stack_on_right'); break;
     }
-    
     this.state.settings.apply_layout_to_dom(
       this.stack_panel_ref.current,
       this.document_panel_ref.current,
       this.file_manager_panel_ref.current,
       this.helptext_panel_ref.current);
-  // this.dock_helptext(this.state.settings.dock_helptext);
   }
 
-  // TODO
-  // dock_helptext(is_docked) {
-  //   const helptext_elt = document.getElementById('helptext');
-  //   const help_dest_elt = is_docked ?
-  //         document.getElementById('document_container') :
-  //         document.getElementById('help_content');
-  //   if(helptext_elt && helptext_elt.parentNode !== help_dest_elt) {
-  //     helptext_elt.parentNode.removeChild(helptext_elt);
-  //     help_dest_elt.appendChild(helptext_elt);
-  //   }
-  // }
-
   componentDidUpdate() {
+    this.update_page_title();
+  }
+
+  update_page_title() {
     // Show the currently opened file in the browser's document title.
     const filename = this.state.file_manager.current_filename;
     const new_title = '[' + (filename || 'rpnlatex') + ']';

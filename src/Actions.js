@@ -174,7 +174,7 @@ class InputContext {
     // (Stack changes are expected to be returned by the handler function.)
     this.new_document = null;
     // Likewise this will be set to true if anything changed about the file list / file selection.
-    this.files_changed = false;  // TODO: rename -> selected_file_changed
+    this.files_changed = false;
     // This will be set to true if the current app_state was saved or loaded by this action.
     // This indicates that the app state's dirty flag should be cleared.
     this.file_saved_or_loaded = false;
@@ -611,7 +611,7 @@ class InputContext {
       else if(Math.abs(amount) > 0) percentage = 25;
       if(amount < 0) percentage = -percentage;
       this.suppress_undo();
-      return this.do_scroll(stack, 'document_container', 'vertical', percentage.toString());
+      return this.do_scroll(stack, 'document_panel', 'vertical', percentage.toString());
     }
     else
       this.update_document(this.app_state.document.move_selection_by(amount));
@@ -2137,7 +2137,7 @@ class InputContext {
     
     // TODO: Accessing the DOM elements directly like this is a hack but there's not an easy
     // way to get it properly from React here.  May want to restructure things to make this cleaner.
-    const container = document.getElementById('document_container');
+    const container = document.getElementById('document_panel');
     if(!container) return;
     const selected_elts = container.getElementsByClassName('selected')
     if(selected_elts.length === 0) return;
@@ -2166,7 +2166,7 @@ class InputContext {
   do_scroll(stack, panel_name, direction_string, percentage_string) {
     // When the helptext is docked, redirect document scrolling commands
     // to the helptext container instead.
-    if(this.settings.dock_helptext && panel_name === 'document_container')
+    if(this.settings.dock_helptext && panel_name === 'document_panel')
       panel_name = 'helptext_panel';
     const panel_elt = document.getElementById(panel_name);
     if(!panel_elt) return;
