@@ -626,7 +626,8 @@ const KeybindingTable = {
     // y x -> ydx (thinspace after the dx)
     'I': "differential_form 1;push \\,;concat;concat",
     // y x -> ydx (no spacing around the dx)
-    ' ': "differential_form 1;concat"
+    ' ': "differential_form 1;concat",
+    'v': "mode variational"
   },
 
   // [/][D] prefix: derivative operations, but using roman-font 'd'
@@ -646,6 +647,20 @@ const KeybindingTable = {
     'y': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
     'Y': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;fraction",
     'delegate': "derivative"
+  },
+
+  // [/][d][v]: functional derivatives (variational calculus)
+  // (same as [/][d] commands but \partial -> \delta)
+  variational: {
+    'j': "push \\delta;swap;concat;swap;push \\delta;swap;concat;swap;fraction",
+    'J': "integer 2;superscript;push \\delta;swap;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
+    'q': "push \\delta;swap;concat;push \\delta;swap;fraction",
+    'Q': "integer 2;superscript;push \\delta;swap;concat;push \\delta;integer 2;superscript;swap;fraction",
+    'm': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;push \\delta;integer 2;superscript;swap;fraction",
+    'M': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
+    'p': "push \\delta;swap;concat",
+    'd': "push \\delta;swap;concat",  // undocument alias for p
+    'P': "push \\delta;swap;subscript;swap;concat"
   },
 
   // [,] prefix: combine two objects with an infix operation
