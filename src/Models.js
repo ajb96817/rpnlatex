@@ -476,7 +476,7 @@ class AppState {
   _default_stack() {
     const item = TextItem.parse_string(
       "Welcome to the editor.  Type **[?]** to view the User Guide.");
-    return new Stack([item]);
+    return new Stack().push(item);
   }
 
   same_as(app_state) {
@@ -955,321 +955,6 @@ class ExprPath {
 }
 
 
-// Parse simple "algebraic" snippets, for use in math_entry mode.
-//
-// NOTE: This has been superseded by Algebrite's expression parser,
-// but may want to come back to this eventually.
-//
-// Rules:
-//   - Spaces are ignored except to separate numbers.
-//   - "Symbols" are one-letter substrings like 'x'.
-//   - As a special case, '@' becomes \pi.
-//   - Adjacent factors are combined with implicit multiplication.
-//     'xyz' is considered implicit multiplication of x,y,z.
-//   - '*' is multiplication, but gets converted to \cdot.
-//   - '/' and '*' bind tighter than '+' and '-'.
-//   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
-//   - Postfix factorial and "prime" (y'') notation is allowed.
-//   - Scientific notation such as 3e-4 is handled as a special case.
-//   - Placeholders can be inserted with [].
-//   - Negative constants such as -10 are handled by the "- factor" production
-//     below; that is the reason for the allow_unary_minus flag being passed
-//     around.  The implicit multiplication rule would otherwise make things
-//     like '2-3' be parsed as '2*(-3)'.
-//
-// Mini-grammar:
-//   expr:
-//       term |
-//       term '+' expr
-//       term '-' expr(!allow_unary_minus)
-//   term:
-//       factor |
-//       factor '*','/' term(allow_unary_minus)
-//       factor term      (implicit multiplication)
-//   factor:
-//       number |
-//       symbol |
-//       pi |             (special case '@' syntax)
-//       '(' expr ')' |   (delimiter types must match)
-//       '-' factor |     (unary minus, only if factor(allow_unary_minus))
-//       factor '!' |     (factorial notation)
-//       factor "'" |     (prime notation)
-//       
-//       []               (placeholder)
-//
-class ExprParser {
-  static parse_string(string) {
-    const tokens = this.tokenize(string);
-    if(!tokens) return null;
-    let parser = new ExprParser(tokens);
-    let expr = null;
-    try {
-      expr = parser.parse_expr(true);
-    } catch(e) {
-      if(e.message === 'parse_error')
-        ;  // leave expr as null
-      else
-        throw e;
-    }
-    if(!expr) return null;
-    if(!parser.at_end()) return null;  // extraneous tokens at end
-    return expr;
-  }
-
-  // "Parse" a roman_text string (via Shift+Enter from [\] math entry mode).
-  // This just wraps the string in a roman typeface FontExpr; but if
-  // the string contains [] sequences, those are converted into placeholders
-  // and the resulting Expr is a SequenceExpr with a mixture of FontExprs
-  // (for the text pieces) and PlaceholderExprs.
-  static roman_text_to_expr(string) {
-    const pieces = string.split('[]');
-    let exprs = [];
-    for(let i = 0; i < pieces.length; i++) {
-      if(pieces[i].length > 0)
-        exprs.push(FontExpr.roman_text(pieces[i]));
-      if(i < pieces.length-1)
-        exprs.push(new PlaceholderExpr());
-    }
-    if(exprs.length === 0)
-      return FontExpr.roman_text('');  // special case: 'string' is empty
-    else if(exprs.length === 1)
-      return exprs[0];
-    else
-      return new SequenceExpr(exprs);
-  }
-  
-  // Break string into tokens; token types are:
-  //   number: 3, 3.1, etc.
-  //     NOTE: negative numbers are handled by the "- factor" production in the grammar
-  //   symbol: x (xyz becomes 3 separate symbols)
-  //   pi: @ -> \pi (special case)
-  //   operator: +, -, *, /, //, !, '
-  //   open_delimiter: ( or [ or {
-  //   close_delimiter: ) or ] or }
-  static tokenize(s) {
-    let pos = 0;
-    let tokens = [];
-    let number_regex = /\d*\.?\d+/g;
-    while(pos < s.length) {
-      // Check for number:
-      number_regex.lastIndex = pos;
-      const result = number_regex.exec(s);
-      if(result && result.index === pos) {
-        tokens.push({type: 'number', text: result[0], pos: pos});
-        pos += result[0].length;
-      }
-      // Check for [] placeholder:
-      else if(pos < s.length-1 && s[pos] === '[' && s[pos+1] === ']') {
-        tokens.push({type: 'placeholder', text: '[]', pos: pos});
-        pos += 2;
-      }
-      // Check for // (full size fraction):
-      else if(pos < s.length-1 && s[pos] === '/' && s[pos+1] === '/') {
-        tokens.push({type: 'operator', text: '//', pos: pos});
-        pos += 2;
-      }
-      else {
-        // All other tokens are always 1 character.
-        const token = s[pos];
-        let token_type = null;
-        if(/\s/.test(token)) token_type = 'whitespace';
-        else if(/\w/.test(token)) token_type = 'symbol';
-        else if(/[-+!'/*]/.test(token)) token_type = 'operator';
-        else if(/[([{]/.test(token)) token_type = 'open_delimiter';
-        else if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
-        else if(token === '@') token_type = 'pi';
-        if(token_type === null)
-          return null;  // invalid token found (something like ^, or unicode)
-        if(token_type !== 'whitespace')  // skip whitespace
-          tokens.push({type: token_type, text: token, pos: pos});
-        pos++;
-      }
-    }
-    return tokens;
-  }
-
-  constructor(tokens) {
-    this.tokens = tokens;
-    this.token_index = 0;
-  }
-
-  parse_expr(allow_unary_minus) {
-    const lhs = this.parse_term(allow_unary_minus) || this.parse_error();
-    let result_expr = lhs;
-    const binary_token = this.peek_for('operator');
-    if(binary_token &&
-       (binary_token.text === '+' || binary_token.text === '-')) {
-      this.next_token();
-      const allow_unary_minus = binary_token.text === '+';
-      const rhs = this.parse_expr(allow_unary_minus) || this.parse_error();
-      // Special case: check for scientific notation with a negative exponent.
-      // 4e-3 is initially parsed as (4e)-(3); convert this specific case
-      // into scientific notation.
-      // Nonnegative exponents are instead parsed as 4e3 -> 4 (e3) and
-      // are handled in parse_term.
-      if(lhs.is_sequence_expr() && lhs.exprs.length === 2 &&
-         lhs.exprs[0].is_text_expr_with_number() &&
-         lhs.exprs[1].is_text_expr() &&
-         ['e', 'E'].includes(lhs.exprs[1].text) &&
-         rhs.is_text_expr_with_number()) {
-        // NOTE: 3e+4 (explicit +) is allowed here for completeness.
-        const exponent_text = binary_token.text === '-' ? ('-' + rhs.text) : rhs.text;
-        result_expr = InfixExpr.combine_infix(
-          lhs.exprs[0],
-          TextExpr.integer(10).with_superscript(exponent_text),
-          new CommandExpr('cdot'));
-      }
-      else result_expr = InfixExpr.combine_infix(
-        lhs, rhs, Expr.text_or_command(binary_token.text));
-    }
-    return result_expr;
-  }
-
-  parse_term(allow_unary_minus) {
-    const lhs = this.parse_factor(allow_unary_minus);
-    if(!lhs) return null;
-    const op_token = this.peek_for('operator');
-    if(op_token && (op_token.text === '*' || op_token.text === '/')) {
-      // Explicit multiplication converts to \cdot
-      const op_text = (op_token.text === '*' ? "\\cdot" : '/');
-      this.next_token();
-      const rhs = this.parse_term(true) || this.parse_error();
-      return InfixExpr.combine_infix(
-        lhs, rhs, Expr.text_or_command(op_text));
-    }
-    if(op_token && op_token.text === '//') {
-      // Full-size fraction.
-      this.next_token();
-      const rhs = this.parse_term(true) || this.parse_error();
-      return new CommandExpr('frac', [lhs, rhs]);
-    }
-    // Try implicit multiplication: 'factor term' production.
-    const rhs = this.parse_term(false);  // NOTE: not an error if null
-    if(rhs) {
-      // Combining rules for implicit multiplication:
-      //   number1 number2      -> number1 \cdot number2
-      //   number1 a \cdot b    -> number1 \cdot a \cdot b
-      //   number1 E|e number2  -> number1 \cdot 10^number2 (scientific notation)
-      // Any other pair just concatenates.
-      const cdot = Expr.text_or_command("\\cdot");
-      if(lhs.is_text_expr_with_number() &&
-         rhs.is_text_expr_with_number())
-        return InfixExpr.combine_infix(lhs, rhs, cdot);
-      else if(rhs.is_infix_expr() &&
-              rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
-        return InfixExpr.combine_infix(lhs, rhs, cdot);
-      else if(rhs.is_sequence_expr() &&
-              rhs.exprs.length === 2 &&
-              rhs.exprs[1].is_text_expr_with_number() &&
-              rhs.exprs[0].is_text_expr() &&
-              ['e', 'E'].includes(rhs.exprs[0].text) &&
-              lhs.is_text_expr_with_number()) {
-        // Scientific notation with nonnegative exponent (e.g. prepending a number to "e4").
-        // Negative exponents are handled in parse_expr instead.
-        return InfixExpr.combine_infix(
-          lhs,
-          TextExpr.integer(10).with_superscript(rhs.exprs[1]),
-          new CommandExpr('cdot'));
-      }
-      else
-        return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);
-    }
-    else
-      return lhs;  // factor by itself
-  }
-
-  parse_factor(allow_unary_minus) {
-    let factor = this.parse_factor_(allow_unary_minus);
-    while(factor) {
-      // Process one or more postfix ! or ' (prime) tokens if present.
-      const op_token = this.peek_for('operator');
-      if(op_token && op_token.text === '!') {
-        this.next_token();
-        factor = Expr.combine_pair(factor, new TextExpr('!'));
-      }
-      else if(op_token && op_token.text === '\'') {
-        this.next_token();
-        factor = factor.with_prime(true);
-      }
-      else break;
-    }
-    return factor;
-  }
-
-  parse_factor_(allow_unary_minus) {
-    let expr = null;
-    if(allow_unary_minus) {
-      // NOTE: double unary minus not allowed (--3).
-      const negate_token = this.peek_for('operator');
-      if(negate_token && negate_token.text === '-') {
-        this.next_token();
-        expr = this.parse_factor_(false);
-        if(expr) return PrefixExpr.unary_minus(expr);
-        else return null;
-      }
-    }
-    if(this.peek_for('number'))
-      return TextExpr.integer(this.next_token().text);
-    else if(this.peek_for('symbol'))
-      return new TextExpr(this.next_token().text);
-    else if(this.peek_for('pi')) {
-      this.next_token();
-      return new CommandExpr('pi');
-    }
-    else if(this.peek_for('placeholder')) {
-      this.next_token();
-      return new PlaceholderExpr();
-    }
-    else if(this.peek_for('open_delimiter')) {
-      const open_delim_type = this.next_token().text;
-      const inner_expr = this.parse_expr(true) || this.parse_error();
-      if(!this.peek_for('close_delimiter'))
-        return this.parse_error();
-      const close_delim_type = this.next_token().text;
-      if(this.matching_closing_delimiter(open_delim_type) !== close_delim_type)
-        return this.parse_error();  // mismatched delimiters
-      let [left, right] = [open_delim_type, close_delim_type];
-      if(open_delim_type === '{')
-        [left, right] = ["\\{", "\\}"];  // latex-compatible form
-      return new DelimiterExpr(left, right, inner_expr);
-    }
-    else
-      return null;
-  }
-
-  matching_closing_delimiter(open_delim) {
-    if(open_delim === '(') return ')';
-    else if(open_delim === '[') return ']';
-    else if(open_delim === '{') return '}';
-    else return null;
-  }
-
-  peek_for(token_type) {
-    if(this.at_end())
-      return null;
-    if(this.tokens[this.token_index].type === token_type)
-      return this.tokens[this.token_index];
-    else
-      return null;
-  }
-  
-  next_token() {
-    if(this.at_end())
-      return this.parse_error();
-    else {
-      this.token_index++;
-      return this.tokens[this.token_index-1];
-    }
-  }
-
-  at_end() {
-    return this.token_index >= this.tokens.length;
-  }
-
-  parse_error() { throw new Error('parse_error'); }
-}
-
-
 // Conversion of any floating-point values in an Expr to (approximate)
 // rational fractions or rational multiples of common numbers like sqrt(2).
 class RationalizeToExpr {
@@ -1699,7 +1384,7 @@ class TextItem extends Item {
   //    //italic text// - Converts into an italic TextItemTextElement
   //    [] - Converts into a TextItemExprElement wrapping a PlaceholderExpr
   //    $x+y$ - Converts into TextItemExprElement with an inline math expression
-  //            as parsed by ExprParser (limited functionality).
+  //            as parsed by Algebrite (limited functionality).
   //            If the parsing fails (invalid syntax), null is returned.
   // A TextItem with the parsed elements is returned, or null on failure.
   static parse_string(s) {
@@ -1721,7 +1406,6 @@ class TextItem extends Item {
           // would normally get confused as the italic '//' token.
           const math_text = math_pieces.join('');
           if(math_text.trim().length > 0) {
-            //let math_expr = ExprParser.parse_string(math_text);
             let math_expr = AlgebriteInterface.parse_string(math_text);
             if(!math_expr)
               return null;  // entire TextItem parsing fails if inline math exprs fail
@@ -1952,7 +1636,7 @@ class Stack {
   // NOTE: floating_item is a temporary holding slot to keep an item off to
   // the side, as a user convenience.
   constructor(items, floating_item) {
-    this.items = items;
+    this.items = items || [];
     this.floating_item = floating_item;
   }
 
@@ -2483,7 +2167,7 @@ class MsgpackDecoder {
 export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
   UndoStack, FileManager,
-  ExprPath, ExprParser, RationalizeToExpr, Item, ExprItem,
+  ExprPath, RationalizeToExpr, Item, ExprItem,
   TextItem, CodeItem, Stack, Document,
   MsgpackEncoder, MsgpackDecoder
 };

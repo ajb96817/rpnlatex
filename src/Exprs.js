@@ -159,6 +159,28 @@ class Expr {
     return InfixExpr.combine_infix(left_expr, right_expr, conjunction_expr);
   }
 
+  // "Parse" a roman_text string (via Shift+Enter from [\] math entry mode).
+  // This just wraps the string in a roman typeface FontExpr; but if
+  // the string contains [] sequences, those are converted into placeholders
+  // and the resulting Expr is a SequenceExpr with a mixture of FontExprs
+  // (for the text pieces) and PlaceholderExprs.
+  static roman_text_to_expr(string) {
+    const pieces = string.split('[]');
+    let exprs = [];
+    for(const [i, piece] of pieces.entries()) {
+      if(piece.length > 0)
+        exprs.push(FontExpr.roman_text(piece));
+      if(i < pieces.length-1)
+        exprs.push(new PlaceholderExpr());
+    }
+    if(exprs.length === 0)
+      return FontExpr.roman_text('');  // special case: 'string' is empty
+    else if(exprs.length === 1)
+      return exprs[0];
+    else
+      return new SequenceExpr(exprs);
+  }
+
   // Convert a string into a TextExpr, or a CommandExpr if it begins
   // with \ (i.e. a latex command).
   static text_or_command(s) {

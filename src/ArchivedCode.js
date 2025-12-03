@@ -184,76 +184,370 @@ class ImportExportState {
 }
 
 
+
+// Parse simple "algebraic" snippets, for use in math_entry mode.
+//
+// NOTE: This has been superseded by Algebrite's expression parser,
+// but may want to come back to this eventually.
+//
+// Rules:
+//   - Spaces are ignored except to separate numbers.
+//   - "Symbols" are one-letter substrings like 'x'.
+//   - As a special case, '@' becomes \pi.
+//   - Adjacent factors are combined with implicit multiplication.
+//     'xyz' is considered implicit multiplication of x,y,z.
+//   - '*' is multiplication, but gets converted to \cdot.
+//   - '/' and '*' bind tighter than '+' and '-'.
+//   - Delimiters can be used, but must match properly; e.g. 10[x+(y-3)]
+//   - Postfix factorial and "prime" (y'') notation is allowed.
+//   - Scientific notation such as 3e-4 is handled as a special case.
+//   - Placeholders can be inserted with [].
+//   - Negative constants such as -10 are handled by the "- factor" production
+//     below; that is the reason for the allow_unary_minus flag being passed
+//     around.  The implicit multiplication rule would otherwise make things
+//     like '2-3' be parsed as '2*(-3)'.
+//
+// Mini-grammar:
+//   expr:
+//       term |
+//       term '+' expr
+//       term '-' expr(!allow_unary_minus)
+//   term:
+//       factor |
+//       factor '*','/' term(allow_unary_minus)
+//       factor term      (implicit multiplication)
+//   factor:
+//       number |
+//       symbol |
+//       pi |             (special case '@' syntax)
+//       '(' expr ')' |   (delimiter types must match)
+//       '-' factor |     (unary minus, only if factor(allow_unary_minus))
+//       factor '!' |     (factorial notation)
+//       factor "'" |     (prime notation)
+//       
+//       []               (placeholder)
+//
+class ExprParser {
+  static parse_string(string) {
+    const tokens = this.tokenize(string);
+    if(!tokens) return null;
+    let parser = new ExprParser(tokens);
+    let expr = null;
+    try {
+      expr = parser.parse_expr(true);
+    } catch(e) {
+      if(e.message === 'parse_error')
+        ;  // leave expr as null
+      else
+        throw e;
+    }
+    if(!expr) return null;
+    if(!parser.at_end()) return null;  // extraneous tokens at end
+    return expr;
+  }
+  
+  // Break string into tokens; token types are:
+  //   number: 3, 3.1, etc.
+  //     NOTE: negative numbers are handled by the "- factor" production in the grammar
+  //   symbol: x (xyz becomes 3 separate symbols)
+  //   pi: @ -> \pi (special case)
+  //   operator: +, -, *, /, //, !, '
+  //   open_delimiter: ( or [ or {
+  //   close_delimiter: ) or ] or }
+  static tokenize(s) {
+    let pos = 0;
+    let tokens = [];
+    let number_regex = /\d*\.?\d+/g;
+    while(pos < s.length) {
+      // Check for number:
+      number_regex.lastIndex = pos;
+      const result = number_regex.exec(s);
+      if(result && result.index === pos) {
+        tokens.push({type: 'number', text: result[0], pos: pos});
+        pos += result[0].length;
+      }
+      // Check for [] placeholder:
+      else if(pos < s.length-1 && s[pos] === '[' && s[pos+1] === ']') {
+        tokens.push({type: 'placeholder', text: '[]', pos: pos});
+        pos += 2;
+      }
+      // Check for // (full size fraction):
+      else if(pos < s.length-1 && s[pos] === '/' && s[pos+1] === '/') {
+        tokens.push({type: 'operator', text: '//', pos: pos});
+        pos += 2;
+      }
+      else {
+        // All other tokens are always 1 character.
+        const token = s[pos];
+        let token_type = null;
+        if(/\s/.test(token)) token_type = 'whitespace';
+        else if(/\w/.test(token)) token_type = 'symbol';
+        else if(/[-+!'/*]/.test(token)) token_type = 'operator';
+        else if(/[([{]/.test(token)) token_type = 'open_delimiter';
+        else if(/[)\]}]/.test(token)) token_type = 'close_delimiter';
+        else if(token === '@') token_type = 'pi';
+        if(token_type === null)
+          return null;  // invalid token found (something like ^, or unicode)
+        if(token_type !== 'whitespace')  // skip whitespace
+          tokens.push({type: token_type, text: token, pos: pos});
+        pos++;
+      }
+    }
+    return tokens;
+  }
+
+  constructor(tokens) {
+    this.tokens = tokens;
+    this.token_index = 0;
+  }
+
+  parse_expr(allow_unary_minus) {
+    const lhs = this.parse_term(allow_unary_minus) || this.parse_error();
+    let result_expr = lhs;
+    const binary_token = this.peek_for('operator');
+    if(binary_token &&
+       (binary_token.text === '+' || binary_token.text === '-')) {
+      this.next_token();
+      const allow_unary_minus = binary_token.text === '+';
+      const rhs = this.parse_expr(allow_unary_minus) || this.parse_error();
+      // Special case: check for scientific notation with a negative exponent.
+      // 4e-3 is initially parsed as (4e)-(3); convert this specific case
+      // into scientific notation.
+      // Nonnegative exponents are instead parsed as 4e3 -> 4 (e3) and
+      // are handled in parse_term.
+      if(lhs.is_sequence_expr() && lhs.exprs.length === 2 &&
+         lhs.exprs[0].is_text_expr_with_number() &&
+         lhs.exprs[1].is_text_expr() &&
+         ['e', 'E'].includes(lhs.exprs[1].text) &&
+         rhs.is_text_expr_with_number()) {
+        // NOTE: 3e+4 (explicit +) is allowed here for completeness.
+        const exponent_text = binary_token.text === '-' ? ('-' + rhs.text) : rhs.text;
+        result_expr = InfixExpr.combine_infix(
+          lhs.exprs[0],
+          TextExpr.integer(10).with_superscript(exponent_text),
+          new CommandExpr('cdot'));
+      }
+      else result_expr = InfixExpr.combine_infix(
+        lhs, rhs, Expr.text_or_command(binary_token.text));
+    }
+    return result_expr;
+  }
+
+  parse_term(allow_unary_minus) {
+    const lhs = this.parse_factor(allow_unary_minus);
+    if(!lhs) return null;
+    const op_token = this.peek_for('operator');
+    if(op_token && (op_token.text === '*' || op_token.text === '/')) {
+      // Explicit multiplication converts to \cdot
+      const op_text = (op_token.text === '*' ? "\\cdot" : '/');
+      this.next_token();
+      const rhs = this.parse_term(true) || this.parse_error();
+      return InfixExpr.combine_infix(
+        lhs, rhs, Expr.text_or_command(op_text));
+    }
+    if(op_token && op_token.text === '//') {
+      // Full-size fraction.
+      this.next_token();
+      const rhs = this.parse_term(true) || this.parse_error();
+      return new CommandExpr('frac', [lhs, rhs]);
+    }
+    // Try implicit multiplication: 'factor term' production.
+    const rhs = this.parse_term(false);  // NOTE: not an error if null
+    if(rhs) {
+      // Combining rules for implicit multiplication:
+      //   number1 number2      -> number1 \cdot number2
+      //   number1 a \cdot b    -> number1 \cdot a \cdot b
+      //   number1 E|e number2  -> number1 \cdot 10^number2 (scientific notation)
+      // Any other pair just concatenates.
+      const cdot = Expr.text_or_command("\\cdot");
+      if(lhs.is_text_expr_with_number() &&
+         rhs.is_text_expr_with_number())
+        return InfixExpr.combine_infix(lhs, rhs, cdot);
+      else if(rhs.is_infix_expr() &&
+              rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
+        return InfixExpr.combine_infix(lhs, rhs, cdot);
+      else if(rhs.is_sequence_expr() &&
+              rhs.exprs.length === 2 &&
+              rhs.exprs[1].is_text_expr_with_number() &&
+              rhs.exprs[0].is_text_expr() &&
+              ['e', 'E'].includes(rhs.exprs[0].text) &&
+              lhs.is_text_expr_with_number()) {
+        // Scientific notation with nonnegative exponent (e.g. prepending a number to "e4").
+        // Negative exponents are handled in parse_expr instead.
+        return InfixExpr.combine_infix(
+          lhs,
+          TextExpr.integer(10).with_superscript(rhs.exprs[1]),
+          new CommandExpr('cdot'));
+      }
+      else
+        return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);
+    }
+    else
+      return lhs;  // factor by itself
+  }
+
+  parse_factor(allow_unary_minus) {
+    let factor = this.parse_factor_(allow_unary_minus);
+    while(factor) {
+      // Process one or more postfix ! or ' (prime) tokens if present.
+      const op_token = this.peek_for('operator');
+      if(op_token && op_token.text === '!') {
+        this.next_token();
+        factor = Expr.combine_pair(factor, new TextExpr('!'));
+      }
+      else if(op_token && op_token.text === '\'') {
+        this.next_token();
+        factor = factor.with_prime(true);
+      }
+      else break;
+    }
+    return factor;
+  }
+
+  parse_factor_(allow_unary_minus) {
+    let expr = null;
+    if(allow_unary_minus) {
+      // NOTE: double unary minus not allowed (--3).
+      const negate_token = this.peek_for('operator');
+      if(negate_token && negate_token.text === '-') {
+        this.next_token();
+        expr = this.parse_factor_(false);
+        if(expr) return PrefixExpr.unary_minus(expr);
+        else return null;
+      }
+    }
+    if(this.peek_for('number'))
+      return TextExpr.integer(this.next_token().text);
+    else if(this.peek_for('symbol'))
+      return new TextExpr(this.next_token().text);
+    else if(this.peek_for('pi')) {
+      this.next_token();
+      return new CommandExpr('pi');
+    }
+    else if(this.peek_for('placeholder')) {
+      this.next_token();
+      return new PlaceholderExpr();
+    }
+    else if(this.peek_for('open_delimiter')) {
+      const open_delim_type = this.next_token().text;
+      const inner_expr = this.parse_expr(true) || this.parse_error();
+      if(!this.peek_for('close_delimiter'))
+        return this.parse_error();
+      const close_delim_type = this.next_token().text;
+      if(this.matching_closing_delimiter(open_delim_type) !== close_delim_type)
+        return this.parse_error();  // mismatched delimiters
+      let [left, right] = [open_delim_type, close_delim_type];
+      if(open_delim_type === '{')
+        [left, right] = ["\\{", "\\}"];  // latex-compatible form
+      return new DelimiterExpr(left, right, inner_expr);
+    }
+    else
+      return null;
+  }
+
+  matching_closing_delimiter(open_delim) {
+    if(open_delim === '(') return ')';
+    else if(open_delim === '[') return ']';
+    else if(open_delim === '{') return '}';
+    else return null;
+  }
+
+  peek_for(token_type) {
+    if(this.at_end())
+      return null;
+    if(this.tokens[this.token_index].type === token_type)
+      return this.tokens[this.token_index];
+    else
+      return null;
+  }
+  
+  next_token() {
+    if(this.at_end())
+      return this.parse_error();
+    else {
+      this.token_index++;
+      return this.tokens[this.token_index-1];
+    }
+  }
+
+  at_end() {
+    return this.token_index >= this.tokens.length;
+  }
+
+  parse_error() { throw new Error('parse_error'); }
+}
+
+
 // NOTE: SpecialFunctions is now handled by Algebrite, but keeping this around
 // in case we stop using it.
 
-// class SpecialFunctions {
-//   static factorial(x) {
-//     if(x >= 0 && this.is_integer(x)) {
-//       if(x <= 1) return 1;
-//       if(x > 20) return Infinity;
-//       let value = 1;
-//       for(let i = 2; i <= x; i++)
-//         value *= i;
-//       return value;
-//     }
-//     else
-//       return this.gamma(x+1);
-//   }
+class SpecialFunctions {
+  static factorial(x) {
+    if(x >= 0 && this.is_integer(x)) {
+      if(x <= 1) return 1;
+      if(x > 20) return Infinity;
+      let value = 1;
+      for(let i = 2; i <= x; i++)
+        value *= i;
+      return value;
+    }
+    else
+      return this.gamma(x+1);
+  }
 
-//   static gamma(x) {
-//     const g = 7;
-//     const C = [
-//       0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-//       771.32342877765313, -176.61502916214059, 12.507343278686905,
-//       -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
-//     if(x <= 0)
-//       return NaN;
-//     if(x < 0.5)
-//       return Math.PI / (Math.sin(Math.PI*x) * this.gamma(1-x));
-//     x -= 1;
-//     let y = C[0];
-//     for(let i = 1; i < g+2; i++)
-//       y += C[i] / (x + i);
-//     const t = x + g + 0.5;
-//     const result = Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
-//     return isNaN(result) ? Infinity : result;
-//   }
+  static gamma(x) {
+    const g = 7;
+    const C = [
+      0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+      771.32342877765313, -176.61502916214059, 12.507343278686905,
+      -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+    if(x <= 0)
+      return NaN;
+    if(x < 0.5)
+      return Math.PI / (Math.sin(Math.PI*x) * this.gamma(1-x));
+    x -= 1;
+    let y = C[0];
+    for(let i = 1; i < g+2; i++)
+      y += C[i] / (x + i);
+    const t = x + g + 0.5;
+    const result = Math.sqrt(2*Math.PI) * Math.pow(t, x+0.5) * Math.exp(-t) * y;
+    return isNaN(result) ? Infinity : result;
+  }
 
-//   // Basic iterative evaluation of double factorial.
-//   // 7!! = 7*5*3*1, 8!! = 8*6*4*2, 0!! = 1
-//   // x must be a nonnegative integer and its magnitude is limited to something reasonable
-//   // to avoid long loops or overflow.
-//   static double_factorial(x) {
-//     if(!this.is_integer(x) || x < 0) return NaN;
-//     if(x > 100) return Infinity;
-//     let result = 1;
-//     while(x > 1) {
-//       result *= x;
-//       x -= 2;
-//     }
-//     return result;
-//   }
+  // Basic iterative evaluation of double factorial.
+  // 7!! = 7*5*3*1, 8!! = 8*6*4*2, 0!! = 1
+  // x must be a nonnegative integer and its magnitude is limited to something reasonable
+  // to avoid long loops or overflow.
+  static double_factorial(x) {
+    if(!this.is_integer(x) || x < 0) return NaN;
+    if(x > 100) return Infinity;
+    let result = 1;
+    while(x > 1) {
+      result *= x;
+      x -= 2;
+    }
+    return result;
+  }
 
-//   static is_integer(x) {
-//     return x === Math.floor(x);
-//   }
+  static is_integer(x) {
+    return x === Math.floor(x);
+  }
 
-//   static binom(n, k) {
-//     // k must be a nonnegative integer, but n can be anything
-//     if(!this.is_integer(k) || k < 0) return null;
-//     if(k > 1000) return NaN;  // Limit loop length below
-//     // Use falling factorial-based algorithm n_(k) / k!
-//     let value = 1;
-//     for(let i = 1; i <= k; i++)
-//       value *= (n + 1 - i) / i;
-//     if(this.is_integer(n)) {
-//       // Resulting quotient is an integer mathematically if n is,
-//       // but round it because of the limited floating point precision.
-//       return Math.round(value);
-//     }
-//     else
-//       return value;
-//   }
-// }
+  static binom(n, k) {
+    // k must be a nonnegative integer, but n can be anything
+    if(!this.is_integer(k) || k < 0) return null;
+    if(k > 1000) return NaN;  // Limit loop length below
+    // Use falling factorial-based algorithm n_(k) / k!
+    let value = 1;
+    for(let i = 1; i <= k; i++)
+      value *= (n + 1 - i) / i;
+    if(this.is_integer(n)) {
+      // Resulting quotient is an integer mathematically if n is,
+      // but round it because of the limited floating point precision.
+      return Math.round(value);
+    }
+    else
+      return value;
+  }
+}
 

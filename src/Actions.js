@@ -5,7 +5,7 @@
 
 import {
   AppState, Document, Stack, TextEntryState,
-  ExprPath, ExprParser, RationalizeToExpr,
+  ExprPath, RationalizeToExpr,
   ExprItem, TextItem, CodeItem,
 } from './Models';
 import {
@@ -25,38 +25,8 @@ class InputContext {
   constructor(app_component, settings) {
     this.app_component = app_component;
     this.settings = settings;
-
-    // Current keymap mode.
-    this.mode = 'base';
-
-    // do_* actions can set this to switch into a new mode after the action (see switch_to_mode()).
-    this.new_mode = null;
-
-    // do_* actions can set this to update the document state.
-    this.new_document = null;
-    
-    // If set to true, the file_manager.available_files will be reloaded
-    // from localStorage and the FileManagerComponent will be re-rendered
-    // (so this is set even for things like changing the selected_filename).
-    this.files_changed = false;
-
-    // If set to true, the AppState's is_dirty flag will be cleared.
-    this.file_saved_or_loaded = false;
-
-    // If set, this will be displayed as a transient notification in
-    // the stack area.  Cleared after every keypress.
-    this.notification_text = null;
-
-    this.error_message = null;
-
-    // Special indicator to help control the undo stack:
-    //   null - save state to undo stack after this action as normal
-    //   'undo' - request an undo
-    //   'redo' - request a redo of last saved undo state (if any)
-    //   'suppress' - perform action as normal, but don't save state to the undo state
-    //                (used for 'minor' actions that don't warrant undo tracking)
-    //   'clear' - undo stack will be reset (e.g. when loading a new document)
-    this.perform_undo_or_redo = null;
+    this.mode = 'base';  // current keymap mode
+    this._reset();
 
     // Current prefix argument for commands like Swap; can be one of:
     //   null - no current prefix argument
@@ -70,9 +40,6 @@ class InputContext {
     // Number of rows specified in do_build_matrix().  This will be used by
     // a subsequent do_finish_build_matrix() command.
     this.matrix_row_count = null;
-
-    // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
-    this.preserve_prefix_argument = false;
 
     // If non-null, text-entry mode is active and the entry line will appear at the
     // bottom of the stack panel.  this.text_entry will be a TextEntryState object.
@@ -130,7 +97,11 @@ class InputContext {
           new_stack || app_state.stack,
           this.new_document || app_state.document
         );
-        new_app_state.is_dirty = app_state.is_dirty || !new_app_state.same_as(app_state);
+        // Mark app state as 'dirty' (unsaved changed) if anything changed, but not if the
+        // suppress_undo() has been called, which indicates a minor action like changing
+        // the document selection.
+        new_app_state.is_dirty = app_state.is_dirty ||
+          (this.perform_undo_or_redo !== 'suppress' && !new_app_state.same_as(app_state));
         if(this.file_saved_or_loaded)
           new_app_state.is_dirty = false;
         app_state = new_app_state;
@@ -173,7 +144,10 @@ class InputContext {
     // The handler function will set this if the document changes.
     // (Stack changes are expected to be returned by the handler function.)
     this.new_document = null;
-    // Likewise this will be set to true if anything changed about the file list / file selection.
+    // This this will be set to true if anything changed about the file list /
+    // file selection.  The file_manager.available_files will be reloaded from
+    // localStorage and the FileManagerComponent will be re-rendered
+    // (so this is set even for things like changing the selected_filename).    
     this.files_changed = false;
     // This will be set to true if the current app_state was saved or loaded by this action.
     // This indicates that the app state's dirty flag should be cleared.
@@ -181,8 +155,20 @@ class InputContext {
     // If this is set to true, the prefix_argument will be kept as it as (otherwise it's reset to
     // null after each action).
     this.preserve_prefix_argument = false;
+    // If set, this will be displayed as a transient notification in
+    // the stack area.  Cleared after every keypress.
     this.notification_text = null;
     this.error_message = null;
+    // Special indicator to help control the undo stack:
+    //   null - save state to undo stack after this action as normal
+    //   'undo' - request an undo
+    //   'redo' - request a redo of last saved undo state (if any)
+    //   'suppress' - perform action as normal, but don't save state to the undo state
+    //                (used for 'minor' actions that don't warrant undo tracking)
+    //   'clear' - undo stack will be reset (e.g. when loading a new document)
+    this.perform_undo_or_redo = null;
+    // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
+    this.preserve_prefix_argument = false;
   }
 
   // NOTE: This doesn't raise an exception, it only records the error message
@@ -206,7 +192,12 @@ class InputContext {
 
   update_document(new_document) { this.new_document = new_document;  }
 
-  // TODO: revisit
+  notify(text) { this.notification_text = text; }
+
+  // Don't include the results of this action in the undo stack.
+  // This will also suppress marking the app state 'dirty' (unsaved changes).
+  suppress_undo() { this.perform_undo_or_redo = 'suppress'; }
+
   change_selected_filename(filename) {
     let file_manager = this.app_component.state.file_manager
     const settings = this.settings;
@@ -214,9 +205,6 @@ class InputContext {
     file_manager.save_settings(settings);
     this.files_changed = true;
   }
-
-  // Don't include the results of this action in the undo stack.
-  suppress_undo() { this.perform_undo_or_redo = 'suppress'; }
 
   // "Flash" the stack or document panel with a CSS animation to indicate an error.
   // This requires some special handling due to a limitation of CSS animations:
@@ -271,20 +259,20 @@ class InputContext {
         'errorflash_document');
   }
 
-  notify(text) { this.notification_text = text; }
-
   do_cancel() {}
+  do_mode(stack, new_mode) { this.switch_to_mode(new_mode); }
+  do_undo() { this.perform_undo_or_redo = 'undo'; }
+  do_redo() { this.perform_undo_or_redo = 'redo'; }
 
-  do_debug(stack) { /* hook for [$][~] debugging command */ }
+  // Hook for [$][~] debugging command.
+  do_debug(stack) {}
 
   do_subscript(stack, autoparenthesize) {
     return this._build_subscript_superscript(stack, true, autoparenthesize);
   }
-
   do_superscript(stack, autoparenthesize) {
     return this._build_subscript_superscript(stack, false, autoparenthesize);
   }
-
   // Second-to-top stack item becomes the base, while the stack top becomes the
   // subscript or superscript depending on 'is_subscript'.
   _build_subscript_superscript(stack, is_subscript, autoparenthesize) {
@@ -311,11 +299,6 @@ class InputContext {
       return new_stack.push_expr(
         base_expr.with_prime(this.settings.autoparenthesize));
   }
-
-  do_mode(stack, new_mode) { this.switch_to_mode(new_mode); }
-
-  do_undo() { this.perform_undo_or_redo = 'undo'; }
-  do_redo() { this.perform_undo_or_redo = 'redo'; }
 
   // function_name:
   //   Algebrite function to call.
@@ -363,7 +346,6 @@ class InputContext {
     }
     return this.error_flash_stack();
   }
-  
   // Change the output of an Algebrite roots() or nroots() command
   // from a vector of root values to a more descriptive aligned
   // environment array expression.
@@ -444,7 +426,6 @@ class InputContext {
     const result_text = this._format_algebrite_check_result(result);
     return stack.push(result_text);  // leave the equation on the stack (otherwise it'd be new_stack.push())
   }
-
   _format_algebrite_check_result(result) {
     let show_variable_value = false;
     let pieces = ['**', result.result, '**.'];
@@ -475,7 +456,7 @@ class InputContext {
   do_prefix_argument() {
     const key = this.last_keypress;
     this.suppress_undo();
-    this.switch_to_mode(this.mode);
+    this.switch_to_mode(this.mode);  // preserve current mode
     this.preserve_prefix_argument = true;
     let new_prefix_argument = null;
     if(/^[0-9]$/.test(key)) {
@@ -602,6 +583,7 @@ class InputContext {
 
   do_change_document_selection(stack, amount_string) {
     const amount = parseInt(amount_string);
+    this.suppress_undo();
     if(this.settings.dock_helptext) {
       // When the helptext is docked, treat 'change document selection' commands as
       // scrolling the helptext instead.  Do an ad-hoc conversion from number
@@ -610,7 +592,6 @@ class InputContext {
       if(Math.abs(amount) > 3) percentage = 75;
       else if(Math.abs(amount) > 0) percentage = 25;
       if(amount < 0) percentage = -percentage;
-      this.suppress_undo();
       return this.do_scroll(stack, 'document_panel', 'vertical', percentage.toString());
     }
     else
@@ -801,7 +782,7 @@ class InputContext {
     const arg = this._get_prefix_argument(1, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
     const new_items = items.map(item => item.clone());
-    let new_document = this.app_state.document.insert_items(new_items);
+    const new_document = this.app_state.document.insert_items(new_items);
     this.update_document(new_document);
     return preserve ? stack : new_stack;
   }
@@ -822,7 +803,7 @@ class InputContext {
   do_reset_all(stack) {
     this.notify("Stack and document cleared");
     this.update_document(new Document());
-    return new Stack([]);
+    return new Stack();
   }
 
   // Put something on the stack.  If 'text' starts with \, it becomes
@@ -1430,7 +1411,7 @@ class InputContext {
     // Other cases here create ExprItems.
     let new_expr = null;
     if(textstyle === 'roman_text')
-      new_expr = ExprParser.roman_text_to_expr(text);
+      new_expr = Expr.roman_text_to_expr(text);
     else if(textstyle === 'operatorname') {
       // Similar to 'roman_text' but filter out anything but alphanumeric characters,
       // spaces and dashes for use inside \operatorname{...}.
@@ -1487,7 +1468,6 @@ class InputContext {
     }
     else {
       try {
-        //new_expr = ExprParser.parse_string(text);
         new_expr = AlgebriteInterface.parse_string(text);
       }
       catch(e) {
