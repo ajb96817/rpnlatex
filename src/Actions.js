@@ -2054,12 +2054,8 @@ class InputContext {
       operand_exprs = operand_exprs.slice(0, expr_count-1).concat(
         [final_operand]).concat(operand_exprs.slice(expr_count-1));
     }
-    // Build up the resulting InfixExpr one term at a time.
-    let new_expr = operand_exprs[0];
-    for(let i = 1; i < operand_exprs.length; i++)
-      new_expr = InfixExpr.combine_infix(
-        new_expr, operand_exprs[i], infix_operator_expr);
-    return new_stack.push_expr(new_expr);
+    return new_stack.push_expr(
+      InfixExpr.combine_infix_all(operand_exprs, infix_operator_expr));
   }
 
   // Take [x_1, ..., x_n] from the stack and build a \substack{...} command.

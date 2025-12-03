@@ -47,24 +47,6 @@ class App extends React.Component {
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
   }
 
-  file_load_for_export_finished(filename, app_state) {
-    // Download the app_state by converting it to a JSON blob,
-    // creating a fake temporary link with the blob data,
-    // then "clicking" on the link.
-    const json = app_state.to_json();
-    const export_blob = new Blob(
-      [JSON.stringify(json)],
-      {type: 'application/json'});
-    const blob_url = URL.createObjectURL(export_blob);
-    const download_link = document.createElement('a');
-    download_link.download = filename + '.json';
-    download_link.href = blob_url;
-    download_link.style.display = 'none';
-    document.body.appendChild(download_link);
-    download_link.click();
-    document.body.removeChild(download_link);
-  }
-
   componentDidMount() {
     this.apply_layout_to_dom();
     window.addEventListener('keydown', this.handleKeyDown);
@@ -173,13 +155,11 @@ class App extends React.Component {
     return $e(
       'div', {id: 'panel_layout'},
       $e('div', {
-        className: 'panel stack_panel',
-        id: 'stack_panel',
+        id: 'stack_panel', className: 'panel',
         ref: this.stack_panel_ref
       }, ...stack_panel_components),
       $e('div', {
-        className: 'panel document_panel',
-        id: 'document_panel',
+        id: 'document_panel', className: 'panel',
         ref: this.document_panel_ref
       }, document_panel_component),
       // File Manager and User Guide panels are always present, just hidden with
@@ -525,7 +505,10 @@ class FileManagerPanelComponent extends React.Component {
   render() {
     this.props.file_manager.refresh_available_files();
     return $e(
-      'div', {id: 'files_panel', ref: this.props.popup_panel_ref},
+      'div', {
+        id: 'files_panel', className: 'panel',
+        ref: this.props.popup_panel_ref
+      },
       $e('div', {className: 'files_container'},
          $e('h2', {}, 'File Manager'),
          this.render_current_filename(),
@@ -813,13 +796,16 @@ class HelptextPanelComponent extends React.Component {
   
   render() {
     return $e(
-      'div', {id: 'helptext_panel', ref: this.props.popup_panel_ref},
-      $e('div', {id: 'help_container'},
-         $e('div', {
-           id: 'help_content',
-           className: 'help',
-           ref: this.help_content_ref
-         })));
+      'div', {
+        id: 'helptext_panel',
+        className: 'panel',
+        ref: this.props.popup_panel_ref
+      },
+      $e('div', {
+        id: 'help_content',
+        className: 'help',
+        ref: this.help_content_ref
+      }));
   }
 
   componentDidMount() {

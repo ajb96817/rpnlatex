@@ -109,7 +109,7 @@ class Settings {
     const headingbar_pixels = Math.max(1, Math.round(3 * percentage/100));
     root_vars.style.setProperty('--heading-bar-height', headingbar_pixels + 'px');
 
-    // Set up panel layout.
+    // Set up stack/document panel layout.
     let [stack_bounds, document_bounds] = this._split_rectangle(
       {x: 0, y: 0, w: 100, h: 100},
       layout.stack_side, layout.stack_split);
@@ -118,17 +118,17 @@ class Settings {
 
     // Set up User Guide layout.
     if(this.popup_mode === 'help') {
-      helptext_panel_elt.className = 'popup';
+      helptext_panel_elt.className = 'popup panel';
       helptext_panel_elt.style.display = 'block';
       this._remove_bounds(helptext_panel_elt);
     }
     else if(this.dock_helptext) {
-      helptext_panel_elt.className = 'docked';
+      helptext_panel_elt.className = 'docked panel';
       helptext_panel_elt.style.display = 'block';
       this._apply_bounds(helptext_panel_elt, document_bounds);
     }
     else {
-      helptext_panel_elt.className = '';
+      helptext_panel_elt.className = 'panel';
       helptext_panel_elt.style.display = 'none';
     }
 
@@ -1440,10 +1440,11 @@ class RationalizeToExpr {
   // 0 <= x <= 1, with maximum denominator max_denom.
   // Returns [numerator, denominator].
   _rationalize(x, max_denom) {
+    const eps = 1e-6;
     let [a, b, c, d] = [0, 1, 1, 1];
     while(b <= max_denom && d <= max_denom) {
       const mediant = (a+c) / (b+d);
-      if(x === mediant) {
+      if(Math.abs(x - mediant) <= eps) {
         if(b + d <= max_denom)
           return [a+c, b+d];
         else if(d > b)
@@ -1484,26 +1485,6 @@ class Item {
   // As a workaround, this will be initialized after the class definition instead.
   //static serial_number = 1;
   static next_serial() { return Item.serial_number++; }
-
-  static from_json(json) {
-    switch(json.item_type) {
-    case 'expr':
-      return new ExprItem(
-        Expr.from_json(json.expr),
-        json.tag_string || null,
-        json.source_string || null);
-    case 'text':
-      return new TextItem(
-        json.elements.map(element_json => TextItemElement.from_json(element_json)),
-        json.tag_string || null,
-        json.source_string || null,
-        !!json.is_heading);
-    case 'code':
-      return new CodeItem(json.language, json.source);
-    default:
-      return TextItem.from_string('invalid item type ' + json.item_type);
-    }
-  }
 
   // 'tag_string' is an optional tag shown to the right of the item.
   // 'source_string' is the original "source code" string for items
@@ -1573,15 +1554,6 @@ class ExprItem extends Item {
 //   - TextItemRawElement - a string of text to be rendered directly (mostly a special
 //     case to support combining math and text with infix operators)
 class TextItemElement {
-  static from_json(json) {
-    if(json.expr)
-      return new TextItemExprElement(Expr.from_json(json.expr));
-    else if(json.text)
-      return new TextItemTextElement(json.text, !!json.is_bold, !!json.is_italic);
-    else
-      return new TextItemRawElement(json.raw);
-  }
-
   is_text() { return false; }
   is_expr() { return false; }
   is_raw() { return false; }
@@ -1974,12 +1946,6 @@ class CodeItem extends Item {
 // The item stack.  This is never modified in-place; all stack operations
 // return a new Stack with the modified items, leaving the original untouched.
 class Stack {
-  static from_json(json) {
-    return new Stack(
-      json.items.map(item_json => Item.from_json(item_json)),
-      json.floating_item ? Item.from_json(json.floating_item) : null);
-  }
-
   // NOTE: floating_item is a temporary holding slot to keep an item off to
   // the side, as a user convenience.
   constructor(items, floating_item) {
@@ -2073,12 +2039,6 @@ class Stack {
 // The document item list.  Like Stack, all Document operations are non-destructive
 // and return a new Document reflecting the changes.
 class Document {
-  static from_json(json) {
-    return new Document(
-      json.items.map(item_json => Item.from_json(item_json)),
-      json.selection_index);
-  }
-
   // NOTE: selection_index can be in the range 0..items.length (inclusive).
   constructor(items, selection_index) {
     this.items = items || [];

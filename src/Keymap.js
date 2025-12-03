@@ -158,6 +158,7 @@ const KeybindingTable = {
     '/': "scroll_to help_operators",
     'd': "scroll_to help_derivatives",
     'D': "scroll_to help_derivatives",
+    'v': "scroll_to help_derivatives",
     'i': "scroll_to help_integrals",
     'I': "scroll_to help_integrals",
     'f': "scroll_to help_named_operators",
@@ -435,13 +436,13 @@ const KeybindingTable = {
     't': "named_function tan",
     'T': "named_function cot",
     'U': "swap;operator underset 2",
-    'v': "parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x]
-    'V': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x,y]
+    'v': "mode variational",
+    'V': "parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x]
     'w': "swap_infix",
-    'x': "delimiters [ ];push E;typeface blackboard;swap;build_function_call",  // E[x] (expectation)
-    'X': "infix \\,\\vert\\,;delimiters [ ];push E;typeface blackboard;swap;build_function_call",  // E[y|x]
-    'y': "push E;typeface blackboard;swap;subscript;swap;delimiters [ ];build_function_call",  // E_x[y] (with subscript)
-    'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;delimiters [ ];build_function_call",  // E_x[z|y]
+    'x': "parenthesize [ ];push E;typeface blackboard;swap;build_function_call",  // E[x] (expectation)
+    'X': "infix \\,\\vert\\,;parenthesize [ ];push E;typeface blackboard;swap;build_function_call",  // E[y|x]
+    'y': "push E;typeface blackboard;swap;subscript;swap;parenthesize [ ];build_function_call",  // E_x[y] (with subscript)
+    'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;parenthesize [ ];build_function_call",  // E_x[z|y]
     'z': "dissolve",
     ' ': "swap;concat",
     ';': "start_text_entry tag_entry",
@@ -470,11 +471,13 @@ const KeybindingTable = {
     // NOTE: Only some commands autoparenthesize, depending on the
     // traditional mathematical notation of the operator.
     'a': "parenthesize_argument;operator arg",
-    'd': "parenthesize_argument;operator dim",
-    'D': "operator deg",
-    'e': "parenthesize_argument;push erf;swap;operator operatorname 2",
-    'E': "parenthesize_argument;push erfc;swap;operator operatorname 2",
-    'g': "parenthesize_argument;operator gcd",
+    'c': "parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x]
+    'C': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x,y]
+    'd': "parenthesize_argument;named_function det",
+    'D': "parenthesize_argument;operator dim",
+    'e': "parenthesize;push erf;swap;operator operatorname 2",
+    'E': "parenthesize;push erfc;swap;operator operatorname 2",
+    'g': "infix ,;parenthesize;operator gcd",  // NOTE: no lcm(x,y) currently
     'h': "operator hom",
     'i': "operator inf",
     'I': "operator liminf",
@@ -482,11 +485,12 @@ const KeybindingTable = {
     'l': "operator lim",
     'm': "parenthesize_argument;operator min",
     'M': "operator argmin",
-    'n': "parenthesize_argument;push sgn;swap;operator operatorname 2",
-    'r': "autoparenthesize;push Tr;swap;operator operatorname 2",
+    'n': "parenthesize;push sgn;swap;operator operatorname 2",
     's': "operator sup",
     'S': "operator limsup",
-    't': "named_function det",
+    't': "parenthesize_argument;push Tr;swap;operator operatorname 2",
+    'v': "parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x]
+    'V': "infix ,;parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x,y]
     'x': "parenthesize_argument;operator max",
     'X': "operator argmax"
   },
@@ -526,6 +530,8 @@ const KeybindingTable = {
   },
   // [/][2] prefix
   squared: {
+    // NOTE: [/][2][V] (covariance) is kind of a special case
+    'V': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x,y]
     's': "named_function sin 2",
     'S': "named_function sec 2",
     'c': "named_function cos 2",
@@ -626,8 +632,7 @@ const KeybindingTable = {
     // y x -> ydx (thinspace after the dx)
     'I': "differential_form 1;push \\,;concat;concat",
     // y x -> ydx (no spacing around the dx)
-    ' ': "differential_form 1;concat",
-    'v': "mode variational"
+    ' ': "differential_form 1;concat"
   },
 
   // [/][D] prefix: derivative operations, but using roman-font 'd'
@@ -649,7 +654,7 @@ const KeybindingTable = {
     'delegate': "derivative"
   },
 
-  // [/][d][v]: functional derivatives (variational calculus)
+  // [/][v] prefix: functional derivatives (variational calculus)
   // (same as [/][d] commands but \partial -> \delta)
   variational: {
     'j': "push \\delta;swap;concat;swap;push \\delta;swap;concat;swap;fraction",
@@ -659,8 +664,25 @@ const KeybindingTable = {
     'm': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;push \\delta;integer 2;superscript;swap;fraction",
     'M': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
     'p': "push \\delta;swap;concat",
-    'd': "push \\delta;swap;concat",  // undocument alias for p
-    'P': "push \\delta;swap;subscript;swap;concat"
+    'P': "push \\delta;swap;subscript;swap;concat",
+
+    // Additional aliases for dy/dx style commands (total derivatives);
+    // these will be treated as synonyms for the corresponding \partial commands.
+    'x': "push \\delta;swap;concat;push \\delta;swap;fraction",
+    'X': "integer 2;superscript;push \\delta;swap;concat;push \\delta;integer 2;superscript;swap;fraction",
+    'y': "push \\delta;swap;concat;swap;push \\delta;swap;concat;swap;fraction",
+    'Y': "integer 2;superscript;push \\delta;swap;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
+
+    // Counterparts to ordinary differential form commands.
+    'd': "push \\delta;swap;concat",
+    '2': "push \\delta;push 2;superscript;swap;concat",
+    '3': "push \\delta;push 3;superscript;swap;concat",
+    '4': "push \\delta;push 4;superscript;swap;concat",
+
+    // Counterparts of attach-to-integral commands, for variational integrals.
+    'i': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat",
+    'I': "push \\delta;swap;concat;push \\,;concat;concat",
+    ' ': "push \\delta;swap;concat;concat"
   },
 
   // [,] prefix: combine two objects with an infix operation
@@ -668,6 +690,7 @@ const KeybindingTable = {
     'a': "apply_infix",
     'b': "infix \\bullet",
     'c': "infix \\cap",
+    'C': "infix \\circledcirc",
     'd': "swap;push \\dagger;superscript false;swap;concat",  // x^\dagger y
     'D': "infix \\oplus",  // [D]irect sum
     'e': "infix ,\\dots,",
@@ -689,6 +712,7 @@ const KeybindingTable = {
     'Q': "conjunction or",
     'r': "conjunction for",
     's': "push \\,;swap;concat false;concat false",
+    'S': "infix \\circledast",
     ' ': "push \\,;swap;concat false;concat false",
     't': "infix \\to",
     'T': "infix \\longrightarrow",
@@ -713,8 +737,8 @@ const KeybindingTable = {
     '^': "infix \\star",
     '%': "infix \\div",
     '(': "infix ,;delimiters ( )",  // (x,y)
-    '[': "infix \\llcorner",  // right-contraction
-    ']': "infix \\lrcorner",  // left-contraction
+    //'[': "infix \\llcorner",  // right-contraction (uncommon, disabled for now)
+    //']': "infix \\lrcorner",  // left-contraction(uncommon, disabled for now)
     '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
     '>': "infix \\cdots",
     //'{': "infix \\leftthreetimes",  // semidirect product
@@ -811,6 +835,7 @@ const KeybindingTable = {
     'q': "push =",
     'Q': "push \\bigsqcup",
     'r': "push \\square",
+    'R': "push \\boxdot",
     's': "push \\sum",
     'S': "push \\S",
     't': "push \\therefore",

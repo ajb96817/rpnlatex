@@ -45,11 +45,14 @@ div.panel {
   /* Default panel background color; should never be seen
      (each panel type should override the background color). */
   background-color: yellow;
+  position: absolute;
+  top: 0;  /* bounds are set in code (Settings.apply_layout_to_dom()) */
+  left: 0;
+  width: 100%;
+  height: 100%;
 }  
 
 #stack_panel {
-  position: absolute;
-  height: 100%;
   overflow-x: scroll;
   overflow-y: auto;
   /* Hide horizontal scrollbars for a cleaner look. */
@@ -186,11 +189,6 @@ div.floating_item div.tag_string {
 
 
 #document_panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   overflow-x: scroll;
   overflow-y: hidden;
   background-color: white;
@@ -427,9 +425,8 @@ body.eink_mode span.k { border-color: black; }
 
 #files_panel {
   display: none;
-  position: absolute;
   overflow: auto;
-  z-index: 4;
+  z-index: 3;
   top: 5%;
   height: 90%;
   left: 8%;
@@ -470,7 +467,6 @@ table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: lef
 #helptext { font-size: 105%; }
 #helptext_panel {
   display: none;  /* will be set to display: block in code as needed */
-  position: absolute;
   overflow: scroll;
   z-index: 3;  /* appear above #document_panel */
   background-color: white;
