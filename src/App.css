@@ -7,7 +7,17 @@
   --item-margin-width: 12px;  /* NOTE: not currently dynamically adjusted */
 }
 
+/* Z-index layout:
+   Layer 0: Root HTML page.
+   Layer 1: Stack/document panels.
+   Layer 2: Stack panel mode indicator, "floating" item if there is one.
+   Layer 3: Item tags.
+   Layer 4: Error messages/notifications (not explicitly assigned z-index though).
+   Layer 5: File Manager / User Guide popup panels, docked helptext panel.
+*/
+
 html {
+  z-index: 0;
   height: 100%;
 }
 body {
@@ -50,6 +60,7 @@ div.panel {
   left: 0;
   width: 100%;
   height: 100%;
+  z-index: 1;
 }  
 
 #stack_panel {
@@ -115,7 +126,6 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 #stack_panel div.floating_item {
   float: right;
   position: relative; z-index: 2; /* keep it from being obscured by other stack items */
-  z-index: 2;  /* TODO: maybe use position: sticky instead */
   padding: 0.05em 0.2em;
   padding-left: 0;  /* make itemtype bar look "correct" */
   margin-right: 0.25em;
@@ -336,7 +346,7 @@ div.latex_source_item div.latex_source {
 
 div.tag_string {
   position: absolute;
-  z-index: 10;
+  z-index: 3;
   width: auto;
   right: 0.5em;
   margin-top: 0.1em;
@@ -426,7 +436,7 @@ body.eink_mode span.k { border-color: black; }
 #files_panel {
   display: none;
   overflow: auto;
-  z-index: 3;
+  z-index: 5;
   top: 5%;
   height: 90%;
   left: 8%;
@@ -468,14 +478,14 @@ table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: lef
 #helptext_panel {
   display: none;  /* will be set to display: block in code as needed */
   overflow: scroll;
-  z-index: 3;  /* appear above #document_panel */
+  z-index: 5;  /* appear above #document_panel */
   background-color: white;
   box-shadow: 0 0 1em 2px #bbb;
 }
 body.eink_mode #helptext_panel.popup { border: 2px solid black; }
 /* User Guide is visible in popup mode when 'popup' class is set. */
 #helptext_panel.popup {
-  z-index: 3;
+  z-index: 5;
   top: 5%;
   height: 90%;
   left: 8%;

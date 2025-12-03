@@ -249,11 +249,11 @@ class Expr {
     if(this.matches(search_expr))
       return substitution_expr;
     let result = this;
-    this.subexpressions().forEach((subexpr, index) => {
+    for(const [index, subexpr] of this.subexpressions().entries()) {
       const new_subexpr = subexpr.substitute(search_expr, substitution_expr);
       if(new_subexpr !== subexpr)
         result = result.replace_subexpression(index, new_subexpr);
-    });
+    }
     return result;
   }
 
@@ -265,11 +265,11 @@ class Expr {
 
   _find_placeholder_expr_path(expr_path) {
     let found_expr_path = null;
-    this.subexpressions().forEach((subexpr, index) => {
+    for(const [index, subexpr] of this.subexpressions().entries()) {
       if(found_expr_path === null)
         found_expr_path = subexpr._find_placeholder_expr_path(
           expr_path.descend(index));
-    });
+    }
     return found_expr_path;
   }
 
@@ -387,8 +387,8 @@ class CommandExpr extends Expr {
       if(this.command_name !== '')
         emitter.command(this.command_name, this.options);
       // Braces need to be forced around each operand, even single-letter operands.
-      this.operand_exprs.forEach((operand_expr, index) =>
-        emitter.grouped_expr(operand_expr, 'force', index));
+      for(const [index, operand_expr] of this.operand_exprs.entries())
+        emitter.grouped_expr(operand_expr, 'force', index);
     }
   }
 
@@ -1312,7 +1312,8 @@ class SequenceExpr extends Expr {
   expr_type() { return 'sequence'; }
 
   emit_latex(emitter) {
-    this.exprs.forEach((expr, index) => emitter.expr(expr, index));
+    for(const [index, expr] of this.exprs.entries())
+      emitter.expr(expr, index);
   }
 
   subexpressions() { return this.exprs; }
@@ -1921,15 +1922,15 @@ class ArrayExpr extends Expr {
       emitter.text("\\substack{\n");
     else
       emitter.begin_environment(this.array_type);
-    this.element_exprs.forEach((row_exprs, row_index) => {
+    for(const [row_index, row_exprs] of this.element_exprs.entries()) {
       if(row_index > 0)
         emitter.row_separator();
-      row_exprs.forEach((expr, col_index) => {
+      for(const [col_index, expr] of row_exprs.entries()) {
         if(col_index > 0) emitter.align_separator();
         if(expr) emitter.expr(expr, subexpr_index);  // should always be true
         subexpr_index++;
-      });
-    });
+      }
+    }
     if(this.array_type === 'substack')
       emitter.text('}');
     else
@@ -1977,7 +1978,7 @@ class ArrayExpr extends Expr {
       emitter.text_or_command("\\kern-5pt");
     emitter.begin_environment('array', column_layout_string);
     let subexpr_index = 0;
-    this.element_exprs.forEach((row_exprs, row_index) => {
+    for(const [row_index, row_exprs] of this.element_exprs.entries()) {
       if(row_index > 0) {
         emitter.row_separator();
         const separator = this.row_separators[row_index-1];
@@ -1987,12 +1988,12 @@ class ArrayExpr extends Expr {
           emitter.text("\n");
         }
       }
-      row_exprs.forEach((expr, col_index) => {
+      for(const [col_index, expr] of row_exprs.entries()) {
         if(col_index > 0) emitter.align_separator();
         if(expr) emitter.expr(expr, subexpr_index);  // should always be true
         subexpr_index++;
-      });
-    });
+      }
+    }
     emitter.end_environment('array');
     if(!has_row_separators)
       emitter.text_or_command("\\kern-5pt");

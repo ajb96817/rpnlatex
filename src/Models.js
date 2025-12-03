@@ -1564,11 +1564,14 @@ class TextItemTextElement extends TextItemElement {
   // Bold/italic fonts are handled specially for text items.
   // Bold and italic words are put inside \textbf{} and \textit{} commands
   // instead of \text{}.  Currently bold and italic at once is not supported.
-  constructor(text, is_bold, is_italic) {
+  // TODO: 'is_underlined' is unimplemented but the flag reserved for
+  // future use in the msgpack encoding.
+  constructor(text, is_bold, is_italic, is_underlined) {
     super();
     this.text = text;
     this.is_bold = !!is_bold;
     this.is_italic = !!is_italic;
+    this.is_underlined = !!is_underlined;
   }
 
   is_text() { return true; }
@@ -2212,7 +2215,8 @@ class MsgpackEncoder {
     else this.error("Unknown TextItemElement type");
   }
   pack_text_item_text_element(element) {
-    return [1, element.text, element.is_bold, element.is_italic];
+    return [1, element.text, element.is_bold,
+            element.is_italic, element.is_underlined];
   }
   pack_text_item_expr_element(element) {
     return [2, this.pack_expr(element.expr)];
@@ -2379,8 +2383,8 @@ class MsgpackDecoder {
     default: this.error("Unknown TextItemElement typecode in MsgpackDecoder: " + type_code);
     }
   }
-  unpack_text_item_text_element([text, is_bold, is_italic]) {
-    return new TextItemTextElement(text, is_bold, is_italic);
+  unpack_text_item_text_element([text, is_bold, is_italic, is_underlined]) {
+    return new TextItemTextElement(text, is_bold, is_italic, is_underlined);
   }
   unpack_text_item_expr_element([expr_state]) {
     return new TextItemExprElement(this.unpack_expr(expr_state));

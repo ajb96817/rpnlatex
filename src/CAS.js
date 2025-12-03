@@ -666,17 +666,16 @@ class AlgebriteInterface {
     // Scan for a relational operator in the infix expression.
     let relation_index = null;
     let relation_type = null;
-    expr.operator_exprs.forEach((operator_expr, i) => {
+    for(const [i, operator_expr] of expr.operator_exprs.entries()) {
       const operator_text = expr.operator_text_at(i);
-      const match = algebrite_relation_types.find(
-        pair => pair[0] === operator_text);
+      const match = algebrite_relation_types.find(pair => pair[0] === operator_text);
       if(match) {
         if(relation_type)
           return null;  // more than 1 relational operator
         relation_type = match[2];
         relation_index = i;
       }
-    });
+    }
     if(relation_index === null)
       return null;  // no relational operator
     return [
@@ -832,10 +831,10 @@ class AlgebriteCall extends AlgebriteNode {
   emit(emitter) {
     emitter.emit(this.fn_name);
     emitter.emit('(');
-    this.arg_nodes.forEach((node, i) => {
+    for(const [i, node] of this.arg_nodes.entries()) {
       if(i > 0) emitter.emit(', ');
       node.emit(emitter);
-    });
+    }
     emitter.emit(')');
   }
 }

@@ -85,7 +85,7 @@ class InputContext {
   handle_key(app_state, key) {
     if(key === 'Shift' || key === 'Alt' || key === 'Control')
       return [false, app_state];  // discard standalone modifier keys
-    // If the popup panel is active, always use its dedicated keymap.
+    // If a popup panel (files/helptext) is active, always use its dedicated keymap.
     const effective_mode = this.settings.popup_mode || this.mode;
     const command = this.settings.current_keymap.lookup_binding(effective_mode, key);
     if(command) {
@@ -467,7 +467,7 @@ class InputContext {
   }
 
   do_rationalize(stack) {
-    let [new_stack, expr] = stack.pop_exprs(1);
+    const [new_stack, expr] = stack.pop_exprs(1);
     const result_expr = RationalizeToExpr.rationalize_expr(expr);
     return new_stack.push_expr(result_expr);
   }
@@ -1268,7 +1268,7 @@ class InputContext {
     let relation_index = null;
     let relational_op_expr = null;
     let more_than_one_relational_op = false;
-    expr.operator_exprs.forEach((operator_expr, i) => {
+    for(const [i, operator_expr] of expr.operator_exprs.entries()) {
       if(['=', '<', '>', 'ne', 'le', 'ge'
          ].includes(expr.operator_text_at(i))) {
         if(relation_index === null) {
@@ -1278,7 +1278,7 @@ class InputContext {
         else
           more_than_one_relational_op = true;
       }
-    });
+    }
     if(more_than_one_relational_op || relation_index === null)
       return stack;
     const lhs = expr.extract_side_at(relation_index, 'left');
