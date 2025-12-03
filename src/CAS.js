@@ -24,16 +24,13 @@
 
 
 import {
-  // TODO: may not need all these
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
   PostfixExpr, FunctionCallExpr,
-  PlaceholderExpr, TextExpr, SequenceExpr, DelimiterExpr,
-  SubscriptSuperscriptExpr, ArrayExpr
+  TextExpr, SequenceExpr, DelimiterExpr,
+  ArrayExpr
+  /* Not explicitly used here:
+     PlaceholderExpr, SubscriptSuperscriptExpr */
 } from './Exprs';
-
-import {
-  LatexEmitter
-} from './Models';
 
 import Algebrite from 'algebrite';
 const $A = Algebrite;
@@ -666,7 +663,7 @@ class AlgebriteInterface {
     // Scan for a relational operator in the infix expression.
     let relation_index = null;
     let relation_type = null;
-    for(const [i, operator_expr] of expr.operator_exprs.entries()) {
+    for(const [i, /*operator_expr*/] of expr.operator_exprs.entries()) {
       const operator_text = expr.operator_text_at(i);
       const match = algebrite_relation_types.find(pair => pair[0] === operator_text);
       if(match) {
@@ -739,7 +736,7 @@ class AlgebriteInterface {
     if(lhs_result.k === 2 /* DOUBLE */ && rhs_result.k === 2) {
       const lhs_float = lhs_result.d;
       const rhs_float = rhs_result.d;
-      if(this._check_numerical_relation_result(lhs_result.d, rhs_result.d, relation_type))
+      if(this._check_numerical_relation_result(lhs_float, rhs_float, relation_type))
         return relation_type === 'testneq' ? false : true;
     }
     return relation_type === 'testneq' ? true : false;
@@ -1344,7 +1341,7 @@ class ExprToAlgebrite {
 // Convert Algebrite list structures to Expr trees.
 // The Algebrite Lisp-style cons lists are called 'p' here.
 class AlgebriteToExpr {
-  error(message, offending_p) {
+  error(message /*, offending_p */) {
     throw new Error('Algebrite: ' + message);
   }
   
@@ -1404,7 +1401,7 @@ class AlgebriteToExpr {
       break;
     case 'num': this.pieces.push(format_bigint(p.q.a), '/', format_bigint(p.q.b)); break;
     case 'double': this.pieces.push(format_double(p.d)); break;
-    case 'str': this.pieces.push("\"", p.str, "\"");
+    case 'str': this.pieces.push("\"", p.str, "\""); break;
     case 'sym': this.pieces.push(p.printname); break;
     case 'tensor': this.pieces.push('{tensor}'); break;
     default: this.pieces.push(this.utype(p)); break;
@@ -1437,7 +1434,7 @@ class AlgebriteToExpr {
       return this._cons_to_expr(this.car(this.cdr(head)), rest);
     }
     else
-      return this.error('Unexpected Algebrite output', p);
+      return this.error('Unexpected Algebrite output', head);
   }
 
   functioncall_to_expr(f, arg_list) {
@@ -1460,18 +1457,23 @@ class AlgebriteToExpr {
     case 'derivative':
       if(nargs === 2)
         return this.derivative_to_expr(...args);
+      else break;
     case 'factorial':
       if(nargs === 1)
         return this.factorial_to_expr(args[0]);
+      else break;
     case 'ceil':
       if(nargs === 1)
         return new DelimiterExpr("\\lceil", "\\rceil", arg_exprs[0]);
+      else break;
     case 'floor':
       if(nargs === 1)
         return new DelimiterExpr("\\lfloor", "\\rfloor", arg_exprs[0]);
+      else break;
     case 'abs':
       if(nargs === 1)
         return new DelimiterExpr("\\vert", "\\vert", arg_exprs[0]);
+      else break;
     case 'quote':
     case 'eval':
       return arg_exprs[0];
@@ -1479,6 +1481,7 @@ class AlgebriteToExpr {
       // not(equals(x,y)) => not(x=y) => x!=y
       if(nargs === 1 && arg_exprs[0].is_infix_expr())
         return arg_exprs[0].as_logical_negation();
+      else break;
     case 'component':
       // Comes from Algebrite x[4] input syntax.
       // Convert to a function call with square brackets instead.

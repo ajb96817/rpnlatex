@@ -6,7 +6,7 @@ import './App.css';
 import React from 'react';
 import katex from 'katex';
 import {
-  Settings, AppState, UndoStack, FileManager
+  AppState, UndoStack, FileManager
 } from './Models';
 import InputContext from './Actions';
 
@@ -224,7 +224,7 @@ class App extends React.Component {
     return key;
   }
 
-  handleVisibilityChange(event) {
+  handleVisibilityChange(/*event*/) {
     // Try to auto-save when the app is being "hidden" or closed.
     // This 'visibilitychange' event is used in preference to the
     // unreliable 'beforeunload' event.
@@ -306,8 +306,7 @@ class ModeIndicatorComponent extends React.Component {
 class ErrorMessageComponent extends React.Component {
   // TODO: show offending_expr
   render() {
-    const error_message = this.props.error_message;
-    const offending_expr = this.props.offending_expr;
+    const { error_message /*, offending_expr*/ } = this.props;
     return $e(
       'div', {className: 'error_message'},
       error_message);
@@ -559,13 +558,13 @@ class FileManagerPanelComponent extends React.Component {
                  $e('th', {className: 'timestamp', colSpan: '2'}, 'Last Modified'))),
            $e('tbody', {},
               file_manager.available_files.map(
-                (file_info, index) => this._render_file_list_row(file_info, index)))));
+                file_info => this._render_file_list_row(file_info)))));
     }
     else
       return $e('p', {}, 'No files created yet.');
   }
 
-  _render_file_list_row(file_info, index) {
+  _render_file_list_row(file_info) {
     const file_manager = this.props.file_manager;
     let class_names = [];
     if(file_info.filename === file_manager.selected_filename)
@@ -634,7 +633,7 @@ class FileManagerPanelComponent extends React.Component {
   }
 
   // Needs to be an async function to await the uploaded file.text() Promises.
-  async handle_file_upload(event) {
+  async handle_file_upload() {
     const file_input_elt = this.file_input_ref.current;
     const file_manager = this.props.file_manager;
     if(!file_input_elt) return;

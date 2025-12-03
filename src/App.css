@@ -252,11 +252,11 @@ div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
 div.separator_item.highlighted { border-left-color: #66d; }
 div.latex_source_item.highlighted { border-left-color: #484; }
-div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833 !important; }
+div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833; }
 
 /* Override item type indicator bar if it contains a KaTeX error. */
 div.latex_fragment:has(div.latex_error_message) {
-  border-left: var(--itemtype-bar-width) solid #c44 !important;
+  border-left: var(--itemtype-bar-width) solid #c44;
   padding-right: var(--item-margin-width);
   /* Padding to allow the selection indication to be seen better. */
   padding-top: 0.25em;
@@ -391,7 +391,7 @@ div.stack_items div.text_entry {
   overflow-wrap: break-word;
 }
 
-div.stack_items div.text_entry span.normal_character {}
+/*div.stack_items div.text_entry span.normal_character {}*/
 div.stack_items div.text_entry span.cursor_character { color: white; background-color: #666; }
 div.stack_items div.text_entry span.error_character { color: black; background-color: #faa; }
 div.stack_items div.text_entry span.cursor_character.error_character { color: white; background-color: #c66; }

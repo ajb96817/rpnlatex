@@ -9,9 +9,11 @@ import {
   ExprItem, TextItem, CodeItem,
 } from './Models';
 import {
-  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, PostfixExpr,
-  FunctionCallExpr, PlaceholderExpr, TextExpr, SequenceExpr,
-  DelimiterExpr, SubscriptSuperscriptExpr, ArrayExpr
+  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, 
+  FunctionCallExpr, PlaceholderExpr, TextExpr, 
+  DelimiterExpr, ArrayExpr
+  /* Not explicitly used here:
+     PostfixExpr, SequenceExpr, SubscriptSuperscriptExpr */
 } from './Exprs';
 import {
   AlgebriteInterface
@@ -265,7 +267,7 @@ class InputContext {
   do_redo() { this.perform_undo_or_redo = 'redo'; }
 
   // Hook for [$][~] debugging command.
-  do_debug(stack) {}
+  do_debug(/*stack*/) {}
 
   do_subscript(stack, autoparenthesize) {
     return this._build_subscript_superscript(stack, true, autoparenthesize);
@@ -324,7 +326,7 @@ class InputContext {
     }
     else if(guess_variable_arg_index_string) {
       const guess_variable_arg_index = parseInt(guess_variable_arg_index_string);
-      const [guessed_variable_name, guessed_variable_expr] =
+      const [/*guessed_variable_name*/, guessed_variable_expr] =
             AlgebriteInterface.guess_variable(argument_exprs[0]);
       if(guessed_variable_expr)
         argument_exprs.splice(guess_variable_arg_index, 0, guessed_variable_expr);
@@ -372,7 +374,7 @@ class InputContext {
     let [new_stack, expr, variable_expr] = [null, null, null];
     if(guess_variable === 'true') {
       [new_stack, expr] = stack.pop_exprs(1);
-      const [guessed_variable_name, guessed_variable_expr] =
+      const [/*guessed_variable_name*/, guessed_variable_expr] =
             AlgebriteInterface.guess_variable(expr);
       variable_expr = guessed_variable_expr;
       if(!variable_expr) {
@@ -395,10 +397,10 @@ class InputContext {
   // Otherwise, only 1 argument from the stack is taken and
   // the range is assumed to be (-10, 10).
   do_algebrite_check(stack, include_range) {
-    let new_stack, exprs, expr;
+    let exprs, expr;
     let lower_bound = -10.0, upper_bound = 10.0;
     if(include_range === 'true') {
-      [new_stack, ...exprs] = stack.pop_exprs(3);
+      [/*new_stack*/, ...exprs] = stack.pop_exprs(3);
       expr = exprs[0];
       const get_value = expr => {
         if(expr.is_text_expr_with_number()) {
@@ -415,7 +417,7 @@ class InputContext {
         [lower_bound, upper_bound] = [upper_bound, lower_bound];
     }
     else
-      [new_stack, expr] = stack.pop_exprs(1);
+      [/*new_stack*/, expr] = stack.pop_exprs(1);
     const result = AlgebriteInterface.check_relation(
       expr, {
         'time_limit': 2000.0,  // milliseconds
@@ -424,7 +426,8 @@ class InputContext {
         'upper_bound': upper_bound
       });
     const result_text = this._format_algebrite_check_result(result);
-    return stack.push(result_text);  // leave the equation on the stack (otherwise it'd be new_stack.push())
+    // Leave the equation on the stack (otherwise it'd be new_stack.push()).
+    return stack.push(result_text);
   }
   _format_algebrite_check_result(result) {
     let show_variable_value = false;
@@ -596,6 +599,7 @@ class InputContext {
     }
     else
       this.update_document(this.app_state.document.move_selection_by(amount));
+    return stack;
   }
 
   do_shift_document_selection(stack, amount_string) {
@@ -605,6 +609,7 @@ class InputContext {
       this.update_document(new_document);
     else
       this.error_flash_document();
+    return stack;
   }
 
   do_save_file(stack) {
@@ -619,6 +624,7 @@ class InputContext {
       this.perform_undo_or_redo = 'clear';
       this.file_saved_or_loaded = true;
     }
+    return stack;
   }
 
   // TODO: factor with do_save_file
@@ -646,6 +652,7 @@ class InputContext {
       this.perform_undo_or_redo = 'clear';
       this.file_saved_or_loaded = true;
     }
+    return stack;
   }
 
   do_load_selected_file(stack) {
@@ -671,8 +678,10 @@ class InputContext {
       this.update_document(new_app_state.document);
       return new_app_state.stack;
     }
-    else
+    else {
       this.notify('Could not load ' + filename);
+      return stack;
+    }
   }
 
   do_export_selected_file(stack) {
@@ -759,7 +768,8 @@ class InputContext {
     else {
       this.notify('Deleted: ' + filename);
       this.files_changed = true;
-    }      
+    }
+    return stack;
   }
 
   do_delete_all_files(stack) {
@@ -800,7 +810,7 @@ class InputContext {
   }
 
   // Clear stack and document.
-  do_reset_all(stack) {
+  do_reset_all(/*stack*/) {
     this.notify("Stack and document cleared");
     this.update_document(new Document());
     return new Stack();
@@ -1391,8 +1401,7 @@ class InputContext {
        !(textstyle === 'tag' || textstyle === 'tag_with_parentheses'))
       return this._cancel_text_entry(stack);
     const text = this.text_entry.current_text;
-    const trimmed_text = text.trim();
-    let source_text = trimmed_text;  // will be recorded as item.source_string
+    const trimmed_text = text.trim();  // will be recorded as item.source_string
     if(textstyle === 'text' || textstyle === 'heading') {
       // Text entry mode - create TextItems.
       let item = TextItem.parse_string(trimmed_text);
@@ -1405,7 +1414,7 @@ class InputContext {
         this.suppress_undo();
         this.switch_to_mode(this.mode);
         this.error_flash_stack();
-        return;
+        return stack;
       }
     }
     // Other cases here create ExprItems.
@@ -2170,6 +2179,7 @@ class InputContext {
     navigator.clipboard.writeText(exported_text);
     this.notify("Copied document to clipboard");
     this.suppress_undo();
+    return stack;
   }
 
   do_export_stack_items_as_text(stack) {
@@ -2179,6 +2189,7 @@ class InputContext {
     navigator.clipboard.writeText(exported_text);
     this.notify("Copied " + arg + " item" + (arg === 1 ? "" : "s") + " to clipboard");
     this.suppress_undo();
+    return stack;
   }
 }
 

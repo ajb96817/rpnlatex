@@ -748,9 +748,9 @@ class FileManager {
     }
   }
 
-  rename_file(old_filename, new_filename) {
-    not_yet_implemented();
-  }
+  // TODO: not yet implemented
+  // rename_file(old_filename, new_filename) {
+  // }
 
   // Delete the filename from storage.  Return null on success, or an error
   // string on failure.
@@ -1359,7 +1359,7 @@ class TextItemRawElement extends TextItemElement {
   constructor(string) { super(); this.string = string; }
   is_raw() { return true; }
   as_bold() { return this; }
-  to_latex(export_mode) { return this.string; }
+  to_latex(/*export_mode*/) { return this.string; }
   is_explicit_space() { return this.string === "\\,"; }
 }
 
@@ -1617,7 +1617,7 @@ class CodeItem extends Item {
 
   item_type() { return 'code'; }
 
-  to_latex(export_mode) {
+  to_latex(/*export_mode*/) {
     if(this.language === 'latex')
       return this.source;
     else
@@ -1978,7 +1978,7 @@ class MsgpackEncoder {
       9, this.pack_expr(expr.expr),
       expr.typeface, expr.is_bold, expr.size_adjustment];
   }
-  pack_placeholder_expr(expr) { return [10]; }
+  pack_placeholder_expr(/*expr*/) { return [10]; }
   pack_function_call_expr(expr) {
     return [
       11, this.pack_expr(expr.fn_expr),

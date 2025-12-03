@@ -1,6 +1,6 @@
 
 import {
-  LatexEmitter, ExprPath, RationalizeToExpr
+  LatexEmitter, ExprPath
 } from './Models';
 
 
@@ -246,7 +246,7 @@ class Expr {
 
   // Return a new Expr like this one but with the subexpression at the given index replaced
   // with a new one.  The subexpression indexes here correspond to what is returned by subexpressions().
-  replace_subexpression(index, new_expr) { return this; }
+  replace_subexpression(/* index, new_expr */) { return this; }
 
   // Check if this Expr "matches" another Expr (i.e., has the same visual content).
   // Subclasses can extend this to match additional fields that aren't just subexpressions
