@@ -478,6 +478,7 @@ const KeybindingTable = {
     'e': "parenthesize;push erf;swap;operator operatorname 2",
     'E': "parenthesize;push erfc;swap;operator operatorname 2",
     'g': "infix ,;parenthesize;operator gcd",  // NOTE: no lcm(x,y) currently
+    'G': "operator deg",
     'h': "operator hom",
     'i': "operator inf",
     'I': "operator liminf",
@@ -486,6 +487,8 @@ const KeybindingTable = {
     'm': "parenthesize_argument;operator min",
     'M': "operator argmin",
     'n': "parenthesize;push sgn;swap;operator operatorname 2",
+    'p': "parenthesize;push Pr;swap;operator operatorname 2",  // alternative to [/][p]
+    'P': "infix ,;parenthesize;push Pr;swap;operator operatorname 2",  // Pr(x,y)
     's': "operator sup",
     'S': "operator limsup",
     't': "parenthesize_argument;push Tr;swap;operator operatorname 2",
@@ -607,8 +610,12 @@ const KeybindingTable = {
     'G': "push \\nabla;swap;subscript;swap;concat",
     // divergence
     '.': "autoparenthesize;push \\nabla;swap;infix \\cdot",
+    // directional derivative operator
+    '>': "autoparenthesize;push \\nabla;infix \\cdot",
     // curl
     'c': "autoparenthesize;push \\nabla;swap;infix \\times",
+    // curl pullback
+    'C': "autoparenthesize;push \\nabla;infix \\times",
     // Laplacian
     'l': "autoparenthesize;push \\nabla;integer 2;superscript;swap;concat",
     // Delta-x

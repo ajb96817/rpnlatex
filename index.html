@@ -158,7 +158,12 @@
         <li><span class="k">,</span> <em>(comma)</em> Combine two expressions with an <a href="#help_infix">infix operator</a>.</li>
         <li><span class="k">=</span> Combine two expressions with a <a href="#help_relational">relational operator</a>.</li>
         <li><span class="k">/</span> Apply various <a href="#help_operators">functions and operations</a>.</li>
-        <li><span class="k">/</span><span class="k">d</span> Build different kinds of <a href="#help_derivatives">derivatives</a>.</li>
+        <li>
+          <span class="k">/</span><span class="k">d</span> and
+          <span class="k">/</span><span class="k">D</span> and
+          <span class="k">/</span><span class="k">v</span>
+          Build different kinds of <a href="#help_derivatives">derivatives</a>.
+        </li>
         <li><span class="k">/</span><span class="k">i</span> Apply <a href="#help_integrals">integral limits</a>.</li>
         <li><span class="k">/</span><span class="k">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
         <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
@@ -1232,7 +1237,7 @@
       </tbody></table>
       <p>
         <strong>NOTE:</strong>
-        Variance and covariance are also available with the
+        Variance, covariance, and probability are also available with the
         <span class="k">/</span><span class="k">f</span>
         <a href="#help_named_operators">named operators</a> prefix,
         in one- and two-argument forms.
@@ -1339,8 +1344,8 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="k">d</span>
-          Subprefix for building <a href="#help_derivatives">derivative</a> expressions.
+          <span class="k">d</span> and <span class="k">D</span> and <span class="k">v</span>
+          Subprefixes for building <a href="#help_derivatives">derivative</a> expressions.
         </li>
         <li>
           <span class="k">i</span>
@@ -1353,11 +1358,16 @@
       </ul>
 
       <h2 id="help_derivatives">
-        <span class="k">/</span><span class="k">d</span>
+        <span class="k">/</span><span class="k">d</span>&nbsp;
+        <span class="k">/</span><span class="k">D</span>&nbsp;
+        <span class="k">/</span><span class="k">v</span>
         Derivative Building
       </h2>
       <p>
         These are some shortcuts for quickly creating common types of expressions involving derivatives and differentials.
+        The main commands here use the <span class="k">/</span><span class="k">d</span> prefix; variants can
+        be obtained with <span class="k">/</span><span class="k">D</span> and
+        <span class="k">/</span><span class="k">v</span> (see below).
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -1390,10 +1400,14 @@
           </tr>
           <tr>
             <td><span class="k">.</span> <code>x \Rightarrow \nabla\cdot x</code></td>
-            <td><span class="k">c</span> <code>x \Rightarrow \nabla\times x</code></td>
+            <td><span class="k">&gt;</span> <code>x \Rightarrow x\cdot\nabla</code></td>
           </tr>
           <tr>
-            <td><span class="k">l</span> <code>x \Rightarrow \nabla^2 x</code></td>
+            <td><span class="k">c</span> <code>x \Rightarrow \nabla\times x</code></td>
+            <td><span class="k">C</span> <code>x \Rightarrow x\times\nabla</code></td>
+          </tr>
+          <tr>
+            <td><span class="k">l</span> <code>x \Rightarrow \nabla^2 x</code> (<strong>L</strong>aplacian)</td>
             <td><span class="k">n</span> <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)</td>
           </tr>
           <tr>
@@ -1539,8 +1553,8 @@
         Named Operators
       </h2>
       <p>
-        These commands apply named operators like <code>\max</code> to an expression from
-        the stack.  The argument(s) may or may not be automatically parenthesized, depending
+        These commands apply named operators like <code>\max</code> to the stack top.
+        The argument(s) may or may not be automatically parenthesized, depending
         on the traditional usage of the operator.
       </p>
       <table class="keybindings"><tbody>
@@ -1552,28 +1566,33 @@
           <tr>
             <td><span class="k">d</span> <code>\det x</code></td>
             <td><span class="k">D</span> <code>\dim x</code></td>
-            <td><span class="k">e</span> <code>\operatorname{erf}(x)</code></td>
+            <td><span class="k">e</span> <code>\operatorname{erf}{(x)}</code></td>
           </tr>
           <tr>
-            <td><span class="k">E</span> <code>\operatorname{erfc}(x)</code></td>
-            <td><span class="k">g</span> <code>\gcd(x,y)</code></td>
+            <td><span class="k">E</span> <code>\operatorname{erfc}{(x)}</code></td>
+            <td><span class="k">g</span> <code>\gcd{(x,y)}</code></td>
+            <td><span class="k">G</span> <code>\deg x</code></td>
+          </tr>
+          <tr>
             <td><span class="k">h</span> <code>\hom x</code></td>
-          </tr>
-          <tr>
             <td><span class="k">i</span> <code>\inf x</code></td>
             <td><span class="k">I</span> <code>\liminf x</code></td>
-            <td><span class="k">k</span> <code>\ker x</code></td>
           </tr>
           <tr>
+            <td><span class="k">k</span> <code>\ker x</code></td>
             <td><span class="k">l</span> <code>\lim x</code></td>
             <td><span class="k">m</span> <code>\min x</code></td>
-            <td><span class="k">M</span> <code>\argmin x</code></td>
           </tr>
           <tr>
+            <td><span class="k">M</span> <code>\argmin x</code></td>
             <td>
-              <span class="k">n</span> <code>\operatorname{sgn}(x)</code>
+              <span class="k">n</span> <code>\operatorname{sgn}{(x)}</code>
               <em>(sig<strong>n</strong>)</em>
             </td>
+            <td><span class="k">p</span> <code>\Pr{(x)}</code></td>
+          </tr>
+          <tr>
+            <td><span class="k">P</span> <code>\Pr{(x,y)}</code></td>
             <td><span class="k">s</span> <code>\sup x</code></td>
             <td><span class="k">S</span> <code>\limsup x</code></td>
           </tr>
