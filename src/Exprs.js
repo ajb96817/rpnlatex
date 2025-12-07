@@ -690,7 +690,7 @@ class InfixExpr extends Expr {
   // 'op_expr' as the infix operator.
   // If one or both of the expressions are already InfixExprs, they are
   // flattened into a larger InfixExpr.
-  static combine_infix(left_expr, right_expr, op_expr, check_special_cases=true) {
+  static combine_infix(left_expr, right_expr, op_expr, check_special_cases = true) {
     if(check_special_cases) {
       // We want x + -y => x - y.
       if(op_expr.is_text_expr_with('+'))
@@ -913,18 +913,18 @@ class InfixExpr extends Expr {
   // Swap everything to the left of operator_index with everything
   // to the right of operator_index.
   swap_sides_at(operator_index) {
-    const new_operand_exprs =
-          this.operand_exprs.slice(operator_index+1).concat(
-            this.operand_exprs.slice(0, operator_index+1));
-    const new_operator_exprs =
-          this.operator_exprs.slice(operator_index+1).concat(
+    const new_operand_exprs = this.operand_exprs
+          .slice(operator_index+1)
+          .concat(this.operand_exprs.slice(0, operator_index+1));
+    const new_operator_exprs = this.operator_exprs
+          .slice(operator_index+1)
+          .concat(
             [this.operator_exprs[operator_index]],
             this.operator_exprs.slice(0, operator_index));
     // NOTE: linebreaks_at is discarded here, otherwise the result
     // isn't very intuitive.
     return new InfixExpr(
-      new_operand_exprs,
-      new_operator_exprs,
+      new_operand_exprs, new_operator_exprs,
       new_operator_exprs.length - this.split_at_index - 1);
   }
 
@@ -1136,9 +1136,14 @@ class PostfixExpr extends Expr {
     // Unlike Infix/PrefixExpr, the postfix operator is also bolded here.
     // This is mainly because '!' is not exactly a normal operator, but
     // more like a concatenation like 'x!'.
+    // NOTE: It's possible to create PostfixExprs with other operators,
+    // for example by swapping a unary minus PrefixExpr with [/][w].
+    // In that case, the operator is not bolded, for consistency with
+    // PrefixExpr.
     return new PostfixExpr(
       this.base_expr.as_bold(),
-      this.operator_expr.as_bold());
+      this.operator_expr.is_text_expr_with('!') ?
+        this.operator_expr.as_bold() : this.operator_expr);
   }
 
   // Factorial expressions with multiple ! signs are represented as nested
@@ -1221,16 +1226,15 @@ class FunctionCallExpr extends Expr {
     //   f(x+y,z) => [x+y, z] (only the first is an InfixExpr).
     let argument_exprs = [];
     let argument_expr = inner_args_expr.operand_exprs[0];
-    for(let i = 0; i < inner_args_expr.operator_exprs.length; i++) {
-      const operator_expr = inner_args_expr.operator_exprs[i];
+    for(const [i, operator_expr]
+        of inner_args_expr.operator_exprs.entries()) {
       if(operator_expr.is_text_expr_with(',')) {
         argument_exprs.push(argument_expr);
         argument_expr = inner_args_expr.operand_exprs[i+1];
       }
-      else
-        argument_expr = InfixExpr.combine_infix(
-          argument_expr, inner_args_expr.operand_exprs[i+1],
-          operator_expr);
+      else argument_expr = InfixExpr.combine_infix(
+        argument_expr, inner_args_expr.operand_exprs[i+1],
+        operator_expr);
     }
     argument_exprs.push(argument_expr);
     return argument_exprs;
@@ -1385,7 +1389,7 @@ class DelimiterExpr extends Expr {
 
   // expr is about to become the base of a SubscriptSuperscriptExpr.
   // The expression will be parenthesized if it is:
-  //   - any kind of SequenceExpr, InfixExpr, PrefixExpr, or PostfixExpr
+  //   - any kind of SequenceExpr, InfixExpr, PrefixExpr, PostfixExpr, TensorExpr
   //   - blank delimiters containing any kind of InfixExpr
   //   - a normal fraction like \frac{x}{y}
   //   - a "primed" expression like f' (but not f'(x)).
@@ -1412,7 +1416,7 @@ class DelimiterExpr extends Expr {
       // \sin{x}, \ln{x}, etc., but not \sin({x})
       (expr.is_command_expr_with(1) &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
-      // FontExpr(x) where x itself should be parenthesized
+      // FontExpr(x) where x itself should be parenthesized.
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
        this.should_parenthesize_for_power(expr.expr)) ||
       // f', f'', but not f'(x)
@@ -1450,7 +1454,7 @@ class DelimiterExpr extends Expr {
       // \sin{x}, \ln{x}, etc., but not \sin({x})
       (expr.is_command_expr_with(1) &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
-      // FontExpr(x) where x itself should be parenthesized
+      // FontExpr(x) where x itself should be parenthesized.
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
        this.should_parenthesize_for_argument(expr.expr))
     );
@@ -1659,7 +1663,7 @@ class SubscriptSuperscriptExpr extends Expr {
   // so that both slots will be populated.  Otherwise, this SubscriptSuperscriptExpr is
   // nested inside another subscript/superscript node (e.g. x^2^3).
   // A similar rule applies if is_subscript is false.
-  // Passing expr===null will remove the existing subscript/superscript if present.
+  // Passing expr=null will remove the existing subscript/superscript if present.
   with_subscript_or_superscript(expr, is_subscript, autoparenthesize = true) {
     if(!expr) {
       // Removing the existing subscript/superscript if present.
@@ -1810,10 +1814,10 @@ class ArrayExpr extends Expr {
   expr_type() { return 'array'; }
 
   is_matrix() {
-    const t = this.array_type;
     // TODO: t.endsWith('matrix')?
-    return (t === 'bmatrix' || t === 'Bmatrix' || t === 'matrix' ||
-            t === 'pmatrix' || t === 'vmatrix' || t === 'Vmatrix');
+    return [
+      'bmatrix', 'Bmatrix', 'matrix', 'pmatrix', 'vmatrix', 'Vmatrix'
+    ].includes(this.array_type);
   }
 
   // Return a copy of this expression but with a different array_type (e.g. 'pmatrix').
@@ -1829,7 +1833,8 @@ class ArrayExpr extends Expr {
       this.array_type,
       this.row_count,
       this.column_count,
-      this.element_exprs.map(row_exprs => row_exprs.map(expr => expr.as_bold())),
+      this.element_exprs.map(
+        row_exprs => row_exprs.map(expr => expr.as_bold())),
       this.row_separators,
       this.column_separators);
   }
@@ -1846,7 +1851,8 @@ class ArrayExpr extends Expr {
     if(this.column_count > 1) {
       new_element_exprs = this.element_exprs.map((row_exprs, index) => [
         ...row_exprs.slice(0, -1),
-        (index === 0 || index === this.row_count-1) ? make_cell('cdots') : TextExpr.blank(),
+        (index === 0 || index === this.row_count-1) ?
+          make_cell('cdots') : TextExpr.blank(),
         row_exprs[this.column_count-1]
       ]);
       new_column_count++;
@@ -1862,7 +1868,6 @@ class ArrayExpr extends Expr {
       new_element_exprs.splice(this.row_count-1, 0, inserted_row_exprs);
       new_row_count++;
     }
-    // TODO: preserve row/column separators
     return new ArrayExpr(
       this.array_type, new_row_count, new_column_count, new_element_exprs);
   }
@@ -2066,8 +2071,8 @@ class ArrayExpr extends Expr {
     if(!(this.is_matrix() && this.column_count === 1))
       return this;
     const new_element_exprs = [];
-    for(let row = 0; row < this.row_count; row++) {
-      const element_expr = this.element_exprs[row][0];
+    for(const [row, row_exprs] of this.element_exprs.entries()) {
+      const element_expr = row_exprs[0];
       if(!(element_expr.array_type === this.array_type &&
            element_expr.column_count === 1 &&
            element_expr.row_count === this.element_exprs[0][0].row_count))
@@ -2217,6 +2222,8 @@ class TensorExpr extends Expr {
     if(exprs.left_upper.length > 0) {
       // Create a 'phantom' copy of the base_expr; the left subscripts
       // and/or superscripts will be attached to this.
+      // TODO: The phantoms create "spooky" false highlights in dissect mode
+      // (KaTeX quirk), need to fix it.
       emitter.command('vphantom');
       emitter.grouped_expr(this.base_expr, 'force', null);
       emitter.text('^');
@@ -2261,6 +2268,9 @@ class TensorExpr extends Expr {
   }
 
   subexpressions() {
+    return this.cached_subexpressions ||= this._subexpressions();
+  }
+  _subexpressions() {
     let subexprs = [];
     const exprs = this.index_exprs;
     for(const index_exprs
