@@ -1102,7 +1102,7 @@ class InputContext {
   //   - TensorExprs swap their left and right indices.
   //   - SubscriptSuperscriptExpr swap their subscripts and superscripts.
   //   - PostfixExprs become PrefixExprs and vice-versa.
-  do_swap_infix(stack) {
+  do_swap_pieces(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr = null;
     if(expr.is_infix_expr())
@@ -2088,10 +2088,7 @@ class InputContext {
     switch(upper_or_lower) {
     case 'upper': upper_index_expr = new_index_exprs[0]; break;
     case 'lower': lower_index_expr = new_index_exprs[0]; break;
-    case 'both':
-      lower_index_expr = new_index_exprs[0];
-      upper_index_expr = new_index_exprs[1];
-      break;
+    case 'both': [lower_index_expr, upper_index_expr] = new_index_exprs; break;
     default: return this.error_flash_stack();  // shouldn't happen
     }
     const new_tensor_expr = tensor_expr.add_indices(

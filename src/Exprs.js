@@ -1590,6 +1590,19 @@ class SubscriptSuperscriptExpr extends Expr {
     return exprs;
   }
 
+  matches(expr) {
+    if(this === expr) return true;
+    if(this.expr_type() !== expr.expr_type() ||
+       (this.superscript_expr === null) !== (expr.superscript_expr === null) ||
+       (this.subscript_expr === null) !== (expr.subscript_expr === null) ||
+       (this.superscript_expr &&
+        !this.superscript_expr.matches(expr.superscript_expr)) ||
+       (this.subscript_expr &&
+        !this.subscript_expr.matches(expr.subscript_expr)))
+      return false;
+    return this.base_expr.matches(expr.base_expr);
+  }
+
   // NOTE: the meaning of 'index' varies depending on whether sub/superscript is populated.
   replace_subexpression(index, new_expr) {
     return new SubscriptSuperscriptExpr(
@@ -2085,7 +2098,7 @@ class ArrayExpr extends Expr {
 
 
 // Tensor index notation expression.  A TensorExpr has a base expression
-// with four positions (upper/lower plus left/right) that can each contain
+// with four corners (upper/lower plus left/right) that can each contain
 // a list of index expressions.  Unlike SubscriptSuperscriptExpr, indices
 // can go on the left of the base expression.  Also, null index expressions
 // are allowed, in which case they are rendered with the appropriate spacing
@@ -2147,7 +2160,7 @@ class TensorExpr extends Expr {
   }
 
   // Similar to add_indices(), but attach the index_expr to both upper and lower
-  // indices as long as the corresponding slots are populated (or if it's directly
+  // indices as long as the adjacent slots are populated (or if it's directly
   // next to the base expression).
   affix_index(side, index_expr, outside = false) {
     const exprs = this.index_exprs;

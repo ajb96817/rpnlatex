@@ -164,7 +164,11 @@
           <span class="k">/</span><span class="k">v</span>
           Build different kinds of <a href="#help_derivatives">derivatives</a>.
         </li>
-        <li><span class="k">/</span><span class="k">i</span> Apply <a href="#help_integrals">integral limits</a>.</li>
+        <li>
+          <span class="k">/</span><span class="k">i</span> and
+          <span class="k">/</span><span class="k">I</span>
+          Apply <a href="#help_integrals">integral limits</a>.
+        </li>
         <li><span class="k">/</span><span class="k">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
         <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
@@ -1497,61 +1501,51 @@
       </p>
 
       <h2 id="help_integrals">
-        <span class="k">/</span><span class="k">i</span>
+        <span class="k">/</span><span class="k">i</span>&nbsp;
+        <span class="k">/</span><span class="k">I</span>
         Integral Limits
       </h2>
       <p>
         These commands are for quickly applying common limits to integral signs.
+        The <span class="k">/</span><span class="k">i</span> prefix applies limits to an existing
+        integral sign (or other expression) on the stack,
+        while <span class="k">/</span><span class="k">I</span>
+        creates the integral sign and the limits in a single command.
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="k">r</span> <code>\int \Rightarrow \int_{-\infty}^\infty</code></td>
+            <td><span class="k">r</span> <code>\Rightarrow \int_{-\infty}^\infty</code></td>
             <td><em>reals</em></td>
           </tr>
           <tr>
-            <td><span class="k">R</span> <code>\int \Rightarrow \int_{\mathcal{R}}</code></td>
+            <td><span class="k">R</span> <code>\Rightarrow \int_{\mathcal{R}}</code></td>
             <td><em>alternative notation for reals</em></td>
           </tr>
           <tr>
-            <td><span class="k">p</span> <code>\int \Rightarrow \int_0^\infty</code></td>
+            <td><span class="k">p</span> <code>\Rightarrow \int_0^\infty</code></td>
             <td><em>positive</em></td>
           </tr>
           <tr>
-            <td><span class="k">n</span> <code>\int \Rightarrow \int_{-\infty}^0</code></td>
+            <td><span class="k">n</span> <code>\Rightarrow \int_{-\infty}^0</code></td>
             <td><em>negative</em></td>
           </tr>
           <tr>
-            <td><span class="k">u</span> <code>\int \Rightarrow \int_0^1</code></td>
+            <td><span class="k">u</span> <code>\Rightarrow \int_0^1</code></td>
             <td><em>unit</em></td>
           </tr>
           <tr>
-            <td><span class="k">U</span> <code>\int \Rightarrow \int_{-1}^1</code></td>
+            <td><span class="k">U</span> <code>\Rightarrow \int_{-1}^1</code></td>
             <td><em>symmetric unit</em></td>
           </tr>
           <tr>
-            <td><span class="k">t</span> <code>\int \Rightarrow \int_0^{2\pi}</code></td>
+            <td><span class="k">t</span> <code>\Rightarrow \int_0^{2\pi}</code></td>
             <td><em>trigonometric</em></td>
           </tr>
           <tr>
-            <td><span class="k">T</span> <code>\int \Rightarrow \int_{-\pi}^\pi</code></td>
+            <td><span class="k">T</span> <code>\Rightarrow \int_{-\pi}^\pi</code></td>
             <td><em>symmetric trigonometric</em></td>
           </tr>
       </tbody></table>
-      <p>
-        These can apply to objects other than integral signs as well, for example:
-        <code>\left[\frac{x^2}{2}\right]_0^1</code>
-      </p>
-
-      <p>
-        <strong>Integral Sign + Limits:</strong>
-        Using the prefix <span class="k">/</span><span class="k">I</span>
-        instead of <span class="k">/</span><span class="k">i</span>
-        works like the above, except that the integral sign itself is created too,
-        rather than it having to exist beforehand.
-        Example:
-        <span class="k">/</span><span class="k">I</span><span class="k">r</span>
-        <code>\Rightarrow \int_{-\infty}^{\infty}</code>
-      </p>
 
       <h2 id="help_named_operators">
         <span class="k">/</span><span class="k">f</span>
@@ -2059,7 +2053,7 @@
         <li>
           <span class="k">`</span> or <span class="k">^</span>
           Add an upper (contravariant) index to a tensor:
-          <code>T\enspace x \Rightarrow T^x</code>
+          <code>T\enspace x \Rightarrow \displaystyle{T^x}</code>
         </li>
         <li>
           <span class="k">_</span> or <span class="k">Enter</span>
@@ -2069,41 +2063,42 @@
         <li>
           <span class="k">i</span> or <span class="k">&nbsp;</span>
           Add lower and upper <strong>i</strong>ndices at once; they will share an axis slot:
-          <code>T\enspace x\enspace y \Rightarrow T_x^y</code>
+          <code>T\enspace x\enspace y \Rightarrow \displaystyle{T_{x}^{y}}</code>
         </li>
         <li>
           <span class="k">.</span>
           Affix ellipses (<code>\,\cdots\,</code>) to the outermost indices.  Ellipses will not
           be added next to blank index slots.  For example:
-          <code>T_a^b \Rightarrow T^{b\,\cdots\,}_{a\,\cdots\,}</code>, but
-          <code>T^{\hphantom{a}b}_{a\hphantom{b}} \Rightarrow
-            T^{\hphantom{a}b\,\cdots\,}_{a\hphantom{b}\hphantom{\,\cdots\,}}</code>
+          <code>\displaystyle{T_a^b} \Rightarrow \displaystyle{T^{b\,\cdots\,}_{a\,\cdots\,}}</code>, but
+          <code>\displaystyle{T^{\hphantom{a}b}_{a\hphantom{b}}} \Rightarrow
+            \displaystyle{T^{\hphantom{a}b\,\cdots\,}_{a\hphantom{b}\hphantom{\,\cdots\,}}}</code>
         </li>
         <li>
           <span class="k">,</span>
           Similar to <span class="k">.</span> but affix commas instead.
           This is for creating expressions like
-          <code>T^{a\hphantom{b}\hphantom{,}\hphantom{c}}_{\hphantom{a}b,c}</code>
+          <code>\displaystyle{T^{a\hphantom{b}\hphantom{,}\hphantom{c}}_{\hphantom{a}b,c}}</code>
         </li>
         <li>
           <span class="k">l</span> or <span class="k">~</span>
           Switch to <em>left</em> mode.  After switching,
           the previous commands will add indices to the left side of the tensor instead,
-          e.g. <code>T\enspace x \Rightarrow \vphantom{T}^x T</code>
+          e.g. <code>T\enspace x \Rightarrow \displaystyle{\vphantom{T}^x T}</code>
         </li>
         <li>
           <span class="k">c</span>
           <strong>C</strong>ondense indices by moving them towards the tensor base,
           closing up any empty slots:
-          <code>\vphantom{T}^{\hphantom{a}bc}_{a\hphantom{b}\hphantom{c}}\Gamma^{\hphantom{d}e}_{d\hphantom{e}}
+          <code>\displaystyle{\vphantom{T}^{\hphantom{a}bc}_{a\hphantom{b}\hphantom{c}}\Gamma^{\hphantom{d}e}_{d\hphantom{e}}}
             \Rightarrow
-            \vphantom{T}^{bc}_{\hphantom{b}a}\Gamma^e_d
+            \displaystyle{\vphantom{T}^{bc}_{\hphantom{b}a}\Gamma^e_d}
           </code>
         </li>
         <li>
           <span class="k">w</span>
           S<strong>w</strong>ap the type (upper or lower) of all tensor indices:
-          <code>T^a_{\hphantom{a}bc} \Leftrightarrow T_a^{\hphantom{a}bc}</code>
+          <code>\displaystyle{T^a_{\hphantom{a}bc}} \Leftrightarrow
+            \displaystyle{T_a^{\hphantom{a}bc}}</code>
         </li>
       </ul>
       <p>

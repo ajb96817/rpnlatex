@@ -440,7 +440,7 @@ const KeybindingTable = {
     'U': "swap;operator underset 2",
     'v': "mode variational",
     'V': "parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x]
-    'w': "swap_infix",
+    'w': "swap_pieces",
     'x': "parenthesize [ ];push E;typeface blackboard;swap;build_function_call",  // E[x] (expectation)
     'X': "infix \\,\\vert\\,;parenthesize [ ];push E;typeface blackboard;swap;build_function_call",  // E[y|x]
     'y': "push E;typeface blackboard;swap;subscript;swap;parenthesize [ ];build_function_call",  // E_x[y] (with subscript)
