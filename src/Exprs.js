@@ -2098,10 +2098,7 @@ class ArrayExpr extends Expr {
 // not counted.
 //
 // 'options' is currently unused/unimplemented, but can be a list of option
-// strings.  Planned:
-//   - 'dots': show \cdot for empty index slots
-//   - 'commas': put commas between adjacent indices (not counting empty slots)
-//   - 'ellipses': show centered ellipses between final adjacent indices
+// strings.
 class TensorExpr extends Expr {
   constructor(base_expr, index_exprs = null, options = null) {
     super();
@@ -2137,6 +2134,22 @@ class TensorExpr extends Expr {
       right_lower: combine(exprs.right_lower, side === 'right' ? [lower_index_expr] : []),
       right_upper: combine(exprs.right_upper, side === 'right' ? [upper_index_expr] : [])
     });
+  }
+
+  // Similar to add_indices(), but attach the index_expr to both upper and lower
+  // indices as long as the corresponding slots are populated (or if it's directly
+  // next to the base expression).
+  affix_index(side, index_expr, outside = false) {
+    const exprs = this.index_exprs;
+    const upper_exprs = side === 'left' ? exprs.left_upper : exprs.right_upper;
+    const lower_exprs = side === 'left' ? exprs.left_lower : exprs.right_lower;
+    const do_upper = upper_exprs.length === 0 || upper_exprs[outside ? 0 : upper_exprs.length-1];
+    const do_lower = lower_exprs.length === 0 || lower_exprs[outside ? 0 : lower_exprs.length-1];
+    return this.add_indices(
+      side,
+      do_upper ? index_expr : null,
+      do_lower ? index_expr : null,
+      outside);
   }
 
   swap_left_and_right() {
@@ -2233,7 +2246,7 @@ class TensorExpr extends Expr {
           emitter.grouped_expr(opposite_index_expr, 'force', null);
         }
       }
-    });
+    }, 'force' /* e.g. T^{\,\cdots\,}, not T^\,\cdots\, */);
     return subexpr_index;
   }
 

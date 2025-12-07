@@ -2101,6 +2101,19 @@ class InputContext {
     return new_stack.push_expr(new_tensor_expr);
   }
 
+  // "Affix" an expression a tensor on the given side ('left' or 'right').
+  // Works like add_tensor_index, but attaches the expression to both
+  // upper and lower indices as long as the corresponding slots are populated.
+  // This is used to add commas and ellipses into the indices.
+  do_affix_tensor_index(stack, side) {
+    const [new_stack, base_expr, new_index_expr] = stack.pop_exprs(2);
+    const tensor_expr = base_expr.is_tensor_expr() ?
+          base_expr : new TensorExpr(base_expr);
+    const new_tensor_expr = tensor_expr.affix_index(
+      side, new_index_expr, side === 'left');
+    return new_stack.push_expr(new_tensor_expr);
+  }
+
   // Swap upper (contravariant) and lower (covariant) indexes of a TensorExpr.
   // This will also swap superscripts and subscripts in a SubscriptSuperscriptExpr.
   do_swap_tensor_index_type(stack) {

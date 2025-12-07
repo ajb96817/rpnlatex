@@ -1028,7 +1028,9 @@ const KeybindingTable = {
     'l': "mode tensor(left)",
     '~': "mode tensor(left)",
     'w': "swap_tensor_index_type",
-    'c': "condense_tensor"
+    'c': "condense_tensor",
+    '.': "push \\,\\cdots\\,;affix_tensor_index right",
+    ',': "push ,;affix_tensor_index right"
   },
 
   // [~][l] prefix
@@ -1040,7 +1042,11 @@ const KeybindingTable = {
     'i': "add_tensor_index left both",
     ' ': "add_tensor_index left both",
     'l': "mode tensor",  // switch out of (left) mode
-    '~': "mode tensor"
+    '~': "mode tensor",
+    'w': "swap_tensor_index_type",
+    'c': "condense_tensor",
+    '.': "push \\,\\cdots\\,;affix_tensor_index left",
+    ',': "push ,;affix_tensor_index left"
   },
 
   // [_] prefix: dissect mode

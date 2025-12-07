@@ -2072,6 +2072,20 @@
           <code>T\enspace x\enspace y \Rightarrow T_x^y</code>
         </li>
         <li>
+          <span class="k">.</span>
+          Affix ellipses (<code>\,\cdots\,</code>) to the outermost indices.  Ellipses will not
+          be added next to blank index slots.  For example:
+          <code>T_a^b \Rightarrow T^{b\,\cdots\,}_{a\,\cdots\,}</code>, but
+          <code>T^{\hphantom{a}b}_{a\hphantom{b}} \Rightarrow
+            T^{\hphantom{a}b\,\cdots\,}_{a\hphantom{b}\hphantom{\,\cdots\,}}</code>
+        </li>
+        <li>
+          <span class="k">,</span>
+          Similar to <span class="k">.</span> but affix commas instead.
+          This is for creating expressions like
+          <code>T^{a\hphantom{b}\hphantom{,}\hphantom{c}}_{\hphantom{a}b,c}</code>
+        </li>
+        <li>
           <span class="k">l</span> or <span class="k">~</span>
           Switch to <em>left</em> mode.  After switching,
           the previous commands will add indices to the left side of the tensor instead,
