@@ -15,6 +15,8 @@ const KeybindingTable = {
     'Enter': "subscript",
     'Shift+Enter': "edit_item",
     'Backspace': "pop",
+    'Shift+Backspace': "nip",  // undocumented
+    
     // NOTE: ! receives special processing in do_concat (Expr.combine_pair),
     //       becoming a PostfixExpr.
     '!': "autoparenthesize;push !;concat",
@@ -1025,12 +1027,13 @@ const KeybindingTable = {
     ' ': "add_tensor_index right both",
     'l': "mode tensor(left)",
     '~': "mode tensor(left)",
-    'w': "swap_tensor_index_type"
+    'w': "swap_tensor_index_type",
+    'c': "condense_tensor"
   },
 
   // [~][l] prefix
   'tensor(left)': {
-    '`': "add_tensor_index lef upper",
+    '`': "add_tensor_index left upper",
     '^': "add_tensor_index left upper",
     'Enter': "add_tensor_index left lower",
     '_': "add_tensor_index left lower",

@@ -1541,11 +1541,20 @@ class InputContext {
         this.do_start_text_entry(new_stack, 'latex_entry', expr.command_name);
       }
       else {
-        // Anything else.
-        const s = item.source_string || expr.as_editable_string();
-        if(s)
-          this.do_start_text_entry(new_stack, 'math_entry', s);
-        else is_editable = false;
+        // Anything else.  Note that an empty item.source_string ('') can be used
+        // to inhibit editing, even for things like TextExpr that would normally
+        // be editable.  This is used currently to prevent editing of pasted
+        // LaTeX code (via [Tab][V]) since the minieditor probably won't be able
+        // to parse it.
+        let s = item.source_string;
+        if(s === '')
+          is_editable = false;
+        else {
+          s ||= expr.as_editable_string();
+          if(s)
+            this.do_start_text_entry(new_stack, 'math_entry', s);
+          else is_editable = false;
+        }
       }
     }
     else is_editable = false;  // CodeItem, etc.
@@ -2105,6 +2114,13 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
+  do_condense_tensor(stack) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    if(!expr.is_tensor_expr())
+      return stack.type_error();
+    return new_stack.push_expr(expr.condense());
+  }
+
   // Copy stack top to an internal clipboard slot.
   // TODO: A prefix argument may be given to access other slots but prefix
   // arguments with stack commands highlight items on the stack which is bad UI.
@@ -2149,15 +2165,18 @@ class InputContext {
     // the pasted code is not parsed, we don't know to do that.
     // Adding spaces isn't perfect, but prevents most unintentional cases like this.
     code = [' ', code, ' '].join('');
-    return stack.push_expr(new TextExpr(code));
+    // Create the ExprItem with an explicit empty source_string;
+    // this will inhibit editing with the minieditor.
+    const item = new ExprItem(new TextExpr(code), null, '');
+    return stack.push(item);
   }
 
   do_swap_floating_item(stack) {
     if(stack.floating_item)
-      return stack.set_floating_item(null).push(stack.floating_item);
+      return stack.with_floating_item(null).push(stack.floating_item);
     else {
       const [new_stack, item] = stack.pop(1);
-      return new_stack.set_floating_item(item);
+      return new_stack.with_floating_item(item);
     }
   }
 

@@ -2026,7 +2026,7 @@
       </ul>
 
       <h2 id="help_tensors">
-        <span class="k">~</span> Tensor Index Notation
+        <span class="k">~</span> Tensors
       </h2>
       <p>
         These commands are for building and manipulating tensors using <em>index notation</em>.
@@ -2051,8 +2051,8 @@
         </li>
         <li>
           Tensor indices may also be attached to the left side of the tensor base, allowing notation
-          such as <code>\vphantom{X}^a_b X</code>.  This can be used to create chemical symbols like
-          <code>\vphantom{\mathrm{Pu}}^{239}_{\hphantom{239}}{\mathrm{Pu}}</code>.
+          such as <code>\vphantom{X}^a_b X</code>.  (This can be used to create chemical symbols like
+          <code>\vphantom{\mathrm{Pu}}^{239}_{\hphantom{239}}{\mathrm{Pu}}</code>.)
         </li>
       </ul>
       <ul class="keybindings">
@@ -2073,9 +2073,18 @@
         </li>
         <li>
           <span class="k">l</span> or <span class="k">~</span>
-          Switch to <em>left</em> mode.  After pressing <span class="k">l</span>,
-          the previous commands will instead add indices to the left side of the tensor,
+          Switch to <em>left</em> mode.  After switching,
+          the previous commands will add indices to the left side of the tensor instead,
           e.g. <code>T\enspace x \Rightarrow \vphantom{T}^x T</code>
+        </li>
+        <li>
+          <span class="k">c</span>
+          <strong>C</strong>ondense indices by moving them towards the tensor base,
+          closing up any empty slots:
+          <code>\vphantom{T}^{\hphantom{a}bc}_{a\hphantom{b}\hphantom{c}}\Gamma^{\hphantom{d}e}_{d\hphantom{e}}
+            \Rightarrow
+            \vphantom{T}^{bc}_{\hphantom{b}a}\Gamma^e_d
+          </code>
         </li>
         <li>
           <span class="k">w</span>

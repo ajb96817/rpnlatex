@@ -1201,8 +1201,9 @@ Item.serial_number = 1;
 
 // Represents a math expression (Expr instance) in the stack or document.
 class ExprItem extends Item {
-  // 'selected_expr_path' is an optional ExprPath object; the indicated subexpression(s)
-  // will be highlighted in a "selected" style by the renderer.
+  // 'selected_expr_path' is an optional ExprPath object; the indicated
+  // subexpression(s) will be highlighted in a "selected" style by the
+  // renderer (used for dissect mode).
   constructor(expr, tag_string, source_string, selected_expr_path) {
     super(tag_string, source_string);
     this.expr = expr;
@@ -1706,7 +1707,7 @@ class Stack {
   push(item) { return this.push_all([item]); }
   push_expr(expr) { return this.push_all_exprs([expr]); }
 
-  set_floating_item(new_item) { return new Stack(this.items, new_item); }
+  with_floating_item(new_item) { return new Stack(this.items, new_item); }
 
   // Return a new Stack with cloned copies of all the items.
   // The cloned items will have new React IDs, which will force a re-render of the items.
@@ -1807,15 +1808,14 @@ class Document {
 // representation suitable for storage.
 //
 // For Expr objects, the general format is [expr_type_code, ...expr_state].
-// For example, a TextExpr('abc') becomes [1, 'abc'] (and then encoded by
+// For example, a TextExpr('abc') becomes [1, 'abc'] (and is then encoded by
 // by msgpack).  In JSON, this would instead be:
-// { 'expr_type': 'text', 'text': 'abc' } which is much longer and contains
+// {'expr_type': 'text', 'text': 'abc'} which is much longer and contains
 // repetitive strings like 'expr_type'.  The msgpack format takes roughly
 // 15-20% the space of JSON, even after Base64 encoding.
 //
 // Base64 encoding is needed if saving to localStorage which doesn't support raw
-// binary strings/arrays.  IndexedDB allows it, but Base64 is used for that too
-// for simplicity.
+// binary strings/arrays.
 //
 // MsgpackDecoder can be used to reconstitute the serialized objects.
 class MsgpackEncoder {

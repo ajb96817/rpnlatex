@@ -1507,10 +1507,8 @@ class DelimiterExpr extends Expr {
   // Return a copy of this expression but with the given fixed_size flag.
   as_fixed_size(fixed_size) {
     return new DelimiterExpr(
-      this.left_type,
-      this.right_type,
-      this.inner_expr,
-      fixed_size);
+      this.left_type, this.right_type,
+      this.inner_expr, fixed_size);
   }
 
   has_subexpressions() { return true; }
@@ -1525,10 +1523,8 @@ class DelimiterExpr extends Expr {
 
   replace_subexpression(index, new_expr) {
     return new DelimiterExpr(
-      this.left_type,
-      this.right_type,
-      new_expr,
-      this.fixed_size);
+      this.left_type, this.right_type,
+      new_expr, this.fixed_size);
   }
 
   // An inline division infix expression surrounded by "blank" delimiters
@@ -2106,7 +2102,6 @@ class ArrayExpr extends Expr {
 //   - 'dots': show \cdot for empty index slots
 //   - 'commas': put commas between adjacent indices (not counting empty slots)
 //   - 'ellipses': show centered ellipses between final adjacent indices
-//   - 'enlarge': enlarge index expressions with FontExpr size adjustment
 class TensorExpr extends Expr {
   constructor(base_expr, index_exprs = null, options = null) {
     super();
@@ -2158,6 +2153,39 @@ class TensorExpr extends Expr {
       left_lower: exprs.left_upper, left_upper: exprs.left_lower,
       right_lower: exprs.right_upper, right_upper: exprs.right_lower
     });
+  }
+
+  condense() {
+    const sort_fn = (left, right) => {
+      // Keep nulls on the right and non-nulls on the left.
+      // (Relies on sort() being stable.)
+      if(left && !right) return -1;
+      else if(right && !left) return 1;
+      else return 0;
+    };
+    let new_index_exprs = {};
+    for(const position_name of TensorExpr.position_names()) {
+      let new_exprs = [...this.index_exprs[position_name]];
+      new_exprs.sort(
+        ['right_upper', 'right_lower'].includes(position_name) ?
+          sort_fn : (left, right) => -sort_fn(left, right));
+      new_index_exprs[position_name] = new_exprs;
+    }
+    // Delete any empty index pairs that may have been created.
+    for(const [upper_exprs, lower_exprs] of
+        [[new_index_exprs.left_upper, new_index_exprs.left_lower],
+         [new_index_exprs.right_upper, new_index_exprs.right_lower]]) {
+      let new_upper_exprs = [], new_lower_exprs = [];
+      for(const [i, upper_expr] of upper_exprs.entries()) {
+        if(upper_expr || lower_exprs[i]) {
+          new_upper_exprs.push(upper_expr);
+          new_lower_exprs.push(lower_exprs[i]);
+        }
+      }
+      upper_exprs.splice(0, upper_exprs.length, ...new_upper_exprs);
+      lower_exprs.splice(0, lower_exprs.length, ...new_lower_exprs);
+    }
+    return new TensorExpr(this.base_expr, new_index_exprs);
   }
 
   emit_latex(emitter) {
