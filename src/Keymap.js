@@ -11,8 +11,6 @@ const KeybindingTable = {
     // Letters and numbers immediately push onto the stack
     '[alnum]': "push_last_keypress",
 
-    //'~': "push \\sim",  // [~] will eventually be used for a mode prefix
-
     // Immediate action special keys
     'Enter': "subscript",
     'Shift+Enter': "edit_item",
@@ -65,6 +63,7 @@ const KeybindingTable = {
     "\\": "start_text_entry math_entry",
     "\"": "start_text_entry text_entry",
     '|': "mode array",
+    '~': "mode tensor",
     '_': "start_dissect_mode",
     '#': "mode algebrite",
     '$': "mode config",
@@ -167,6 +166,7 @@ const KeybindingTable = {
     '[': "scroll_to help_delimiters",
     '{': "scroll_to help_delimiters",
     '|': "scroll_to help_arrays",
+    '~': "scroll_to help_tensors",
     '_': "scroll_to help_dissect",
     '#': "scroll_to help_cas",
     ';': "scroll_to help_greek",
@@ -1013,6 +1013,21 @@ const KeybindingTable = {
     '(': "change_matrix_type pmatrix",
     '[': "change_matrix_type bmatrix",
     '{': "change_matrix_type Bmatrix"
+  },
+
+  // [~] prefix: tensor commands
+  tensor: {
+    '`': "add_tensor_index right upper",
+    '^': "add_tensor_index right upper",
+    'Enter': "add_tensor_index right lower",
+    '_': "add_tensor_index right lower",
+    'i': "add_tensor_index right both",
+    'l': "add_tensor_index left upper",
+    'L': "add_tensor_index left lower",
+    'I': "add_tensor_index left both",
+    'w': "swap_tensor_index_type",
+
+    '~': "add_tensor_index right upper"  // convenience alias
   },
 
   // [_] prefix: dissect mode

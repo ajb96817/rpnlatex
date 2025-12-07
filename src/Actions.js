@@ -10,10 +10,10 @@ import {
 } from './Models';
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, 
-  FunctionCallExpr, PlaceholderExpr, TextExpr, 
-  DelimiterExpr, ArrayExpr
-  /* Not explicitly used here:
-     PostfixExpr, SequenceExpr, SubscriptSuperscriptExpr */
+  FunctionCallExpr, PlaceholderExpr, TextExpr,
+  SubscriptSuperscriptExpr, DelimiterExpr,
+  ArrayExpr, TensorExpr
+  /* Not explicitly used here: PostfixExpr, SequenceExpr */
 } from './Exprs';
 import {
   AlgebriteInterface
@@ -1120,6 +1120,8 @@ class InputContext {
           expr.inner_expr.operator_exprs),
         expr.is_fixed_size);
     }
+    else if(expr.is_tensor_expr())
+      new_expr = expr.swap_left_and_right();
     if(new_expr)
       return new_stack.push_expr(new_expr);
     else
@@ -2055,6 +2057,43 @@ class InputContext {
     const rows = exprs.map(expr => [expr]);  // Nx1 array
     return new_stack.push_expr(
       new ArrayExpr('substack', expr_count, 1, rows));
+  }
+
+  // side: 'left' or 'right'
+  // upper_or_lower: 'upper' or 'lower' or 'both'
+  do_add_tensor_index(stack, side, upper_or_lower) {
+    const arg_count = upper_or_lower === 'both' ? 2 : 1;
+    const [new_stack, base_expr, ...new_index_exprs] =
+          stack.pop_exprs(1+arg_count);
+    const tensor_expr = base_expr.is_tensor_expr() ?
+          base_expr : new TensorExpr(base_expr);
+    let upper_index_expr = null, lower_index_expr = null;
+    switch(upper_or_lower) {
+    case 'upper': upper_index_expr = new_index_exprs[0]; break;
+    case 'lower': lower_index_expr = new_index_exprs[0]; break;
+    case 'both':
+      upper_index_expr = new_index_exprs[1];
+      lower_index_expr = new_index_exprs[0];
+      break;
+    default: return this.error_flash_stack();  // shouldn't happen
+    }
+    const new_tensor_expr = tensor_expr.add_indexes(
+      side, upper_index_expr, lower_index_expr,
+      side === 'left' /* put new indexes to left of any existing ones */);
+    return new_stack.push_expr(new_tensor_expr);
+  }
+
+  // Swap upper (contravariant) and lower (covariant) indexes of a TensorExpr.
+  // This will also swap superscripts and subscripts in a SubscriptSuperscriptExpr.
+  do_swap_tensor_index_type(stack) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    let new_expr = expr;
+    if(expr.is_tensor_expr())
+      new_expr = expr.swap_lower_and_upper();
+    else if(expr.is_subscriptsuperscript_expr())
+      new_expr = new SubscriptSuperscriptExpr(
+        expr.base_expr, expr.superscript_expr, expr.subscript_expr);
+    return new_stack.push_expr(new_expr);
   }
 
   // Copy stack top to an internal clipboard slot.

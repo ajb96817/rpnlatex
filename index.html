@@ -168,6 +168,7 @@
         <li><span class="k">/</span><span class="k">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
         <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
+        <li><span class="k">~</span> Create expressions using <a href="#help_tensors">tensor index notation</a>.</li>
         <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
         <li><span class="k">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
         <li><span class="k">;</span> Create <a href="#help_greek">Greek letters</a>.</li>
@@ -1165,13 +1166,13 @@
       <p>
         Some common function application patterns can be created directly with
         <span class="k">Ctrl</span> key shortcuts:
-        <ul class="keybindings">
-          <li><span class="k">Ctrl+x</span><code>\quad f\Rightarrow f(x)</code></li>
-          <li><span class="k">Ctrl+t</span><code>\quad f\Rightarrow f(t)</code></li>
-          <li><span class="k">Ctrl+f</span><code>\quad x\Rightarrow f(x)</code></li>
-          <li><span class="k">Ctrl+g</span><code>\quad x\Rightarrow g(x)</code></li>
-        </ul>
       </p>
+      <ul class="keybindings">
+        <li><span class="k">Ctrl+x</span><code>\quad f\Rightarrow f(x)</code></li>
+        <li><span class="k">Ctrl+t</span><code>\quad f\Rightarrow f(t)</code></li>
+        <li><span class="k">Ctrl+f</span><code>\quad x\Rightarrow f(x)</code></li>
+        <li><span class="k">Ctrl+g</span><code>\quad x\Rightarrow g(x)</code></li>
+      </ul>
 
       <p><strong>Vertical Stacking:</strong></p>
       <ul class="keybindings">
@@ -2019,6 +2020,79 @@
           the operator and they will be lined up in a stack underneath or above.
         </li>
       </ul>
+
+      <h2 id="help_tensors">
+        <span class="k">~</span> Tensor Index Notation
+      </h2>
+      <p>
+        These commands are for building and manipulating tensors using <em>index notation</em>.
+        This is similar to normal subscript and superscript notation, but with the following
+        differences:
+      </p>
+      <ul>
+        <li>
+          Using these commands creates a <em>tensor base</em> to which <em>upper and lower indices</em>
+          can be attached, representing the contravariant and covariant axes of the tensor.
+        </li>
+        <li>
+          Multiple indices may be attached to the same tensor base, and will stack horizontally next
+          to each other rather than becoming nested as in the case of repeated superscripts and subscripts.
+          For example: <code>x^{yz}</code> vs. <code>x^{y^z}</code>.
+        </li>
+        <li>
+          Indices are positioned according to the order they are attached, with correct spacing to
+          indicate the axis ordering.  For example, <code>\Gamma^{i}_{\hphantom{i}jk}</code>
+          and <code>\Gamma^{ij}_{\hphantom{ij}k}</code> have distinct mathematical meanings, but
+          would both appear as <code>\Gamma^{ij}_k</code> using ordinary subscripts and superscripts.
+        </li>
+        <li>
+          Tensor indices may also be attached to the left side of the tensor base, allowing notation
+          such as <code>\vphantom{X}^a_b X</code>.  This can be used to create chemical symbols like
+          <code>\vphantom{\mathrm{Pu}}^{239}_{\hphantom{239}}{\mathrm{Pu}}</code>.
+        </li>
+      </ul>
+      <ul class="keybindings">
+        <li>
+          <span class="k">`</span> or <span class="k">^</span>
+          Add an upper (contravariant) index to a tensor:
+          <code>T\enspace x \Rightarrow T^x</code>
+        </li>
+        <li>
+          <span class="k">_</span> or <span class="k">Enter</span>
+          Add a lower (covariant) index:
+          <code>T\enspace x \Rightarrow T_x</code>
+        </li>
+        <li>
+          <span class="k">i</span>
+          Add lower and upper <strong>i</strong>ndices at once; they will share an axis slot:
+          <code>T\enspace x\enspace y \Rightarrow T_x^y</code>
+        </li>
+        <li>
+          <span class="k">l</span>
+          Add an upper index on the <strong>l</strong>eft:
+          <code>T\enspace x \Rightarrow \vphantom{T}^x T</code>
+        </li>
+        <li>
+          <span class="k">L</span>
+          Add a lower index on the left:
+          <code>T\enspace x \Rightarrow \vphantom{T}_x T</code>
+        </li>
+        <li>
+          <span class="k">I</span>
+          Add both lower and upper indices on the left:
+          <code>T\enspace x\enspace y \Rightarrow \vphantom{T}_x^y T</code>
+        </li>
+        <li>
+          <span class="k">w</span>
+          S<strong>w</strong>ap the type (upper or lower) of all tensor indices:
+          <code>T^a_{\hphantom{a}bc} \Leftrightarrow T_a^{\hphantom{a}bc}</code>
+        </li>
+      </ul>
+      <p>
+        <strong>NOTE:</strong> The main <span class="k">/</span><span class="k">w</span>
+        (s<strong>w</strong>ap) command also works on tensors and swaps
+        the left indices with the right indices.
+      </p>
 
       <h2 id="help_dissect">
         <span class="k">_</span> Dissect

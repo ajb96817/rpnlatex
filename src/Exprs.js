@@ -204,6 +204,7 @@ class Expr {
   is_delimiter_expr() { return this.expr_type() === 'delimiter'; }
   is_subscriptsuperscript_expr() { return this.expr_type() === 'subscriptsuperscript'; }
   is_array_expr() { return this.expr_type() === 'array'; }
+  is_tensor_expr() { return this.expr_type() === 'tensor'; }
   is_matrix_expr() { return this.is_array_expr() && this.is_matrix(); }
   is_text_expr_with(text) { return this.is_text_expr() && this.text === text; }
   is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
@@ -284,7 +285,6 @@ class Expr {
   find_placeholder_expr_path() {
     return this._find_placeholder_expr_path(new ExprPath(this, []));
   }
-
   _find_placeholder_expr_path(expr_path) {
     let found_expr_path = null;
     for(const [index, subexpr] of this.subexpressions().entries()) {
@@ -1414,8 +1414,8 @@ class DelimiterExpr extends Expr {
   // TODO: make non-static
   static should_parenthesize_for_power(expr) {
     return (
-      // Any sequence/infix/prefix/postfix expression
-      ['sequence', 'infix', 'prefix', 'postfix'
+      // Any sequence/infix/prefix/postfix/tensor expression
+      ['sequence', 'infix', 'prefix', 'postfix', 'tensor'
       ].includes(expr.expr_type()) ||
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
@@ -1451,7 +1451,7 @@ class DelimiterExpr extends Expr {
     return (
       // NOTE: Only parenthesize SequenceExprs if they don't start
       // with a PrefixExpr: sin 2x, but sin(-2x)
-      ['infix', 'prefix', 'postfix'
+      ['infix', 'prefix', 'postfix', 'tensor'
       ].includes(expr.expr_type()) ||
       // Something like '-2x'.
       (expr.is_sequence_expr() && expr.exprs[0].is_prefix_expr()) ||
@@ -2088,10 +2088,192 @@ class ArrayExpr extends Expr {
 }
 
 
+// Tensor index notation expression.  A TensorExpr has a base expression
+// with four positions (upper/lower plus left/right) that can each contain
+// a list of index expressions.  Unlike SubscriptSuperscriptExpr, indices
+// can go on the left of the base expression.  Also, null index expressions
+// are allowed, in which case they are rendered with the appropriate spacing
+// to preserve the index ordering.  Note that, for a given side (left or right),
+// both upper and lower index lists must be of the same length.
+//
+// Subexpressions are in the following order: First any upper-left indexes,
+// then lower-left, followed by the base expression itself, then upper-right
+// and finally lower-right.  Empty index slots (those containing nulls) are
+// not counted.
+class TensorExpr extends Expr {
+  constructor(base_expr, index_exprs = null) {
+    super();
+    this.base_expr = base_expr;
+    if(index_exprs)
+      this.index_exprs = index_exprs;
+    else this.index_exprs = {
+      left_upper: [], left_lower: [],
+      right_upper: [], right_lower: []
+    }
+  }
+
+  static position_names() {
+    // NOTE: The order matters here, it corresponds to the overall
+    // subexpression index ordering.
+    return ['left_upper', 'left_lower', 'right_upper', 'right_lower'];
+  }
+
+  expr_type() { return 'tensor'; }
+
+  // Add an upper or lower index (or both) to the given side of the tensor expression.
+  // Null can be used to indicate an empty index slot, but at least one of the new
+  // index expressions must be non-null.
+  // outside=true will add the new index expressions to the beginning of the index
+  // lists; this is done when adding left-side indexes so that they appear left of
+  // any existing indexes there (slightly more intuitive).
+  add_indexes(side, upper_index_expr, lower_index_expr, outside=false) {
+    const exprs = this.index_exprs;
+    const combine = (left, right) =>
+          outside ? right.concat(left) : left.concat(right);
+    return new TensorExpr(this.base_expr, {
+      left_lower: combine(exprs.left_lower, side === 'left' ? [lower_index_expr] : []),
+      left_upper: combine(exprs.left_upper, side === 'left' ? [upper_index_expr] : []),
+      right_lower: combine(exprs.right_lower, side === 'right' ? [lower_index_expr] : []),
+      right_upper: combine(exprs.right_upper, side === 'right' ? [upper_index_expr] : [])
+    });
+  }
+
+  swap_left_and_right() {
+    const exprs = this.index_exprs;
+    return new TensorExpr(this.base_expr, {
+      left_lower: exprs.right_lower, left_upper: exprs.right_upper,
+      right_lower: exprs.left_lower, right_upper: exprs.left_upper
+    });
+  }
+
+  swap_lower_and_upper() {
+    const exprs = this.index_exprs;
+    return new TensorExpr(this.base_expr, {
+      left_lower: exprs.left_upper, left_upper: exprs.left_lower,
+      right_lower: exprs.right_upper, right_upper: exprs.right_lower
+    });
+  }
+
+  emit_latex(emitter) {
+    const exprs = this.index_exprs;
+    let subexpr_index = 0;
+    if(exprs.left_upper.length > 0) {
+      // Create a 'phantom' copy of the base_expr; the left subscripts
+      // and/or superscripts will be attached to this.
+      emitter.command('vphantom');
+      emitter.grouped_expr(this.base_expr, 'force', null);
+      emitter.text('^');
+      subexpr_index = this._emit_index_group(
+        emitter, exprs.left_upper, exprs.left_lower, subexpr_index);
+      emitter.text('_');
+      subexpr_index = this._emit_index_group(
+        emitter, exprs.left_lower, exprs.left_upper, subexpr_index);
+    }
+    emitter.grouped_expr(this.base_expr, false, subexpr_index++);
+    if(exprs.right_upper.length > 0) {
+      emitter.text('^');
+      subexpr_index = this._emit_index_group(
+        emitter, exprs.right_upper, exprs.right_lower, subexpr_index);
+      emitter.text('_');
+      subexpr_index = this._emit_index_group(
+        emitter, exprs.right_lower, exprs.right_upper, subexpr_index);
+    }
+  }
+  // Emit one of the four possible groups of index expressions.
+  // 'index_exprs' is the list of expressions in the group (which may
+  // contain nulls for empty index slots), while 'opposite_index_exprs'
+  // is the corresponding list for the index group above or below it.
+  // Empty index slots are rendered as 'phantoms' with copies of the
+  // corresponding opposite index item, in order to get the right spacing.
+  // Return the new starting subexpression index after the group is
+  // emitted (empty index slots do not take up a subexpression index).
+  _emit_index_group(emitter, index_exprs, opposite_index_exprs, starting_subexpr_index) {
+    let subexpr_index = starting_subexpr_index;
+    emitter.grouped(() => {
+      for(const [i, index_expr] of index_exprs.entries()) {
+        const opposite_index_expr = opposite_index_exprs[i];
+        if(index_expr)
+          emitter.expr(index_expr, subexpr_index++);
+        else if(opposite_index_expr /* should always be non-null if index_expr is null */) {
+          emitter.command('hphantom');
+          emitter.grouped_expr(opposite_index_expr, 'force', null);
+        }
+      }
+    });
+    return subexpr_index;
+  }
+
+  subexpressions() {
+    let subexprs = [];
+    const exprs = this.index_exprs;
+    for(const index_exprs
+        of [exprs.left_upper, exprs.left_lower,
+            [this.base_expr],
+            exprs.right_upper, exprs.right_lower])
+      for(const expr of index_exprs)
+        if(expr)
+          subexprs.push(expr);
+    return subexprs;
+  }
+
+  has_subexpressions() { return true; }
+
+  dissolve() { return this.subexpressions(); }
+
+  // NOTE: The default superclass matches() can't be used, because
+  // two TensorExprs may have the same .subexpressions() but with
+  // their index expressions in different positions.
+  matches(expr) {
+    if(this === expr) return true;
+    if(this.expr_type() !== expr.expr_type()) return false;
+    if(!this.base_expr.matches(expr.base_expr)) return false;
+    for(const position_name of TensorExpr.position_names()) {
+      const exprs1 = this.index_exprs[position_name];
+      const exprs2 = expr.index_exprs[position_name];
+      if(exprs1.length !== exprs2.length) return false;
+      for(const [i, expr1] of exprs1.entries()) {
+        const expr2 = exprs2[i];
+        if((expr1 === null) !== (expr2 === null)) return false;
+        if(expr1 && !expr1.matches(expr2)) return false;
+      }
+    }
+    return true;
+  }
+
+  replace_subexpression(index, new_expr) {
+    let subexpr_index = 0;
+    let new_index_exprs = {};
+    let new_base_expr = this.base_expr;
+    subexpr_index = this._replace_subexpression(
+      index, new_expr, subexpr_index, 'left_upper', new_index_exprs);
+    subexpr_index = this._replace_subexpression(
+      index, new_expr, subexpr_index, 'left_lower', new_index_exprs);
+    if(index === subexpr_index++)
+      new_base_expr = new_expr;
+    subexpr_index = this._replace_subexpression(
+      index, new_expr, subexpr_index, 'right_upper', new_index_exprs);
+    this._replace_subexpression(
+      index, new_expr, subexpr_index, 'right_lower', new_index_exprs);
+    return new TensorExpr(new_base_expr, new_index_exprs);
+  }
+  _replace_subexpression(index, new_expr, starting_subexpr_index,
+                             position_name, new_index_exprs) {
+    const exprs = this.index_exprs[position_name];
+    let new_exprs = [...exprs];
+    let subexpr_index = starting_subexpr_index;
+    for(const [i, expr] of exprs.entries())
+      if(expr && index === subexpr_index++)
+        new_exprs[i] = new_expr;
+    new_index_exprs[position_name] = new_exprs;
+    return subexpr_index;
+  }
+}
+
+
 export {
   Expr, CommandExpr, FontExpr, InfixExpr,
   PrefixExpr, PostfixExpr, FunctionCallExpr,
   PlaceholderExpr, TextExpr, SequenceExpr,
   DelimiterExpr, SubscriptSuperscriptExpr,
-  ArrayExpr
+  ArrayExpr, TensorExpr
 };

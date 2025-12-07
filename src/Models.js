@@ -8,7 +8,7 @@ import KeybindingTable from './Keymap';
 import {
   Expr, TextExpr, CommandExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, InfixExpr, PrefixExpr, PostfixExpr,
-  FontExpr, PlaceholderExpr, FunctionCallExpr, ArrayExpr
+  FontExpr, PlaceholderExpr, FunctionCallExpr, ArrayExpr, TensorExpr
 } from './Exprs.js';
 import {
   AlgebriteInterface, double_to_expr
@@ -1929,6 +1929,7 @@ class MsgpackEncoder {
     case 'placeholder': return this.pack_placeholder_expr(expr);
     case 'function_call': return this.pack_function_call_expr(expr);
     case 'array': return this.pack_array_expr(expr);
+    case 'tensor': return this.pack_tensor_expr(expr);
     default:
       throw new Error("Unknown Expr type in MsgpackEncoder: " + expr.expr_type());
     }
@@ -1992,6 +1993,13 @@ class MsgpackEncoder {
         row_exprs.map(element_expr => this.pack_expr(element_expr))),
       expr.row_separators.some(sep => sep !== null) ? expr.row_separators : null,
       expr.column_separators.some(sep => sep !== null) ? expr.column_separators : null];
+  }
+  pack_tensor_expr(expr) {
+    return [
+      13, this.pack_expr(expr.base_expr)
+    ].concat(TensorExpr.position_names().map(position_name =>
+      expr.index_exprs[position_name].map(index_expr =>
+        index_expr ? this.pack_expr(index_expr) : null)));
   }
 }
 
@@ -2092,6 +2100,7 @@ class MsgpackDecoder {
     case 10: return this.unpack_placeholder_expr(state);
     case 11: return this.unpack_function_call_expr(state);
     case 12: return this.unpack_array_expr(state);
+    case 13: return this.unpack_tensor_expr(state);
     default: this.error("Unknown Expr typecode in MsgpackDecoder: " + typecode);
     }
   }
@@ -2160,6 +2169,14 @@ class MsgpackDecoder {
       element_expr_states.map(row_expr_states =>
         row_expr_states.map(expr_state => this.unpack_expr(expr_state))),
       row_separators, column_separators);
+  }
+  unpack_tensor_expr([base_expr_state, ...index_expr_states]) {
+    let index_exprs = {};
+    for(const [i, position_name]
+        of TensorExpr.position_names().entries())
+      index_exprs[position_name] = index_expr_states[i].map(
+        expr_state => expr_state ? this.unpack_expr(expr_state) : null);
+    return new TensorExpr(this.unpack_expr(base_expr_state), index_exprs);
   }
 }
 
