@@ -8,7 +8,9 @@ import katex from 'katex';
 import {
   AppState, UndoStack, FileManager
 } from './Models';
-import InputContext from './Actions';
+import {
+  InputContext
+} from './Actions';
 
 
 const $e = React.createElement;
@@ -55,7 +57,6 @@ class App extends React.Component {
 
   apply_layout_to_dom() {
     const settings = this.state.settings;
-
     // Set up color filter / theme CSS classes.
     let body_classes = [];
     if(settings.filter === 'inverse_video') body_classes.push('inverse_video');
@@ -63,9 +64,9 @@ class App extends React.Component {
     if(settings.filter === 'eink') body_classes.push('eink_mode');
     if(settings.hide_mouse_cursor) body_classes.push('hide_mouse_cursor');
     document.getElementById('body').className = body_classes.join(' ');
-
     // Set up stack position classes.  Currently these are only used to
     // create a solid border between stack and document in E-ink mode.
+    // TODO: use this.stack_panel_ref.current, etc.
     const stack_panel = document.getElementById('stack_panel');
     const document_panel = document.getElementById('document_panel');
     stack_panel.classList.remove('stack_on_bottom');
@@ -109,7 +110,6 @@ class App extends React.Component {
     const stack = app_state.stack;
     const settings = this.state.settings;
     const input_context = this.state.input_context;
-
     let stack_panel_components = [];
     // TODO: floating item and mode indicator could go inside StackItemsComponent instead
     if(stack.floating_item) {
@@ -149,7 +149,6 @@ class App extends React.Component {
     const document_panel_component = $e(DocumentComponent, {
       settings: settings,
       document: app_state.document,
-      filename: this.state.file_manager.current_filename,
       is_dirty: app_state.is_dirty  // TODO: revisit, maybe remove this
     });
     return $e(
@@ -188,7 +187,7 @@ class App extends React.Component {
     // switching shortcuts.  Ctrl+digit is still allowed.
     if(event.metaKey && /^\d$/.test(event.key))
       return;
-    if(['Meta', 'Shift', 'Ctrl+Control', 'Ctrl+Meta'
+    if(['Meta', 'Shift', 'Alt', 'Control', 'Ctrl+Control', 'Ctrl+Meta'
        ].includes(key))
       return;  // ignore isolated modifier key presses
     let app_state = this.state.app_state;
@@ -258,7 +257,8 @@ class App extends React.Component {
 }
 
 
-// Shows current input mode in top-right corner of stack display.
+// Shows current input mode in top-right corner of stack display,
+// and the notification if there is one.
 class ModeIndicatorComponent extends React.Component {
   render() {
     const input_context = this.props.input_context;
@@ -274,15 +274,13 @@ class ModeIndicatorComponent extends React.Component {
         input_mode, '(',
         input_context.matrix_row_count, 'x',
         input_context.prefix_argument > 0 ? input_context.prefix_argument.toString() : '',
-        ')'
-      ].join('');
+        ')'].join('');
     }
     else if(input_context.prefix_argument !== null)
       input_mode = [
         input_mode, '(',
         (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()),
-        ')'
-      ].join('');
+        ')'].join('');
     if(notification_text) {
       // Auto-highlight anything after the colon in the notification message.
       const colon = notification_text.indexOf(':');
@@ -318,7 +316,7 @@ class StackItemsComponent extends React.Component {
   render() {
     const input_context = this.props.input_context;
     const layout = this.props.settings.layout;
-    const item_components = this.props.stack.items.map((item, index) => {
+    let item_components = this.props.stack.items.map((item, index) => {
       // If there's an active prefix argument for stack commands, highlight the
       // corresponding stack item(s) that will (probably) be affected.
       const highlighted = this.should_highlight_item_index(
@@ -333,8 +331,8 @@ class StackItemsComponent extends React.Component {
           key: item.react_key(index)
         });
     });
-    if(input_context.text_entry) {
-      const component = $e(
+    if(input_context.text_entry)
+      item_components.push($e(
         TextEntryComponent, {
           text: input_context.text_entry.current_text,
           cursor_position: input_context.text_entry.cursor_position,
@@ -342,9 +340,7 @@ class StackItemsComponent extends React.Component {
           error_end: null,
           entry_type: input_context.text_entry.mode,
           key: 'textentry'  // this is in a React list, so needs a key
-        });
-      item_components.push(component);
-    }
+        }));
     let class_names = ['stack_items'];
     // NOTE: can't have inline_math and rightalign_math both at once currently
     if(layout.stack_math_alignment === 'right' && !layout.inline_math)
@@ -352,7 +348,7 @@ class StackItemsComponent extends React.Component {
     return $e('div', {className: class_names.join(' ')}, item_components);
   }
 
-  // Determine if the given stack item index should be "highlighted" with the
+  // Determine if the given stack item index should be "highlighted" given the
   // current mode and prefix argument.  Here, 'index' is 1-based from the
   // user's point of view: index=1 is the stack top, index=2 is the next stack
   // item, etc.  The actual stack.items list internally is reversed from this
@@ -393,7 +389,7 @@ class DocumentComponent extends React.Component {
     const document = this.props.document;
     const selection_index = document.selection_index;
     const layout = this.props.settings.layout;
-    const subcomponents = document.items.map((item, index) => {
+    let subcomponents = document.items.map((item, index) => {
       const item_ref = React.createRef();
       const is_selected = selection_index === index+1;
       if(is_selected)
@@ -408,13 +404,11 @@ class DocumentComponent extends React.Component {
           key: item.react_key(index)
         });
     });
-
     // "Spacer" after the last document item.  This enables the document view to scroll
     // a little past the end so that we don't force the last document item to be flush
     // against the bottom of the screen.
     subcomponents.push(
       $e('div', {className: 'bottom_spacer', key: 'bottom_spacer'}));
-
     // Top of document "spacer", which is used to indicate that items are to be
     // inserted at the top of the document.  Unlike the bottom spacer, the top
     // spacer can be the current document selection.
@@ -428,7 +422,6 @@ class DocumentComponent extends React.Component {
         key: 'top_spacer',
         ref: spacer_ref
       });
-    
     let class_names = ['document_items'];
     // NOTE: can't have inline_math and rightalign_math both at once currently
     if(layout.document_math_alignment === 'right' && !layout.inline_math)
@@ -446,7 +439,6 @@ class DocumentComponent extends React.Component {
     if(!this.selected_item_ref) return;
     const item = this.selected_item_ref.current;
     if(!item) return;
-
     // Use the nonstandard scrollIntoViewIfNeeded method if available.
     // (Chrome has this, but not Firefox)
     const container = document.getElementById('document_panel');
@@ -470,7 +462,7 @@ class DocumentComponent extends React.Component {
 }
 
 
-// Accumulate a line of text for literal or Latex command entry.
+// Accumulate a line of text for literal or LaTeX command entry.
 class TextEntryComponent extends React.Component {
   render() {
     const class_name = 'text_entry ' + this.props.entry_type + '_mode';
@@ -479,13 +471,14 @@ class TextEntryComponent extends React.Component {
     let s = this.props.text;
     if(this.props.cursor_position === s.length)
       s += ' ';  // so that we can show the cursor when it's at the end of the text
-    const spans = [];
+    // TODO: Maybe limit the maximum number of characters/spans (1000 or so).
+    let spans = [];
     for(let i = 0; i < s.length; i++) {
       const is_cursor = i === cursor_pos;
       const is_error = error_start !== null && error_end !== null &&
             i >= error_start && i < error_end;
       const span_class_name =
-            is_cursor && is_error ? 'cursor_character error_character' :
+            (is_cursor && is_error) ? 'cursor_character error_character' :
             is_cursor ? 'cursor_character' :
             is_error ? 'error_character' : 'normal_character';
       spans.push($e('span', {className: span_class_name}, s.slice(i, i+1)));
@@ -517,25 +510,9 @@ class FileManagerPanelComponent extends React.Component {
          this.render_import_section()));
   }
 
-  render_import_section() {
-    const subcomponents = [
-      $e('p', {}, 'Upload (import) a .rpn document:'),
-      $e('p', {},
-         $e('input', {
-           type: 'file',
-           ref: this.file_input_ref
-         }),
-         $e('input', {
-           type: 'button',
-           value: 'Upload',
-           onClick: this.handle_file_upload.bind(this)
-         }))];
-    return $e('div', {}, ...subcomponents);
-  }
-
   render_current_filename() {
     const current_filename = this.props.file_manager.current_filename;
-    if(!current_filename) return null;
+    if(!current_filename) return null;  // shouldn't happen
     return $e(
       'div', {className: 'current_file'},
       $e('label', {}, 'Current file:'),
@@ -604,32 +581,48 @@ class FileManagerPanelComponent extends React.Component {
   render_shortcuts() {
     const keybinding = key => $e('span', {className: 'k'}, key);
     const helptext = text => $e('span', {}, text);
-    const helpline = items => {
+    const helpline = (...items) => {
       // Interleave spaces between each item.
       let pieces = [];
       let first = true;
       for(const item of items) {
         if(!first) pieces.push($e('span', {}, ' '));
         first = false;
-        pieces.push(item)
+        pieces.push(item);
       }
       return $e('li', {}, ...pieces);
     }
     const current_filename = this.props.file_manager.current_filename;
     const keyhelp_elements = [
-      helpline([keybinding('Esc'), helptext('or'), keybinding('q'), helptext('Close file manager')]),
-      helpline([keybinding("\u2191"), keybinding("\u2193"), helptext('Select next/previous file')]),
-      helpline([keybinding('j'), keybinding('k'), helptext('Scroll this panel down or up')]),
-      helpline([keybinding('Enter'), helptext('Open selected file')]),
-      helpline([keybinding('s'), helptext('Save current file'),
-                helptext(current_filename ? ('(' + current_filename + ')') : '')]),
-      helpline([keybinding('S'), helptext('Save as...')]),
-      helpline([keybinding('n'), helptext('Start a new empty file')]),
-      helpline([keybinding('x'), helptext('Export selected file as JSON')]),
-      helpline([keybinding('d'), helptext('Delete selected file')]),
-      helpline([keybinding('D'), helptext('Delete ALL files')])
+      helpline(keybinding('Esc'), helptext('or'), keybinding('q'), helptext('Close file manager')),
+      helpline(keybinding("\u2191"), keybinding("\u2193"), helptext('Select next/previous file')),
+      helpline(keybinding('j'), keybinding('k'), helptext('Scroll this panel down or up')),
+      helpline(keybinding('Enter'), helptext('Open selected file')),
+      helpline(keybinding('s'), helptext('Save current file'),
+               helptext(current_filename ? ('(' + current_filename + ')') : '')),
+      helpline(keybinding('S'), helptext('Save as...')),
+      helpline(keybinding('n'), helptext('Start a new empty file')),
+      helpline(keybinding('x'), helptext('Export selected file as JSON')),
+      helpline(keybinding('d'), helptext('Delete selected file')),
+      helpline(keybinding('D'), helptext('Delete ALL files'))
     ];
     return $e('ul', {className: 'keybindings'}, ...keyhelp_elements);
+  }
+
+  render_import_section() {
+    return $e(
+      'div', {},
+      $e('p', {}, 'Upload (import) a .rpn document:'),
+      $e('p', {},
+         $e('input', {
+           type: 'file',
+           ref: this.file_input_ref
+         }),
+         $e('input', {
+           type: 'button',
+           value: 'Upload',
+           onClick: this.handle_file_upload.bind(this)
+         })));
   }
 
   // Needs to be an async function to await the uploaded file.text() Promises.
@@ -815,6 +808,7 @@ class HelptextPanelComponent extends React.Component {
       help_source_elt.style.display = 'block';
       this._render_helptext_latex(help_source_elt);
       this._setup_helptext_anchors(help_source_elt);
+      // Move it into the main app DOM tree.
       help_source_elt.parentNode.removeChild(help_source_elt);
       help_dest_elt.appendChild(help_source_elt);
     }
@@ -823,15 +817,17 @@ class HelptextPanelComponent extends React.Component {
   // Render any <code>...</code> spans in the help text with KaTeX.
   _render_helptext_latex(help_elt) {
     const code_elts = help_elt.getElementsByTagName('code');
-    for(let i = 0; i < code_elts.length; i++) {
+    for(let i = 0; i < code_elts.length; i++) {  // must be a plain loop (not for...of)
       const code_elt = code_elts[i];
       const latex_code = code_elt.textContent;
       if(latex_code)
         katex.render(latex_code, code_elt, {
           throwOnError: false,
           displayMode: false,
+          fleqn: true,
           trust: true,
-          strict: false
+          strict: false,
+          minRuleThickness: 0.06
         });
     }
   }
@@ -842,7 +838,7 @@ class HelptextPanelComponent extends React.Component {
   // in the address bar and adding to the URL history.
   _setup_helptext_anchors(help_elt) {
     const anchor_elts = help_elt.getElementsByTagName('a');
-    for(let i = 0; i < anchor_elts.length; i++) {
+    for(let i = 0; i < anchor_elts.length; i++) {  // must be a plain loop
       const anchor_elt = anchor_elts[i];
       const href = anchor_elt.getAttribute('href');
       if(href && href.startsWith('#'))

@@ -2224,6 +2224,9 @@ class TensorExpr extends Expr {
       // and/or superscripts will be attached to this.
       // TODO: The phantoms create "spooky" false highlights in dissect mode
       // (KaTeX quirk), need to fix it.
+      // NOTE: If the subexpressions here are themselves TensorExprs
+      // (possibly nested inside other expr types), the phantoms can lead
+      // to a 2^n exponential growth; may want to limit the depth.
       emitter.command('vphantom');
       emitter.grouped_expr(this.base_expr, 'force', null);
       emitter.text('^');

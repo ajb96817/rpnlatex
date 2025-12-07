@@ -48,15 +48,14 @@ class InputContext {
     this.text_entry = null;
   }
 
-  // Returns [was_handled, new_app_state]
+  // Returns [was_handled, new_app_state].
   // NOTE: was_handled just indicates that a keybinding was found; it doesn't necessarily mean
   // that the command succeeded without error.
   handle_key(app_state, key) {
-    if(key === 'Shift' || key === 'Alt' || key === 'Control')
-      return [false, app_state];  // discard standalone modifier keys
     // If a popup panel (files/helptext) is active, always use its dedicated keymap.
     const effective_mode = this.settings.popup_mode || this.mode;
-    const command = this.settings.current_keymap.lookup_binding(effective_mode, key);
+    const command = this.settings.current_keymap
+          .lookup_binding(effective_mode, key);
     if(command) {
       this.last_keypress = key;
       const new_app_state = this.process_command(command, app_state);
@@ -84,8 +83,8 @@ class InputContext {
   // Each command is of the form [command_name, param1, param2, ...]
   process_command_batch(commands, app_state) {
     this.perform_undo_or_redo = null;
-    for(let i = 0; i < commands.length; i++) {
-      const [command_name, ...parameters] = commands[i];
+    for(const [i, command] of commands.entries()) {
+      const [command_name, ...parameters] = command;
       const handler_function = this['do_' + command_name];
       if(!handler_function)
         return null;
@@ -169,8 +168,6 @@ class InputContext {
     //                (used for 'minor' actions that don't warrant undo tracking)
     //   'clear' - undo stack will be reset (e.g. when loading a new document)
     this.perform_undo_or_redo = null;
-    // do_* actions can set this to true to keep the prefix_argument from being reset after the action.
-    this.preserve_prefix_argument = false;
   }
 
   // NOTE: This doesn't raise an exception, it only records the error message
@@ -217,7 +214,7 @@ class InputContext {
   // actually restarting the animation to prepare for the next error.  The usual
   // hack to get around this is to remove a CSS class with the animation rule,
   // trigger a browser re-layout (by querying a property such as elt.offsetWidth),
-  // and then re-adding the CSS class to reset the animation.  Instead of that,
+  // and then re-add the CSS class to reset the animation.  Instead of that,
   // we alternate between two identical sets of keyframes by changing the animation
   // name itself (no manipulation of CSS classes).  Once the animation name is
   // changed, the "new" animation starts again at the beginning in the paused state,
@@ -355,9 +352,10 @@ class InputContext {
     if(!(roots_matrix_expr.is_matrix_expr() &&
          roots_matrix_expr.column_count === 1))
       return roots_matrix_expr;  // shouldn't happen
-    const output_exprs = [];
-    for(let row = 0; row < roots_matrix_expr.row_count; row++) {
-      const root_expr = roots_matrix_expr.element_exprs[row][0];
+    let output_exprs = [];
+    for(const [row, row_exprs]
+        of roots_matrix_expr.element_exprs.entries()) {
+      const root_expr = row_exprs[0];
       output_exprs.push(InfixExpr.combine_infix(
         variable_expr.with_subscript(TextExpr.integer(row+1), false /* no parenthesize */),
         RationalizeToExpr.rationalize_expr(root_expr, false),
@@ -1206,14 +1204,17 @@ class InputContext {
     const [new_stack_2, item] = new_stack.pop(1);
     if(item.is_expr_item()) {
       const original_expr = item.expr;
-      const placeholder_expr_path = original_expr.find_placeholder_expr_path();
+      const placeholder_expr_path = original_expr
+            .find_placeholder_expr_path();
       if(placeholder_expr_path !== null) {
-        const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
+        const new_expr = placeholder_expr_path
+              .replace_selection(substitution_expr);
         return new_stack_2.push_expr(new_expr);
       }
     }
     else if(item.is_text_item()) {
-      const new_text_item = item.try_substitute_placeholder(substitution_expr);
+      const new_text_item = item
+            .try_substitute_placeholder(substitution_expr);
       if(new_text_item)
         return new_stack_2.push(new_text_item);
     }
@@ -1815,7 +1816,7 @@ class InputContext {
       else layout.zoom_factor += scratch;
       // Limit zoom percentage to around 2% ... 10000%
       layout.zoom_factor = Math.max(Math.min(layout.zoom_factor, 80), -80);
-      this.notify("Zoom level: " + (layout.zoom_factor > 0 ? "+" : "") + layout.zoom_factor);
+      this.notify("Zoom level: " + (layout.zoom_factor > 0 ? "+" : "") + layout.zoom_factor.toString());
       break;
     case 'math_align':
       scratch = value === 'document' ?
@@ -2026,7 +2027,8 @@ class InputContext {
   }
 
   do_build_align(stack, align_type) {
-    // NOTE: if align_type = 'cases' or 'rcases', align on ':' infix if there is one, and then remove the infix
+    // NOTE: If align_type = 'cases' or 'rcases', align on ':' infix
+    // if there is one, and then remove the infix.
     const expr_count = this._get_prefix_argument(0, stack.depth());
     if(expr_count <= 0)
       return this.error_flash_stack();
@@ -2060,8 +2062,9 @@ class InputContext {
     if(final_operand_text) {
       // Splice in the final_operand if specified.
       const final_operand = Expr.text_or_command(final_operand_text);
-      operand_exprs = operand_exprs.slice(0, expr_count-1).concat(
-        [final_operand]).concat(operand_exprs.slice(expr_count-1));
+      operand_exprs = operand_exprs
+        .slice(0, expr_count-1)
+        .concat([final_operand], operand_exprs.slice(expr_count-1));
     }
     return new_stack.push_expr(
       InfixExpr.combine_infix_all(operand_exprs, infix_operator_expr));
@@ -2195,7 +2198,6 @@ class InputContext {
   do_recenter_document(stack, screen_percentage_string) {
     const screen_percentage = parseInt(screen_percentage_string);
     this.suppress_undo();
-    
     // TODO: Accessing the DOM elements directly like this is a hack but there's not an easy
     // way to get it properly from React here.  May want to restructure things to make this cleaner.
     const container = document.getElementById('document_panel');
@@ -2203,7 +2205,6 @@ class InputContext {
     const selected_elts = container.getElementsByClassName('selected')
     if(selected_elts.length === 0) return;
     const selected_elt = selected_elts[0];
-
     if([0, 50, 100].includes(screen_percentage) && !this.settings.debug_mode) {
       // For these special cases, the browser's native scrollIntoView can be used.
       const block_mode = screen_percentage === 0 ? 'start' :
@@ -2232,14 +2233,16 @@ class InputContext {
     const panel_elt = document.getElementById(panel_name);
     if(!panel_elt) return;
     const percentage = parseInt(percentage_string || '50') / 100.0;
-    if(direction_string === 'top')
-      panel_elt.scrollTop = 0;
-    else if(direction_string === 'bottom')
-      panel_elt.scrollTop = 100000;
-    else if(direction_string === 'horizontal')
+    switch(direction_string) {
+    case 'top': panel_elt.scrollTop = 0; break;
+    case 'bottom': panel_elt.scrollTop = 100000; break;
+    case 'horizontal':
       panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage);
-    else
+      break;
+    case 'vertical':
       panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
+      break;
+    }
   }
 
   // Scroll to the given DOM element (used to jump around in help).
@@ -2251,24 +2254,32 @@ class InputContext {
 
   do_export_document_as_text(stack) {
     const items = this.app_state.document.items;
-    const exported_text = items.map(item => item.to_latex(true)).join("\n\n");
-    navigator.clipboard.writeText(exported_text);
-    this.notify("Copied document to clipboard");
-    this.suppress_undo();
+    this._do_export_items(items);
     return stack;
   }
 
   do_export_stack_items_as_text(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
     const [, ...items] = stack.pop(arg);
-    const exported_text = items.map(item => item.to_latex(true)).join("\n\n");
-    navigator.clipboard.writeText(exported_text);
-    this.notify("Copied " + arg + " item" + (arg === 1 ? "" : "s") + " to clipboard");
-    this.suppress_undo();
+    this._do_export_items(items);
     return stack;
+  }
+
+  _do_export_items(items) {
+    const exported_text = items
+          .map(item => item.to_latex(true))
+          .join("\n\n");
+    navigator.clipboard.writeText(exported_text);
+    this.notify([
+      "Copied ",
+      items.length.toString(),
+      " item",
+      (items.length === 1 ? "" : "s"),
+      " to clipboard"].join(''));
+    this.suppress_undo();
   }
 }
 
 
-export default InputContext;
+export { InputContext };
 
