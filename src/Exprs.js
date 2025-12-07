@@ -2100,10 +2100,17 @@ class ArrayExpr extends Expr {
 // then lower-left, followed by the base expression itself, then upper-right
 // and finally lower-right.  Empty index slots (those containing nulls) are
 // not counted.
+//
+// 'options' is currently unused/unimplemented, but can be a list of option
+// strings.  Planned:
+//   - 'dots': show \cdot for empty index slots
+//   - 'commas': put commas between adjacent indices (not counting empty slots)
+//   - 'ellipses': show centered ellipses between final adjacent indices
 class TensorExpr extends Expr {
-  constructor(base_expr, index_exprs = null) {
+  constructor(base_expr, index_exprs = null, options = null) {
     super();
     this.base_expr = base_expr;
+    this.options = options || [];
     if(index_exprs)
       this.index_exprs = index_exprs;
     else this.index_exprs = {

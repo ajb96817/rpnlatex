@@ -1996,7 +1996,8 @@ class MsgpackEncoder {
   }
   pack_tensor_expr(expr) {
     return [
-      13, this.pack_expr(expr.base_expr)
+      13, this.pack_expr(expr.base_expr),
+      expr.options.length === 0 ? null : expr.options
     ].concat(TensorExpr.position_names().map(position_name =>
       expr.index_exprs[position_name].map(index_expr =>
         index_expr ? this.pack_expr(index_expr) : null)));
@@ -2170,13 +2171,15 @@ class MsgpackDecoder {
         row_expr_states.map(expr_state => this.unpack_expr(expr_state))),
       row_separators, column_separators);
   }
-  unpack_tensor_expr([base_expr_state, ...index_expr_states]) {
+  unpack_tensor_expr([base_expr_state, options, ...index_expr_states]) {
     let index_exprs = {};
     for(const [i, position_name]
         of TensorExpr.position_names().entries())
       index_exprs[position_name] = index_expr_states[i].map(
         expr_state => expr_state ? this.unpack_expr(expr_state) : null);
-    return new TensorExpr(this.unpack_expr(base_expr_state), index_exprs);
+    return new TensorExpr(
+      this.unpack_expr(base_expr_state),
+      index_exprs, options);
   }
 }
 
