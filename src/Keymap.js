@@ -1022,12 +1022,22 @@ const KeybindingTable = {
     'Enter': "add_tensor_index right lower",
     '_': "add_tensor_index right lower",
     'i': "add_tensor_index right both",
-    'l': "add_tensor_index left upper",
-    'L': "add_tensor_index left lower",
-    'I': "add_tensor_index left both",
-    'w': "swap_tensor_index_type",
+    ' ': "add_tensor_index right both",
+    'l': "mode tensor(left)",
+    '~': "mode tensor(left)",
+    'w': "swap_tensor_index_type"
+  },
 
-    '~': "add_tensor_index right upper"  // convenience alias
+  // [~][l] prefix
+  'tensor(left)': {
+    '`': "add_tensor_index lef upper",
+    '^': "add_tensor_index left upper",
+    'Enter': "add_tensor_index left lower",
+    '_': "add_tensor_index left lower",
+    'i': "add_tensor_index left both",
+    ' ': "add_tensor_index left both",
+    'l': "mode tensor",  // switch out of (left) mode
+    '~': "mode tensor"
   },
 
   // [_] prefix: dissect mode

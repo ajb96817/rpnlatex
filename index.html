@@ -1252,8 +1252,12 @@
         </li>
         <li>
           <span class="k">w</span>
-          S<strong>w</strong>ap the left and right sides of an infix or relational expression,
-          or the numerator and denominator of a fraction.
+          S<strong>w</strong>ap the parts of an expression.
+          Infix or relational expressions swap their left and right sides,
+          fractions swap numerator and denominator, tensors swap left
+          and right indices, and subscripts are swapped with superscripts.
+          Prefixed expressions like <code>+x</code> become <code>x+</code>
+          and vice-versa.
         </li>
         <li>
           <span class="k">z</span>
@@ -2063,24 +2067,15 @@
           <code>T\enspace x \Rightarrow T_x</code>
         </li>
         <li>
-          <span class="k">i</span>
+          <span class="k">i</span> or <span class="k">&nbsp;</span>
           Add lower and upper <strong>i</strong>ndices at once; they will share an axis slot:
           <code>T\enspace x\enspace y \Rightarrow T_x^y</code>
         </li>
         <li>
-          <span class="k">l</span>
-          Add an upper index on the <strong>l</strong>eft:
-          <code>T\enspace x \Rightarrow \vphantom{T}^x T</code>
-        </li>
-        <li>
-          <span class="k">L</span>
-          Add a lower index on the left:
-          <code>T\enspace x \Rightarrow \vphantom{T}_x T</code>
-        </li>
-        <li>
-          <span class="k">I</span>
-          Add both lower and upper indices on the left:
-          <code>T\enspace x\enspace y \Rightarrow \vphantom{T}_x^y T</code>
+          <span class="k">l</span> or <span class="k">~</span>
+          Switch to <em>left</em> mode.  After pressing <span class="k">l</span>,
+          the previous commands will instead add indices to the left side of the tensor,
+          e.g. <code>T\enspace x \Rightarrow \vphantom{T}^x T</code>
         </li>
         <li>
           <span class="k">w</span>

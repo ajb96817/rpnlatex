@@ -9,11 +9,11 @@ import {
   ExprItem, TextItem, CodeItem,
 } from './Models';
 import {
-  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr, 
-  FunctionCallExpr, PlaceholderExpr, TextExpr,
+  Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
+  PostfixExpr, FunctionCallExpr, PlaceholderExpr, TextExpr,
   SubscriptSuperscriptExpr, DelimiterExpr,
   ArrayExpr, TensorExpr
-  /* Not explicitly used here: PostfixExpr, SequenceExpr */
+  /* Not explicitly used here: SequenceExpr */
 } from './Exprs';
 import {
   AlgebriteInterface
@@ -1096,10 +1096,12 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
-  // Swap left and right sides of an infix expression.  
-  // The "pivot" operator for the swap is taken from split_at_index, which is
-  // generally the most recently-used operator in the creation of the infix expression.
-  // This will also swap the numerator and denominator of a fraction.
+  // Swap parts of an expression, if possible:
+  //   - InfixExprs swap their left and right sides at the split_at_index operator.
+  //   - Fractions (both "normal" and flex-mode inline) swap numerator and denominator.
+  //   - TensorExprs swap their left and right indices.
+  //   - SubscriptSuperscriptExpr swap their subscripts and superscripts.
+  //   - PostfixExprs become PrefixExprs and vice-versa.
   do_swap_infix(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let new_expr = null;
@@ -1122,6 +1124,13 @@ class InputContext {
     }
     else if(expr.is_tensor_expr())
       new_expr = expr.swap_left_and_right();
+    else if(expr.is_subscriptsuperscript_expr())
+      new_expr = new SubscriptSuperscriptExpr(
+        expr.base_expr, expr.superscript_expr, expr.subscript_expr);
+    else if(expr.is_postfix_expr())
+      new_expr = new PrefixExpr(expr.base_expr, expr.operator_expr);
+    else if(expr.is_prefix_expr())
+      new_expr = new PostfixExpr(expr.base_expr, expr.operator_expr);
     if(new_expr)
       return new_stack.push_expr(new_expr);
     else
@@ -2072,12 +2081,12 @@ class InputContext {
     case 'upper': upper_index_expr = new_index_exprs[0]; break;
     case 'lower': lower_index_expr = new_index_exprs[0]; break;
     case 'both':
-      upper_index_expr = new_index_exprs[1];
       lower_index_expr = new_index_exprs[0];
+      upper_index_expr = new_index_exprs[1];
       break;
     default: return this.error_flash_stack();  // shouldn't happen
     }
-    const new_tensor_expr = tensor_expr.add_indexes(
+    const new_tensor_expr = tensor_expr.add_indices(
       side, upper_index_expr, lower_index_expr,
       side === 'left' /* put new indexes to left of any existing ones */);
     return new_stack.push_expr(new_tensor_expr);

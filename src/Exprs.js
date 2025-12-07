@@ -1092,87 +1092,6 @@ class PrefixExpr extends Expr {
 }
 
 
-// Represents a function call like: f(x,y,z)
-// Here fn_expr = f, args_expr = (x,y,z).
-// Note that "operator-style" functions like 'sin x' use CommandExpr, not this.
-class FunctionCallExpr extends Expr {
-  constructor(fn_expr, args_expr) {
-    super();
-    this.fn_expr = fn_expr;
-    this.args_expr = args_expr;  // should be a DelimiterExpr
-  }
-
-  expr_type() { return 'function_call'; }
-
-  emit_latex(emitter) {
-    // The args_expr gets wrapped in an "empty" latex command
-    // (i.e. a set of braces).  f(x) becomes f{(x)}.
-    // This has the effect of tightening
-    // the spacing after f to better match normal function notation.
-    emitter.expr(this.fn_expr, 0);
-    emitter.grouped_expr(this.args_expr, 'force', 1);
-  }
-
-  has_subexpressions() { return true; }
-  subexpressions() { return [this.fn_expr, this.args_expr]; }
-
-  replace_subexpression(index, new_expr) {
-    return new FunctionCallExpr(
-      index === 0 ? new_expr : this.fn_expr,
-      index === 1 ? new_expr : this.args_expr);
-  }
-
-  dissolve() {
-    // TODO: maybe 'dissolve' the args_expr DelimiterExpr too
-    return this.subexpressions();
-  }
-
-  as_bold() {
-    // f(x) -> bolded f and x, but not the parentheses themselves.
-    // Bolding the parentheses themselves might be considered desirable
-    // instead of this, in which case bold_args_expr = this.args_expr.as_bold().
-    const bold_args_expr =
-        this.args_expr.is_delimiter_expr() ?
-        this.args_expr.replace_subexpression(0, this.args_expr.inner_expr.as_bold()) :
-        this.args_expr.as_bold();
-    return new FunctionCallExpr(this.fn_expr.as_bold(), bold_args_expr);
-  }
-
-  // Return an array of individual function arguments.
-  // Something like f(x+y,z-w) returns [x+y, z-w].
-  // TODO: maybe consider ';' as an argument separator as well as ','.
-  extract_argument_exprs() {
-    if(!this.args_expr.is_delimiter_expr())
-      return [];  // shouldn't normally happen
-    const inner_args_expr = this.args_expr.inner_expr;
-    if(!inner_args_expr.is_infix_expr())
-      return [inner_args_expr];  // single argument
-    // Break up the InfixExpr into pieces according to where the commas are.
-    // These pieces may be other InfixExprs, or something else, e.g.:
-    //   f(x+y,z) => [x+y, z] (only the first is an InfixExpr).
-    let argument_exprs = [];
-    let argument_expr = inner_args_expr.operand_exprs[0];
-    for(let i = 0; i < inner_args_expr.operator_exprs.length; i++) {
-      const operator_expr = inner_args_expr.operator_exprs[i];
-      if(operator_expr.is_text_expr_with(',')) {
-        argument_exprs.push(argument_expr);
-        argument_expr = inner_args_expr.operand_exprs[i+1];
-      }
-      else
-        argument_expr = InfixExpr.combine_infix(
-          argument_expr, inner_args_expr.operand_exprs[i+1],
-          operator_expr);
-    }
-    argument_exprs.push(argument_expr);
-    return argument_exprs;
-  }
-
-  argument_count() {
-    return this.extract_argument_exprs().length;
-  }
-}
-
-
 // Represents a postfix operation where the operator comes after the operand.
 // Currently this is only used for factorial and double-factorial notation.
 // Potentially this could be used for things like transpose and conjugate, but
@@ -1254,6 +1173,87 @@ class PostfixExpr extends Expr {
   }
 
   factorial_signs_count() { return this.analyze_factorial()[1]; }
+}
+
+
+// Represents a function call like: f(x,y,z)
+// Here fn_expr = f, args_expr = (x,y,z).
+// Note that "operator-style" functions like 'sin x' use CommandExpr, not this.
+class FunctionCallExpr extends Expr {
+  constructor(fn_expr, args_expr) {
+    super();
+    this.fn_expr = fn_expr;
+    this.args_expr = args_expr;  // should be a DelimiterExpr
+  }
+
+  expr_type() { return 'function_call'; }
+
+  emit_latex(emitter) {
+    // The args_expr gets wrapped in an "empty" latex command
+    // (i.e. a set of braces).  f(x) becomes f{(x)}.
+    // This has the effect of tightening
+    // the spacing after f to better match normal function notation.
+    emitter.expr(this.fn_expr, 0);
+    emitter.grouped_expr(this.args_expr, 'force', 1);
+  }
+
+  has_subexpressions() { return true; }
+  subexpressions() { return [this.fn_expr, this.args_expr]; }
+
+  replace_subexpression(index, new_expr) {
+    return new FunctionCallExpr(
+      index === 0 ? new_expr : this.fn_expr,
+      index === 1 ? new_expr : this.args_expr);
+  }
+
+  dissolve() {
+    // TODO: maybe 'dissolve' the args_expr DelimiterExpr too
+    return this.subexpressions();
+  }
+
+  as_bold() {
+    // f(x) -> bolded f and x, but not the parentheses themselves.
+    // Bolding the parentheses themselves might be considered desirable
+    // instead of this, in which case bold_args_expr = this.args_expr.as_bold().
+    const bold_args_expr =
+        this.args_expr.is_delimiter_expr() ?
+        this.args_expr.replace_subexpression(0, this.args_expr.inner_expr.as_bold()) :
+        this.args_expr.as_bold();
+    return new FunctionCallExpr(this.fn_expr.as_bold(), bold_args_expr);
+  }
+
+  // Return an array of individual function arguments.
+  // Something like f(x+y,z-w) returns [x+y, z-w].
+  // TODO: maybe consider ';' as an argument separator as well as ','.
+  extract_argument_exprs() {
+    if(!this.args_expr.is_delimiter_expr())
+      return [];  // shouldn't normally happen
+    const inner_args_expr = this.args_expr.inner_expr;
+    if(!inner_args_expr.is_infix_expr())
+      return [inner_args_expr];  // single argument
+    // Break up the InfixExpr into pieces according to where the commas are.
+    // These pieces may be other InfixExprs, or something else, e.g.:
+    //   f(x+y,z) => [x+y, z] (only the first is an InfixExpr).
+    let argument_exprs = [];
+    let argument_expr = inner_args_expr.operand_exprs[0];
+    for(let i = 0; i < inner_args_expr.operator_exprs.length; i++) {
+      const operator_expr = inner_args_expr.operator_exprs[i];
+      if(operator_expr.is_text_expr_with(',')) {
+        argument_exprs.push(argument_expr);
+        argument_expr = inner_args_expr.operand_exprs[i+1];
+      }
+      else
+        argument_expr = InfixExpr.combine_infix(
+          argument_expr, inner_args_expr.operand_exprs[i+1],
+          operator_expr);
+    }
+    argument_exprs.push(argument_expr);
+    return argument_exprs;
+  }
+
+  argument_count() {
+    return this.extract_argument_exprs().length;
+  }
 }
 
 
@@ -2106,14 +2106,13 @@ class ArrayExpr extends Expr {
 //   - 'dots': show \cdot for empty index slots
 //   - 'commas': put commas between adjacent indices (not counting empty slots)
 //   - 'ellipses': show centered ellipses between final adjacent indices
+//   - 'enlarge': enlarge index expressions with FontExpr size adjustment
 class TensorExpr extends Expr {
   constructor(base_expr, index_exprs = null, options = null) {
     super();
     this.base_expr = base_expr;
     this.options = options || [];
-    if(index_exprs)
-      this.index_exprs = index_exprs;
-    else this.index_exprs = {
+    this.index_exprs = index_exprs || {
       left_upper: [], left_lower: [],
       right_upper: [], right_lower: []
     }
@@ -2133,7 +2132,7 @@ class TensorExpr extends Expr {
   // outside=true will add the new index expressions to the beginning of the index
   // lists; this is done when adding left-side indexes so that they appear left of
   // any existing indexes there (slightly more intuitive).
-  add_indexes(side, upper_index_expr, lower_index_expr, outside=false) {
+  add_indices(side, upper_index_expr, lower_index_expr, outside = false) {
     const exprs = this.index_exprs;
     const combine = (left, right) =>
           outside ? right.concat(left) : left.concat(right);
@@ -2264,7 +2263,7 @@ class TensorExpr extends Expr {
     return new TensorExpr(new_base_expr, new_index_exprs);
   }
   _replace_subexpression(index, new_expr, starting_subexpr_index,
-                             position_name, new_index_exprs) {
+                         position_name, new_index_exprs) {
     const exprs = this.index_exprs[position_name];
     let new_exprs = [...exprs];
     let subexpr_index = starting_subexpr_index;
