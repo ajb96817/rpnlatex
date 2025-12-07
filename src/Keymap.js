@@ -1033,7 +1033,7 @@ const KeybindingTable = {
     ',': "push ,;affix_tensor_index right"
   },
 
-  // [~][l] prefix
+  // [~][l] prefix: tensor commands for left-side indices
   'tensor(left)': {
     '`': "add_tensor_index left upper",
     '^': "add_tensor_index left upper",

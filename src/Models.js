@@ -1934,12 +1934,16 @@ class MsgpackEncoder {
       throw new Error("Unknown Expr type in MsgpackEncoder: " + expr.expr_type());
     }
   }
+  maybe_pack_expr(expr) {
+    return expr ? this.pack_expr(expr) : null;
+  }
   pack_text_expr(expr) { return [1, expr.text]; }
   pack_command_expr(expr) {
     return [
       2, expr.command_name,
       expr.operand_exprs.length > 0 ?
-        expr.operand_exprs.map(operand_expr => this.pack_expr(operand_expr)) : null,
+        expr.operand_exprs.map(
+          operand_expr => this.pack_expr(operand_expr)) : null,
       expr.options];
   }
   pack_sequence_expr(expr) {
@@ -1953,8 +1957,8 @@ class MsgpackEncoder {
   pack_subscriptsuperscript_expr(expr) {
     return [
       5, this.pack_expr(expr.base_expr),
-      expr.subscript_expr ? this.pack_expr(expr.subscript_expr) : null,
-      expr.superscript_expr ? this.pack_expr(expr.superscript_expr) : null];
+      this.maybe_pack_expr(expr.subscript_expr),
+      this.maybe_pack_expr(expr.superscript_expr)];
   }
   pack_infix_expr(expr) {
     return [
@@ -2000,7 +2004,7 @@ class MsgpackEncoder {
       expr.options.length === 0 ? null : expr.options
     ].concat(TensorExpr.position_names().map(position_name =>
       expr.index_exprs[position_name].map(index_expr =>
-        index_expr ? this.pack_expr(index_expr) : null)));
+        this.maybe_pack_expr(index_expr))));
   }
 }
 
@@ -2105,6 +2109,9 @@ class MsgpackDecoder {
     default: this.error("Unknown Expr typecode in MsgpackDecoder: " + typecode);
     }
   }
+  maybe_unpack_expr(array) {
+    return array ? this.unpack_expr(array) : null;
+  }
   unpack_text_expr([text]) {
     return new TextExpr(text);
   }
@@ -2129,8 +2136,8 @@ class MsgpackDecoder {
                                     subscript_expr_state, superscript_expr_state]) {
     return new SubscriptSuperscriptExpr(
       this.unpack_expr(base_expr_state),
-      subscript_expr_state ? this.unpack_expr(subscript_expr_state) : null,
-      superscript_expr_state ? this.unpack_expr(superscript_expr_state) : null);
+      this.maybe_unpack_expr(subscript_expr_state),
+      this.maybe_unpack_expr(superscript_expr_state));
   }
   unpack_infix_expr([operand_expr_states, operator_expr_states,
                      split_at_index, linebreaks_at]) {
@@ -2176,7 +2183,7 @@ class MsgpackDecoder {
     for(const [i, position_name]
         of TensorExpr.position_names().entries())
       index_exprs[position_name] = index_expr_states[i].map(
-        expr_state => expr_state ? this.unpack_expr(expr_state) : null);
+        expr_state => this.maybe_unpack_expr(expr_state));
     return new TensorExpr(
       this.unpack_expr(base_expr_state),
       index_exprs, options);

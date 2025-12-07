@@ -2072,9 +2072,9 @@ class InputContext {
   do_build_substack(stack) {
     const expr_count = this._require_prefix_argument();
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-    const rows = exprs.map(expr => [expr]);  // Nx1 array
+    const row_exprs = exprs.map(expr => [expr]);  // Nx1 array
     return new_stack.push_expr(
-      new ArrayExpr('substack', expr_count, 1, rows));
+      new ArrayExpr('substack', expr_count, 1, row_exprs));
   }
 
   // side: 'left' or 'right'
@@ -2083,8 +2083,7 @@ class InputContext {
     const arg_count = upper_or_lower === 'both' ? 2 : 1;
     const [new_stack, base_expr, ...new_index_exprs] =
           stack.pop_exprs(1+arg_count);
-    const tensor_expr = base_expr.is_tensor_expr() ?
-          base_expr : new TensorExpr(base_expr);
+    const tensor_expr = TensorExpr.from_expr(base_expr);
     let upper_index_expr = null, lower_index_expr = null;
     switch(upper_or_lower) {
     case 'upper': upper_index_expr = new_index_exprs[0]; break;
@@ -2101,14 +2100,13 @@ class InputContext {
     return new_stack.push_expr(new_tensor_expr);
   }
 
-  // "Affix" an expression a tensor on the given side ('left' or 'right').
+  // "Affix" an expression to a tensor on the given side ('left' or 'right').
   // Works like add_tensor_index, but attaches the expression to both
   // upper and lower indices as long as the corresponding slots are populated.
   // This is used to add commas and ellipses into the indices.
   do_affix_tensor_index(stack, side) {
     const [new_stack, base_expr, new_index_expr] = stack.pop_exprs(2);
-    const tensor_expr = base_expr.is_tensor_expr() ?
-          base_expr : new TensorExpr(base_expr);
+    const tensor_expr = TensorExpr.from_expr(base_expr);
     const new_tensor_expr = tensor_expr.affix_index(
       side, new_index_expr, side === 'left');
     return new_stack.push_expr(new_tensor_expr);
@@ -2127,6 +2125,7 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
+  // Slide tensor indices towards the base expression.
   do_condense_tensor(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
     if(!expr.is_tensor_expr())

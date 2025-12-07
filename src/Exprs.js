@@ -2116,11 +2116,21 @@ class TensorExpr extends Expr {
     return ['left_upper', 'left_lower', 'right_upper', 'right_lower'];
   }
 
+  // "Coerce" an expr to a TensorExpr if needed.
+  static from_expr(expr) {
+    if(expr.is_tensor_expr())
+      return expr;
+    else if(expr.is_subscriptsuperscript_expr())
+      return new this(expr.base_expr)
+        .add_indices('right', expr.superscript_expr, expr.subscript_expr);
+    else return new this(expr);
+  }
+
   expr_type() { return 'tensor'; }
 
-  // Add an upper or lower index (or both) to the given side of the tensor expression.
-  // Null can be used to indicate an empty index slot, but at least one of the new
-  // index expressions must be non-null.
+  // Add an upper or lower index (or both) to the given side ('left' or 'right')
+  // of the tensor expression.  Null can be used to indicate an empty index slot,
+  // but at least one of the new index expressions must be non-null.
   // outside=true will add the new index expressions to the beginning of the index
   // lists; this is done when adding left-side indexes so that they appear left of
   // any existing indexes there (slightly more intuitive).
@@ -2168,6 +2178,8 @@ class TensorExpr extends Expr {
     });
   }
 
+  // Slide indices on both sides towards the base expression,
+  // squeezing out any empty slots.
   condense() {
     const sort_fn = (left, right) => {
       // Keep nulls on the right and non-nulls on the left.
