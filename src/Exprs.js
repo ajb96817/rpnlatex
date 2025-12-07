@@ -8,10 +8,9 @@ import {
 // Note that all operations on Exprs are non-destructive; new Expr instances
 // are returned with changes rather than modifying internal state.
 class Expr {
-  // Concatenate two Exprs into one.  This will merge Exprs into adjacent SequenceExprs
-  // when possible, instead of creating nested SequenceExprs.
+  // Concatenate two Exprs into one.  This will merge Exprs into adjacent
+  // SequenceExprs when possible, instead of creating nested SequenceExprs.
   static combine_pair(left, right, no_parenthesize) {
-    const left_type = left.expr_type(), right_type = right.expr_type();
     const autoparenthesize = expr => {
       // Parenthesize InfixExprs before combining unless specified not to.
       if(expr.is_infix_expr() && !no_parenthesize)
@@ -19,12 +18,10 @@ class Expr {
       else
         return expr;
     };
-
     // Concatenating something to a unary minus PrefixExpr converts
     // into an InfixExpr for subtraction: concat(x, -y) -> x-y
-    if(right_type === 'prefix' && right.is_unary_minus())
+    if(right.is_prefix_expr() && right.is_unary_minus())
       return InfixExpr.combine_infix(left, right.base_expr, new TextExpr('-'));
-
     // Handle concatenating an expression to one or more ! signs, for factorial notation.
     // This notation has to be handled carefully:
     //   - The usual case is concatenating a base expression 'x' to a ! sign,
@@ -59,35 +56,28 @@ class Expr {
           ).fill(new TextExpr('!')));
       }
     }
-
     // Sequence + Sequence
-    if(left_type === 'sequence' && right_type === 'sequence')
+    if(left.is_sequence_expr() && right.is_sequence_expr())
       return new SequenceExpr(left.exprs.concat(right.exprs));
-
     // Sequence + NonSequence
-    if(left_type === 'sequence' && right_type !== 'sequence')
+    if(left.is_sequence_expr() && !right.is_sequence_expr())
       return new SequenceExpr(left.exprs.concat([autoparenthesize(right)]));
-
     // NonSequence + Sequence
-    if(right_type === 'sequence' && left_type !== 'sequence')
+    if(!left.is_sequence_expr() && right.is_sequence_expr())
       return new SequenceExpr([autoparenthesize(left)].concat(right.exprs));
-
     // Some types of Command can be combined in special ways
-    if(left_type === 'command' && right_type === 'command')
+    if(left.is_command_expr() && right.is_command_expr())
       return Expr.combine_command_pair(left, right);
-
     // Special case: combine 123 456 => 123456 if both sides are numeric.
     // This can lead to things like "1.2" + "3.4" -> "1.23.4" but that's
     // considered OK because the main use for this is to build numbers from
     // individual digits.  The user should use an explicit \cdot or \times
     // infix operator to indicate multiplication.
-    if(left_type === 'text' && left.looks_like_number() &&
-       right_type === 'text' && right.looks_like_number())
-      return new TextExpr(left.text + right.text);
     // TODO: convert '123' + '-456' into an infix subtraction
-
-    // NonSequence + NonSequence => Sequence (the typical case)
-
+    if(left.is_text_expr() && left.looks_like_number() &&
+       right.is_text_expr() && right.looks_like_number())
+      return new TextExpr(left.text + right.text);
+    // NonSequence + NonSequence => Sequence (the typical case).
     // Parenthesization of factorial notation is a little tricky.
     // We want the results:
     //   2 x!      =>  2(x!)
@@ -107,7 +97,6 @@ class Expr {
       parenthesize_right = false;
     const right_expr = parenthesize_right ?
           DelimiterExpr.parenthesize(right) : right;
-
     // Adjacent FontExprs of the same type can be merged into a single
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
     // (This renders better in some cases.)
@@ -127,11 +116,11 @@ class Expr {
 
   // Combine two CommandExprs with special-casing for some particular command pairs.
   static combine_command_pair(left_expr, right_expr) {
-    const [left_name, right_name] =
-          [left_expr.command_name, right_expr.command_name];
     // Try combining adjacent integral symbols into multiple-integral commands.
     let new_command_name = null;
-    if(left_expr.operand_count() === 0 && right_expr.operand_count() === 0) {
+    if(left_expr.is_command_expr_with(0) && right_expr.is_command_expr_with(0)) {
+      const [left_name, right_name] =
+            [left_expr.command_name, right_expr.command_name];
       if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
       if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
       if(left_name === 'int' && right_name === 'iint') new_command_name = 'iiint';
@@ -209,7 +198,6 @@ class Expr {
   is_text_expr_with(text) { return this.is_text_expr() && this.text === text; }
   is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
   is_unary_minus_expr() { return this.is_prefix_expr() && this.is_unary_minus(); }
-  
   is_command_expr_with(operand_count, command_name /* optional */) {
     return this.is_command_expr() &&
       this.operand_count() === operand_count &&
@@ -287,11 +275,10 @@ class Expr {
   }
   _find_placeholder_expr_path(expr_path) {
     let found_expr_path = null;
-    for(const [index, subexpr] of this.subexpressions().entries()) {
+    for(const [index, subexpr] of this.subexpressions().entries())
       if(found_expr_path === null)
         found_expr_path = subexpr._find_placeholder_expr_path(
           expr_path.descend(index));
-    }
     return found_expr_path;
   }
 
@@ -301,7 +288,8 @@ class Expr {
 
   // Subclasses can override.
   as_bold() {
-    return FontExpr.wrap(this).with_bold(true).unwrap_if_possible();
+    return FontExpr.wrap(this)
+      .with_bold(true).unwrap_if_possible();
   }
 
   // Return the "logical negation" of this expression, if it makes
@@ -432,7 +420,7 @@ class CommandExpr extends Expr {
 
   as_editable_string() {
     // Check for \operatorname{...} with a TextExpr inside.
-    // This may have been created with Tab from math entry mode.
+    // This may have been created with [Tab] from math entry mode.
     if(this.is_command_expr_with(1, 'operatorname') &&
        this.operand_exprs[0].is_text_expr())
       return this.operand_exprs[0].text;
@@ -496,8 +484,7 @@ class CommandExpr extends Expr {
 
 // FontExpr wraps another Expr and adds typeface/font information to it.
 // A FontExpr sets both the overall typeface (normal math, upright roman, etc)
-// and a flag indicating bold/normal, plus an optional size adjustment that changes the
-// size of the expression.
+// and a flag indicating bold/normal, plus an optional size adjustment.
 class FontExpr extends Expr {
   // typeface:
   //   'normal': regular italic math font
@@ -557,9 +544,7 @@ class FontExpr extends Expr {
 
   matches(expr) {
     return super.matches(expr) &&
-      this.typeface === expr.typeface &&
-      this.is_bold === expr.is_bold &&
-      this.size_adjustment === expr.size_adjustment;
+      FontExpr.font_exprs_compatible(this, expr);
   }
 
   // "Special" typefaces like calligraphic are considered uneditable
@@ -588,7 +573,7 @@ class FontExpr extends Expr {
     return new FontExpr(this.expr, typeface, this.is_bold, this.size_adjustment);
   }
 
-  with_bold(is_bold) {
+  with_bold(is_bold = true) {
     return new FontExpr(this.expr, this.typeface, is_bold, this.size_adjustment);
   }
 
@@ -610,7 +595,7 @@ class FontExpr extends Expr {
       return emitter.grouped(() => {
         emitter.command(size_adjustment_command);
         this.with_size_adjustment(0).emit_latex(emitter);
-      }, true);
+      }, 'force');
     }
     const typeface_command = this.typeface_command(this.typeface, this.is_bold);
     const use_pmb = this.is_bold && this.use_pmb_for(this.typeface);
@@ -621,13 +606,13 @@ class FontExpr extends Expr {
       emitter.command('pmb');
       emitter.grouped(() => {
         emitter.command(typeface_command);
-        emitter.grouped_expr(this.expr, true, 0);
-      }, true);
+        emitter.grouped_expr(this.expr, 'force', 0);
+      }, 'force');
     }
     else {
       // either \pmb{...} or \typeface_cmd{...} (not both)
       emitter.command(use_pmb ? 'pmb' : typeface_command);
-      emitter.grouped_expr(this.expr, true, 0);
+      emitter.grouped_expr(this.expr, 'force', 0);
     }
   }
 
@@ -1283,7 +1268,7 @@ class TextExpr extends Expr {
       // An "empty" TextExpr is a special case, emitted as an empty LaTeX group {}.
       // For example: -x is unary minus, but {}-x is "something" minus x.
       // The spacing is larger in the latter case.
-      emitter.grouped(() => null, true);
+      emitter.grouped(() => null, 'force');
     }
     else {
       // Check explicitly for '-123'.  These need to be enclosed in
@@ -1529,7 +1514,7 @@ class DelimiterExpr extends Expr {
 
   // An inline division infix expression surrounded by "blank" delimiters
   // e.g.: \left. x/y \right.
-  // is in some cases treated like a \frac{x}{y} command.
+  // In some cases this is treated like a \frac{x}{y} command.
   is_flex_inline_fraction() {
     return this.left_type === '.' && this.right_type === '.' &&
       this.inner_expr.is_infix_expr() &&
@@ -1566,7 +1551,7 @@ class SubscriptSuperscriptExpr extends Expr {
     if(this.base_expr.is_command_expr())
       emitter.expr(this.base_expr, 0);
     else
-      emitter.grouped_expr(this.base_expr, false, 0);
+      emitter.grouped_expr(this.base_expr, null, 0);
     let subexpr_index = 1;
     if(this.superscript_expr) {
       emitter.text('^');
@@ -2241,7 +2226,7 @@ class TensorExpr extends Expr {
       subexpr_index = this._emit_index_group(
         emitter, exprs.left_lower, exprs.left_upper, subexpr_index);
     }
-    emitter.grouped_expr(this.base_expr, false, subexpr_index++);
+    emitter.grouped_expr(this.base_expr, null, subexpr_index++);
     if(exprs.right_upper.length > 0) {
       emitter.text('^');
       subexpr_index = this._emit_index_group(

@@ -172,7 +172,7 @@
         <li><span class="k">/</span><span class="k">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
         <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
-        <li><span class="k">~</span> Create expressions using <a href="#help_tensors">tensor index notation</a>.</li>
+        <li><span class="k">~</span> Create <a href="#help_tensors">tensor</a> expressions using index notation.</li>
         <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
         <li><span class="k">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
         <li><span class="k">;</span> Create <a href="#help_greek">Greek letters</a>.</li>
@@ -2035,70 +2035,70 @@
         <li>
           Multiple indices may be attached to the same tensor base, and will stack horizontally next
           to each other rather than becoming nested as in the case of repeated superscripts and subscripts.
-          For example: <code>x^{yz}</code> vs. <code>x^{y^z}</code>.
+          For example: <code>\displaystyle{x^{yz}}</code> vs. <code>\displaystyle{x^{y^z}}</code>.
         </li>
         <li>
           Indices are positioned according to the order they are attached, with correct spacing to
-          indicate the axis ordering.  For example, <code>\Gamma^{i}_{\hphantom{i}jk}</code>
-          and <code>\Gamma^{ij}_{\hphantom{ij}k}</code> have distinct mathematical meanings, but
-          would both appear as <code>\Gamma^{ij}_k</code> using ordinary subscripts and superscripts.
+          indicate the axis ordering.  For example, <code>\displaystyle{\Gamma^{i}_{\hphantom{i}jk}}</code>
+          and <code>\displaystyle{\Gamma^{ij}_{\hphantom{ij}k}}</code> have distinct mathematical meanings, but
+          would both appear as <code>\displaystyle{\Gamma^{ij}_k}</code> using ordinary subscripts and superscripts.
         </li>
         <li>
           Tensor indices may also be attached to the left side of the tensor base, allowing notation
-          such as <code>\vphantom{X}^a_b X</code>.  (This can be used to create chemical symbols like
-          <code>\vphantom{\mathrm{Pu}}^{239}_{\hphantom{239}}{\mathrm{Pu}}</code>.)
+          such as <code>\displaystyle{\vphantom{\Gamma}^a_b \Gamma}</code>.  (This can be used to create chemical symbols like
+          <code>\displaystyle{\vphantom{\mathrm{Pu}}^{239}_{\hphantom{239}}{\mathrm{Pu}}}</code>.)
         </li>
       </ul>
       <ul class="keybindings">
         <li>
           <span class="k">`</span> or <span class="k">^</span>
           Add an upper (contravariant) index to a tensor:
-          <code>T\enspace x \Rightarrow \displaystyle{T^x}</code>
+          <code>\Gamma\enspace x \Rightarrow \displaystyle{\Gamma^x}</code>
         </li>
         <li>
           <span class="k">_</span> or <span class="k">Enter</span>
           Add a lower (covariant) index:
-          <code>T\enspace x \Rightarrow T_x</code>
+          <code>\Gamma\enspace x \Rightarrow \displaystyle{\Gamma_x}</code>
         </li>
         <li>
           <span class="k">i</span> or <span class="k">&nbsp;</span>
           Add lower and upper <strong>i</strong>ndices at once; they will share an axis slot:
-          <code>T\enspace x\enspace y \Rightarrow \displaystyle{T_{x}^{y}}</code>
+          <code>\Gamma\enspace x\enspace y \Rightarrow \displaystyle{\Gamma_{x}^{y}}</code>
         </li>
         <li>
           <span class="k">.</span>
           Affix ellipses (<code>\,\cdots\,</code>) to the outermost indices.  Ellipses will not
           be added next to blank index slots.  For example:
-          <code>\displaystyle{T_a^b} \Rightarrow \displaystyle{T^{b\,\cdots\,}_{a\,\cdots\,}}</code>, but
-          <code>\displaystyle{T^{\hphantom{a}b}_{a\hphantom{b}}} \Rightarrow
-            \displaystyle{T^{\hphantom{a}b\,\cdots\,}_{a\hphantom{b}\hphantom{\,\cdots\,}}}</code>
+          <code>\displaystyle{\Gamma_a^b} \Rightarrow \displaystyle{\Gamma^{b\,\cdots\,}_{a\,\cdots\,}}</code>, but
+          <code>\displaystyle{\Gamma^{\hphantom{a}b}_{a\hphantom{b}}} \Rightarrow
+            \displaystyle{\Gamma^{\hphantom{a}b\,\cdots\,}_{a\hphantom{b}\hphantom{\,\cdots\,}}}</code>
         </li>
         <li>
           <span class="k">,</span>
           Similar to <span class="k">.</span> but affix commas instead.
           This is for creating expressions like
-          <code>\displaystyle{T^{a\hphantom{b}\hphantom{,}\hphantom{c}}_{\hphantom{a}b,c}}</code>
+          <code>\displaystyle{\Gamma^{a\hphantom{b}\hphantom{,}\hphantom{c}}_{\hphantom{a}b,c}}</code>
         </li>
         <li>
           <span class="k">l</span> or <span class="k">~</span>
           Switch to <em>left</em> mode.  After switching,
           the previous commands will add indices to the left side of the tensor instead,
-          e.g. <code>T\enspace x \Rightarrow \displaystyle{\vphantom{T}^x T}</code>
+          e.g. <code>\Gamma\enspace x \Rightarrow \displaystyle{\vphantom{\Gamma}^x \Gamma}</code>
         </li>
         <li>
           <span class="k">c</span>
           <strong>C</strong>ondense indices by moving them towards the tensor base,
           closing up any empty slots:
-          <code>\displaystyle{\vphantom{T}^{\hphantom{a}bc}_{a\hphantom{b}\hphantom{c}}\Gamma^{\hphantom{d}e}_{d\hphantom{e}}}
+          <code>\displaystyle{\vphantom{\Gamma}^{\hphantom{a}bc}_{a\hphantom{b}\hphantom{c}}\Gamma^{\hphantom{d}e}_{d\hphantom{e}}}
             \Rightarrow
-            \displaystyle{\vphantom{T}^{bc}_{\hphantom{b}a}\Gamma^e_d}
+            \displaystyle{\vphantom{\Gamma}^{bc}_{\hphantom{b}a}\Gamma^e_d}
           </code>
         </li>
         <li>
           <span class="k">w</span>
           S<strong>w</strong>ap the type (upper or lower) of all tensor indices:
-          <code>\displaystyle{T^a_{\hphantom{a}bc}} \Leftrightarrow
-            \displaystyle{T_a^{\hphantom{a}bc}}</code>
+          <code>\displaystyle{\Gamma^a_{\hphantom{a}bc}} \Leftrightarrow
+            \displaystyle{\Gamma_a^{\hphantom{a}bc}}</code>
         </li>
       </ul>
       <p>
