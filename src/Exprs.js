@@ -2071,7 +2071,7 @@ class ArrayExpr extends Expr {
     if(!(this.is_matrix() && this.column_count === 1))
       return this;
     const new_element_exprs = [];
-    for(const [row, row_exprs] of this.element_exprs.entries()) {
+    for(const row_exprs of this.element_exprs) {
       const element_expr = row_exprs[0];
       if(!(element_expr.array_type === this.array_type &&
            element_expr.column_count === 1 &&

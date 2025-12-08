@@ -61,9 +61,15 @@ class Settings {
   
   constructor() {
     this.current_keymap = new Keymap();
+    this.last_opened_filename = null;
+    this.reset();
+  }
+
+  // Reset user's config settings but leave current filename alone
+  // (which is currently treated as part of the settings).
+  reset() {
     this.debug_mode = false;
     this.filter = null;  // null, 'inverse_video', 'sepia', 'eink'
-    this.last_opened_filename = null;
     this.popup_mode = null;  // null, 'help', 'files'
     this.dock_helptext = false;  // true if user guide docked to document area
     this.show_mode_indicator = true;
@@ -75,6 +81,7 @@ class Settings {
   default_layout() {
     return {
       zoom_factor: 0,
+      helptext_zoom_factor: 0,
       stack_math_alignment: 'left',
       document_math_alignment: 'left',
       inline_math: false,
@@ -94,16 +101,22 @@ class Settings {
       this.popup_mode === 'files' ? 'block' : 'none';
     helptext_panel_elt.style.display =
       this.popup_mode === 'help' ? 'block' : 'none';
-    // Set overall font scale factor.
+    // Set overall zoom factor.  User guide also has an independent
+    // (multiplicative) zoom factor.
+    const set_zoom = (elt, zoom_factor) => {
+      const percentage = 100*Math.pow(1.05, zoom_factor || 0);
+      elt.style.fontSize = percentage.toFixed(2) + '%';
+      return percentage;
+    };
     const root_elt = document.getElementById('root');
-    const percentage = 100*Math.pow(1.05, layout.zoom_factor || 0);
-    root_elt.style.fontSize = percentage.toFixed(2) + '%';
+    const zoom_percentage = set_zoom(root_elt, layout.zoom_factor);
+    set_zoom(helptext_panel_elt, layout.helptext_zoom_factor);
     // Set some specific scale factors for other UI elements
     // by manipulating the corresponding CSS variables.
     const root_vars = document.querySelector(':root');
-    const itembar_pixels = Math.min(10, Math.max(2, Math.round(4 * percentage/100)));
+    const itembar_pixels = Math.min(10, Math.max(2, Math.round(4 * zoom_percentage/100)));
     root_vars.style.setProperty('--itemtype-bar-width', itembar_pixels + 'px');
-    const headingbar_pixels = Math.max(1, Math.round(3 * percentage/100));
+    const headingbar_pixels = Math.max(1, Math.round(3 * zoom_percentage/100));
     root_vars.style.setProperty('--heading-bar-height', headingbar_pixels + 'px');
     // Set up stack/document panel layout.
     let [stack_bounds, document_bounds] = this._split_rectangle(

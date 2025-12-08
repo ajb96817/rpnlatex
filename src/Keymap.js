@@ -145,6 +145,11 @@ const KeybindingTable = {
     'Home': 'scroll helptext_panel top',
     'End': 'scroll helptext_panel bottom',
 
+    // Independent zoom factor for User Guide.
+    '+': "config helptext_zoom_factor increase",
+    '-': "config helptext_zoom_factor decrease",
+    '0': "config helptext_zoom_factor reset",
+
     // Quick navigation to each section:
     '&': "scroll_to help_insert_script",
     '%': "scroll_to help_insert_blackboard",

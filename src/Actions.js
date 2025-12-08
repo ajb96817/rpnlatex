@@ -83,7 +83,7 @@ class InputContext {
   // Each command is of the form [command_name, param1, param2, ...]
   process_command_batch(commands, app_state) {
     this.perform_undo_or_redo = null;
-    for(const [i, command] of commands.entries()) {
+    for(const command of commands) {
       const [command_name, ...parameters] = command;
       const handler_function = this['do_' + command_name];
       if(!handler_function)
@@ -98,7 +98,7 @@ class InputContext {
           new_stack || app_state.stack,
           this.new_document || app_state.document
         );
-        // Mark app state as 'dirty' (unsaved changed) if anything changed, but not if the
+        // Mark app state as 'dirty' (unsaved changed) if anything changed, but not if
         // suppress_undo() has been called, which indicates a minor action like changing
         // the document selection.
         new_app_state.is_dirty = app_state.is_dirty ||
@@ -1837,16 +1837,21 @@ class InputContext {
     let settings = this.settings;
     let layout = settings.layout;
     let full_refresh_needed = false;  // set to true if everything needs to be re-rendered afterwards
-    let scratch;
+    let scratch, scratch2;
     switch(config_option) {
     case 'zoom_factor':
+    case 'helptext_zoom_factor':
       scratch = this._get_prefix_argument(1, -1);
-      if(scratch < 0) layout.zoom_factor = 0;
-      else if(value === 'decrease') layout.zoom_factor -= scratch;
-      else layout.zoom_factor += scratch;
+      scratch2 = layout[config_option] || 0;  // new zoom exponent
+      if((this.prefix_argument !== null && scratch <= 0) /* [*] or [0] prefix arg */ ||
+         value === 'reset') scratch2 = 0;
+      else if(value === 'decrease') scratch2 -= scratch;
+      else scratch2 += scratch;
       // Limit zoom percentage to around 2% ... 10000%
-      layout.zoom_factor = Math.max(Math.min(layout.zoom_factor, 80), -80);
-      this.notify("Zoom level: " + (layout.zoom_factor > 0 ? "+" : "") + layout.zoom_factor.toString());
+      layout[config_option] = scratch2 = Math.max(Math.min(scratch2, 80), -80);
+      this.notify([
+        config_option === 'helptext_zoom_factor' ? 'User guide zoom: ' : 'Zoom level: ',
+        scratch2 > 0 ? '+' : '', scratch2.toString()].join(''));
       break;
     case 'math_align':
       scratch = value === 'document' ?
@@ -1911,10 +1916,9 @@ class InputContext {
       this.notify("Autoparenthesize " + (settings.autoparenthesize ? "on" : "off"));
       break;
     case 'reset_layout':
-      settings.layout = settings.default_layout();
-      settings.filter = null;
-      settings.show_mode_indicator = true;
+      settings.reset();
       full_refresh_needed = true;
+      this.notify("Configuration reset to default");
       break;
     case 'reload_page':
       window.location.reload();

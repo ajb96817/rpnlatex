@@ -95,7 +95,7 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 
 #stack_panel div.indicator {
   float: right;
-  clear: right;  /* in case there's a "floating" stack item */
+  clear: right; /* in case there's a "floating" stack item */
   position: relative; z-index: 2; /* keep it from being obscured by other stack items */
   margin-right: 0.25em;
   margin-top: 0.25em;

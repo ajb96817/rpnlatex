@@ -848,10 +848,10 @@ class AlgebriteTensor extends AlgebriteNode {
 
   emit(emitter) {
     emitter.emit('[');
-    for(let row = 0; row < this.row_count; row++) {
+    for(const [row, row_nodes] of this.element_nodes.entries()) {
       emitter.emit('[');
-      for(let column = 0; column < this.column_count; column++) {
-        this.element_nodes[row][column].emit(emitter);
+      for(const [column, element_node] of row_nodes.entries()) {
+        element_node.emit(emitter);
         if(column < this.column_count-1)
           emitter.emit(',');
       }
@@ -983,8 +983,8 @@ class ExprToAlgebrite {
   }
 
   _check_infix_operator_arguments(fn, lhs_node, rhs_node) {
-    const lhs_is_tensor = lhs_node instanceof AlgebriteTensor;
-    const rhs_is_tensor = rhs_node instanceof AlgebriteTensor;
+    const [lhs_is_tensor, rhs_is_tensor] =
+          [lhs_node, rhs_node].map(node => node instanceof AlgebriteTensor);
     if(fn === 'add') {
       // Avoid an Algebrite bug with adding a scalar to a vector/matrix
       // (x + [y, z]).
@@ -1006,7 +1006,7 @@ class ExprToAlgebrite {
     switch(op_name) {
     case '*': return {fn: 'multiply', prec: 2};
     case '/': return {fn: 'multiply', modifier_fn: 'reciprocal', prec: 2};
-      //    case 'times': return {fn: 'cross', prec: 2};  // TODO: revisit, should only apply this to literal vector pairs
+    // case 'times': return {fn: 'cross', prec: 2};  // TODO: revisit, should only apply this to literal vector pairs
     case 'times':
     case 'cdot': return {fn: 'inner', prec: 2};
     case '+': return {fn: 'add', prec: 1};
