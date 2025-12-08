@@ -1,7 +1,7 @@
-# rpnlatex - RPN style mathematical scratchpad
+# rpnlatex - RPN style LaTeX editor and scratchpad
 
-  * **Current release version**: `1.4.0` - ([live build](https://ajb96817.github.io/rpnlatex/)) - ([alternative site](https://andrewbrault.com/rpnlatex/))
-  * **Development version**: `1.4.1` - ([live build](https://andrewbrault.com/rpnlatex_dev/)) - ([source code](https://github.com/ajb96817/rpnlatex))
+  * **Current release version**: `1.4.1` - ([live build](https://ajb96817.github.io/rpnlatex/)) - ([alternative site](https://andrewbrault.com/rpnlatex/))
+  * **Development version**: `1.4.2` - ([live build](https://andrewbrault.com/rpnlatex_dev/)) - ([source code](https://github.com/ajb96817/rpnlatex))
 
 This is a browser-based editor meant for quickly entering and manipulating equations.
 It can be used as a scratchpad for solving math problems, as an alternative to pen and
