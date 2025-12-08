@@ -90,17 +90,14 @@ class Settings {
   apply_layout_to_dom(stack_panel_elt, document_panel_elt,
                       file_manager_panel_elt, helptext_panel_elt) {
     const layout = this.layout;
-
     file_manager_panel_elt.style.display =
       this.popup_mode === 'files' ? 'block' : 'none';
     helptext_panel_elt.style.display =
       this.popup_mode === 'help' ? 'block' : 'none';
-
     // Set overall font scale factor.
     const root_elt = document.getElementById('root');
     const percentage = 100*Math.pow(1.05, layout.zoom_factor || 0);
     root_elt.style.fontSize = percentage.toFixed(2) + '%';
-
     // Set some specific scale factors for other UI elements
     // by manipulating the corresponding CSS variables.
     const root_vars = document.querySelector(':root');
@@ -108,14 +105,12 @@ class Settings {
     root_vars.style.setProperty('--itemtype-bar-width', itembar_pixels + 'px');
     const headingbar_pixels = Math.max(1, Math.round(3 * percentage/100));
     root_vars.style.setProperty('--heading-bar-height', headingbar_pixels + 'px');
-
     // Set up stack/document panel layout.
     let [stack_bounds, document_bounds] = this._split_rectangle(
       {x: 0, y: 0, w: 100, h: 100},
       layout.stack_side, layout.stack_split);
     this._apply_bounds(stack_panel_elt, stack_bounds);
     this._apply_bounds(document_panel_elt, document_bounds);
-
     // Set up User Guide layout.
     if(this.popup_mode === 'help') {
       helptext_panel_elt.className = 'popup panel';
@@ -131,7 +126,6 @@ class Settings {
       helptext_panel_elt.className = 'panel';
       helptext_panel_elt.style.display = 'none';
     }
-
     // Show or hide File Manager depending on mode.
     file_manager_panel_elt.style.display =
       this.popup_mode === 'files' ? 'block' : 'none';
@@ -221,7 +215,8 @@ class TextEntryState {
     this.current_text = [
       this.current_text.slice(0, this.cursor_position),
       s,
-      this.current_text.slice(this.cursor_position)].join('');
+      this.current_text.slice(this.cursor_position)
+    ].join('');
     this.cursor_position++;
   }
 
@@ -230,7 +225,8 @@ class TextEntryState {
       this.cursor_position--;
       this.current_text = [
         this.current_text.slice(0, this.cursor_position),
-        this.current_text.slice(this.cursor_position+1)].join('');
+        this.current_text.slice(this.cursor_position+1)
+      ].join('');
     }
   }
 
@@ -239,7 +235,8 @@ class TextEntryState {
     if(this.cursor_position < this.current_text.length)
       this.current_text = [
         this.current_text.slice(0, this.cursor_position),
-        this.current_text.slice(this.cursor_position+1)].join('');
+        this.current_text.slice(this.cursor_position+1)
+      ].join('');
   }
 
   move(direction) {
@@ -274,7 +271,9 @@ class LatexEmitter {
       ':': "\\colon{}",
       "\\": "\\backslash{}"
     };
-    return text.replaceAll(/[ _^%'`$&#}{~:\\]/g, match => replacements[match]);
+    return text.replaceAll(
+      /[ _^%'`$&#}{~:\\]/g,
+      match => replacements[match]);
   }
 
   // Inverse of latex_escape.  This is used by do_edit_item to allow simple TextExprs
@@ -363,13 +362,10 @@ class LatexEmitter {
   grouped(fn, force_braces) {
     let [old_tokens, old_last_token_type] = [this.tokens, this.last_token_type];
     [this.tokens, this.last_token_type] = [[], null];
-
     fn();
-
     const [tokens, last_token_type] = [this.tokens, this.last_token_type];
     this.tokens = old_tokens;
     this.last_token_type = old_last_token_type;
-
     // The only real 'special' case is a group with exactly 1 token.
     // In that case we may be able to omit the surrounding braces if
     // it's a 1-character string or a single \latexcommand.  In all other
@@ -400,7 +396,7 @@ class LatexEmitter {
   }
 
   // Emit 'raw' LaTeX code.
-  text(text, force_braces) {
+  text(text, force_braces = false) {
     if(force_braces) {
       this.text('{');
       this.text(text);
@@ -550,7 +546,7 @@ class UndoStack {
 }
 
 
-// FileState maintains the 'state' for the file manager popup (the current
+// FileManager maintains the 'state' for the file manager popup (the current
 // list of files and currently selected file).
 //
 // It is also the interface to the browser's localStorage and handles
@@ -571,25 +567,20 @@ class FileManager {
   constructor() {
     // This could be changed to sessionStorage if wanted (not really useful though).
     this.storage = localStorage;
-
     // User-visible sorted list of available stored file infos.
     // Uniquified if there happens to be multiples of a filename
     // (with different timestamps).
     this.available_files = null;
-
     // Total (approximate) storage used currently in bytes.
     this.storage_used = null;
-
     // Storage quota in bytes.  Currently just an estimate; localStorage
     // limit is generally 5-10MB.  There's no way to get the actual limit
     // besides trying to store more and more until it fails.
     // If this is null it means there is an unlimited quota.
     this.storage_quota = 5000*1024;
-
     // Filename of the AppState (stack/document) currently being edited.
     // This is always "something" (never null), even if the file isn't saved to storage.
     this.current_filename = 'untitled_1';
-
     // Currently selected file in the file manager (not necessarily the same
     // as current_filename until the selected file is loaded).
     this.selected_filename = null;
@@ -672,10 +663,10 @@ class FileManager {
   // spaces, and are limited to 100 characters.  Return null if the
   // filename cannot be sanitized.
   sanitize_filename(filename) {
-    const fn = filename
+    const s = filename
           .replaceAll(/[^a-zA-Z0-9_ ]/g, '')
           .trim().slice(0, 100);
-    return fn.length === 0 ? null : fn;
+    return s.length === 0 ? null : s;
   }
 
   // Used by FileManagerComponent.import_file(), so needs to be its
@@ -748,9 +739,23 @@ class FileManager {
     }
   }
 
-  // TODO: not yet implemented
-  // rename_file(old_filename, new_filename) {
-  // }
+  // Return null on success, error string on failure.
+  rename_file(old_filename, new_filename) {
+    [old_filename, new_filename] = [
+      this.sanitize_filename(old_filename),
+      this.sanitize_filename(new_filename)];
+    if(!(old_filename && new_filename)) return "Invalid filename(s)";
+    if(old_filename === new_filename) return "New filename is the same as the old";
+    if(!this.has_file_named(old_filename)) return "File not found";
+    if(this.has_file_named(new_filename)) return "A file with the new name already exists";
+    const old_app_state = this.load_file(old_filename);
+    if(!old_app_state) return "Could not read old file";
+    const save_result = this.save_file(new_filename, old_app_state);
+    if(save_result !== null) return save_result;
+    const delete_result = this.delete_file(old_filename);
+    if(delete_result !== null) return "Error deleting old file: " + delete_result;
+    return null;
+  }
 
   // Delete the filename from storage.  Return null on success, or an error
   // string on failure.
@@ -772,10 +777,9 @@ class FileManager {
       // currently-selected file.
       this.refresh_available_files();
       if(filename === this.selected_filename) {
-        const new_selected_index =
-              Math.max(
-                Math.min(old_selected_index === null ? 0 : old_selected_index,
-                         this.available_files.length-1), 0);
+        const new_selected_index = Math.max(Math.min(
+          old_selected_index === null ? 0 : old_selected_index,
+          this.available_files.length-1), 0);
         this.selected_filename = 
           new_selected_index < this.available_files.length ?
           this.available_files[new_selected_index].filename : null;
@@ -975,9 +979,9 @@ class RationalizeToExpr {
     if(rationalized_expr)
       return rationalized_expr;
     // Check subexpressions recursively.
-    return expr.subexpressions().reduce(
-      (new_expr, subexpression, subexpression_index) => new_expr
-        .replace_subexpression(
+    return expr.subexpressions()
+      .reduce((new_expr, subexpression, subexpression_index) =>
+        new_expr.replace_subexpression(
           subexpression_index,
           this.rationalize_expr(subexpression)),
       expr);
@@ -1039,11 +1043,10 @@ class RationalizeToExpr {
       value, Math.log(2), new CommandExpr('ln', [this._int_to_expr(2)]), null);
     // Try sqrt(n) in the numerator for small square-free n.
     // No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
-    const small_squarefree = [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19];
-    for(let i = 0; i < small_squarefree.length; i++)
+    for(const factor of [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19])
       result ||= this._try_rationalize_with_factor(
-        value, Math.sqrt(small_squarefree[i]),
-        make_sqrt(this._int_to_expr(small_squarefree[i])), null);
+        value, Math.sqrt(factor),
+        make_sqrt(this._int_to_expr(factor)), null);
     // Try golden ratio-like factors.
     result ||= this._try_rationalize_with_factor(
       value, 1+Math.sqrt(5),
@@ -1125,11 +1128,11 @@ class RationalizeToExpr {
   // 0 <= x <= 1, with maximum denominator max_denom.
   // Returns [numerator, denominator].
   _rationalize(x, max_denom) {
-    const eps = 1e-6;
+    const epsilon = 1e-6;
     let [a, b, c, d] = [0, 1, 1, 1];
     while(b <= max_denom && d <= max_denom) {
       const mediant = (a+c) / (b+d);
-      if(Math.abs(x - mediant) <= eps) {
+      if(Math.abs(x - mediant) <= epsilon) {
         if(b + d <= max_denom)
           return [a+c, b+d];
         else if(d > b)
@@ -1213,7 +1216,8 @@ class ExprItem extends Item {
   item_type() { return 'expr'; }
 
   to_latex(export_mode) {
-    const rendered_latex = this.expr.to_latex(this.selected_expr_path, export_mode);
+    const rendered_latex = this.expr
+          .to_latex(this.selected_expr_path, export_mode);
     if(export_mode)
       return ["$$\n", rendered_latex, "\n$$"].join('');
     else
@@ -1280,12 +1284,12 @@ class TextItemTextElement extends TextItemElement {
     // \text{word1\allowbreak word2\allowbreak}.
     const tokens = this.text.split(/ +/);
     let pieces = [];
-    for(let i = 0; i < tokens.length; i++) {
+    for(const [i, token] of tokens.entries()) {
       if(this.is_bold && this.is_italic) pieces.push("\\textbf{\\textit{");
       else if(this.is_bold) pieces.push("\\textbf{");
       else if(this.is_italic) pieces.push("\\textit{");
       else pieces.push("\\text{");
-      pieces.push(this._latex_escape(tokens[i]));
+      pieces.push(this._latex_escape(token));
       if(i < tokens.length-1) pieces.push(' ');  // preserve spacing between words
       if(this.is_bold && this.is_italic) pieces.push("}");
       // An extra empty group {} is needed to prevent the \allowbreak from possibly
@@ -1324,7 +1328,9 @@ class TextItemTextElement extends TextItemElement {
       '~': "\\textasciitilde",
       "\\": "\\textbackslash "
     };
-    return text.replaceAll(/[_^%$&#}{~\\]/g, match => replacements[match]);
+    return text.replaceAll(
+      /[_^%$&#}{~\\]/g,
+      match => replacements[match]);
   }
 }
 
@@ -1499,27 +1505,28 @@ class TextItem extends Item {
     if(elements.length > 0)
       merged_elements.push(elements[0]);
     for(let i = 1; i < elements.length; i++) {
+      const element = elements[i];
       const last_index = merged_elements.length-1;
       const last_merged_element = merged_elements[last_index];
-      if(last_merged_element.is_text() && elements[i].is_text() &&
-         last_merged_element.is_bold === elements[i].is_bold &&
-         last_merged_element.is_italic === elements[i].is_italic) {
+      if(last_merged_element.is_text() && element.is_text() &&
+         last_merged_element.is_bold === element.is_bold &&
+         last_merged_element.is_italic === element.is_italic) {
         // Two adjacent TextElements with the same is_bold/is_italic flags.
         merged_elements[last_index] = new TextItemTextElement(
-          last_merged_element.text + elements[i].text,
-          elements[i].is_bold, elements[i].is_italic);
+          last_merged_element.text + element.text,
+          element.is_bold, element.is_italic);
       }
       else if(last_merged_element.is_raw() &&
               last_merged_element.is_explicit_space() &&
-              elements[i].is_text()) {
+              element.is_text()) {
         // Raw space + TextElement
         merged_elements[last_index] = new TextItemTextElement(
-          ' ' + elements[i].text,
-          elements[i].is_bold, elements[i].is_italic);
+          ' ' + element.text,
+          element.is_bold, element.is_italic);
       }
       else if(last_merged_element.is_text() &&
-              elements[i].is_raw() &&
-              elements[i].is_explicit_space()) {
+              element.is_raw() &&
+              element.is_explicit_space()) {
         // TextElement + raw space
         merged_elements[last_index] = new TextItemTextElement(
           last_merged_element.text + ' ',
@@ -1527,7 +1534,7 @@ class TextItem extends Item {
       }
       else {
         // Any other combinations are left alone.
-        merged_elements.push(elements[i]);
+        merged_elements.push(element);
       }
     }
     return new TextItem(
@@ -1590,9 +1597,9 @@ class TextItem extends Item {
   // If there are no PlaceholderExprs available, return null.
   try_substitute_placeholder(substitution_expr) {
     let new_elements = [...this.elements];
-    for(let i = 0; i < new_elements.length; i++) {
-      if(new_elements[i].is_expr()) {
-        const placeholder_expr_path = new_elements[i].expr.find_placeholder_expr_path();
+    for(const [i, new_element] of new_elements.entries()) {
+      if(new_element.is_expr()) {
+        const placeholder_expr_path = new_element.expr.find_placeholder_expr_path();
         if(placeholder_expr_path !== null) {
           const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
           new_elements[i] = new TextItemExprElement(new_expr);
@@ -1648,7 +1655,7 @@ class Stack {
   check_exprs(n) {
     if(!this.check(n)) return false;
     for(let i = 0; i < n; i++)
-      if(this.items[this.items.length-1-i].item_type() !== 'expr')
+      if(!this.items[this.items.length-1-i].is_expr_item())
         return false;
     return true;
   }

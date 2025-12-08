@@ -158,8 +158,8 @@ function is_valid_variable_name(s, allow_initial_digit) {
 // is returned.
 const reserved_algebrite_symbols =
       new Set(['Gamma', 'd', 'delta']);
-function expr_to_variable_name(expr, ignore_superscript=false,
-                               allow_subscript=true, allow_bold=true) {
+function expr_to_variable_name(expr, ignore_superscript = false,
+                               allow_subscript = true, allow_bold = true) {
   // Prepend 'bold_' if bolded.
   if(allow_bold && expr.is_font_expr() && expr.is_bold &&
      (expr.typeface === 'normal' || expr.typeface === 'roman')) {
@@ -272,11 +272,11 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 // "implicit variable" for Algebrite commands like [#][d] (derivative).
 // Returns [variable_name_string, variable_expr].
 // If no variable is found, or if there's more than one like in
-// sin(x*y) and therefore ambiguous, returns [null, null].
+// sin(y*z) and therefore ambiguous, returns [null, null].
 function guess_variable_in_expr(expr) {
   const var_map = {};
   _guess_variable_in_expr(expr, var_map);
-  const var_names = Object.getOwnPropertyNames(var_map);
+  const var_names = Object.getOwnPropertyNames(var_map);  // not ideal
   if(var_names.length === 1)
     return [var_names[0], var_map[var_names[0]]];
   // Always use x or t if it's there, even if there are other
@@ -311,8 +311,8 @@ function _guess_variable_in_expr(expr, var_map) {
     subexpressions = expr.operand_exprs;  // don't look at the operators, only operands
   else if(expr.is_font_expr()) {
     // Don't look inside FontExprs; if it's \bold{x} we want 'bold_x',
-    // not the 'x' inside.  This will miss variables inside things like
-    // a bolded (x+y), however.
+    // not the 'x' inside.  This will miss variables inside other kinds
+    // of bolded expressions, however.
   }
   else
     subexpressions = expr.subexpressions();
@@ -490,8 +490,8 @@ class AlgebriteInterface {
         function_name, [right_expr].concat(argument_exprs.slice(1)));
       if(!(left_result && right_result))
         return null;
-      const operator_string = algebrite_relation_types.find(
-        pair => pair[2] === relation_type)[1];
+      const operator_string = algebrite_relation_types
+            .find(pair => pair[2] === relation_type)[1];
       return InfixExpr.combine_infix(
         left_result, right_result,
         Expr.text_or_command(operator_string));
@@ -532,19 +532,16 @@ class AlgebriteInterface {
       else
         return false;
     };
-
     // For now, disallow more complex expressions like x^2 as the
     // "variable".  This doesn't quite work right yet.
     if(!expr_to_variable_name(variable_expr))
       throw new ExprToAlgebriteError('Invalid variable', variable_expr);
-
     // Extract quadratic, linear, constant terms.
     const [a, b, c] = [2, 1, 0].map(
       n => this.call_function_raw(
         'coeff', [expr, variable_expr, TextExpr.integer(n)]));
     if(testeq(a, 0))
       return expr;  // no quadratic term; nothing to do
-
     // Build square expr part: a*(x + b/2a)^2
     const shift_term = $A.multiply(b, $A.power($A.multiply(2, a), -1));
     const shifted_var_expr = testeq(shift_term, 0) ?
@@ -557,7 +554,6 @@ class AlgebriteInterface {
     if(!testeq(a, 1))  // multiply the quadratic coefficient if needed
       square_part_expr = Expr.combine_pair(
         this.algebrite_result_to_expr(a), square_part_expr);
-
     // Determine what is left over in the expression aside from
     // the now "perfect" square term (linear term should no longer
     // be present in what is left).
@@ -665,7 +661,8 @@ class AlgebriteInterface {
     let relation_type = null;
     for(const [i, /*operator_expr*/] of expr.operator_exprs.entries()) {
       const operator_text = expr.operator_text_at(i);
-      const match = algebrite_relation_types.find(pair => pair[0] === operator_text);
+      const match = algebrite_relation_types
+            .find(pair => pair[0] === operator_text);
       if(match) {
         if(relation_type)
           return null;  // more than 1 relational operator
@@ -911,6 +908,7 @@ class ExprToAlgebrite {
     case 'sequence': return this.sequence_expr_to_node(expr);
     case 'array': return this.array_expr_to_node(expr);
     case 'placeholder': return this.error('Placeholders not allowed', expr);
+    case 'tensor': return this.error('Tensors not allowed', expr);
     default: return this.error('Unknown expr type: ' + expr.expr_type());
     }
   }
@@ -947,8 +945,7 @@ class ExprToAlgebrite {
     const operand_exprs = infix_expr.operand_exprs;
     const node_stack = [this.expr_to_node(operand_exprs[0])];
     const operator_stack = [];  // stores operator info structures
-    for(let i = 0; i < operator_infos.length; i++) {
-      const operator_info = operator_infos[i];
+    for(const [i, operator_info] of operator_infos.entries()) {
       while(operator_stack.length > 0 &&
             operator_stack[operator_stack.length-1].prec >= operator_info.prec)
         this._resolve_infix_operator(node_stack, operator_stack);
@@ -1007,13 +1004,13 @@ class ExprToAlgebrite {
   //   prec: higher numbers bind tighter }
   _infix_op_info(op_name) {
     switch(op_name) {
-    case '*': return {fn:'multiply', prec:2};
-    case '/': return {fn:'multiply', modifier_fn: 'reciprocal', prec:2};
-      //    case 'times': return {fn:'cross', prec:2};  // TODO: revisit, should only apply this to literal vector pairs
+    case '*': return {fn: 'multiply', prec: 2};
+    case '/': return {fn: 'multiply', modifier_fn: 'reciprocal', prec: 2};
+      //    case 'times': return {fn: 'cross', prec: 2};  // TODO: revisit, should only apply this to literal vector pairs
     case 'times':
-    case 'cdot': return {fn:'inner', prec:2};
-    case '+': return {fn:'add', prec:1};
-    case '-': return {fn:'add', modifier_fn:'negative', prec:1};
+    case 'cdot': return {fn: 'inner', prec: 2};
+    case '+': return {fn: 'add', prec: 1};
+    case '-': return {fn: 'add', modifier_fn: 'negative', prec: 1};
     default: return null;
     }
   }
@@ -1525,9 +1522,10 @@ class AlgebriteToExpr {
 
   // (add x y z ...)
   add_to_expr(terms) {
-    const exprs = terms.map(term => this.to_expr(term));
-    return exprs.reduce((result_expr, expr) =>
-      InfixExpr.add_exprs(result_expr, expr));
+    return terms
+      .map(term => this.to_expr(term))
+      .reduce((result_expr, expr) =>
+        InfixExpr.add_exprs(result_expr, expr));
   }
 
   // (multiply x y z ...)
@@ -1539,8 +1537,7 @@ class AlgebriteToExpr {
     let unary_minus = false;  // set to true if the overall sign is negative
     // Scan through all the factors, splitting them into lists of Exprs
     // for the numerator and denominator of a (potential) \frac.
-    for(let i = 0; i < factors.length; i++) {
-      const factor = factors[i];
+    for(const [i, factor] of factors.entries()) {
       if(this.utype(factor) === 'num') {
         // Integer or rational literal factor; put the pieces into the
         // numerator and denominator lists.

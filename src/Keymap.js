@@ -120,6 +120,7 @@ const KeybindingTable = {
     'x': "export_selected_file",
     's': "save_file",
     'S': "save_file_as",
+    'R': "rename_selected_file",
     'ArrowUp': "select_adjacent_file -1",
     'ArrowDown': "select_adjacent_file 1",
     // TODO: PageUp/PageDown/Home/End

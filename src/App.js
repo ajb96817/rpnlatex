@@ -601,6 +601,7 @@ class FileManagerPanelComponent extends React.Component {
       helpline(keybinding('s'), helptext('Save current file'),
                helptext(current_filename ? ('(' + current_filename + ')') : '')),
       helpline(keybinding('S'), helptext('Save as...')),
+      helpline(keybinding('R'), helptext('Rename selected file...')),
       helpline(keybinding('n'), helptext('Start a new empty file')),
       helpline(keybinding('x'), helptext('Export selected file as JSON')),
       helpline(keybinding('d'), helptext('Delete selected file')),

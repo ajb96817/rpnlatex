@@ -653,6 +653,36 @@ class InputContext {
     return stack;
   }
 
+  do_rename_selected_file(stack) {
+    const file_manager = this.app_component.state.file_manager;
+    const old_filename = file_manager.current_filename;
+    if(!old_filename)
+      return this.notify('No file selected to rename');
+    const new_filename_unsanitized = window.prompt(
+      ['Enter a new filename for "', old_filename, '":'].join(''));
+    if(!new_filename_unsanitized) return stack;
+    const new_filename = file_manager.sanitize_filename(new_filename_unsanitized);
+    if(!new_filename) {
+      alert('Invalid new filename (must only contain letters, numbers and underscores)');
+      return stack;
+    }
+    const rename_result = file_manager
+          .rename_file(old_filename, new_filename);
+    if(rename_result)
+      return this.notify(rename_result);
+    this.change_selected_filename(new_filename);
+    if(file_manager.current_filename === old_filename) {
+      // Renaming the currently active file; point at the new one.
+      file_manager.current_filename = new_filename;
+      this.settings.last_opened_filename = new_filename;
+      file_manager.save_settings(this.settings);
+    }
+    this.notify(['Renamed: ', old_filename, ' -> ', new_filename].join(''));
+    this.perform_undo_or_redo = 'clear';
+    this.file_saved_or_loaded = true;
+    return stack;
+  }
+
   do_load_selected_file(stack) {
     let file_manager = this.app_component.state.file_manager
     const filename = file_manager.selected_filename;
