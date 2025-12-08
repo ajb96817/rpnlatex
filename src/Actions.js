@@ -2301,9 +2301,7 @@ class InputContext {
           .join("\n\n");
     navigator.clipboard.writeText(exported_text);
     this.notify([
-      "Copied ",
-      items.length.toString(),
-      " item",
+      "Copied ", items.length.toString(), " item",
       (items.length === 1 ? "" : "s"),
       " to clipboard"].join(''));
     this.suppress_undo();
