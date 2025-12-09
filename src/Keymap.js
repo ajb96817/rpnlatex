@@ -642,11 +642,8 @@ const KeybindingTable = {
     '2': "differential_form 0;integer 2;superscript;swap;concat",
     '3': "differential_form 0;integer 3;superscript;swap;concat",
     '4': "differential_form 0;integer 4;superscript;swap;concat",
-    // y x -> y dx (thinspace between terms)
-    'i': "differential_form 1;swap;push \\,;concat;swap;concat",
-    // y x -> ydx (thinspace after the dx)
-    'I': "differential_form 1;push \\,;concat;concat",
-    // y x -> ydx (no spacing around the dx)
+    // y x -> y dx (concatenate to integral sign)
+    'i': "differential_form 1;concat",
     ' ': "differential_form 1;concat"
   },
 
@@ -659,8 +656,7 @@ const KeybindingTable = {
     '2': "differential_form 0 roman;integer 2;superscript;swap;concat",
     '3': "differential_form 0 roman;integer 3;superscript;swap;concat",
     '4': "differential_form 0 roman;integer 4;superscript;swap;concat",
-    'i': "differential_form 1 roman;swap;push \\,;concat;swap;concat",
-    'I': "differential_form 1 roman;push \\,;concat;concat",
+    'i': "differential_form 1 roman;concat",
     ' ': "differential_form 1 roman;concat",
     'x': "differential_form 1 roman;differential_form 0 roman;swap;fraction",
     'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;fraction",
@@ -693,11 +689,8 @@ const KeybindingTable = {
     '2': "push \\delta;push 2;superscript;swap;concat",
     '3': "push \\delta;push 3;superscript;swap;concat",
     '4': "push \\delta;push 4;superscript;swap;concat",
-
-    // Counterparts of attach-to-integral commands, for variational integrals.
     'i': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat",
-    'I': "push \\delta;swap;concat;push \\,;concat;concat",
-    ' ': "push \\delta;swap;concat;concat"
+    ' ': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat"
   },
 
   // [,] prefix: combine two objects with an infix operation

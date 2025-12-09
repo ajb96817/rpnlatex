@@ -161,7 +161,7 @@
         Typing the prefix keys below while this user guide is being shown
         will jump directly to the corresponding section.
         <span class="k">Backspace</span> returns here to this list
-        of prefixes.  (This does not apply if the user guide is "docked" into the
+        of prefixes.  (This does not apply if the user guide is &quot;docked&quot; into the
         document area via <span class="k">?</span><span class="k">?</span>.)
       </p>
       <ul class="keybindings">
@@ -187,7 +187,7 @@
         <li><span class="k">/</span><span class="k">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
         <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
-        <li><span class="k">~</span> Create <a href="#help_tensors">tensor</a> expressions using index notation.</li>
+        <li><span class="k">~</span> Build <a href="#help_tensors">tensor</a> expressions using index notation.</li>
         <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
         <li><span class="k">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
         <li><span class="k">;</span> Create <a href="#help_greek">Greek letters</a>.</li>
@@ -1453,47 +1453,27 @@
           </tr>
           <tr>
             <td colspan="2">
-              <span class="k">i</span> or <span class="k">I</span> or
-              <span class="k">&nbsp;</span>
-              <code>x\enspace y \Rightarrow x\,dy</code> (see below)
+              <span class="k">i</span> or <span class="k">&nbsp;</span>
+              <code>x\enspace y \Rightarrow x\,dy</code>
             </td>
           </tr>
       </tbody></table>
       <p>
-        <strong>Integral Spacing:</strong>
-        <span class="k">i</span> and <span class="k">I</span> and
-        <span class="k">&nbsp;</span>
-        are meant for attaching a differential to an existing integral expression
-        (or an ordinary expression as in <code>x^2\,dx</code>) with appropriate spacing.
-        The difference between the three is where the spacing goes:
-      </p>
-      <ul class="keybindings">
-        <li>
-          <span class="k">i</span> Space goes before the differential.  This is the usual
-          "textbook" case, e.g.
-          <code>\int x^2\,dx</code>
-        </li>
-        <li>
-          <span class="k">I</span> Space goes after the differential, for when you want to
-          concatenate the integrand afterwards:
-          <code>\int dx\,x^2</code>
-        </li>
-        <li>
-          <span class="k">&nbsp;</span> No spacing around the differential, for simple cases like
-          <code>\int dx</code>
-        </li>
-      </ul>
-      <p>
         <strong>Differential Forms:</strong>
-        The <span class="k">f</span> and <span class="k">F</span>
+        The <span class="k">d</span> <span class="k">2</span> <span class="k">3</span>
+        <span class="k">4</span> <span class="k">f</span> <span class="k">F</span>
         commands for building differential forms will pull out minus signs as needed, as in:
         <code>-y\enspace x \Rightarrow -dy \wedge dx</code>.
-        When concatenating differential forms to integral expressions, use
-        <span class="k">,</span><span class="k">&nbsp;</span>
-        instead of <span class="k">&nbsp;</span> to avoid parenthesizing the differential form.
-        For example:
-        <code>\int f{(x,y)}\,dx\wedge dy</code> instead of
-        <code>\int f{(x,y)} \left(dx\wedge dy\right)</code>.
+        Differential forms concatenated to other expressions automatically receive some
+        extra spacing to match traditional math notation:
+        <code>\int x^2\,dx</code>, <code>\int dx\,x^2</code>,
+        <code>\int dx</code>, <code>\int f(x,y)\,dx\wedge dy</code>.
+      </p>
+      <p>
+        The <span class="k">i</span> or <span class="k">&nbsp;</span>
+        commands can be used to immediately create a differential
+        and concatenate it to an existing integral expression, for example:
+        <code>x \Rightarrow \int x^2\,dx</code>.
       </p>
       <p>
         <strong>Alternative Notation:</strong>

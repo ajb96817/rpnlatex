@@ -11,13 +11,6 @@ class Expr {
   // Concatenate two Exprs into one.  This will merge Exprs into adjacent
   // SequenceExprs when possible, instead of creating nested SequenceExprs.
   static combine_pair(left, right, no_parenthesize) {
-    const autoparenthesize = expr => {
-      // Parenthesize InfixExprs before combining unless specified not to.
-      if(expr.is_infix_expr() && !no_parenthesize)
-        return DelimiterExpr.parenthesize(expr);
-      else
-        return expr;
-    };
     // Concatenating something to a unary minus PrefixExpr converts
     // into an InfixExpr for subtraction: concat(x, -y) -> x-y
     if(right.is_prefix_expr() && right.is_unary_minus())
@@ -56,15 +49,6 @@ class Expr {
           ).fill(new TextExpr('!')));
       }
     }
-    // Sequence + Sequence
-    if(left.is_sequence_expr() && right.is_sequence_expr())
-      return new SequenceExpr(left.exprs.concat(right.exprs));
-    // Sequence + NonSequence
-    if(left.is_sequence_expr() && !right.is_sequence_expr())
-      return new SequenceExpr(left.exprs.concat([autoparenthesize(right)]));
-    // NonSequence + Sequence
-    if(!left.is_sequence_expr() && right.is_sequence_expr())
-      return new SequenceExpr([autoparenthesize(left)].concat(right.exprs));
     // Some types of Command can be combined in special ways
     if(left.is_command_expr() && right.is_command_expr())
       return Expr.combine_command_pair(left, right);
@@ -77,7 +61,6 @@ class Expr {
     if(left.is_text_expr() && left.looks_like_number() &&
        right.is_text_expr() && right.looks_like_number())
       return new TextExpr(left.text + right.text);
-    // NonSequence + NonSequence => Sequence (the typical case).
     // Parenthesization of factorial notation is a little tricky.
     // We want the results:
     //   2 x!      =>  2(x!)
@@ -85,8 +68,10 @@ class Expr {
     //   (x+1) y!  =>  (x+1)y!
     //   x! y!     =>  x!y!
     //   x! !      =>  x!!  (not (x!)!) - this is handled by the logic above
-    const left_expr = autoparenthesize(left);
-    let parenthesize_right = right.is_infix_expr();
+    const parenthesize_left = left.is_infix_expr() &&
+          !left.is_differential_form() && !no_parenthesize;
+    const left_expr = parenthesize_left ? DelimiterExpr.parenthesize(left) : left;
+    let parenthesize_right = right.is_infix_expr() && !right.is_differential_form();
     if(right.is_postfix_expr() && right.factorial_signs_count() > 0) {
       if(!right.base_expr.is_delimiter_expr())
         parenthesize_right = true;  // handle 2(x!) and 2(x+1)!
@@ -97,6 +82,8 @@ class Expr {
       parenthesize_right = false;
     const right_expr = parenthesize_right ?
           DelimiterExpr.parenthesize(right) : right;
+    // NOTE: At this point, left_expr and right_expr are the (possibly)
+    // parenthesized versions of left/right.
     // Adjacent FontExprs of the same type can be merged into a single
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
     // (This renders better in some cases.)
@@ -106,12 +93,38 @@ class Expr {
     // within a SequenceExpr).
     if(left_expr.is_font_expr() && right_expr.is_font_expr() &&
        FontExpr.font_exprs_compatible(left_expr, right_expr)) {
+      // TODO: Maybe only do this if the FontExprs are wrapping TextExprs.
       return new FontExpr(
         this.combine_pair(left_expr.expr, right_expr.expr, no_parenthesize),
         left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
     }
-    else
-      return new SequenceExpr([left_expr, right_expr]);
+    // Insert a thinspace when concatenating a differential form to anything
+    // except an integral sign on the left.  This includes concatenating a
+    // differential form on the right side of a SequenceExpr to something else,
+    // for cases like \int dx x^2.
+    const integral_on_left = (left_expr.is_command_expr() && left_expr.is_integral_sign()) ||
+          (left_expr.is_sequence_expr() &&
+           left_expr.exprs[left_expr.exprs.length-1].is_command_expr() &&
+           left_expr.exprs[left_expr.exprs.length-1].is_integral_sign());
+    const differential_form_on_left = left_expr.is_differential_form() ||
+          (left_expr.is_sequence_expr() &&
+           left_expr.exprs[left_expr.exprs.length-1].is_differential_form());
+    const insert_thinspace =
+          (differential_form_on_left ||
+           right_expr.is_differential_form()) && !integral_on_left;
+    // Combine left and right into a SequenceExpr, flattening existing sequences.
+    // As a special case, don't flatten sequences representing 'dx' (these were
+    // originally treated as special "fused" sequences).
+    let exprs = [];
+    if(left_expr.is_sequence_expr() && !left_expr.is_differential_form())
+      exprs.push(...left_expr.exprs);
+    else exprs.push(left_expr);
+    if(insert_thinspace)
+      exprs.push(new CommandExpr(','));
+    if(right_expr.is_sequence_expr() && !right_expr.is_differential_form())
+      exprs.push(...right_expr.exprs);
+    else exprs.push(right_expr);
+    return new SequenceExpr(exprs);
   }
 
   // Combine two CommandExprs with special-casing for some particular command pairs.
@@ -203,6 +216,9 @@ class Expr {
       this.operand_count() === operand_count &&
       (command_name === undefined || this.command_name === command_name);
   }
+
+  // Check for 'dx', 'dx ^ dy', etc.
+  is_differential_form() { return false; }
 
   to_latex(selected_expr_path, export_mode) {
     let emitter = new LatexEmitter(this, selected_expr_path);
@@ -426,6 +442,12 @@ class CommandExpr extends Expr {
       return this.operand_exprs[0].text;
     else
       return null;
+  }
+
+  is_integral_sign() {
+    return this.operand_count() === 0 &&
+      ['int', 'iint', 'iiint', 'oint', 'oiint', 'oiiint'
+      ].includes(this.command_name);
   }
 
   as_logical_negation() {
@@ -815,6 +837,13 @@ class InfixExpr extends Expr {
       op_expr.is_unary_minus_expr() ||
         op_expr.is_text_expr_with('+') ||
         op_expr.is_text_expr_with('-'));
+  }
+
+  // Expressions like dx \wedge dy.
+  is_differential_form() {
+    return this.operator_exprs.every(operator_expr =>
+      operator_expr.is_command_expr_with(0, 'wedge')) &&
+      this.operand_exprs.every(operand_expr => operand_expr.is_differential_form());
   }
 
   // 'inside_delimiters' is set to true when this InfixExpr is rendered
@@ -1347,6 +1376,23 @@ class SequenceExpr extends Expr {
       return this.exprs[1];  // \not\le -> \le
     else
       return super.as_logical_negation();
+  }
+
+  // 'dx', etc.  The 'd' may be in a roman font.
+  // 'd^2 x' etc. also count as differential forms.
+  is_differential_form() {
+    if(this.exprs.length !== 2) return false;
+    let d_expr = this.exprs[0];
+    if(d_expr.is_subscriptsuperscript_expr() &&
+       d_expr.superscript_expr &&
+       d_expr.superscript_expr.is_text_expr())
+      d_expr = d_expr.base_expr;
+    if(d_expr.is_text_expr_with('d')) return true;
+    if(d_expr.is_font_expr() && d_expr.typeface === 'roman' &&
+       !d_expr.is_bold && d_expr.size_adjustment === 0 &&
+       d_expr.expr.is_text_expr_with('d'))
+      return true;
+    return false;
   }
 }
 

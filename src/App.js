@@ -613,7 +613,10 @@ class FileManagerPanelComponent extends React.Component {
   render_import_section() {
     return $e(
       'div', {},
-      $e('p', {}, 'Upload (import) a .rpn document:'),
+      $e('p', {},
+         $e('span', {}, 'Upload (import) a '),
+         $e('kbd', {}, '.rpn'),
+         $e('span', {}, ' document:')),
       $e('p', {},
          $e('input', {
            type: 'file',
