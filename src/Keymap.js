@@ -12,6 +12,7 @@ const KeybindingTable = {
     '[alnum]': "push_last_keypress",
 
     // Immediate action special keys
+    'Escape': "config dock_helptext off",
     'Enter': "subscript",
     'Shift+Enter': "edit_item",
     'Backspace': "pop",
@@ -137,7 +138,7 @@ const KeybindingTable = {
     'PageDown': 'scroll helptext_panel vertical 95',
     ' ': 'scroll helptext_panel vertical 95',
     'PageUp': 'scroll helptext_panel vertical -95',
-    'Ctrl+ ': 'scroll helptext_panel vertical -95',
+    'Ctrl+ ': 'scroll helptext_panel vertical -95',  // Ctrl+Space
     'J': 'scroll helptext_panel vertical 95',
     'K': 'scroll helptext_panel vertical -95',
     'Home': 'scroll helptext_panel top',
@@ -148,7 +149,19 @@ const KeybindingTable = {
     '-': "config helptext_zoom_factor decrease",
     '0': "config helptext_zoom_factor reset",
 
-    // Quick navigation to each section:
+    'q': "toggle_popup help",
+    'Q': "toggle_popup help",
+    'Escape': "toggle_popup help",
+    '?': "config dock_helptext on",
+    'delegate': "_help_jump",  // jump directly to prefix key docs
+    'default': "toggle_popup help"
+  },
+
+  // Quick navigation to each User Guide section.
+  // While the User Guide popup is visible, these can be used without
+  // a prefix key.  When the User Guide is docked, they can be used with
+  // the [Tab][?] prefix.
+  _help_jump: {
     '&': "scroll_to help_insert_script",
     '%': "scroll_to help_insert_blackboard",
     '@': "scroll_to help_insert_calligraphic",
@@ -179,10 +192,7 @@ const KeybindingTable = {
     ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
     'Backspace': "scroll_to help_prefix_keys",
-    'c': "scroll_to help_control_keys",  // undocumented
-    'q': "toggle_popup help",
-    '?': "config dock_helptext on",
-    'default': "toggle_popup help"
+    'c': "scroll_to help_control_keys"  // undocumented
   },
 
   // [Tab] prefix: stack/misc operations
@@ -219,8 +229,19 @@ const KeybindingTable = {
     '!': "export_document_as_text",
     '@': "export_stack_items_as_text",
     '$': "extract_latex_source",
+    '?': "mode user_guide_jump",
     'ArrowRight': "scroll document_panel horizontal 75",
     'ArrowLeft': "scroll document_panel horizontal -75"
+  },
+
+  // [Tab][?] prefix: jump to User Guide sections while docked
+  user_guide_jump: {
+    'delegate': "_help_jump",
+    // Undocumented: allow changing user guide font size while docked
+    // (luckily these don't conflict with the prefix keys).
+    '+': "config helptext_zoom_factor increase",
+    '-': "config helptext_zoom_factor decrease",
+    '0': "config helptext_zoom_factor reset"
   },
 
   // [$] prefix: configuration
@@ -780,7 +801,7 @@ const KeybindingTable = {
     '=': "infix =",
     's': "infix \\subset",
     'S': "infix \\subseteq",
-    't': "infix \\to",
+    't': "infix \\to",  // NOTE: duplicates [,][t]
     'u': "infix \\supset",
     'U': "infix \\supseteq",
     '^': "infix \\triangleq",

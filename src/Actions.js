@@ -593,15 +593,22 @@ class InputContext {
       if(Math.abs(amount) > 3) percentage = 75;
       else if(Math.abs(amount) > 0) percentage = 25;
       if(amount < 0) percentage = -percentage;
-      return this.do_scroll(stack, 'document_panel', 'vertical', percentage.toString());
+      return this.do_scroll(
+        stack, 'document_panel', 'vertical',
+        percentage.toString());
     }
-    else
-      this.update_document(this.app_state.document.move_selection_by(amount));
+    else this.update_document(
+      this.app_state.document.move_selection_by(amount));
     return stack;
   }
 
   do_shift_document_selection(stack, amount_string) {
     const amount = parseInt(amount_string);
+    if(this.settings.dock_helptext) {
+      // Ignore these commands while the helptext is docked (the document contents
+      // are obscured so this is probably a user mistake).
+      return stack;
+    }
     const new_document = this.app_state.document.shift_selection_by(amount);
     if(new_document)
       this.update_document(new_document);
