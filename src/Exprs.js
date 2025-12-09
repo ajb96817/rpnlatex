@@ -497,6 +497,16 @@ class CommandExpr extends Expr {
 }
 
 
+// These require some special handling:
+const uppercase_greek_letters = [
+  'Xi', 'Delta', 'Phi', 'Gamma', 'Lambda', 'Omega',
+  'Pi', 'Theta', 'Sigma', 'Upsilon', 'Theta', 'Psi'
+];
+const uppercase_greek_letter_variants = [
+  'varXi', 'varDelta', 'varPhi', 'varGamma', 'varLambda', 'varOmega',
+  'varPi', 'varTheta', 'varSigma', 'varUpsilon', 'varTheta', 'varPsi'
+]
+
 // FontExpr wraps another Expr and adds typeface/font information to it.
 // A FontExpr sets both the overall typeface (normal math, upright roman, etc)
 // and a flag indicating bold/normal, plus an optional size adjustment.
@@ -563,13 +573,9 @@ class FontExpr extends Expr {
   // typefaces (even for sans_serif_italic; \mathsfit{\Psi} renders as italic
   // but \mathsfit{\varPsi} is actually unsupported).
   static check_typeface_support_for_command(typeface, command_name) {
-    const greek_uppercase = [
-      'Xi', 'Delta', 'Phi', 'Gamma', 'Lambda', 'Omega',
-      'Pi', 'Theta', 'Sigma', 'Upsilon', 'Theta', 'Psi'
-    ];
     if(['typewriter', 'sans_serif', 'sans_serif_italic'
        ].includes(typeface)) {
-      const letter = greek_uppercase.find(
+      const letter = uppercase_greek_letters.find(
         c => c === command_name || ('var' + c) === command_name);
       if(letter)
         return letter;
@@ -643,8 +649,10 @@ class FontExpr extends Expr {
         this.with_size_adjustment(0).emit_latex(emitter);
       }, 'force');
     }
-    const typeface_command = this.typeface_command(this.typeface, this.is_bold);
     const use_pmb = this.is_bold && this.use_pmb_for(this.typeface);
+    const typeface_command = this.typeface_command(
+      this.typeface,
+      this.is_bold && !use_pmb /* \pmb overrides \boldsymbol etc. */);
     if(!use_pmb && !typeface_command)
       emitter.expr(this.expr, 0);  // no-op (i.e., normal math text)
     else if(use_pmb && typeface_command) {
@@ -674,10 +682,18 @@ class FontExpr extends Expr {
   // (poor man's bold) on top of the non-bolded version (instead of using a dedicated
   // command like \boldsymbol).
   use_pmb_for(typeface) {
-    return [
+    if([
       'sans_serif', 'sans_serif_italic', 'typewriter',
       'blackboard', 'fraktur', 'calligraphic', 'script'
-    ].includes(typeface);
+    ].includes(typeface))
+      return true;  // always use \pmb for these
+    // "Variant" uppercase Greek letters don't work as
+    // \boldsymbol{\varPhi}.  Need to use \pmb for these too.
+    // \boldsymbol{\Phi}, etc. work though.
+    if(this.expr.is_command_expr_with(0) &&
+       uppercase_greek_letter_variants.includes(this.expr.command_name))
+      return true;
+    return false;
   }
 
   // TODO: bold fraktur font support?  KaTeX is supposed to support this,

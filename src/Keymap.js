@@ -765,6 +765,7 @@ const KeybindingTable = {
     'E': "infix \\iff",
     'g': "infix >",
     'f': "infix \\Leftarrow", // "[f]rom"
+    'g': "infix \\gets",  // NOTE: duplicates [,][g]
     'G': "infix \\gg",
     'i': "infix \\in",
     'I': "infix \\notin",
@@ -779,7 +780,7 @@ const KeybindingTable = {
     '=': "infix =",
     's': "infix \\subset",
     'S': "infix \\subseteq",
-    't': "infix \\sim",
+    't': "infix \\to",
     'u': "infix \\supset",
     'U': "infix \\supseteq",
     '^': "infix \\triangleq",
