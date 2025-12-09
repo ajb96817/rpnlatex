@@ -124,8 +124,7 @@ class Expr {
     if(left_expr.is_sequence_expr() && !left_expr.is_differential_form())
       exprs.push(...left_expr.exprs);
     else exprs.push(left_expr);
-    if(insert_thinspace)
-      exprs.push(new CommandExpr(','));
+    if(insert_thinspace) exprs.push(new CommandExpr(','));
     if(right_expr.is_sequence_expr() && !right_expr.is_differential_form())
       exprs.push(...right_expr.exprs);
     else exprs.push(right_expr);
@@ -137,13 +136,12 @@ class Expr {
   // For example "X  iff  Y" as in the [,][F] command.
   // is_bold will make the conjunction phrase bolded.
   static combine_with_conjunction(left_expr, right_expr, phrase, is_bold) {
-    const conjunction_expr = new SequenceExpr([
-      new CommandExpr('quad'),
-      new CommandExpr(
-        is_bold ? 'textbf' : 'text',
-        [new TextExpr(phrase)]),
-      new CommandExpr('quad')]);
-    return InfixExpr.combine_infix(left_expr, right_expr, conjunction_expr);
+    return InfixExpr.combine_infix(
+      left_expr, right_expr,
+      new SequenceExpr([
+        new CommandExpr('quad'),
+        new CommandExpr(is_bold ? 'textbf' : 'text', [new TextExpr(phrase)]),
+        new CommandExpr('quad')]));
   }
 
   // "Parse" a roman_text string (via Shift+Enter from [\] math entry mode).
@@ -201,11 +199,10 @@ class Expr {
       this.operand_count() === operand_count &&
       (command_name === undefined || this.command_name === command_name);
   }
-
-  // Check for 'dx', 'dx ^ dy', etc.
+  // 'dx', 'dx ^ dy', etc.
   is_differential_form() { return false; }
 
-  to_latex(selected_expr_path, export_mode) {
+  to_latex(selected_expr_path, export_mode = false) {
     let emitter = new LatexEmitter(this, selected_expr_path);
     emitter.export_mode = export_mode;
     emitter.expr(this, null);
@@ -340,7 +337,7 @@ class Expr {
   // SubscriptSuperscriptExpr overrides this to handle the case of multiple
   // \primes attached to the same Expr, which should be rendered as:
   // x^{\prime\prime\prime}.
-  with_prime(autoparenthesize) {
+  with_prime(autoparenthesize = true) {
     return this.with_superscript(new CommandExpr('prime'), autoparenthesize);
   }
 }
@@ -505,12 +502,15 @@ class CommandExpr extends Expr {
 // and a flag indicating bold/normal, plus an optional size adjustment.
 class FontExpr extends Expr {
   // typeface:
-  //   'normal': regular italic math font
-  //   'roman': \mathrm
-  //   'sans_serif': \mathsf (upright sans serif)
-  //   'sans_serif_italic': \mathsfit (italic sans serif)
-  //   'typewriter': \mathtt
-  //   'blackboard', 'fraktur', 'calligraphic', 'script': \mathbb, etc.
+  //   'normal': default italic math font
+  //   'roman': \mathrm - [.][r] - upright version of 'normal' font
+  //   'sans_serif': \mathsf - [.][s] - latin letters/digits plus Greek uppercase
+  //   'sans_serif_italic': \mathsfit - [.][S] - similar to sans_serif
+  //   'typewriter': \mathtt - [.][m] ('monospace')  - similar to sans_serif
+  //   'fraktur': \mathfrak - [.][k] - latin lowercase/uppercase plus digits
+  //   'calligraphic': \mathcal - [@] prefix - uppercase latin only, no digits
+  //   'script': \mathscr - [&] prefix - similar to calligraphic
+  //   'blackboard': \mathbb - [%] prefix - similar to calligraphic but has lowercase 'k'
   // is_bold: true/false
   // size_adjustment:
   //   0=default, -1=\small, +1=\large, etc.
@@ -547,6 +547,34 @@ class FontExpr extends Expr {
       left_expr.typeface === right_expr.typeface &&
       left_expr.is_bold === right_expr.is_bold &&
       left_expr.size_adjustment === right_expr.size_adjustment;
+  }
+
+  // Check if a simple (zero-argument) LaTeX command can be rendered
+  // with the given typeface name.  The command_name is given without
+  // the leading backslash.  If the typeface is compatible, the command_name
+  // (possibly altered) is returned, otherwise false is returned.
+  //
+  // This doesn't have to be 100% accurate; "unsupported" typefaces
+  // just render the character/command unmodified.
+  // 
+  // 'typewriter', 'sans_serif', and 'sans_serif_italic' have dedicated glyphs
+  // for uppercase Greek letters but not lowercase for some reason.  Italic
+  // variants of these letters (\varPsi) get converted to \Psi for these
+  // typefaces (even for sans_serif_italic; \mathsfit{\Psi} renders as italic
+  // but \mathsfit{\varPsi} is actually unsupported).
+  static check_typeface_support_for_command(typeface, command_name) {
+    const greek_uppercase = [
+      'Xi', 'Delta', 'Phi', 'Gamma', 'Lambda', 'Omega',
+      'Pi', 'Theta', 'Sigma', 'Upsilon', 'Theta', 'Psi'
+    ];
+    if(['typewriter', 'sans_serif', 'sans_serif_italic'
+       ].includes(typeface)) {
+      const letter = greek_uppercase.find(
+        c => c === command_name || ('var' + c) === command_name);
+      if(letter)
+        return letter;
+    }
+    return false;
   }
 
   expr_type() { return 'font'; }
@@ -602,14 +630,14 @@ class FontExpr extends Expr {
   }
 
   emit_latex(emitter) {
-    // If there is a size adjustment, emit the \large, etc, and then render
-    // inside without the size adjustment.
     const size_adjustment_command =
           this.size_adjustment_command(this.size_adjustment);
     if(size_adjustment_command)  {
       // Size commands are stateful, so they need to be enclosed in their own group
       // so that the size adjustment does not continue beyond this expression.
       // i.e.: {\large ...} instead of \large{...}
+      // If there is a size adjustment, emit the \large, etc, and then render
+      // inside without the size adjustment.
       return emitter.grouped(() => {
         emitter.command(size_adjustment_command);
         this.with_size_adjustment(0).emit_latex(emitter);

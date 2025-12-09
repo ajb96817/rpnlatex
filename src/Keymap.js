@@ -15,14 +15,12 @@ const KeybindingTable = {
     'Enter': "subscript",
     'Shift+Enter': "edit_item",
     'Backspace': "pop",
-    'Shift+Backspace': "nip",  // undocumented
+    'Shift+Backspace': "nip",
     
-    // NOTE: ! receives special processing in do_concat (Expr.concatenate),
-    //       becoming a PostfixExpr.
-    '!': "autoparenthesize;push !;concat",
+    ' ': "concat",
+    '!': "push !;concat",  // see Expr.concatenate, ! gets some special handling
     '^': "superscript",
     "`": "superscript",
-    ' ': "concat",
     '<': "infix <",
     '>': "infix >",
     '+': "infix +",
@@ -214,7 +212,9 @@ const KeybindingTable = {
     'y': "redo",
     'z': "undo",
     'Enter': "dup",
+    'Shift+Enter': "edit_item",
     'Backspace': "pop",
+    'Shift+Backspace': "nip",
     '=': "push_separator;pop_to_document",
     '!': "export_document_as_text",
     '@': "export_stack_items_as_text",
@@ -686,9 +686,9 @@ const KeybindingTable = {
 
     // Counterparts to ordinary differential form commands.
     'd': "push \\delta;swap;concat",
-    '2': "push \\delta;push 2;superscript;swap;concat",
-    '3': "push \\delta;push 3;superscript;swap;concat",
-    '4': "push \\delta;push 4;superscript;swap;concat",
+    '2': "push \\delta;integer 2;superscript;swap;concat",
+    '3': "push \\delta;integer 3;superscript;swap;concat",
+    '4': "push \\delta;integer 4;superscript;swap;concat",
     'i': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat",
     ' ': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat"
   },
@@ -1111,7 +1111,7 @@ const KeybindingTable = {
     'r': "algebrite bothsides rationalize",
     'R': "algebrite bothsides rect",
     's': "algebrite bothsides simplify",
-    't': "push 7;push 0;algebrite default taylor 3 1",
+    't': "integer 7;integer 0;algebrite default taylor 3 1",
     'T': "swap;algebrite default taylor 4",  // NOTE: last two arguments are swapped
     'v': "algebrite default eigenval",
     'V': "algebrite default eigenvec;transpose_matrix",
@@ -1154,7 +1154,7 @@ const KeybindingTable = {
     '&': "push \\&"  // undocumented
   },
 
-  // [;] prefix: Greek letters
+  // [;] or [:] prefix: Greek letters
   greek: {
     'a': "push \\alpha",      'b': "push \\beta",
     'c': "push \\xi",         'd': "push \\delta",

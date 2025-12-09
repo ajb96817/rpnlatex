@@ -900,7 +900,15 @@ class InputContext {
   // If there is already a typeface set on the expr, it's replaced with the new one
   // (but the bold flag and any size adjustments are kept).
   do_typeface(stack, typeface) {
-    const [new_stack, expr] = stack.pop_exprs(1);
+    let [new_stack, expr] = stack.pop_exprs(1);
+    // Some command+typeface combinations are not supported or require conversion.
+    if(expr.is_command_expr_with(0)) {
+      const command_name = FontExpr.
+            check_typeface_support_for_command(typeface, expr.command_name);
+      if(command_name === false)
+        return stack;  // don't do anything
+      else expr = new CommandExpr(command_name);
+    }
     const font_expr = FontExpr.wrap(expr).with_typeface(typeface);
     return new_stack.push_expr(font_expr.unwrap_if_possible());
   }

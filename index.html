@@ -184,13 +184,13 @@
           <span class="k">/</span><span class="k">I</span>
           Apply <a href="#help_integrals">integral limits</a>.
         </li>
-        <li><span class="k">/</span><span class="k">f</span> Create <a href="#help_named_operators">named operators</a>.</li>
+        <li><span class="k">/</span><span class="k">f</span> Apply <a href="#help_named_operators">named operators</a>.</li>
         <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="k">~</span> Build <a href="#help_tensors">tensor</a> expressions using index notation.</li>
         <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
         <li><span class="k">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
-        <li><span class="k">;</span> Create <a href="#help_greek">Greek letters</a>.</li>
+        <li><span class="k">;</span> <span class="k">:</span> Create <a href="#help_greek">Greek letters</a>.</li>
         <li id="help_insert_calligraphic">
           <span class="k">@</span>
           Create calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>
@@ -1464,7 +1464,7 @@
         <span class="k">4</span> <span class="k">f</span> <span class="k">F</span>
         commands for building differential forms will pull out minus signs as needed, as in:
         <code>-y\enspace x \Rightarrow -dy \wedge dx</code>.
-        Differential forms concatenated to other expressions automatically receive some
+        Differential forms concatenated with other expressions automatically receive some
         extra spacing to match traditional math notation:
         <code>\int x^2\,dx</code>, <code>\int dx\,x^2</code>,
         <code>\int dx</code>, <code>\int f(x,y)\,dx\wedge dy</code>.
@@ -1474,6 +1474,11 @@
         commands can be used to immediately create a differential
         and concatenate it to an existing integral expression, for example:
         <code>x \Rightarrow \int x^2\,dx</code>.
+      </p>
+      <p>
+        <strong>NOTE:</strong> Higher-order differential forms can be created by
+        joining with <span class="k">,</span><span class="k">w</span> (wedge):
+        <code>dx\wedge dy\wedge dz,\, dw \Rightarrow dx\wedge dy\wedge dz\wedge dw</code>
       </p>
       <p>
         <strong>Alternative Notation:</strong>
@@ -2517,11 +2522,11 @@
 
           
       <h2 id="help_greek">
-        <span class="k">;</span> Greek Letters
+        <span class="k">;</span>&nbsp;<span class="k">:</span> Greek Letters
       </h2>
       <p>
-        <strong>NOTE:</strong> <span class="k">:</span> may optionally be used
-        as an alias for <span class="k">;</span>.
+        <strong>NOTE:</strong> Either <span class="k">:</span> or <span class="k">;</span>
+        may be used to create these letters; they behave identically.
       </p>
       <p>Lowercase Greek letters:</p>
       <table class="keybindings"><tbody>
