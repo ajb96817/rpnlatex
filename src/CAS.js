@@ -552,7 +552,7 @@ class AlgebriteInterface {
             this.algebrite_result_to_expr(shift_term));
     let square_part_expr = shifted_var_expr.with_superscript(TextExpr.integer(2));
     if(!testeq(a, 1))  // multiply the quadratic coefficient if needed
-      square_part_expr = Expr.combine_pair(
+      square_part_expr = Expr.concatenate(
         this.algebrite_result_to_expr(a), square_part_expr);
     // Determine what is left over in the expression aside from
     // the now "perfect" square term (linear term should no longer
@@ -1621,7 +1621,7 @@ class AlgebriteToExpr {
         return InfixExpr.combine_infix(
           result_expr, expr, new CommandExpr('cdot'));
       else
-        return Expr.combine_pair(result_expr, expr);
+        return Expr.concatenate(result_expr, expr);
     });
   }
 
@@ -1720,7 +1720,7 @@ class AlgebriteToExpr {
     const d_dx_expr = CommandExpr.frac(
       new TextExpr('d'),
       new SequenceExpr([new TextExpr('d'), variable_expr]));
-    return Expr.combine_pair(
+    return Expr.concatenate(
       d_dx_expr, DelimiterExpr.parenthesize_for_argument(base_expr));
   }
 

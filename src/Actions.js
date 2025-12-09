@@ -973,7 +973,7 @@ class InputContext {
       }
       if(this.settings.autoparenthesize)
         base_expr = DelimiterExpr.autoparenthesize(base_expr);
-      let dx_expr = Expr.combine_pair(d_expr, base_expr);
+      let dx_expr = Expr.concatenate(d_expr, base_expr);
       if(is_negated)
         dx_expr = PrefixExpr.unary_minus(dx_expr);
       return dx_expr;
@@ -1196,7 +1196,7 @@ class InputContext {
           !this.settings.autoparenthesize;
     if(left_item.is_expr_item() && right_item.is_expr_item())
       return new_stack.push_expr(
-        Expr.combine_pair(
+        Expr.concatenate(
           left_item.expr, right_item.expr, no_parenthesize));
     else if((left_item.is_expr_item() || left_item.is_text_item()) &&
             (right_item.is_expr_item() || right_item.is_text_item()))

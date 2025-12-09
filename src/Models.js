@@ -1023,7 +1023,7 @@ class RationalizeToExpr {
     let result = null;
     const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
     const pi_expr = new CommandExpr('pi');
-    const two_pi_expr = Expr.combine_pair(this._int_to_expr(2), pi_expr);
+    const two_pi_expr = Expr.concatenate(this._int_to_expr(2), pi_expr);
     // Don't try to rationalize anything too large in magnitude.
     if(Math.abs(value) > 1e8)
       return null;
@@ -1107,7 +1107,7 @@ class RationalizeToExpr {
               final_expr = PrefixExpr.unary_minus(numer_factor_expr);
             else final_expr = numer_factor_expr;
           }
-          else final_expr = Expr.combine_pair(base_expr, numer_factor_expr);
+          else final_expr = Expr.concatenate(base_expr, numer_factor_expr);
         }
         else if(denom_factor_expr)
           final_expr = CommandExpr.frac(base_expr, denom_factor_expr);
@@ -1121,11 +1121,11 @@ class RationalizeToExpr {
           if(final_numer === 1)
             numer_expr = numer_factor_expr;
           else
-            numer_expr = Expr.combine_pair(numer_expr, numer_factor_expr);
+            numer_expr = Expr.concatenate(numer_expr, numer_factor_expr);
         }
         let denom_expr = this._int_to_expr(final_denom);
         if(denom_factor_expr)
-          denom_expr = Expr.combine_pair(denom_expr, denom_factor_expr);
+          denom_expr = Expr.concatenate(denom_expr, denom_factor_expr);
         const frac_expr = CommandExpr.frac(numer_expr, denom_expr);
         if(sign < 0)
           final_expr = PrefixExpr.unary_minus(frac_expr);

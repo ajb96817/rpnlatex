@@ -17,7 +17,7 @@ const KeybindingTable = {
     'Backspace': "pop",
     'Shift+Backspace': "nip",  // undocumented
     
-    // NOTE: ! receives special processing in do_concat (Expr.combine_pair),
+    // NOTE: ! receives special processing in do_concat (Expr.concatenate),
     //       becoming a PostfixExpr.
     '!': "autoparenthesize;push !;concat",
     '^': "superscript",

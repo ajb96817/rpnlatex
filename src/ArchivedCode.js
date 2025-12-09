@@ -380,7 +380,7 @@ class ExprParser {
           new CommandExpr('cdot'));
       }
       else
-        return Expr.combine_pair(lhs, rhs, true /* no_parenthesize */);
+        return Expr.concatenate(lhs, rhs, true /* no_parenthesize */);
     }
     else
       return lhs;  // factor by itself
@@ -393,7 +393,7 @@ class ExprParser {
       const op_token = this.peek_for('operator');
       if(op_token && op_token.text === '!') {
         this.next_token();
-        factor = Expr.combine_pair(factor, new TextExpr('!'));
+        factor = Expr.concatenate(factor, new TextExpr('!'));
       }
       else if(op_token && op_token.text === '\'') {
         this.next_token();

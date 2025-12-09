@@ -10,7 +10,8 @@ import {
 class Expr {
   // Concatenate two Exprs into one.  This will merge Exprs into adjacent
   // SequenceExprs when possible, instead of creating nested SequenceExprs.
-  static combine_pair(left, right, no_parenthesize) {
+  // Context-dependent autoparenthesization is done unless no_parenthesize is set.
+  static concatenate(left, right, no_parenthesize = false) {
     // Concatenating something to a unary minus PrefixExpr converts
     // into an InfixExpr for subtraction: concat(x, -y) -> x-y
     if(right.is_prefix_expr() && right.is_unary_minus())
@@ -49,9 +50,13 @@ class Expr {
           ).fill(new TextExpr('!')));
       }
     }
-    // Some types of Command can be combined in special ways
-    if(left.is_command_expr() && right.is_command_expr())
-      return Expr.combine_command_pair(left, right);
+    // Some types of CommandExprs (integral signs) can be combined in special ways.
+    if(left.is_command_expr() && right.is_command_expr()) {
+      const combined_command_name = CommandExpr.combine_command_pair(
+        left.command_name, right.command_name);
+      if(combined_command_name)
+        return new CommandExpr(combined_command_name);
+    }
     // Special case: combine 123 456 => 123456 if both sides are numeric.
     // This can lead to things like "1.2" + "3.4" -> "1.23.4" but that's
     // considered OK because the main use for this is to build numbers from
@@ -95,26 +100,26 @@ class Expr {
        FontExpr.font_exprs_compatible(left_expr, right_expr)) {
       // TODO: Maybe only do this if the FontExprs are wrapping TextExprs.
       return new FontExpr(
-        this.combine_pair(left_expr.expr, right_expr.expr, no_parenthesize),
+        this.concatenate(left_expr.expr, right_expr.expr, no_parenthesize),
         left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
     }
     // Insert a thinspace when concatenating a differential form to anything
     // except an integral sign on the left.  This includes concatenating a
     // differential form on the right side of a SequenceExpr to something else,
-    // for cases like \int dx x^2.
+    // for cases like \int dx\,x^2.
     const integral_on_left = (left_expr.is_command_expr() && left_expr.is_integral_sign()) ||
           (left_expr.is_sequence_expr() &&
-           left_expr.exprs[left_expr.exprs.length-1].is_command_expr() &&
-           left_expr.exprs[left_expr.exprs.length-1].is_integral_sign());
+           left_expr.last_expr().is_command_expr() &&
+           left_expr.last_expr().is_integral_sign());
     const differential_form_on_left = left_expr.is_differential_form() ||
           (left_expr.is_sequence_expr() &&
-           left_expr.exprs[left_expr.exprs.length-1].is_differential_form());
+           left_expr.last_expr().is_differential_form());
     const insert_thinspace =
           (differential_form_on_left ||
            right_expr.is_differential_form()) && !integral_on_left;
     // Combine left and right into a SequenceExpr, flattening existing sequences.
-    // As a special case, don't flatten sequences representing 'dx' (these were
-    // originally treated as special "fused" sequences).
+    // As a special case, don't flatten sequences representing simple differentials
+    // ('dx') (these were originally treated as special "fused" sequences).
     let exprs = [];
     if(left_expr.is_sequence_expr() && !left_expr.is_differential_form())
       exprs.push(...left_expr.exprs);
@@ -125,26 +130,6 @@ class Expr {
       exprs.push(...right_expr.exprs);
     else exprs.push(right_expr);
     return new SequenceExpr(exprs);
-  }
-
-  // Combine two CommandExprs with special-casing for some particular command pairs.
-  static combine_command_pair(left_expr, right_expr) {
-    // Try combining adjacent integral symbols into multiple-integral commands.
-    let new_command_name = null;
-    if(left_expr.is_command_expr_with(0) && right_expr.is_command_expr_with(0)) {
-      const [left_name, right_name] =
-            [left_expr.command_name, right_expr.command_name];
-      if(left_name === 'int' && right_name === 'int') new_command_name = 'iint';
-      if(left_name === 'iint' && right_name === 'int') new_command_name = 'iiint';
-      if(left_name === 'int' && right_name === 'iint') new_command_name = 'iiint';
-      if(left_name === 'oint' && right_name === 'oint') new_command_name = 'oiint';
-      if(left_name === 'oiint' && right_name === 'oint') new_command_name = 'oiiint';
-      if(left_name === 'oint' && right_name === 'oiint') new_command_name = 'oiiint';
-    }
-    if(new_command_name)
-      return new CommandExpr(new_command_name);
-    // Everything else just becomes a SequenceExpr.
-    return new SequenceExpr([left_expr, right_expr]);
   }
 
   // Combine two Exprs with the given conjunction phrase between them,
@@ -367,6 +352,17 @@ class CommandExpr extends Expr {
     return new this('frac', [numer_expr, denom_expr]);
   }
   
+  // Try to combine integral signs together; \int + \int -> \iint, etc.
+  static combine_command_pair(left_command, right_command) {
+    if(left_command === 'int' && right_command === 'int') return 'iint';
+    if(left_command === 'iint' && right_command === 'int') return 'iiint';
+    if(left_command === 'int' && right_command === 'iint') return 'iiint';
+    if(left_command === 'oint' && right_command === 'oint') return 'oiint';
+    if(left_command === 'oiint' && right_command === 'oint') return 'oiiint';
+    if(left_command === 'oint' && right_command === 'oiint') return 'oiiint';
+    return null;
+  }
+
   // NOTES:
   //   - 'command_name' does not include the initial \ character
   //   - 'options', if provided, is a plain string that becomes "\command_name[options]{...}"
@@ -1342,7 +1338,6 @@ class TextExpr extends Expr {
 
 
 // Represents a sequence of expressions all concatenated together.
-// Adjacent SequenceExprs can be merged together; see Expr.combine_pair().
 class SequenceExpr extends Expr {
   constructor(exprs) {
     super();
@@ -1357,6 +1352,8 @@ class SequenceExpr extends Expr {
   }
 
   subexpressions() { return this.exprs; }
+
+  last_expr() { return this.exprs[this.exprs.length-1]; }
 
   replace_subexpression(index, new_expr) {
     return new SequenceExpr(
@@ -1845,8 +1842,8 @@ class ArrayExpr extends Expr {
       if(expr.is_infix_expr() && [':', 'colon'].includes(expr.operator_text()))
         return [
           expr.extract_side_at(expr.split_at_index, 'left'),
-          Expr.combine_pair(
-            Expr.combine_pair(
+          Expr.concatenate(
+            Expr.concatenate(
               FontExpr.roman_text('if'),
               new CommandExpr('enspace'), true),
             expr.extract_side_at(expr.split_at_index, 'right'), true)];
