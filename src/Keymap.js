@@ -734,6 +734,7 @@ const KeybindingTable = {
     'F': "conjunction iff",
     'j': "infix \\Join",
     'g': "infix \\gets",
+    'G': "infix \\Leftarrow",
     'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
     '|': "infix \\,\\vert\\,",  // (alias for k)
     'l': "infix \\parallel",
@@ -790,14 +791,18 @@ const KeybindingTable = {
     '2': "mode variant_relational",
     'a': "infix \\approx",
     'c': "infix \\cong",  // =~ [c]ongruent
-    'e': "infix \\equiv",
-    'E': "infix \\iff",
+    'e': "infix \\leftrightarrow",
+    'E': "infix \\longleftrightarrow",
     'g': "infix >",
-    'f': "infix \\Leftarrow", // "[f]rom"
-    'g': "infix \\gets",  // NOTE: duplicates [,][g]
+    'f': "infix \\Leftrightarrow",
+    'F': "infix \\Longleftrightarrow",
     'G': "infix \\gg",
     'i': "infix \\in",
     'I': "infix \\notin",
+    'j': "infix \\leftarrow",  // not sure about j,J,k,K bindings
+    'J': "infix \\longleftarrow",
+    'k': "infix \\Leftarrow",
+    'K': "infix \\Longleftarrow",
     'l': "infix <",
     'L': "infix \\ll",
     'm': "infix \\mapsto",
@@ -807,11 +812,15 @@ const KeybindingTable = {
     'p': "infix \\propto",
     'q': "infix =",
     '=': "infix =",
+    'Q': "infix \\equiv",
     's': "infix \\subset",
     'S': "infix \\subseteq",
     't': "infix \\to",  // NOTE: duplicates [,][t]
+    'T': "infix \\longrightarrow",  // NOTE: duplicates [,][T]
     'u': "infix \\supset",
     'U': "infix \\supseteq",
+    'v': "infix \\Rightarrow",  // NOTE: duplicates [,][=]
+    'V': "infix \\Longrightarrow",  // NOTE: duplicates [,][+]
     '^': "infix \\triangleq",
     '<': "infix \\le",
     '>': "infix \\ge",
@@ -824,6 +833,7 @@ const KeybindingTable = {
     ';': "infix \\coloncolon",
     '~': "infix \\sim",
     '-': "infix \\vdash",
+    '+': "infix \\Longrightarrow",  // alias for [V]
     '|': "infix \\vDash",
     '?': "push ?;push =;operator overset 2;apply_infix"
   },

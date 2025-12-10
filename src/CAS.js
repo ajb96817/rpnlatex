@@ -424,10 +424,9 @@ function double_to_scientific_notation_expr(x) {
         pieces_positive.length === 2 ?
         [...pieces_positive, false] : [...pieces_negative, true];
   const coefficient_is_negative = coefficient_text.startsWith('-');
-  let coefficient_expr = new TextExpr(
-    coefficient_is_negative ? coefficient_text.slice(1) : coefficient_text);
-  if(coefficient_is_negative)
-    coefficient_expr = PrefixExpr.unary_minus(coefficient_expr);
+  const coefficient_expr = coefficient_is_negative ?
+        PrefixExpr.unary_minus(new TextExpr(coefficient_text.slice(1))) :
+        new TextExpr(coefficient_text);
   let exponent_expr = new TextExpr(exponent_text);
   if(exponent_is_negative)
     exponent_expr = PrefixExpr.unary_minus(exponent_expr);

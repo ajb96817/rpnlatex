@@ -12,7 +12,7 @@ import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
   PostfixExpr, FunctionCallExpr, PlaceholderExpr, TextExpr,
   SubscriptSuperscriptExpr, DelimiterExpr,
-  ArrayExpr, TensorExpr, SequenceExpr
+  ArrayExpr, TensorExpr /*, SequenceExpr*/
 } from './Exprs';
 import {
   AlgebriteInterface, double_to_expr
