@@ -53,7 +53,7 @@
       </p>
       <p>
         Note that items on the stack have a small colored bar shown to the left of them.  This indicates the item's
-        size as well as its "type": a symbolic expression (grey) or a piece of text (blue).
+        size as well as its &quot;type&quot;: usually a symbolic expression (grey) or a piece of text (blue).
       </p>
       <p>
         This editor is designed to be operated entirely from the keyboard.  Most operations are performed using
@@ -109,6 +109,10 @@
           Drop the top item from the stack.
         </li>
         <li>
+          <span class="k">Shift</span><span class="k">Backspace</span>
+          Drop the secondmost top item from the stack.
+        </li>
+        <li>
           <span class="k">(</span> <span class="k">[</span> <span class="k">{</span>
           Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
           These delimiters automatically adjust to fit their contents.
@@ -143,15 +147,11 @@
           <span class="k">Shift</span><span class="k">Enter</span>
           Start <a href="#help_edit_text">editing</a> the stack top as text.
         </li>
-        <li>
-          <span class="k">Shift</span><span class="k">Backspace</span>
-          Drop the second item from the top from the stack.
-        </li>
       </ul>
 
       <h2 id="help_prefix_keys">Prefix Keys</h2>
       <p>
-        All other operations require <em>prefix keys</em> to be typed first.  These keys
+        Most other commands require <em>prefix keys</em> to be typed first.  These keys
         switch into a corresponding <em>mode</em>.  The current mode is displayed in grey in the upper-right
         corner of the stack.  Each mode has its own keymap of operations, which are detailed in the following
         sections.
@@ -302,20 +302,20 @@
       </p>
       <p>
         <strong>NOTE:</strong> The <span class="k">/</span><span class="k">f</span>
-        command prefix can also be used to create commonly-used named operators.
+        <a href="#help_named_operators">named operator</a> prefix can also be used
+        to create commonly-used named operators.
       </p>
       <p>
         <strong>LaTeX Entry:</strong>
         Typing another <span class="k">\</span>
         after the first one will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
-        zero-argument LaTeX command.  This can be used to create any standard LaTeX symbol.
-        For example: <kbd>\\boxdot</kbd> <code>\Rightarrow\boxdot</code>
+        zero-argument LaTeX command.  This can be used to create any standard LaTeX symbol:
+        <kbd>\\boxdot</kbd> <code>\Rightarrow\boxdot</code>
       </p>
       <p>
         One-argument LaTeX commands can be created using <span class="k">Shift</span><span class="k">Enter</span> instead of
-        <span class="k">Enter</span>.
-        For example: <span class="k">x</span><kbd>\\utilde</kbd><span class="k">Shift</span><span class="k">Enter</span>
-        <code>\Rightarrow\utilde{x}</code>
+        <span class="k">Enter</span>.  The stack top becomes the argument:
+        <code>x^2 \Rightarrow \mathtt{\backslash utilde}\{x^2\} \Rightarrow \utilde{x^2}</code>
       </p>
 
       <h2 id="help_text_entry">
@@ -511,7 +511,7 @@
         </li>
         <li>
           <span class="k">f</span>
-          Open the File Manager (see below).
+          Open the <a href="#help_files">File Manager</a> (see below).
         </li>
         <li>
           <span class="k">s</span>
@@ -561,12 +561,17 @@
         or <span class="k">Ctrl</span><span class="k">s</span> from the main screen to save the current
         document without opening the file manager first.
       </p>
+      <p>
+        Documents can be exported (downloaded) as <kbd>.rpn</kbd> files using the
+        <span class="k">x</span> command, and later re-imported by using the upload
+        field found at the bottom of the File Manager.
+      </p>
 
       <h2 id="help_symbols">
         <span class="k">&#39;</span> Math Symbols
       </h2>
       <p>
-        Assorted standalone math symbols.  These all put exactly one object onto the stack.
+        Assorted standalone math symbols.
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -2869,7 +2874,8 @@
           &ndash; same as <span class="k">Tab</span><span class="k">z</span>
         </li>
         <li>
-          <span class="k">Ctrl</span><span class="k">y</span> Redo actions undone by 'undo'
+          <span class="k">Ctrl</span><span class="k">y</span>
+          Redo actions undone by 'undo'
           &ndash; same as <span class="k">Tab</span><span class="k">y</span>
         </li>
         <li>
@@ -2888,15 +2894,18 @@
           &ndash; same as <span class="k">.</span><span class="k">b</span>
         </li>
         <li>
-          <span class="k">Ctrl</span><span class="k">,</span> Join two items with a comma
+          <span class="k">Ctrl</span><span class="k">,</span>
+          Join two items with a comma
           &ndash; same as <span class="k">,</span><span class="k">,</span>
         </li>
         <li>
-          <span class="k">Ctrl</span><span class="k">Space</span> Join two items with a thin space
+          <span class="k">Ctrl</span><span class="k">Space</span>
+          Join two items with a thin space
           &ndash; same as <span class="k">,</span><span class="k">&nbsp;</span>
         </li>
         <li>
-          <span class="k">Ctrl</span><span class="k">Backspace</span> Delete the secondmost item from the stack top
+          <span class="k">Ctrl</span><span class="k">Backspace</span>
+          Drop the secondmost top item from the stack
           &ndash; same as <span class="k">Tab</span><span class="k">n</span>
         </li>
       </ul>

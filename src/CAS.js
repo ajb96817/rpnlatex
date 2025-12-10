@@ -613,27 +613,34 @@ class AlgebriteInterface {
         'exact': true
       };
     const [lhs_expr, rhs_expr, relation_type] = scratch;
-    // Try checking "symbolically" with Algebrite.
-    // It will return 1 or 0 for true/false, otherwise the result
-    // will just be a "testeq(...)" call.
-    const result = this.call_function_raw(
-      // NOTE: there is no 'testneq()' function in Algebrite, so negate the
-      // result of testeq() instead as a hack.
-      relation_type === 'testneq' ? 'testeq' : relation_type,
-      [lhs_expr, rhs_expr]);
-    if(result.k === 1 /* NUM */) {
-      let is_true = null;
-      if(result.q.a.equals(1) && result.q.b.equals(1))
-        is_true = true;
-      else if(result.q.a.equals(0))
-        is_true = false;
-      if(relation_type === 'testneq')
-        is_true = !is_true;  // hack
-      return {
-        'result': is_true ? 'True' : 'False',
-        'exact': true
-      };
+
+    // NOTE: Symbolic check disabled for now.  Algebrite seems to have some
+    // bugs related to testeq() etc.  For example checking (x-1)(x+1)=0
+    // hits a divide by zero error.
+    if(false) {
+      // Try checking "symbolically" with Algebrite.
+      // It will return 1 or 0 for true/false, otherwise the result
+      // will just be a "testeq(...)" call.
+      const result = this.call_function_raw(
+        // NOTE: there is no 'testneq()' function in Algebrite, so negate the
+        // result of testeq() instead as a hack.
+        relation_type === 'testneq' ? 'testeq' : relation_type,
+        [lhs_expr, rhs_expr]);
+      if(result.k === 1 /* NUM */) {
+        let is_true = null;
+        if(result.q.a.equals(1) && result.q.b.equals(1))
+          is_true = true;
+        else if(result.q.a.equals(0))
+          is_true = false;
+        if(relation_type === 'testneq')
+          is_true = !is_true;  // hack
+        return {
+          'result': is_true ? 'True' : 'False',
+          'exact': true
+        };
+      }
     }
+
     // Symbolic check failed.  Test it out numerically instead.
     const [variable_name, variable_expr] = guess_variable_in_expr(expr);
     if(!variable_name)

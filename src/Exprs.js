@@ -2185,7 +2185,7 @@ class ArrayExpr extends Expr {
 // Subexpressions are in the following order: First any upper-left indexes,
 // then lower-left, followed by the base expression itself, then upper-right
 // and finally lower-right.  Empty index slots (those containing nulls) are
-// not counted.
+// not counted in the subexpression index numbering.
 //
 // 'options' is currently unused/unimplemented, but can be a list of option
 // strings.
@@ -2221,13 +2221,13 @@ class TensorExpr extends Expr {
   // Add an upper or lower index (or both) to the given side ('left' or 'right')
   // of the tensor expression.  Null can be used to indicate an empty index slot,
   // but at least one of the new index expressions must be non-null.
-  // outside=true will add the new index expressions to the beginning of the index
+  // at_beginning=true will add the new index expressions to the beginning of the index
   // lists; this is done when adding left-side indexes so that they appear left of
   // any existing indexes there (slightly more intuitive).
-  add_indices(side, upper_index_expr, lower_index_expr, outside = false) {
+  add_indices(side, upper_index_expr, lower_index_expr, at_beginning = false) {
     const exprs = this.index_exprs;
     const combine = (left, right) =>
-          outside ? right.concat(left) : left.concat(right);
+          at_beginning ? right.concat(left) : left.concat(right);
     return new TensorExpr(this.base_expr, {
       left_lower: combine(exprs.left_lower, side === 'left' ? [lower_index_expr] : []),
       left_upper: combine(exprs.left_upper, side === 'left' ? [upper_index_expr] : []),
@@ -2236,20 +2236,20 @@ class TensorExpr extends Expr {
     });
   }
 
-  // Similar to add_indices(), but attach the index_expr to both upper and lower
-  // indices as long as the adjacent slots are populated (or if it's directly
-  // next to the base expression).
-  affix_index(side, index_expr, outside = false) {
+  // Similar to add_indices(), but attach the (same) index_expr to both upper
+  // and lower indices as long as the adjacent slots are populated (or if it's
+  // directly next to the base expression).
+  affix_index(side, index_expr, at_beginning = false) {
     const exprs = this.index_exprs;
     const upper_exprs = side === 'left' ? exprs.left_upper : exprs.right_upper;
     const lower_exprs = side === 'left' ? exprs.left_lower : exprs.right_lower;
-    const do_upper = upper_exprs.length === 0 || upper_exprs[outside ? 0 : upper_exprs.length-1];
-    const do_lower = lower_exprs.length === 0 || lower_exprs[outside ? 0 : lower_exprs.length-1];
+    const do_upper = upper_exprs.length === 0 || upper_exprs[at_beginning ? 0 : upper_exprs.length-1];
+    const do_lower = lower_exprs.length === 0 || lower_exprs[at_beginning ? 0 : lower_exprs.length-1];
     return this.add_indices(
       side,
       do_upper ? index_expr : null,
       do_lower ? index_expr : null,
-      outside);
+      at_beginning);
   }
 
   swap_left_and_right() {
@@ -2297,6 +2297,7 @@ class TensorExpr extends Expr {
           new_lower_exprs.push(lower_exprs[i]);
         }
       }
+      // In-place updates, but the sorting above has made shallow copies.
       upper_exprs.splice(0, upper_exprs.length, ...new_upper_exprs);
       lower_exprs.splice(0, lower_exprs.length, ...new_lower_exprs);
     }
@@ -2385,8 +2386,8 @@ class TensorExpr extends Expr {
     if(this.expr_type() !== expr.expr_type()) return false;
     if(!this.base_expr.matches(expr.base_expr)) return false;
     for(const position_name of TensorExpr.position_names()) {
-      const exprs1 = this.index_exprs[position_name];
-      const exprs2 = expr.index_exprs[position_name];
+      const [exprs1, exprs2] = [this, expr]
+            .map(e => e.index_exprs[position_name]);
       if(exprs1.length !== exprs2.length) return false;
       for(const [i, expr1] of exprs1.entries()) {
         const expr2 = exprs2[i];
@@ -2413,11 +2414,10 @@ class TensorExpr extends Expr {
       index, new_expr, subexpr_index, 'right_lower', new_index_exprs);
     return new TensorExpr(new_base_expr, new_index_exprs);
   }
-  _replace_subexpression(index, new_expr, starting_subexpr_index,
+  _replace_subexpression(index, new_expr, subexpr_index,
                          position_name, new_index_exprs) {
     const exprs = this.index_exprs[position_name];
     let new_exprs = [...exprs];
-    let subexpr_index = starting_subexpr_index;
     for(const [i, expr] of exprs.entries())
       if(expr && index === subexpr_index++)
         new_exprs[i] = new_expr;

@@ -148,8 +148,7 @@ class App extends React.Component {
       }));
     const document_panel_component = $e(DocumentComponent, {
       settings: settings,
-      document: app_state.document,
-      is_dirty: app_state.is_dirty  // TODO: revisit, maybe remove this
+      document: app_state.document
     });
     return $e(
       'div', {id: 'panel_layout'},
