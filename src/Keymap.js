@@ -79,6 +79,7 @@ const KeybindingTable = {
     'Ctrl+a': "swap",
     'Ctrl+b': "make_bold",
     'Ctrl+c': "copy_to_clipboard",
+    'Ctrl+d': "subscript",
     'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x): same as [/][e]
     'Ctrl+f': "parenthesize;push f;swap;build_function_call",
     'Ctrl+g': "parenthesize;push g;swap;build_function_call",
@@ -780,6 +781,7 @@ const KeybindingTable = {
     //'}': "infix \\rightthreetimes",
     '/': "autoparenthesize 2;infix /",
     "\\": "autoparenthesize 2;infix \\backslash",
+    '_': "infix \\_",
     'Tab': "infix \\quad"
   },
 

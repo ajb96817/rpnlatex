@@ -920,7 +920,8 @@
           </tr>
           <tr>
             <td><span class="k">Tab</span> <code>x\quad y</code></td>
-            <td colspan="2">
+            <td><span class="k">_</span> <code>x\_y</code></td>
+            <td>
               <span class="k">&#39;</span> <em>conjunction</em> (see below)
             </td>
           </tr>
@@ -2767,23 +2768,26 @@
         <li>
           <span class="k">Ctrl</span><span class="k">0-4</span>
           Add common subscripts and superscripts: <code>x_0, x^{-1}, x^2, x^3, x^4</code>
-          (same as <span class="k">.</span><span class="k">0-4</span>)
+          &ndash; same as <span class="k">.</span><span class="k">0-4</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">a</span>
           Swap the top two stack top items
-          (same as <span class="k">Tab</span><span class="k">a</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">a</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">b</span>
           Apply a bold font to the stack top
-          (same as <span class="k">]</span>)
+          &ndash; same as <span class="k">]</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">c</span>
           Copy stack top to clipboard
-          (same as <span class="k">Tab</span><span class="k">c</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">c</span>
+        </li>
+        <li><span class="k">Ctrl</span><span class="k">d</span>
+          Make subscript &ndash; same as <span class="k">Enter</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">e</span>
           <code>x \Rightarrow \mathrm{e}^x</code>
-          (same as <span class="k">/</span><span class="k">e</span>)
+          &ndash; same as <span class="k">/</span><span class="k">e</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">f</span>
           <code>x \Rightarrow f(x)</code>
@@ -2793,106 +2797,107 @@
         </li>
         <li><span class="k">Ctrl</span><span class="k">i</span>
           Move the stack top into the document at the current selection position
-          (same as <span class="k">Tab</span><span class="k">i</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">i</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">j</span>
           Move the current document selection back onto the stack
-          (same as <span class="k">Tab</span><span class="k">j</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">j</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">k</span>
           <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code>
-          (same as <span class="k">/</span><span class="k">k</span>)
+          &ndash; same as <span class="k">/</span><span class="k">k</span>
         </li>
-        <li>
+        <!-- <li>
           <span class="k">Ctrl</span><span class="k">K</span>
           <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code>
-          (same as <span class="k">/</span><span class="k">K</span>)
-        </li>
+          &ndash; same as <span class="k">/</span><span class="k">K</span>
+        </li> -->
         <li><span class="k">Ctrl</span><span class="k">l</span>
           Recenter the document view around the current document selection
-          (same as <span class="k">Tab</span><span class="k">l</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">l</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">m</span>
           <code>x \Rightarrow -x</code>
-          (same as <span class="k">.</span><span class="k">-</span>)
+          &ndash; same as <span class="k">.</span><span class="k">-</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">o</span>
           <code>f\enspace x \Rightarrow f(x)</code>
-          (same as <span class="k">/</span><span class="k">o</span>)
+          &ndash; same as <span class="k">/</span><span class="k">o</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">p</span>
           Enclose the stack top in parentheses
-          (same as <span class="k">(</span>)
+          &ndash; same as <span class="k">(</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">r</span>
           <code>f\enspace x\enspace y \Rightarrow f(x,y)</code>
-          (same as <span class="k">/</span><span class="k">r</span>)
+          &ndash; same as <span class="k">/</span><span class="k">r</span>
         </li>
-        <li>
+        <!-- <li>
           <span class="k">Ctrl</span><span class="k">R</span>
           <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code>
-          (same as <span class="k">/</span><span class="k">R</span>)
-        </li>
+          &ndash; same as <span class="k">/</span><span class="k">R</span>
+        </li> -->
         <li>
           <span class="k">Ctrl</span><span class="k">s</span>
           Save the current document
-          (same as <span class="k">Tab</span><span class="k">s</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">s</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">t</span>
           <code>f \Rightarrow f(t)</code>
         </li>
         <li><span class="k">Ctrl</span><span class="k">u</span>
-          Make superscript (same as <span class="k">`</span>)
+          Make superscript &ndash; same as <span class="k">`</span>
+          or <span class="k">^</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">v</span>
           Paste clipboard to stack top
-          (same as <span class="k">Tab</span><span class="k">v</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">v</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">w</span>
           Put the stack top into a temporary &quot;floating&quot; spot, or put it back
           on the stack again
-          (same as <span class="k">Tab</span><span class="k">w</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">w</span>
         </li>
         <li><span class="k">Ctrl</span><span class="k">x</span>
           <code>f \Rightarrow f(x)</code>
         </li>
         <li><span class="k">Ctrl</span><span class="k">z</span>
           Undo last action
-          (same as <span class="k">Tab</span><span class="k">z</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">z</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">y</span> Redo actions undone by 'undo'
-          (same as <span class="k">Tab</span><span class="k">y</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">y</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">/</span>
           <code>x\enspace y \Rightarrow \displaystyle{\frac{x}{y}}</code>
-          (same as <span class="k">/</span><span class="k">/</span>)
+          &ndash; same as <span class="k">/</span><span class="k">/</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">\</span>
           <code>x \Rightarrow \displaystyle{\frac{1}{x}}</code>
-          (same as <span class="k">/</span><span class="k">1</span>)
+          &ndash; same as <span class="k">/</span><span class="k">1</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">]</span>
           Apply a bold roman font to the stack top: <code>\bold x</code>
-          (same as <span class="k">.</span><span class="k">b</span>)
+          &ndash; same as <span class="k">.</span><span class="k">b</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">,</span> Join two items with a comma
-          (same as <span class="k">,</span><span class="k">,</span>)
+          &ndash; same as <span class="k">,</span><span class="k">,</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">Space</span> Join two items with a thin space
-          (same as <span class="k">,</span><span class="k">&nbsp;</span>)
+          &ndash; same as <span class="k">,</span><span class="k">&nbsp;</span>
         </li>
         <li>
           <span class="k">Ctrl</span><span class="k">Backspace</span> Delete the secondmost item from the stack top
-          (same as <span class="k">Tab</span><span class="k">n</span>)
+          &ndash; same as <span class="k">Tab</span><span class="k">n</span>
         </li>
       </ul>
       <p><!-- small spacer --></p>
