@@ -393,7 +393,7 @@ function double_to_expr(x) {
   else if(isFinite(x)) {
     const abs_x = Math.abs(x);
     if(abs_x < 1e-30)
-      return new TextExpr('0.0');
+      return new TextExpr('0');
     if(abs_x < 1e-8 || abs_x > 1e9)
       return double_to_scientific_notation_expr(x);
     else {
@@ -588,7 +588,7 @@ class AlgebriteInterface {
   // 'params': {
   //   'time_limit': stop checking after this many milliseconds
   //   'iteration_limit': stop checking after this many evaluations
-  //   'lower_bound', 'upper_bound': check variable values within this range
+  //   'mean', 'stddev': check variable values from the normal distribution N(mean, stddev)
   // }
   //
   // Returns: {
@@ -687,6 +687,12 @@ class AlgebriteInterface {
 
   static check_relation_numerically(lhs_expr, rhs_expr, variable_name,
                                     variable_expr, relation_type, params) {
+    const randn = (mean, stddev) => {
+      // Sample from Gaussian distribution.
+      do var [x, y] = [Math.random(), Math.random()];
+      while(Math.abs(x) < 1e-20 || Math.abs(y) < 1e-20);
+      return mean + stddev*Math.sqrt(-2*Math.log(x))*Math.cos(2*Math.PI*y);
+    };
     // Set up function definitions for efficiency.
     this.define_function('lhs_expr', variable_name, lhs_expr);
     this.define_function('rhs_expr', variable_name, rhs_expr);
@@ -695,9 +701,7 @@ class AlgebriteInterface {
     while(iter < params.iteration_limit &&
           Date.now() - start_time < params.time_limit) {
       iter++;
-      // Sample 'x' uniformly within the given bounds.
-      const variable_value = params.lower_bound +
-            Math.random()*(params.upper_bound - params.lower_bound);
+      const variable_value = randn(params.mean, params.stddev);
       const variable_value_string = variable_value.toString();
       const result = this._check_relation_numerically_once(
         variable_name, variable_value_string, relation_type);

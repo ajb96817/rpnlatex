@@ -2478,14 +2478,15 @@
         </li>
         <li>
           <span class="k">q</span> and <span class="k">Q</span>
-          Check whether an equation or inequality like
-          <code>x^2 &gt; \sin x</code> is true or not.
-          If this can be determined algebraically, it will be; otherwise,
-          the expression will be evaluated randomly at several points in the
-          range <code>(-10, 10)</code> to test for likely truth or falsehood.
+          Check whether an equation or inequality like <code>x^2 &gt; \sin x</code> is true or not.
+          <!-- If this can be determined algebraically, it will be; otherwise, the -->
+          The expression will be evaluated randomly at several points
+          (sampled from <code>\mathcal{N}(\mu=0,\sigma=10)</code>          
+          to test for likely truth or falsehood.
           <span class="k">Q</span>
-          <code>(f \enspace a\enspace b)</code>
-          allows you to specify the <code>(a, b)</code> range to test explicitly.
+          <code>f\enspace\mu\enspace\sigma</code>
+          allows you to specify the mean and standard deviation
+          <code>\mathcal{N}(\mu,\sigma)</code> explicitly.
         </li>
         <li>
           <span class="k">v</span>

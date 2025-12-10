@@ -12,11 +12,10 @@ import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
   PostfixExpr, FunctionCallExpr, PlaceholderExpr, TextExpr,
   SubscriptSuperscriptExpr, DelimiterExpr,
-  ArrayExpr, TensorExpr
-  /* Not explicitly used here: SequenceExpr */
+  ArrayExpr, TensorExpr, SequenceExpr
 } from './Exprs';
 import {
-  AlgebriteInterface
+  AlgebriteInterface, double_to_expr
 } from './CAS';
 
 
@@ -391,14 +390,14 @@ class InputContext {
   // Try to verify an equality or other relational expression
   // such as 'sin(x) < x'.
   // If 'include_range' is set, take 3 arguments from the
-  // stack: eqn a b.  Sample variable values between a and b.
-  // Otherwise, only 1 argument from the stack is taken and
-  // the range is assumed to be (-10, 10).
+  // stack: eqn mean stddev.  Sample variable values from a normal
+  // distribution N(mean, stddev).  Otherwise, only 1 argument from the
+  // stack is taken and N(0, 10) is assumed.
   do_algebrite_check(stack, include_range) {
-    let exprs, expr;
-    let lower_bound = -10.0, upper_bound = 10.0;
+    let new_stack, exprs, expr;
+    let mean = 0.0, stddev = 10.0;
     if(include_range === 'true') {
-      [/*new_stack*/, ...exprs] = stack.pop_exprs(3);
+      [new_stack, ...exprs] = stack.pop_exprs(3);
       expr = exprs[0];
       const get_value = expr => {
         if(expr.is_text_expr_with_number()) {
@@ -407,42 +406,46 @@ class InputContext {
         }
         else return null;
       };
-      lower_bound = get_value(exprs[1]);
-      upper_bound = get_value(exprs[2]);
-      if(lower_bound === null || upper_bound === null)
+      mean = get_value(exprs[1]);
+      stddev = get_value(exprs[2]);
+      if(mean === null || stddev === null)
         return this.error_flash_stack();
-      if(lower_bound > upper_bound)
-        [lower_bound, upper_bound] = [upper_bound, lower_bound];
     }
     else
-      [/*new_stack*/, expr] = stack.pop_exprs(1);
+      [new_stack, expr] = stack.pop_exprs(1);
     const result = AlgebriteInterface.check_relation(
       expr, {
         'time_limit': 2000.0,  // milliseconds
         'iteration_limit': 100,
-        'lower_bound': lower_bound,
-        'upper_bound': upper_bound
+        'mean': mean, 'stddev': stddev
       });
-    const result_text = this._format_algebrite_check_result(result);
-    // Leave the equation on the stack (otherwise it'd be new_stack.push()).
-    return stack.push(result_text);
+    const result_text = this._format_algebrite_check_result(result, mean, stddev);
+    return new_stack.push_expr(expr).push(result_text);
   }
-  _format_algebrite_check_result(result) {
-    let show_variable_value = false;
+  _format_algebrite_check_result(result, mean, stddev) {
+    let show_variable_value = false, show_distribution = false;
     let pieces = ['**', result.result, '**.'];
     if(result.message)
       pieces.push(' ', result.message, '.');
     if(!result.exact && result.tries) {
       pieces.push(
         ' Checked ', result.tries.toString(),
-        ' point' + (result.tries === 1 ? '' : 's'), '.');
-      // TODO: show 'where -10 < x < 10' maybe
+        ' point' + (result.tries === 1 ? '' : 's'), ' in [].');
+      show_distribution = true;
       if(result.false_for !== undefined && result.variable !== undefined) {
         pieces.push(' False for [] = ', result.false_for, '.');
         show_variable_value = true;
       }
     }
     let result_item = TextItem.parse_string(pieces.join(''));
+    if(show_distribution)
+      result_item = result_item.try_substitute_placeholder(
+        new FunctionCallExpr(
+          FontExpr.wrap(new TextExpr('N')).with_typeface('calligraphic'),
+          DelimiterExpr.parenthesize(
+            InfixExpr.combine_infix(
+              double_to_expr(mean), double_to_expr(stddev),
+              new TextExpr(',')))));
     if(show_variable_value)
       result_item = result_item.try_substitute_placeholder(result.variable);
     return result_item;
