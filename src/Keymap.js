@@ -39,7 +39,7 @@ const KeybindingTable = {
     'Shift+ArrowDown': "shift_document_selection +1",
     'PageUp': "change_document_selection -5",  // TODO: scroll based on viewport height instead
     'PageDown': "change_document_selection +5",
-    'Home': "change_document_selection -10000",
+    'Home': "change_document_selection -10000",  // TODO: top/bottom instead of 10000
     'End': "change_document_selection +10000",
 
     // Horizontal scrolling commands
@@ -80,32 +80,35 @@ const KeybindingTable = {
     'Ctrl+b': "make_bold",
     'Ctrl+c': "copy_to_clipboard",
     'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x): same as [/][e]
-    'Ctrl+i': "pop_to_document",
     'Ctrl+f': "parenthesize;push f;swap;build_function_call",
     'Ctrl+g': "parenthesize;push g;swap;build_function_call",
+    'Ctrl+i': "pop_to_document",
     'Ctrl+j': "extract_from_document",
     'Ctrl+k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f(x|y): same as [/][k]
-    'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K] - undocumented
+    //'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K] - undocumented
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
+    //'Ctrl+n': "rot",
     'Ctrl+o': "parenthesize;build_function_call",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
+    //'Ctrl+q': "unrot",
     'Ctrl+r': "infix ,;parenthesize;build_function_call",  // -> f(x,y): same as [/][r]
     'Ctrl+R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z): same as [/][R] - undocumented
     'Ctrl+s': "save_file",
     'Ctrl+t': "autoparenthesize;push t;parenthesize;build_function_call",  // y -> y(t)
-    'Ctrl+T': "push y;push t;parenthesize;build_function_call",  // y(t) - undocumented
+    //'Ctrl+T': "push y;push t;parenthesize;build_function_call",  // y(t) - undocumented
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
     'Ctrl+w': "swap_floating_item",
     'Ctrl+x': "autoparenthesize;push x;parenthesize;build_function_call",  // f -> f(x)
-    'Ctrl+X': "push f;push x;parenthesize;build_function_call",  // f(x) - undocumented
+    //'Ctrl+X': "push f;push x;parenthesize;build_function_call",  // f(x) - undocumented
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
     'Ctrl+,': "infix ,",
     'Ctrl+/': "fraction",
     "Ctrl+\\": "integer 1;swap;fraction",  // 1/x, same as [/][1]
+    'Ctrl+]': "typeface roman;make_bold",  // same as [.][b]
     'Ctrl+Backspace': "nip"
   },
 
@@ -129,6 +132,13 @@ const KeybindingTable = {
 
   // User Guide mode
   help: {
+    // Exit/dock user guide
+    'q': "toggle_popup help",
+    'Q': "toggle_popup help",
+    'Escape': "toggle_popup help",
+    '?': "config dock_helptext on",
+
+    // Scrolling
     'ArrowDown': 'scroll helptext_panel vertical 25',
     'ArrowUp': 'scroll helptext_panel vertical -25',
     'j': 'scroll helptext_panel vertical 25',
@@ -144,17 +154,13 @@ const KeybindingTable = {
     'Home': 'scroll helptext_panel top',
     'End': 'scroll helptext_panel bottom',
 
-    // Independent zoom factor for User Guide.
+    // Independent zoom factor for User Guide
     '+': "config helptext_zoom_factor increase",
     '-': "config helptext_zoom_factor decrease",
     '0': "config helptext_zoom_factor reset",
 
-    'q': "toggle_popup help",
-    'Q': "toggle_popup help",
-    'Escape': "toggle_popup help",
-    '?': "config dock_helptext on",
-    'delegate': "_help_jump",  // jump directly to prefix key docs
-    'default': "toggle_popup help"
+    'delegate': "_help_jump",  // jump directly to prefix key help section
+    'default': "toggle_popup help"  // never actually invoked
   },
 
   // Quick navigation to each User Guide section.
