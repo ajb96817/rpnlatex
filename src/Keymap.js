@@ -978,6 +978,7 @@ const KeybindingTable = {
     "'": "autoparenthesize;prime",
     ',': "push \\circ;superscript",  // degree marker
     '*': "push *;superscript",  // conjugation
+    '^': "autoparenthesize;prefix \\star",
     '~': "apply_hat tilde",
     '=': "prefix \\Rightarrow",
     '-': "autoparenthesize;negate",

@@ -131,6 +131,7 @@ class App extends React.Component {
       $e(IndicatorsComponent, {
         input_context: input_context,
         input_mode: input_context.mode,
+        show_mode_indicator: settings.show_mode_indicator,
         notification_text: input_context.notification_text,
         error_text: input_context.error_message ?
           input_context.error_message.message : null,
@@ -260,7 +261,8 @@ class App extends React.Component {
 class IndicatorsComponent extends React.Component {
   render() {
     const {
-      input_context, input_mode, notification_text, error_text
+      input_context, input_mode, show_mode_indicator,
+      notification_text, error_text
     } = this.props;
     let indicator_items = [];
     // Notification or error message (only one shown at a time,
@@ -277,7 +279,7 @@ class IndicatorsComponent extends React.Component {
           : null));
     }
     // Input mode indicator, unless in base mode:
-    if(input_mode !== 'base') {
+    if(show_mode_indicator && input_mode !== 'base') {
       let displayed_input_mode = input_mode;
       if(input_mode === 'build_matrix') {
         // Special case: build_matrix mode has already received a prefix
