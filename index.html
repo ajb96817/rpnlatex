@@ -310,12 +310,12 @@
         Typing another <span class="k">\</span>
         after the first one will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
         zero-argument LaTeX command.  This can be used to create any standard LaTeX symbol:
-        <kbd>\\boxdot</kbd> <code>\Rightarrow\boxdot</code>
+        <code>\mathtt{\backslash\backslash boxdot}\Rightarrow\boxdot</code>
       </p>
       <p>
         One-argument LaTeX commands can be created using <span class="k">Shift</span><span class="k">Enter</span> instead of
         <span class="k">Enter</span>.  The stack top becomes the argument:
-        <code>x^2 \Rightarrow \mathtt{\backslash utilde}\{x^2\} \Rightarrow \utilde{x^2}</code>
+        <code>x^2 \Rightarrow \mathtt{\backslash\backslash utilde} \Rightarrow \utilde{x^2}</code>
       </p>
 
       <h2 id="help_text_entry">
@@ -571,7 +571,9 @@
         <span class="k">&#39;</span> Math Symbols
       </h2>
       <p>
-        Assorted standalone math symbols.
+        Assorted standalone math symbols.  Adding subscripts or superscripts
+        to &quot;large&quot; symbols like <code>\sum</code> will place them
+        in the correct position for normal math notation.
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -696,7 +698,7 @@
       <ul class="keybindings">
         <li>
           <span class="k">&#39;</span><span class="k">&#39;</span>
-          Put a placeholder (<code>\htmlClass{placeholder_expr}{\blacksquare}</code>) onto the stack.
+          Put a placeholder <code>\htmlClass{placeholder_expr}{\blacksquare}</code> onto the stack.
           You can treat it like any other subexpression, applying operations to it and using it
           in other expressions.  All placeholders are identical.
         </li>

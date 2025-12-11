@@ -93,10 +93,17 @@ body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
 body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
 body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 
-#stack_panel div.indicator {
+/* These elements float on the top-right of the stack panel: */
+#stack_panel div.indicator,
+#stack_panel div.error_message,
+#stack_panel div.floating_item {
   float: right;
-  clear: right; /* in case there's a "floating" stack item */
-  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
+  clear: right;
+  position: sticky;
+  left: 0;  /* with sticky, keep in view even when scrolling far to the right */
+  z-index: 2;  /* keep it from being obscured by other stack items */
+}
+#stack_panel div.indicator {
   margin-right: 0.25em;
   margin-top: 0.25em;
   font-size: 120%;
@@ -117,9 +124,6 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
   font-family: monospace;
 }
 #stack_panel div.error_message {
-  float: right;
-  clear: right;
-  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
   background-color: #fdd;
   padding: 0.1em 0.2em;
   margin-right: 0.25em;
@@ -129,8 +133,6 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
   color: #800;
 }
 #stack_panel div.floating_item {
-  float: right;
-  position: relative; z-index: 2; /* keep it from being obscured by other stack items */
   padding: 0.05em 0.2em;
   padding-left: 0; /* make itemtype bar look "correct" */
   margin-right: 0.25em;

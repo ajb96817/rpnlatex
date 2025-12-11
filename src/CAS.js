@@ -665,8 +665,8 @@ class AlgebriteInterface {
     // Scan for a relational operator in the infix expression.
     let relation_index = null;
     let relation_type = null;
-    for(const [i, /*operator_expr*/] of expr.operator_exprs.entries()) {
-      const operator_text = expr.operator_text_at(i);
+    for(const [i, operator_expr] of expr.operator_exprs.entries()) {
+      const operator_text = expr.operator_text(operator_expr);
       const match = algebrite_relation_types
             .find(pair => pair[0] === operator_text);
       if(match) {
@@ -689,7 +689,7 @@ class AlgebriteInterface {
     const randn = (mean, stddev) => {
       // Sample from Gaussian distribution.
       do var [x, y] = [Math.random(), Math.random()];
-      while(Math.abs(x) < 1e-20 || Math.abs(y) < 1e-20);
+      while(Math.abs(x) < 1e-20);
       return mean + stddev*Math.sqrt(-2*Math.log(x))*Math.cos(2*Math.PI*y);
     };
     // Set up function definitions for efficiency.
