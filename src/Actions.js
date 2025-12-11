@@ -879,15 +879,12 @@ class InputContext {
   }
 
   // Used for \mathscr, \mathcal, \mathbb, which only have uppercase glyphs.
-  // case_type: 'uppercase', 'lowercase'
   // Stack top should be an ExprItem with a simple TextExpr.
-  do_to_case(stack, case_type) {
+  do_uppercase(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
-    if(expr.is_text_expr()) {
-      const new_text = case_type === 'uppercase' ?
-            expr.text.toUpperCase() : expr.text.toLowerCase();
-      return new_stack.push_expr(new TextExpr(new_text));
-    }
+    if(expr.is_text_expr())
+      return new_stack.push_expr(
+        new TextExpr(expr.text.toUpperCase()));
     else return stack;
   }
 

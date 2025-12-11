@@ -58,7 +58,7 @@ const keybinding_table = {
     'Shift+Backspace': "nip",
     
     ' ': "concat",
-    '!': "push !;concat",  // see Expr.concatenate, ! gets some special handling
+    '!': "push !;concat",  // creates a PostfixExpr, see Expr.concatenate()
     '^': "superscript",
     "`": "superscript",
     '<': "infix <",
@@ -1224,20 +1224,20 @@ const keybinding_table = {
 
   // [@] prefix: \mathcal letters (uppercase only)
   calligraphic: {
-    '[alpha]': "push_last_keypress;to_case uppercase;typeface calligraphic",
+    '[alpha]': "push_last_keypress;uppercase;typeface calligraphic",
     '@': "push @"  // undocumented
   },
 
   // [%] prefix: \mathbb letters (uppercase only except 'k')
   blackboard: {
-    '[alpha]': "push_last_keypress;to_case uppercase;typeface blackboard",
+    '[alpha]': "push_last_keypress;uppercase;typeface blackboard",
     'k': "push k;typeface blackboard",  // there's (only) a lowercase k in LaTeX (aka \Bbbk).
     '%': "push \\%"  // undocumented
   },
 
   // [&] prefix: \mathscr letters (uppercase only)
   script: {
-    '[alpha]': "push_last_keypress;to_case uppercase;typeface script",
+    '[alpha]': "push_last_keypress;uppercase;typeface script",
     '&': "push \\&"  // undocumented
   },
 

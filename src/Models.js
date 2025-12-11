@@ -617,8 +617,7 @@ class FileManager {
 
   save_settings(settings) {
     this.with_local_storage(() => {
-      const json_string = JSON.stringify(
-        Settings.to_json(settings));
+      const json_string = JSON.stringify(Settings.to_json(settings));
       this.storage.setItem('$settings', json_string);
     });
   }

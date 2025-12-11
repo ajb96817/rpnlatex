@@ -8,97 +8,67 @@ import {
 // Note that all operations on Exprs are non-destructive; new Expr instances
 // are returned with changes rather than modifying internal state.
 class Expr {
-  // Concatenate two Exprs into one.  This will merge Exprs into adjacent
-  // SequenceExprs when possible, instead of creating nested SequenceExprs.
+  // Concatenate two Exprs into one.  Several rules and special cases are checked here.
   // Context-dependent autoparenthesization is done unless no_parenthesize is set.
-  static concatenate(left, right, no_parenthesize = false) {
+  static concatenate(left_expr, right_expr, no_parenthesize = false) {
     // Concatenating something to a unary minus PrefixExpr converts
-    // into an InfixExpr for subtraction: concat(x, -y) -> x-y
-    if(right.is_prefix_expr() && right.is_unary_minus())
-      return InfixExpr.combine_infix(left, right.base_expr, new TextExpr('-'));
-    // Handle concatenating an expression to one or more ! signs, for factorial notation.
-    // This notation has to be handled carefully:
-    //   - The usual case is concatenating a base expression 'x' to a ! sign,
-    //     yielding a PostfixExpr(x, '!').
-    //   - Concatenating ! to ! should give a Sequence['!', '!'].
-    //   - Concatenating a non-'!' expression to such a sequence should yield
-    //     the double-factorial x!!, which is a nested PostfixExpr.
-    //   - Any amount of ! symbols can be used, although only x! and x!! have meaning here.
-    const factorial_count = expr => {
-      // Count number of exclamation points, for both TextExprs and SequenceExprs.
-      if(expr.is_text_expr_with('!'))
-        return 1;
-      else if(expr.is_sequence_expr() &&
-              expr.exprs.every(
-                subexpr => subexpr.is_text_expr_with('!')))
-        return expr.exprs.length;
-      else
-        return 0;
-    };
-    const left_factorial_count = factorial_count(left);
-    const right_factorial_count = factorial_count(right);
-    if(right_factorial_count > 0) {
-      if(left_factorial_count === 0) {
-        // Concatenating a "normal" expression to 1 or more ! signs.
-        return PostfixExpr.factorial_expr(left, right_factorial_count);
-      }
-      else {
-        // Concatenating groups (1 or more) of ! signs together.
-        return new SequenceExpr(
-          new Array(
-            left_factorial_count + right_factorial_count
-          ).fill(new TextExpr('!')));
-      }
-    }
-    // Some types of CommandExprs (integral signs) can be combined in special ways.
-    if(left.is_command_expr() && right.is_command_expr()) {
-      const combined_command_name = CommandExpr.combine_command_pair(
-        left.command_name, right.command_name);
-      if(combined_command_name)
-        return new CommandExpr(combined_command_name);
-    }
-    // Special case: combine 123 456 => 123456 if both sides are numeric.
-    // This can lead to things like "1.2" + "3.4" -> "1.23.4" but that's
+    // into an InfixExpr for subtraction: concat(x, -y) => x-y.
+    // Also, concat(x, +y) => x+y.
+    if(right_expr.is_prefix_expr() &&
+       ['-', '+'].includes(right_expr.operator_text()))
+      return InfixExpr.combine_infix(
+        left_expr, right_expr.base_expr,
+        right_expr.operator_expr);
+    // Concatenating something to a negative number literal converts
+    // into a subtraction.
+    if(right_expr.is_text_expr() && right_expr.looks_like_negative_number())
+      return InfixExpr.combine_infix(
+        left_expr, right_expr, new TextExpr('-'));
+    // Combine 123 456 => 123456 if both sides are numeric.
+    // This can lead to things like "1.2" + "3.4" => "1.23.4" but that's
     // considered OK because the main use for this is to build numbers from
     // individual digits.  The user should use an explicit \cdot or \times
     // infix operator to indicate multiplication.
-    // TODO: convert '123' + '-456' into an infix subtraction
-    if(left.is_text_expr() && left.looks_like_number() &&
-       right.is_text_expr() && right.looks_like_number())
-      return new TextExpr(left.text + right.text);
-    // Parenthesization of factorial notation is a little tricky.
-    // We want the results:
-    //   2 x!      =>  2(x!)
-    //   2 (x+1)!  =>  2(x+1)!  (so not parenthesizing the (x+1)! again)
-    //   (x+1) y!  =>  (x+1)y!
-    //   x! y!     =>  x!y!
-    //   x! !      =>  x!!  (not (x!)!) - this is handled by the logic above
-    const parenthesize_left = left.is_infix_expr() &&
-          !left.is_differential_form() && !no_parenthesize;
-    const left_expr = parenthesize_left ? DelimiterExpr.parenthesize(left) : left;
-    let parenthesize_right = right.is_infix_expr() && !right.is_differential_form();
-    if(right.is_postfix_expr() && right.factorial_signs_count() > 0) {
-      if(!right.base_expr.is_delimiter_expr())
-        parenthesize_right = true;  // handle 2(x!) and 2(x+1)!
-      if(left.is_postfix_expr() && left.factorial_signs_count() > 0)
-        parenthesize_right = false;  // x!y!
+    if(left_expr.is_text_expr_with_number() && right_expr.is_text_expr_with_number())
+      return new TextExpr(left_expr.text + right_expr.text);
+    // Some types of CommandExprs (integral signs) can be combined in special ways.
+    if(left_expr.is_command_expr() && right_expr.is_command_expr()) {
+      const combined_command_name = CommandExpr.combine_command_pair(
+        left_expr.command_name, right_expr.command_name);
+      if(combined_command_name)
+        return new CommandExpr(combined_command_name);
     }
-    if(no_parenthesize)
-      parenthesize_right = false;
-    const right_expr = parenthesize_right ?
-          DelimiterExpr.parenthesize(right) : right;
-    // NOTE: At this point, left_expr and right_expr are the (possibly)
-    // parenthesized versions of left/right.
+    // Concatenating to '!' produces a PostfixExpr (factorial notation).
+    // The base expression is parenthesized as if it were getting a superscript
+    // added, so we get (sin x)! and sin(x)!.
+    if(right_expr.is_text_expr_with('!'))
+      return new PostfixExpr(
+        no_parenthesize ? left_expr :
+          DelimiterExpr.parenthesize_for_power(left_expr),
+        right_expr);
+    // Parenthesize the expressions being combined if needed.
+    // The rest of the combination rules will apply to these versions.
+    [left_expr, right_expr] = [left_expr, right_expr].map(expr => {
+      if(expr.is_infix_expr() &&
+         !expr.is_differential_form() &&
+         !no_parenthesize)
+        return DelimiterExpr.parenthesize(expr);
+      else return expr;
+    });
+    // Concatenating a literal '+' or '!' to something creates the
+    // corresponding PrefixExpr.
+    if(left_expr.is_text_expr_with('+') || left_expr.is_text_expr_with('-'))
+      return new PrefixExpr(right_expr, left_expr);
     // Adjacent FontExprs of the same type can be merged into a single
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
     // (This renders better in some cases.)
     // Note that applying a font after expressions are concatenated
-    // will not do this merging.  AB -> bold -> \bold{A}\bold{B}.
+    // will not do this merging.  AB => bold => \bold{A}\bold{B}.
     // This could be implemented if needed (by coalescing adjacent FontExprs
     // within a SequenceExpr).
     if(left_expr.is_font_expr() && right_expr.is_font_expr() &&
        FontExpr.font_exprs_compatible(left_expr, right_expr)) {
-      // TODO: Maybe only do this if the FontExprs are wrapping TextExprs.
+      // TODO: Maybe only do this if the FontExprs are directly wrapping TextExprs.
       return new FontExpr(
         this.concatenate(left_expr.expr, right_expr.expr, no_parenthesize),
         left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
@@ -349,7 +319,7 @@ class CommandExpr extends Expr {
     return new this('frac', [numer_expr, denom_expr]);
   }
   
-  // Try to combine integral signs together; \int + \int -> \iint, etc.
+  // Try to combine integral signs together; \int + \int => \iint, etc.
   static combine_command_pair(left_command, right_command) {
     if(left_command === 'int' && right_command === 'int') return 'iint';
     if(left_command === 'iint' && right_command === 'int') return 'iiint';
@@ -365,7 +335,7 @@ class CommandExpr extends Expr {
   //   - 'options', if provided, is a plain string that becomes "\command_name[options]{...}"
   //   - 'command_name' itself can include the options in [brackets], in which case it is
   //     automatically split off into 'options' (this is used for keybindings).
-  //     (e.g.: command_name='sqrt[3]' -> command_name='sqrt', options='3')
+  //     (e.g.: command_name='sqrt[3]' => command_name='sqrt', options='3')
   constructor(command_name, operand_exprs, options) {
     super();
     if(command_name.endsWith(']')) {
@@ -1271,7 +1241,7 @@ class FunctionCallExpr extends Expr {
   }
 
   as_bold() {
-    // f(x) -> bolded f and x, but not the parentheses themselves.
+    // f(x) => bolded f and x, but not the parentheses themselves.
     // Bolding the parentheses themselves might be considered desirable
     // instead of this, in which case bold_args_expr = this.args_expr.as_bold().
     const bold_args_expr =
@@ -1414,7 +1384,7 @@ class SequenceExpr extends Expr {
   as_logical_negation() {
     if(this.exprs.length === 2 &&
        this.exprs[0].is_command_expr_with(0, 'not'))
-      return this.exprs[1];  // \not\le -> \le
+      return this.exprs[1];  // \not\le => \le
     else
       return super.as_logical_negation();
   }
@@ -1444,7 +1414,7 @@ class SequenceExpr extends Expr {
 //
 // NOTE: If the enclosed expression is an InfixExpr, this attempts to convert
 // infix operators to their flex-size equivalent if they have one.
-// For example: <x|y>  -> \left\langle x\middle\vert y\right\rangle
+// For example: <x|y> => \left\langle x\middle\vert y\right\rangle
 class DelimiterExpr extends Expr {
   constructor(left_type, right_type, inner_expr, fixed_size) {
     super();
@@ -1732,7 +1702,7 @@ class SubscriptSuperscriptExpr extends Expr {
       return super.with_prime(autoparenthesize);
   }
 
-  // Remove one \prime; f'' -> f', etc.
+  // Remove one \prime; f'' => f', etc.
   remove_prime() {
     const prime_count = this.count_primes();
     if(prime_count === 0)
