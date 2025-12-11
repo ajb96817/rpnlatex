@@ -1226,7 +1226,7 @@ class InputContext {
 
   // Combine a function name and its argument tuple into a FunctionCallExpr.
   // The arguments must already exist as a DelimiterExpr, e.g. (x,y).
-  do_build_function_call(stack) {
+  do_function_call(stack) {
     const [new_stack, fn_expr, args_expr] = stack.pop_exprs(2);
     if(args_expr.is_delimiter_expr())
       return new_stack.push_expr(

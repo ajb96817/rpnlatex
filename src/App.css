@@ -425,7 +425,7 @@ div.stack_items div.tag_entry_mode::before {
 
 /* User guide keybinding notation */
 span.k {
-  font-size: 120%;
+  font-size: 110%;
   font-weight: bold;
   font-family: monospace;
   background-color: #eef8ee;

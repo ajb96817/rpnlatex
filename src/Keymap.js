@@ -81,28 +81,28 @@ const KeybindingTable = {
     'Ctrl+c': "copy_to_clipboard",
     'Ctrl+d': "subscript",
     'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x): same as [/][e]
-    'Ctrl+f': "parenthesize;push f;swap;build_function_call",
-    'Ctrl+g': "parenthesize;push g;swap;build_function_call",
+    'Ctrl+f': "parenthesize;push f;swap;function_call",
+    'Ctrl+g': "parenthesize;push g;swap;function_call",
     'Ctrl+i': "pop_to_document",
     'Ctrl+j': "extract_from_document",
-    'Ctrl+k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f(x|y): same as [/][k]
-    //'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K] - undocumented
+    'Ctrl+k': "infix \\,\\vert\\,;parenthesize;function_call",  // f(x|y): same as [/][k]
+    //'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;function_call",  // f x y z -> f(x,y|z): same as [/][K] - undocumented
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
     'Ctrl+n': "typeface roman",  // same as [.][r]
-    'Ctrl+o': "parenthesize;build_function_call",  // -> f(x): same as [/][o]
+    'Ctrl+o': "parenthesize;function_call",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
     //'Ctrl+q': "unrot",
-    'Ctrl+r': "infix ,;parenthesize;build_function_call",  // -> f(x,y): same as [/][r]
-    'Ctrl+R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z): same as [/][R] - undocumented
+    'Ctrl+r': "infix ,;parenthesize;function_call",  // -> f(x,y): same as [/][r]
+    'Ctrl+R': "infix ,;infix ,;parenthesize;function_call",  // f x y z -> f(x,y,z): same as [/][R] - undocumented
     'Ctrl+s': "save_file",
-    'Ctrl+t': "autoparenthesize;push t;parenthesize;build_function_call",  // y -> y(t)
-    //'Ctrl+T': "push y;push t;parenthesize;build_function_call",  // y(t) - undocumented
+    'Ctrl+t': "autoparenthesize;push t;parenthesize;function_call",  // y -> y(t)
+    //'Ctrl+T': "push y;push t;parenthesize;function_call",  // y(t) - undocumented
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
     'Ctrl+w': "swap_floating_item",
-    'Ctrl+x': "autoparenthesize;push x;parenthesize;build_function_call",  // f -> f(x)
-    //'Ctrl+X': "push f;push x;parenthesize;build_function_call",  // f(x) - undocumented
+    'Ctrl+x': "autoparenthesize;push x;parenthesize;function_call",  // f -> f(x)
+    //'Ctrl+X': "push f;push x;parenthesize;function_call",  // f(x) - undocumented
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
@@ -451,41 +451,41 @@ const KeybindingTable = {
     'i': "mode integral_limits",
     'I': "mode integral_with_limits",
     //'J': "operator atop 2",  // not that useful
-    'k': "infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y -> f(x|y)
-    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z)
+    'k': "infix \\,\\vert\\,;parenthesize;function_call",  // f x y -> f(x|y)
+    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;function_call",  // f x y z -> f(x,y|z)
     'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
     'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
     'm': "parenthesize_argument;push Im;swap;operator operatorname 2",  // Im(x)
     'M': "parenthesize_argument;push Re;swap;operator operatorname 2",  // Re(x)
     'n': "named_function ln",
     'N': "named_function log",
-    'o': "parenthesize;build_function_call",  // f x -> f(x)  "[o]f"
+    'o': "parenthesize;function_call",  // f x -> f(x)  "[o]f"
     'O': "swap;operator overset 2",
-    'p': "parenthesize;push P;typeface blackboard;swap;build_function_call",  // P(X) (probability)
-    'P': "infix \\,\\vert\\,;parenthesize;push P;typeface blackboard;swap;build_function_call",  // P(y|x)
+    'p': "parenthesize;push P;typeface blackboard;swap;function_call",  // P(X) (probability)
+    'P': "infix \\,\\vert\\,;parenthesize;push P;typeface blackboard;swap;function_call",  // P(y|x)
     'q': "operator sqrt",
     'Q': "operator sqrt[3]",
-    'r': "infix ,;parenthesize;build_function_call",  // f x y -> f(x,y)
-    'R': "infix ,;infix ,;parenthesize;build_function_call",  // f x y z -> f(x,y,z)
+    'r': "infix ,;parenthesize;function_call",  // f x y -> f(x,y)
+    'R': "infix ,;infix ,;parenthesize;function_call",  // f x y z -> f(x,y,z)
     's': "named_function sin",
     'S': "named_function sec",
     't': "named_function tan",
     'T': "named_function cot",
     'U': "swap;operator underset 2",
     'v': "mode variational",
-    'V': "parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x]
+    'V': "parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x]
     'w': "swap_pieces",
-    'x': "parenthesize [ ];push E;typeface blackboard;swap;build_function_call",  // E[x] (expectation)
-    'X': "infix \\,\\vert\\,;parenthesize [ ];push E;typeface blackboard;swap;build_function_call",  // E[y|x]
-    'y': "push E;typeface blackboard;swap;subscript;swap;parenthesize [ ];build_function_call",  // E_x[y] (with subscript)
-    'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;parenthesize [ ];build_function_call",  // E_x[z|y]
+    'x': "parenthesize [ ];push E;typeface blackboard;swap;function_call",  // E[x] (expectation)
+    'X': "infix \\,\\vert\\,;parenthesize [ ];push E;typeface blackboard;swap;function_call",  // E[y|x]
+    'y': "push E;typeface blackboard;swap;subscript;swap;parenthesize [ ];function_call",  // E_x[y] (with subscript)
+    'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;parenthesize [ ];function_call",  // E_x[z|y]
     'z': "dissolve",
     ' ': "swap;concat",
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "fraction",
-    '[': "parenthesize [ ];build_function_call",  // f x -> f[x]
-    ']': "parenthesize \\{ \\};build_function_call",  // f x -> f{x}
+    '[': "parenthesize [ ];function_call",  // f x -> f[x]
+    ']': "parenthesize \\{ \\};function_call",  // f x -> f{x}
     '{': "swap;operator overbrace;swap;superscript",
     '}': "swap;operator underbrace;swap;subscript",
     '<': "extract_side left",
@@ -506,31 +506,31 @@ const KeybindingTable = {
   named_operator: {
     // NOTE: Only some commands autoparenthesize, depending on the
     // traditional mathematical notation of the operator.
-    'a': "parenthesize_argument;operator arg",
-    'c': "parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x]
-    'C': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x,y]
-    'd': "parenthesize_argument;named_function det",
-    'D': "parenthesize_argument;operator dim",
+    'a': "named_function arg",
+    'c': "parenthesize [ ];push Cov;typeface roman;swap;function_call",  // Cov[x]
+    'C': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;function_call",  // Cov[x,y]
+    'd': "named_function det",
+    'D': "named_function dim",
     'e': "parenthesize;push erf;swap;operator operatorname 2",
     'E': "parenthesize;push erfc;swap;operator operatorname 2",
     'g': "infix ,;parenthesize;operator gcd",  // NOTE: no lcm(x,y) currently
-    'G': "operator deg",
-    'h': "operator hom",
+    'G': "named_function deg",
+    'h': "named_function hom",
     'i': "operator inf",
     'I': "operator liminf",
-    'k': "parenthesize_argument;operator ker",
+    'k': "named_function ker",
     'l': "operator lim",
-    'm': "parenthesize_argument;operator min",
+    'm': "named_function min",
     'M': "operator argmin",
     'n': "parenthesize;push sgn;swap;operator operatorname 2",
-    'p': "parenthesize;push Pr;swap;operator operatorname 2",  // alternative to [/][p]
-    'P': "infix ,;parenthesize;push Pr;swap;operator operatorname 2",  // Pr(x,y)
-    's': "operator sup",
+    'p': "named_function Pr",
+    'P': "infix ,;named_function Pr",  // Pr(x,y)
+    's': "named_function sup",
     'S': "operator limsup",
     't': "parenthesize_argument;push Tr;swap;operator operatorname 2",
-    'v': "parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x]
-    'V': "infix ,;parenthesize [ ];push Var;typeface roman;swap;build_function_call",  // Var[x,y]
-    'x': "parenthesize_argument;operator max",
+    'v': "parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x]
+    'V': "infix ,;parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x,y]
+    'x': "named_function max",
     'X': "operator argmax"
   },
 
@@ -570,7 +570,7 @@ const KeybindingTable = {
   // [/][2] prefix
   squared: {
     // NOTE: [/][2][V] (covariance) is kind of a special case
-    'V': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;build_function_call",  // Cov[x,y]
+    'V': "infix ,;parenthesize [ ];push Cov;typeface roman;swap;function_call",  // Cov[x,y]
     's': "named_function sin 2",
     'S': "named_function sec 2",
     'c': "named_function cos 2",
@@ -732,9 +732,9 @@ const KeybindingTable = {
     'e': "infix ,\\dots,",
     'f': "conjunction if",
     'F': "conjunction iff",
-    'j': "infix \\Join",
     'g': "infix \\gets",
     'G': "infix \\Leftarrow",
+    'j': "infix \\Join",
     'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
     '|': "infix \\,\\vert\\,",  // (alias for k)
     'l': "infix \\parallel",
@@ -749,8 +749,8 @@ const KeybindingTable = {
     'Q': "conjunction or",
     'r': "conjunction for",
     's': "push \\,;swap;concat false;concat false",
-    'S': "infix \\circledast",
     ' ': "push \\,;swap;concat false;concat false",
+    'S': "infix \\circledast",
     't': "infix \\to",
     'T': "infix \\longrightarrow",
     'u': "infix \\cup",
@@ -765,25 +765,26 @@ const KeybindingTable = {
     '-': "infix \\ominus",
     '.': "infix \\cdot",
     ',': "infix ,",
-    ':': "infix \\colon",
-    ';': "infix semicolon",
-    "'": "start_text_entry conjunction_entry",
-    '`': "swap;push T;typeface roman;superscript false;swap;concat",  // xTy
-    '~': "push T;typeface roman;superscript false;concat",  // xyT
+    '(': "infix ,;delimiters ( )",  // (x,y)
+    '>': "infix \\cdots",
+    '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
     '*': "infix *",
     '^': "infix \\star",
-    '%': "infix \\div",
-    '(': "infix ,;delimiters ( )",  // (x,y)
-    //'[': "infix \\llcorner",  // right-contraction (uncommon, disabled for now)
-    //']': "infix \\lrcorner",  // left-contraction(uncommon, disabled for now)
-    '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
-    '>': "infix \\cdots",
-    //'{': "infix \\leftthreetimes",  // semidirect product
-    //'}': "infix \\rightthreetimes",
+    ':': "infix \\colon",
+    ';': "infix semicolon",
+    '`': "swap;push T;typeface roman;superscript false;swap;concat",  // xTy
+    '~': "push T;typeface roman;superscript false;concat",  // xyT
     '/': "autoparenthesize 2;infix /",
     "\\": "autoparenthesize 2;infix \\backslash",
+    '%': "infix \\div",
+    'Tab': "infix \\quad",
     '_': "infix \\_",
-    'Tab': "infix \\quad"
+    "'": "start_text_entry conjunction_entry"
+
+    //'[': "infix \\llcorner",  // right-contraction (uncommon, disabled for now)
+    //']': "infix \\lrcorner",  // left-contraction(uncommon, disabled for now)
+    //'{': "infix \\leftthreetimes",  // semidirect product
+    //'}': "infix \\rightthreetimes",
   },
 
   // [=] prefix: relational operators
@@ -794,9 +795,9 @@ const KeybindingTable = {
     'c': "infix \\cong",  // =~ [c]ongruent
     'e': "infix \\leftrightarrow",
     'E': "infix \\longleftrightarrow",
-    'g': "infix >",
     'f': "infix \\Leftrightarrow",
     'F': "infix \\Longleftrightarrow",
+    'g': "infix >",
     'G': "infix \\gg",
     'i': "infix \\in",
     'I': "infix \\notin",
@@ -824,21 +825,21 @@ const KeybindingTable = {
     'U': "infix \\supseteq",
     'v': "infix \\Rightarrow",
     'V': "infix \\Longrightarrow",
+    ';': "infix \\coloncolon",
+    ':': "infix \\coloneqq",
+    '~': "infix \\sim",
+    '.': "infix \\doteq",
     '+': "infix \\Longrightarrow",  // alias for [V]
     '^': "infix \\triangleq",
+    '?': "push ?;push =;operator overset 2;apply_infix",
     '<': "infix \\le",
     '>': "infix \\ge",
     '[': "infix \\le",
     ']': "infix \\ge",
     '{': "infix \\lll",
     '}': "infix \\ggg",
-    '.': "infix \\doteq",
-    ':': "infix \\coloneqq",
-    ';': "infix \\coloncolon",
-    '~': "infix \\sim",
     '-': "infix \\vdash",
-    '|': "infix \\vDash",
-    '?': "push ?;push =;operator overset 2;apply_infix"
+    '|': "infix \\vDash"
   },
 
   // [=][2] prefix
@@ -905,7 +906,6 @@ const KeybindingTable = {
     '*': "push \\ast",
     '^': "push \\star",
     '|': "push |",
-    '=': "push_separator",
     '?': "push ?",
     '!': "push !",
     ',': "push ,",
@@ -913,20 +913,21 @@ const KeybindingTable = {
     ':': "push :",
     '`': "push `",
     '~': "push \\sim",
-    '_': "push \\_",
-    "'": "push_placeholder",
-    ' ': "push ",  // "blank", e.g. when you don't want something on one side of an infix
     '/': "push /",
     "\\": "push \\backslash",
-    '@': "push @",
-    '%': "push \\%",
-    '&': "push \\&",
-    '#': "push \\#",
-    '$': "push \\$",
+    '_': "push \\_",
     'ArrowUp': "push \\uparrow",
     'ArrowDown': "push \\downarrow",
     'ArrowLeft': "push \\leftarrow",
-    'ArrowRight': "push \\rightarrow"
+    'ArrowRight': "push \\rightarrow",
+    '@': "push @",
+    '#': "push \\#",
+    '$': "push \\$",
+    '%': "push \\%",
+    '&': "push \\&",
+    '=': "push_separator",
+    "'": "push_placeholder",
+    ' ': "push "  // "blank", e.g. when you don't want something on one side of an infix
   },
 
   // [.] prefix: expression decorators (fonts, hats, etc)
@@ -973,7 +974,6 @@ const KeybindingTable = {
     'X': "operator sout",  // strikeout
     'Y': "operator widetilde",
     'z': "operator bcancel",
-    '/': "operator cancel",
     '.': "apply_hat dot",
     '>': "push .;concat",
     "\"": "apply_hat ddot",
@@ -982,18 +982,19 @@ const KeybindingTable = {
     ',': "push \\circ;superscript",  // degree marker
     '*': "push *;superscript",  // conjugation
     '^': "autoparenthesize;prefix \\star",
-    '~': "apply_hat tilde",
     '=': "prefix \\Rightarrow",
     '-': "autoparenthesize;negate",
     '+': "autoparenthesize;prefix +",
     '`': "push T;typeface roman;superscript",  // transpose
+    '~': "apply_hat tilde",
+    '/': "operator cancel",
     "\\": "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
-    '_': "operator underline",
-    '!': "autoparenthesize;prefix \\neg",
     '[': "adjust_size smaller",
     ']': "adjust_size larger",
     '{': "operator overbrace",
     '}': "operator underbrace",
+    '!': "autoparenthesize;prefix \\neg",
+    '_': "operator underline",
     'Tab': "push \\quad;swap;concat false"
   },
 
