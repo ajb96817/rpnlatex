@@ -1281,7 +1281,8 @@ class InputContext {
   //   - CommandExpr \frac yields the numerator or denominator of the fraction.
   //   - Flex-mode inline fractions (empty delimiter infix with '/' operator)
   //     also yield their numerator or denominator.
-  do_extract_infix_side(stack, which_side) {
+  //   - PrefixExpr/PostfixExpr yields the operator or base expression (undocumented).
+  do_extract_side(stack, which_side) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let extracted_expr = null;
     if(expr.is_infix_expr())
@@ -1290,6 +1291,10 @@ class InputContext {
       extracted_expr = expr.operand_exprs[which_side === 'right' ? 1 : 0];
     else if(expr.is_delimiter_expr() && expr.is_flex_inline_fraction())
       extracted_expr = expr.inner_expr.operand_exprs[which_side === 'right' ? 1 : 0];
+    else if(expr.is_prefix_expr())
+      extracted_expr = which_side === 'right' ? expr.base_expr : expr.operator_expr;
+    else if(expr.is_postfix_expr())
+      extracted_expr = which_side === 'right' ? expr.operator_expr : expr.base_expr;
     else
       return stack.type_error();
     return new_stack.push_expr(extracted_expr);

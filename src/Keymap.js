@@ -488,8 +488,8 @@ const KeybindingTable = {
     ']': "parenthesize \\{ \\};build_function_call",  // f x -> f{x}
     '{': "swap;operator overbrace;swap;superscript",
     '}': "swap;operator underbrace;swap;subscript",
-    '<': "extract_infix_side left",
-    '>': "extract_infix_side right",
+    '<': "extract_side left",
+    '>': "extract_side right",
     '!': "negate_comparison",
     '-': "mode inverse",
     '=': "unrot;infix =;push \\sum;swap;subscript;swap;superscript",
@@ -787,6 +787,7 @@ const KeybindingTable = {
   },
 
   // [=] prefix: relational operators
+  // NOTE: some of these duplicate what is in [,], like [=][t]
   relational: {
     '2': "mode variant_relational",
     'a': "infix \\approx",
@@ -806,21 +807,24 @@ const KeybindingTable = {
     'l': "infix <",
     'L': "infix \\ll",
     'm': "infix \\mapsto",
+    'M': "infix \\longmapsto",
     'n': "infix \\ne",
     '!': "infix \\ne",
     'o': "infix \\circeq",
     'p': "infix \\propto",
+    'P': "infix \\simeq",
     'q': "infix =",
     '=': "infix =",
     'Q': "infix \\equiv",
     's': "infix \\subset",
     'S': "infix \\subseteq",
-    't': "infix \\to",  // NOTE: duplicates [,][t]
-    'T': "infix \\longrightarrow",  // NOTE: duplicates [,][T]
+    't': "infix \\to",
+    'T': "infix \\longrightarrow",
     'u': "infix \\supset",
     'U': "infix \\supseteq",
-    'v': "infix \\Rightarrow",  // NOTE: duplicates [,][=]
-    'V': "infix \\Longrightarrow",  // NOTE: duplicates [,][+]
+    'v': "infix \\Rightarrow",
+    'V': "infix \\Longrightarrow",
+    '+': "infix \\Longrightarrow",  // alias for [V]
     '^': "infix \\triangleq",
     '<': "infix \\le",
     '>': "infix \\ge",
@@ -833,7 +837,6 @@ const KeybindingTable = {
     ';': "infix \\coloncolon",
     '~': "infix \\sim",
     '-': "infix \\vdash",
-    '+': "infix \\Longrightarrow",  // alias for [V]
     '|': "infix \\vDash",
     '?': "push ?;push =;operator overset 2;apply_infix"
   },
