@@ -1,12 +1,51 @@
 
-// All editor keybindings are in here.
-// KeybindingTable maps each editor mode to a set of keyname->command bindings.
-// The 'commands' are in a simple macro language of one or more action names
-// separated by semicolons.  Each action invokes one of the do_* methods
-// of InputContext.  The actions can have extra arguments which are passed
-// as strings to these methods.
 
-const KeybindingTable = {
+// Map keystrokes to command-strings (see keybinding_table below).
+class Keymap {
+  constructor() {
+    this.bindings = keybinding_table;
+  }
+
+  lookup_binding(mode, key, in_delegate_lookup = false) {
+    const mode_map = this.bindings[mode];
+    if(!mode_map)
+      return null;  // unknown mode; shouldn't happen
+    if(mode_map[key])
+      return mode_map[key];  // direct match
+    if(mode_map['[alpha]'] && /^[a-zA-Z]$/.test(key))
+      return mode_map['[alpha]'];
+    if(mode_map['[digit]'] && /^[0-9]$/.test(key))
+      return mode_map['[digit]'];
+    if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key))
+      return mode_map['[alnum]'];
+    if(mode_map['[delegate]'] && !in_delegate_lookup) {
+      const command = this.lookup_binding(
+        mode_map['[delegate]'], key, true);
+      if(command) return command;
+      // (try [default] if not found in the delegate keymap)
+    }
+    if(mode_map['[default]'])
+      return mode_map['[default]'];
+    if(mode === 'base' || in_delegate_lookup)
+      return null;
+    else
+      return 'cancel';
+  }
+}
+
+
+// All editor keybindings are in here.  This table maps each editor mode to a
+// set of keyname->command bindings.  The 'commands' are in a simple macro language
+// of one or more action names separated by semicolons.  Each action invokes one
+// of the do_* methods of InputContext.  The actions can have extra arguments which
+// are passed as strings to these methods.
+//
+// Some special pseudo-commands are available:
+//   - [alpha], [digit], [alnum]: matches single letters/numbers/both
+//   - [delegate]: dispatch to a different mode's keymap (like keymap inheritance)
+//   - [default]: matches any input not explicitly in the keymap; [delegate] takes
+//                precedence over this if present
+const keybinding_table = {
   base: {
     // Letters and numbers immediately push onto the stack
     '[alnum]': "push_last_keypress",
@@ -115,7 +154,7 @@ const KeybindingTable = {
 
   // File Manager mode
   files: {
-    'default': "toggle_popup files",
+    '[default]': "toggle_popup files",
     'd': "delete_selected_file",
     'D': "delete_all_files",
     'n': "start_new_file",
@@ -160,8 +199,8 @@ const KeybindingTable = {
     '-': "config helptext_zoom_factor decrease",
     '0': "config helptext_zoom_factor reset",
 
-    'delegate': "_help_jump",  // jump directly to prefix key help section
-    'default': "toggle_popup help"  // never actually invoked
+    '[delegate]': "_help_jump",  // jump directly to prefix key help section
+    '[default]': "toggle_popup help"  // never actually invoked
   },
 
   // Quick navigation to each User Guide section.
@@ -243,7 +282,7 @@ const KeybindingTable = {
 
   // [Tab][?] prefix: jump to User Guide sections while docked
   user_guide_jump: {
-    'delegate': "_help_jump",
+    '[delegate]': "_help_jump",
     // Undocumented: allow changing user guide font size while docked
     // (luckily these don't conflict with the prefix keys).
     '+': "config helptext_zoom_factor increase",
@@ -295,6 +334,7 @@ const KeybindingTable = {
     'ArrowRight': "text_entry_move_cursor right",
     'Home': "text_entry_move_cursor begin",
     'End': "text_entry_move_cursor end",
+
     // NOTE: Ctrl editor commands here are undocumented
     'Ctrl+a': "text_entry_move_cursor begin",
     'Ctrl+ArrowLeft': "text_entry_move_cursor begin",
@@ -303,14 +343,14 @@ const KeybindingTable = {
     'Ctrl+ArrowRight': "text_entry_move_cursor end",
     'Ctrl+f': "text_entry_move_cursor right",
     'Ctrl+b': "text_entry_move_cursor left",
-    'default': "append_text_entry"
+    '[default]': "append_text_entry"
   },
 
   // ["] prefix: text entry
   text_entry: {
     'Enter': "finish_text_entry text",
     'Shift+Enter': "finish_text_entry heading",
-    'delegate': "_editor_commands"
+    '[delegate]': "_editor_commands"
   },
 
   // [\] prefix: math entry
@@ -318,7 +358,7 @@ const KeybindingTable = {
     'Enter': "finish_text_entry math",
     'Shift+Enter': "finish_text_entry roman_text",
     'Tab': "finish_text_entry operatorname",
-    'delegate': "_editor_commands"
+    '[delegate]': "_editor_commands"
   },
 
   // [\][\] prefix: latex command
@@ -327,21 +367,21 @@ const KeybindingTable = {
     'Shift+Enter': "finish_text_entry latex_unary",
     'Delete': "text_entry_backspace delete math_entry",
     'Backspace': "text_entry_backspace backspace math_entry",
-    'delegate': "_editor_commands"
+    '[delegate]': "_editor_commands"
   },
 
   // [,]['] prefix: custom conjunction
   conjunction_entry: {
     'Enter': "finish_text_entry conjunction",
     'Shift+Enter': "finish_text_entry bold_conjunction",
-    'delegate': "_editor_commands"
+    '[delegate]': "_editor_commands"
   },
 
   // [/][;] prefix: equation tag
   tag_entry: {
     'Enter': "finish_text_entry tag",
     'Shift+Enter': "finish_text_entry tag_with_parentheses",
-    'delegate': "_editor_commands"
+    '[delegate]': "_editor_commands"
   },
 
   // [)] prefix: special delimiters
@@ -690,7 +730,7 @@ const KeybindingTable = {
     'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;fraction",
     'y': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
     'Y': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;fraction",
-    'delegate': "derivative"
+    '[delegate]': "derivative"
   },
 
   // [/][v] prefix: functional derivatives (variational calculus)
@@ -719,6 +759,8 @@ const KeybindingTable = {
     '4': "push \\delta;integer 4;superscript;swap;concat",
     'i': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat",
     ' ': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat"
+
+    // maybe: '[delegate]': "derivative"
   },
 
   // [,] prefix: combine two objects with an infix operation
@@ -1002,37 +1044,37 @@ const KeybindingTable = {
   array: {
     '[digit]': "prefix_argument",
     '*': "prefix_argument",
-    'a': "build_align aligned",
-    'c': "build_align cases",
-    'C': "build_align rcases",
-    'e': "build_infix_list ,;push \\dots;push ,;apply_infix",
+    'a': "align aligned",
+    'c': "align cases",
+    'C': "align rcases",
+    'e': "infix_list ,;push \\dots;push ,;apply_infix",
     'E': "insert_matrix_ellipses",
-    'f': "build_align cases_if",
-    'F': "build_align rcases_if",
-    'g': "build_align gathered",
+    'f': "align cases_if",
+    'F': "align rcases_if",
+    'g': "align gathered",
     'h': "stack_arrays horizontal",
-    'k': "build_substack",
-    'm': "build_matrix_row matrix",
-    ' ': "build_matrix_row matrix",
-    'p': "build_infix_list +;push \\cdots;push +;apply_infix",
+    'k': "substack",
+    'm': "matrix_row matrix",
+    ' ': "matrix_row matrix",
+    'p': "infix_list +;push \\cdots;push +;apply_infix",
     'r': "autoparenthesize;push Tr;swap;operator operatorname 2",
     's': "split_array",
     't': "mode change_matrix_type",
     'T': "transpose_matrix",
-    'v': "build_matrix_row vmatrix",
-    'V': "build_matrix_row Vmatrix",
-    'x': "build_matrix",
+    'v': "matrix_row vmatrix",
+    'V': "matrix_row Vmatrix",
+    'x': "matrix",
     '|': "stack_arrays vertical",
-    ',': "build_infix_list ,",
-    '.': "build_infix_list , \\dots",
-    ';': "build_infix_list semicolon\\,",
-    '+': "build_infix_list + \\cdots",
-    '(': "build_matrix_row pmatrix",
-    '[': "build_matrix_row bmatrix",
-    '{': "build_matrix_row Bmatrix",
-    '@': "build_matrix_row bmatrix 2;transpose_matrix",
-    '#': "build_matrix_row bmatrix 3;transpose_matrix",
-    '$': "build_matrix_row bmatrix 2;unrot;build_matrix_row bmatrix 2;swap;stack_arrays vertical",
+    ',': "infix_list ,",
+    '.': "infix_list , \\dots",
+    ';': "infix_list semicolon\\,",
+    '+': "infix_list + \\cdots",
+    '(': "matrix_row pmatrix",
+    '[': "matrix_row bmatrix",
+    '{': "matrix_row Bmatrix",
+    '@': "matrix_row bmatrix 2;transpose_matrix",
+    '#': "matrix_row bmatrix 3;transpose_matrix",
+    '$': "matrix_row bmatrix 2;unrot;matrix_row bmatrix 2;swap;stack_arrays vertical",
     ':': "array_separator column dashed",
     '!': "array_separator column solid",
     '_': "array_separator row dashed",
@@ -1040,15 +1082,15 @@ const KeybindingTable = {
     'Enter': "stack_arrays vertical"
   },
 
-  build_matrix: {
+  matrix: {
     '[digit]': "prefix_argument",
-    'm': "finish_build_matrix matrix",
-    ' ': "finish_build_matrix matrix",
-    'v': "finish_build_matrix vmatrix",
-    'V': "finish_build_matrix Vmatrix",
-    '(': "finish_build_matrix pmatrix",
-    '[': "finish_build_matrix bmatrix",
-    '{': "finish_build_matrix Bmatrix"
+    'm': "finish_matrix matrix",
+    ' ': "finish_matrix matrix",
+    'v': "finish_matrix vmatrix",
+    'V': "finish_matrix Vmatrix",
+    '(': "finish_matrix pmatrix",
+    '[': "finish_matrix bmatrix",
+    '{': "finish_matrix Bmatrix"
   },
 
   change_matrix_type: {
@@ -1097,7 +1139,7 @@ const KeybindingTable = {
   // NOTE: The duplicate keybindings here are for the user's convenience
   // (e.g., capitals so they don't have to release the Shift key).
   dissect: {
-    'default': "cancel_dissect_mode",
+    '[default]': "cancel_dissect_mode",
     //'Enter': "finish_dissect_mode",
     'Escape': "cancel_dissect_mode",
     'q': "cancel_dissect_mode",
@@ -1255,4 +1297,4 @@ const KeybindingTable = {
 };
 
 
-export default KeybindingTable;
+export { Keymap };

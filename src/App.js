@@ -24,7 +24,7 @@ class App extends React.Component {
     this.file_manager_panel_ref = React.createRef();
     this.helptext_panel_ref = React.createRef();
     let file_manager = new FileManager();
-    const settings = file_manager.load_settings();
+    let settings = file_manager.load_settings();
     // Start without any popups or docked helptext even if it was saved like that.
     settings.popup_mode = null;
     settings.dock_helptext = false;
@@ -34,7 +34,7 @@ class App extends React.Component {
     let app_state = null;
     if(file_manager.check_storage_availability())
       app_state = file_manager.load_file(file_manager.current_filename);
-    app_state ||= new AppState();
+    app_state ||= new AppState();  // couldn't load initial file
     this.state = {
       app_state: app_state,
       settings: settings,
@@ -55,6 +55,13 @@ class App extends React.Component {
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    // window.removeEventListener('pageshow', this.handleVisibilityChange);
+    // window.removeEventListener('focus', this.handleVisibilityChange);
+  }
+
   apply_layout_to_dom() {
     const settings = this.state.settings;
     // Set up color filter / theme CSS classes.
@@ -66,9 +73,8 @@ class App extends React.Component {
     document.getElementById('body').className = body_classes.join(' ');
     // Set up stack position classes.  Currently these are only used to
     // create a solid border between stack and document in E-ink mode.
-    // TODO: use this.stack_panel_ref.current, etc.
-    const stack_panel = document.getElementById('stack_panel');
-    const document_panel = document.getElementById('document_panel');
+    const stack_panel = this.stack_panel_ref.current;
+    const document_panel = this.document_panel_ref.current;
     stack_panel.classList.remove('stack_on_bottom');
     stack_panel.classList.remove('stack_on_right');
     document_panel.classList.remove('stack_on_top');
@@ -80,8 +86,8 @@ class App extends React.Component {
     case 'right': stack_panel.classList.add('stack_on_right'); break;
     }
     this.state.settings.apply_layout_to_dom(
-      this.stack_panel_ref.current,
-      this.document_panel_ref.current,
+      stack_panel,
+      document_panel,
       this.file_manager_panel_ref.current,
       this.helptext_panel_ref.current);
   }
@@ -98,13 +104,6 @@ class App extends React.Component {
       document.title = new_title;
   }
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-    window.removeEventListener('visibilitychange', this.handleVisibilityChange);
-    //      window.removeEventListener('pageshow', this.handleVisibilityChange);
-    //      window.removeEventListener('focus', this.handleVisibilityChange);
-  }
-
   render() {
     const app_state = this.state.app_state;
     const stack = app_state.stack;
@@ -119,13 +118,15 @@ class App extends React.Component {
       // getting a new React key to trigger the re-render.  Outside of a component
       // list, the React key change would have no effect.
       stack_panel_components.push(
-        $e('div', {className: 'floating_item'},
-           [$e(ItemComponent, {
-             item: stack.floating_item,
-             inline_math: settings.layout.inline_math,
-             item_ref: React.createRef(),
-             key: stack.floating_item.react_key(0)
-           })]));
+        $e('div', {
+          className: 'floating_item',
+        }, [
+          $e(ItemComponent, {
+            item: stack.floating_item,
+            inline_math: settings.layout.inline_math,
+            item_ref: React.createRef(),
+            key: stack.floating_item.react_key(0)
+          })]));
     }
     stack_panel_components.push(
       $e(IndicatorsComponent, {
@@ -140,9 +141,9 @@ class App extends React.Component {
       }));
     stack_panel_components.push(
       $e(StackItemsComponent, {
+        input_context: input_context,
         settings: settings,
-        stack: stack,
-        input_context: input_context
+        stack: stack
       }));
     const document_panel_component = $e(DocumentComponent, {
       settings: settings,
@@ -151,23 +152,29 @@ class App extends React.Component {
     // Render the items without a containing element; they will be children of #root.
     return [
       $e('div', {
-        id: 'stack_panel', className: 'panel',
+        id: 'stack_panel',
+        key: 'stack_panel',
+        className: 'panel',
         ref: this.stack_panel_ref
       }, ...stack_panel_components),
       $e('div', {
-        id: 'document_panel', className: 'panel',
+        id: 'document_panel',
+        key: 'document_panel',
+        className: 'panel',
         ref: this.document_panel_ref
       }, document_panel_component),
       // File Manager and User Guide panels are always present, just hidden with
       // CSS if they're not currently in use.  The user guide is repositioned
       // dynamically when "docked/undocked" in the document section.
       $e(FileManagerPanelComponent, {
+        key: 'file_manager_panel',
         app: this,
         settings: settings,
         file_manager: this.state.file_manager,
         popup_panel_ref: this.file_manager_panel_ref
       }),
       $e(HelptextPanelComponent, {
+        key: 'helptext_panel',
         app: this,
         popup_panel_ref: this.helptext_panel_ref
       })];
@@ -273,7 +280,10 @@ class IndicatorsComponent extends React.Component {
       // Auto-highlight anything after the colon in the notification message.
       const colon = text.indexOf(':');
       indicator_items.push($e(
-        'div', {className: ['indicator_item', css_class].join(' ')},
+        'div', {
+          className: ['indicator_item', css_class].join(' '),
+          key: error_text ? 'error_message' : 'notification'
+        },
         $e('span', {}, colon >= 0 ? text.slice(0, colon+1) : text),
         colon >= 0 ? $e('span', {className: 'highlighted'}, text.slice(colon+1))
           : null));
@@ -302,7 +312,10 @@ class IndicatorsComponent extends React.Component {
       else
         displayed_input_mode = input_mode;
       indicator_items.push($e(
-        'div', {className: 'indicator_item input_mode'},
+        'div', {
+          className: 'indicator_item input_mode',
+          key: 'mode_indicator'
+        },
         displayed_input_mode.replaceAll('_', ' ')));
     }
     // Render indicator items without a containing element.
@@ -313,19 +326,21 @@ class IndicatorsComponent extends React.Component {
 
 class StackItemsComponent extends React.Component {
   render() {
-    const input_context = this.props.input_context;
-    const layout = this.props.settings.layout;
-    let item_components = this.props.stack.items.map((item, index) => {
+    const {
+      input_context, settings, stack
+    } = this.props;
+    const layout = settings.layout;
+    let item_components = stack.items.map((item, index) => {
       // If there's an active prefix argument for stack commands, highlight the
       // corresponding stack item(s) that will (probably) be affected.
       const highlighted = this.should_highlight_item_index(
-        this.props.stack.items.length-index);
+        stack.items.length-index);
       return $e(
         ItemComponent, {
           item: item,
           highlighted: highlighted,
-          inline_math: layout.inline_math,
-          centered: layout.stack_math_alignment === 'center',
+          inline_math: settings.layout.inline_math,
+          centered: settings.layout.stack_math_alignment === 'center',
           item_ref: React.createRef(),
           key: item.react_key(index)
         });
@@ -333,18 +348,20 @@ class StackItemsComponent extends React.Component {
     if(input_context.text_entry)
       item_components.push($e(
         TextEntryComponent, {
+          key: 'textentry',  // this is in a React list, so needs a key
           text: input_context.text_entry.current_text,
           cursor_position: input_context.text_entry.cursor_position,
           error_start: null,
           error_end: null,
-          entry_type: input_context.text_entry.mode,
-          key: 'textentry'  // this is in a React list, so needs a key
+          entry_type: input_context.text_entry.mode
         }));
     let class_names = ['stack_items'];
     // NOTE: can't have inline_math and rightalign_math both at once currently
     if(layout.stack_math_alignment === 'right' && !layout.inline_math)
       class_names.push('rightalign_math');
-    return $e('div', {className: class_names.join(' ')}, item_components);
+    return $e('div', {
+      className: class_names.join(' ')
+    }, item_components);
   }
 
   // Determine if the given stack item index should be "highlighted" given the

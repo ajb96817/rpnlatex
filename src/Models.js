@@ -4,7 +4,9 @@ import {
   encode as msgpack_encode,
   decode as msgpack_decode
 } from '@msgpack/msgpack';
-import KeybindingTable from './Keymap';
+import {
+  Keymap
+} from './Keymap';
 import {
   Expr, TextExpr, CommandExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, InfixExpr, PrefixExpr, PostfixExpr,
@@ -15,34 +17,19 @@ import {
 } from './CAS';
 
 
-class Keymap {
-  constructor() {
-    this.bindings = KeybindingTable;
-  }
-  
-  lookup_binding(mode, key) {
-    const mode_map = this.bindings[mode];
-    if(!mode_map) return null;
-    if(mode_map[key]) return mode_map[key];
-    if(mode_map['[alpha]'] && /^[a-zA-Z]$/.test(key)) return mode_map['[alpha]'];
-    if(mode_map['[digit]'] && /^[0-9]$/.test(key)) return mode_map['[digit]'];
-    if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key)) return mode_map['[alnum]'];
-    if(mode_map['delegate']) return this.lookup_binding(mode_map['delegate'], key);
-    if(mode_map['default']) return mode_map['default'];
-    if(mode === 'base')
-      return null;
-    else
-      return 'cancel';
-  }
-}
-
-
 class Settings {
   static from_json(json) {
     let s = new Settings();
     for(const key of this.saved_keys())
       s[key] = json[key];
     return s;
+  }
+
+  static to_json(settings) {
+    let json = {};
+    for(const key of this.saved_keys())
+      json[key] = this[key];
+    return json;
   }
 
   static saved_keys() {
@@ -75,11 +62,7 @@ class Settings {
     this.show_mode_indicator = true;
     this.hide_mouse_cursor = false;
     this.autoparenthesize = true;
-    this.layout = this.default_layout();
-  }
-
-  default_layout() {
-    return {
+    this.layout = {
       zoom_factor: 0,
       helptext_zoom_factor: 0,
       stack_math_alignment: 'left',
@@ -182,13 +165,6 @@ class Settings {
   _remove_bounds(elt) {
     for(const p of ['left', 'top', 'width', 'height'])
       elt.style.removeProperty(p);
-  }
-
-  to_json() {
-    let json = {};
-    for(const key of Settings.saved_keys())
-      json[key] = this[key];
-    return json;
   }
 }
 
@@ -634,14 +610,15 @@ class FileManager {
         return Settings.from_json(JSON.parse(json_string));
       else return null;
     });
-    if(result_code === 'success' && settings !== null)
+    if(result_code === 'success' && settings && settings.layout)
       return settings;
     else return new Settings();
   }
 
   save_settings(settings) {
     this.with_local_storage(() => {
-      const json_string = JSON.stringify(settings.to_json());
+      const json_string = JSON.stringify(
+        Settings.to_json(settings));
       this.storage.setItem('$settings', json_string);
     });
   }

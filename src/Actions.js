@@ -38,7 +38,7 @@ class InputContext {
     // another prefix argument key.
     this.prefix_argument = null;
 
-    // Number of rows specified in do_build_matrix().  This will be used by
+    // Number of rows specified in do_matrix().  This will be used by
     // a subsequent do_finish_build_matrix() command.
     this.matrix_row_count = null;
 
@@ -1976,7 +1976,7 @@ class InputContext {
 
   // item1, item2, ... => [item1, item2, ...]
   // column_count is optional; if omitted, the prefix argument is used.
-  do_build_matrix_row(stack, matrix_type, column_count) {
+  do_matrix_row(stack, matrix_type, column_count) {
     const expr_count = column_count ?
           parseInt(column_count) :
           this._get_prefix_argument(0, stack.depth());
@@ -1993,7 +1993,7 @@ class InputContext {
   // This switches to build_matrix mode which then expects another
   // prefix argument for the column count (M).  A final matrix-type key like
   // [ then creates the matrix with N*M items from the stack.
-  do_build_matrix(stack) {
+  do_matrix(stack) {
     const row_count = this._require_prefix_argument(false);
     this.matrix_row_count = row_count;  // save for do_finish_build_matrix()
     this.switch_to_mode('build_matrix');
@@ -2083,7 +2083,7 @@ class InputContext {
         separator_type, true));
   }
 
-  do_build_align(stack, align_type) {
+  do_align(stack, align_type) {
     // NOTE: If align_type = 'cases' or 'rcases', align on ':' infix
     // if there is one, and then remove the infix.
     const expr_count = this._get_prefix_argument(0, stack.depth());
@@ -2110,7 +2110,7 @@ class InputContext {
   // Take [x_1,...,x_n] from the stack (where n is the prefix argument)
   // and build an InfixExpr with the given text between each term as an infix operator.
   // 'final_operand_text' is used as the next to last operand if provided.
-  do_build_infix_list(stack, infix_text, final_operand_text) {
+  do_infix_list(stack, infix_text, final_operand_text) {
     this._require_prefix_argument(true);
     const expr_count = this._get_prefix_argument(1, stack.depth());
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
@@ -2129,7 +2129,7 @@ class InputContext {
 
   // Take [x_1, ..., x_n] from the stack and build a \substack{...} command.
   // This is treated internally as a special kind of ArrayExpr.
-  do_build_substack(stack) {
+  do_substack(stack) {
     const expr_count = this._require_prefix_argument();
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
     const row_exprs = exprs.map(expr => [expr]);  // Nx1 array
