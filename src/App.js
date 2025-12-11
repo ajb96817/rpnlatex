@@ -127,19 +127,16 @@ class App extends React.Component {
              key: stack.floating_item.react_key(0)
            })]));
     }
-    if(settings.show_mode_indicator || input_context.notification_text)
-      stack_panel_components.push(
-        $e(ModeIndicatorComponent, {
-          app_state: app_state,
-          input_context: input_context
-        }));
-    if(input_context.error_message)
-      stack_panel_components.push(
-        $e(ErrorMessageComponent, {
-          app_state: app_state,
-          error_message: input_context.error_message.message,
-          offending_expr: input_context.offending_expr
-        }));
+    stack_panel_components.push(
+      $e(IndicatorsComponent, {
+        input_context: input_context,
+        input_mode: input_context.mode,
+        notification_text: input_context.notification_text,
+        error_text: input_context.error_message ?
+          input_context.error_message.message : null,
+        offending_expr: input_context.error_message ?
+          input_context.error_message.offending_expr : null
+      }));
     stack_panel_components.push(
       $e(StackItemsComponent, {
         settings: settings,
@@ -150,8 +147,8 @@ class App extends React.Component {
       settings: settings,
       document: app_state.document
     });
-    return $e(
-      'div', {id: 'panel_layout'},
+    // Render the items without a containing element; they will be children of #root.
+    return [
       $e('div', {
         id: 'stack_panel', className: 'panel',
         ref: this.stack_panel_ref
@@ -172,7 +169,7 @@ class App extends React.Component {
       $e(HelptextPanelComponent, {
         app: this,
         popup_panel_ref: this.helptext_panel_ref
-      }));
+      })];
   }
 
   handleKeyDown(event) {
@@ -256,57 +253,58 @@ class App extends React.Component {
 }
 
 
-// Shows current input mode in top-right corner of stack display,
-// and the notification if there is one.
-class ModeIndicatorComponent extends React.Component {
+// Show 'indicators' in the top-right corner of the stack panel:
+//   - Notification message if there is one
+//   - Error message if there is one (TODO: show offending_expr)
+//   - Input mode indicator (symbol, infix, etc) if in a non-base mode
+class IndicatorsComponent extends React.Component {
   render() {
-    const input_context = this.props.input_context;
-    let indicator_item = undefined;
-    const notification_text = input_context.notification_text;
-    let input_mode = input_context.mode;
-    // Show current prefix argument (if there is one) in mode indicator.
-    if(input_mode === 'build_matrix') {
-      // Special case: build_matrix mode has already received a prefix
-      // argument with the number of rows.  The current prefix argument
-      // will become the number of columns.
-      input_mode = [
-        input_mode, '(',
-        input_context.matrix_row_count, 'x',
-        input_context.prefix_argument > 0 ? input_context.prefix_argument.toString() : '',
-        ')'].join('');
-    }
-    else if(input_context.prefix_argument !== null)
-      input_mode = [
-        input_mode, '(',
-        (input_context.prefix_argument < 0 ? '*' : input_context.prefix_argument.toString()),
-        ')'].join('');
-    if(notification_text) {
+    const {
+      input_context, input_mode, notification_text, error_text
+    } = this.props;
+    let indicator_items = [];
+    // Notification or error message (only one shown at a time,
+    // errors take precedence):
+    if(notification_text || error_text) {
+      const css_class = error_text ? 'error_message' : 'notification';
+      const text = error_text || notification_text;
       // Auto-highlight anything after the colon in the notification message.
-      const colon = notification_text.indexOf(':');
-      if(colon >= 0)
-        indicator_item = $e(
-          'span', {className: 'notification'},
-          $e('span', {}, notification_text.slice(0, colon+1)),
-          $e('span', {className: 'highlighted'}, notification_text.slice(colon+1)));
-      else
-        indicator_item = $e('span', {className: 'notification'}, notification_text);
+      const colon = text.indexOf(':');
+      indicator_items.push($e(
+        'div', {className: ['indicator_item', css_class].join(' ')},
+        $e('span', {}, colon >= 0 ? text.slice(0, colon+1) : text),
+        colon >= 0 ? $e('span', {className: 'highlighted'}, text.slice(colon+1))
+          : null));
     }
-    else if(input_mode !== 'base')
-      indicator_item = $e(
-        'span', {className: 'mode'},
-        input_mode.replaceAll('_', ' '));
-    return $e('div', {className: 'indicator'}, indicator_item);
-  }
-}
-
-
-class ErrorMessageComponent extends React.Component {
-  // TODO: show offending_expr
-  render() {
-    const { error_message /*, offending_expr*/ } = this.props;
-    return $e(
-      'div', {className: 'error_message'},
-      error_message);
+    // Input mode indicator, unless in base mode:
+    if(input_mode !== 'base') {
+      let displayed_input_mode = input_mode;
+      if(input_mode === 'build_matrix') {
+        // Special case: build_matrix mode has already received a prefix
+        // argument with the number of rows.  The current prefix argument
+        // will become the number of columns.
+        displayed_input_mode = [
+          'matrix' /*input_mode*/, '(',
+          input_context.matrix_row_count, 'x',
+          input_context.prefix_argument > 0 ? input_context.prefix_argument.toString() : '',
+          ')'].join('');
+      }
+      else if(input_context.prefix_argument !== null) {
+        // Show current prefix argument in the mode indicator: stack(5)
+        displayed_input_mode = [
+          input_mode, '(',
+          (input_context.prefix_argument < 0 ?
+           '*' : input_context.prefix_argument.toString()),
+          ')'].join('');
+      }
+      else
+        displayed_input_mode = input_mode;
+      indicator_items.push($e(
+        'div', {className: 'indicator_item input_mode'},
+        displayed_input_mode.replaceAll('_', ' ')));
+    }
+    // Render indicator items without a containing element.
+    return indicator_items;
   }
 }
 

@@ -13,7 +13,8 @@
    Layer 2: Stack panel mode indicator, "floating" item if there is one.
    Layer 3: Item tags.
    Layer 4: Error messages/notifications (not explicitly assigned z-index though).
-   Layer 5: File Manager / User Guide popup panels, docked helptext panel.
+   Layer 5: User Guide popup panel, docked helptext panel.
+   Layer 6: File Manager popup panel (so that it appears above docked helptext).
 */
 
 html {
@@ -35,21 +36,17 @@ body.hide_mouse_cursor { cursor: none; }
 #root {
   width: 100%;
   height: 100%;
-
   /* Disable errant mouse text selection, more trouble than it's worth. */
   user-select: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-
   /* Disable "font boosting" on Android Chrome and other mobile browsers.
      This boosting doesn't work well when mixed with KaTeX rendering. */
   text-size-adjust: none;
   -webkit-text-size-adjust: none;
 }
-
-#panel_layout { height: 100%; }
 
 div.panel {
   /* Default panel background color; should never be seen
@@ -94,52 +91,51 @@ body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
 body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 
 /* These elements float on the top-right of the stack panel: */
-#stack_panel div.indicator,
-#stack_panel div.error_message,
-#stack_panel div.floating_item {
+#stack_panel div.indicator_item, #stack_panel div.floating_item {
   float: right;
   clear: right;
-  position: sticky;
-  left: 0;  /* with sticky, keep in view even when scrolling far to the right */
+  position: sticky;  /* keep in view even when scrolling far to the right */
+  left: 0.25em;  /* with sticky, set leftmost viewport position */
   z-index: 2;  /* keep it from being obscured by other stack items */
-}
-#stack_panel div.indicator {
-  margin-right: 0.25em;
   margin-top: 0.25em;
+  margin-right: 0.25em;
+}
+#stack_panel div.indicator_item {
   font-size: 120%;
+  font-family: monospace;
 }
-#stack_panel div.indicator span.notification {
-  color: #151;
-  background-color: #ffe;
-  padding: 0.1em 0.2em;
-  border: 1px solid #cca;
-}
-#stack_panel div.indicator span.highlighted {
-  color: #393;
+#stack_panel div.indicator_item.notification {
+  color: #292;
+  background-color: #dfd;
   font-weight: bold;
-  font-family: monospace;
+  padding: 0.2em 0.5em;
 }
-#stack_panel div.indicator span.mode {
+#stack_panel div.indicator_item span.highlighted {
+  color: black;
+}
+#stack_panel div.indicator_item.input_mode {
   color: #888;
-  font-family: monospace;
 }
-#stack_panel div.error_message {
+#stack_panel div.indicator_item.error_message {
   background-color: #fdd;
-  padding: 0.1em 0.2em;
-  margin-right: 0.25em;
-  margin-top: 0.25em;
-  border: 1px solid #cbb;
+  padding: 0.2em 0.5em;
+  max-width: 30em;
+  overflow-wrap: anywhere;
+  font-family: monospace;
   font-weight: bold;
   color: #800;
 }
 #stack_panel div.floating_item {
   padding: 0.05em 0.2em;
+  padding-right: 0.5em;
   padding-left: 0; /* make itemtype bar look "correct" */
-  margin-right: 0.25em;
-  margin-top: 0.25em;
   border: 1px solid #ccc;
   background-color: #eee;
   box-shadow: inset 0 0 0.35em 0.1em #ccc;
+  /* Prevent large items from blocking everything (especially the indicator_items). */
+  max-height: 5em;  
+  max-width: 30em;
+  overflow: hidden;
 }
 div.floating_item div.tag_string {
   display: none;  /* tags get in the way in the "floating" item spot */
@@ -443,7 +439,7 @@ body.eink_mode span.k { border-color: black; }
 #files_panel {
   display: none;
   overflow: auto;
-  z-index: 5;
+  z-index: 6;
   top: 5%;
   height: 90%;
   left: 8%;
