@@ -1163,7 +1163,7 @@ class InputContext {
         new InfixExpr(
           [expr.inner_expr.operand_exprs[1], expr.inner_expr.operand_exprs[0]],
           expr.inner_expr.operator_exprs),
-        expr.is_fixed_size);
+        expr.fixed_size);
     }
     else if(expr.is_tensor_expr())
       new_expr = expr.swap_left_and_right();

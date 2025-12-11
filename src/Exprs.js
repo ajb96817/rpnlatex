@@ -13,7 +13,7 @@ class Expr {
   static concatenate(left_expr, right_expr, no_parenthesize = false) {
     // Concatenating something to a unary minus PrefixExpr converts
     // into an InfixExpr for subtraction: concat(x, -y) => x-y.
-    // Also, concat(x, +y) => x+y.
+    // Also, concat(x, +y) => x+y.  Other PrefixExprs are handled normally.
     if(right_expr.is_prefix_expr() &&
        ['-', '+'].includes(right_expr.operator_text()))
       return InfixExpr.combine_infix(
@@ -35,18 +35,17 @@ class Expr {
     if(left_expr.is_command_expr() && right_expr.is_command_expr()) {
       const combined_command_name = CommandExpr.combine_command_pair(
         left_expr.command_name, right_expr.command_name);
-      if(combined_command_name)
+      // NOTE: no_parenthesize inhibits this.  Otherwise there would be no way to
+      // get for example two \oint next to each other.
+      if(combined_command_name && !no_parenthesize)
         return new CommandExpr(combined_command_name);
     }
     // Concatenating to '!' produces a PostfixExpr (factorial notation).
     // The base expression is parenthesized as if it were getting a superscript
     // added, so we get (sin x)! and sin(x)!.
     if(right_expr.is_text_expr_with('!'))
-      return new PostfixExpr(
-        no_parenthesize ? left_expr :
-          DelimiterExpr.parenthesize_for_power(left_expr),
-        right_expr);
-    // Parenthesize the expressions being combined if needed.
+      return PostfixExpr.factorial_expr(left_expr, 1, !no_parenthesize);
+    // Autoparenthesize the expressions being combined if needed.
     // The rest of the combination rules will apply to these versions.
     [left_expr, right_expr] = [left_expr, right_expr].map(expr => {
       if(expr.is_infix_expr() &&
@@ -55,24 +54,22 @@ class Expr {
         return DelimiterExpr.parenthesize(expr);
       else return expr;
     });
-    // Concatenating a literal '+' or '!' to something creates the
+    // Concatenating a literal '+' or '-' to something creates the
     // corresponding PrefixExpr.
     if(left_expr.is_text_expr_with('+') || left_expr.is_text_expr_with('-'))
       return new PrefixExpr(right_expr, left_expr);
     // Adjacent FontExprs of the same type can be merged into a single
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
     // (This renders better in some cases.)
-    // Note that applying a font after expressions are concatenated
-    // will not do this merging.  AB => bold => \bold{A}\bold{B}.
+    // NOTE: applying a font after expressions are concatenated
+    // will not do this merging.  concat(A,B) => AB => bold => \bold{A}\bold{B}.
     // This could be implemented if needed (by coalescing adjacent FontExprs
     // within a SequenceExpr).
+    // TODO: Maybe only do this if the FontExprs are directly wrapping TextExprs.
     if(left_expr.is_font_expr() && right_expr.is_font_expr() &&
-       FontExpr.font_exprs_compatible(left_expr, right_expr)) {
-      // TODO: Maybe only do this if the FontExprs are directly wrapping TextExprs.
-      return new FontExpr(
-        this.concatenate(left_expr.expr, right_expr.expr, no_parenthesize),
-        left_expr.typeface, left_expr.is_bold, left_expr.size_adjustment);
-    }
+       FontExpr.font_exprs_compatible(left_expr, right_expr))
+      return left_expr.with_base_expr(
+        this.concatenate(left_expr.expr, right_expr.expr, no_parenthesize));
     // Insert a thinspace when concatenating a differential form to anything
     // except an integral sign on the left.  This includes concatenating a
     // differential form on the right side of a SequenceExpr to something else,
@@ -102,10 +99,9 @@ class Expr {
   }
 
   // Combine two Exprs with the given conjunction phrase between them,
-  // with largish spacing.
-  // For example "X  iff  Y" as in the [,][F] command.
+  // with largish spacing, for example "X  iff  Y" as in the [,][F] command.
   // is_bold will make the conjunction phrase bolded.
-  static combine_with_conjunction(left_expr, right_expr, phrase, is_bold) {
+  static combine_with_conjunction(left_expr, right_expr, phrase, is_bold = false) {
     return InfixExpr.combine_infix(
       left_expr, right_expr,
       new SequenceExpr([
@@ -605,6 +601,10 @@ class FontExpr extends Expr {
       Math.max(-4, Math.min(5, size_adjustment)));
   }
 
+  with_base_expr(expr) {
+    return new FontExpr(expr, this.typeface, this.is_bold, this.size_adjustment);
+  }
+
   emit_latex(emitter) {
     const size_adjustment_command =
           this.size_adjustment_command(this.size_adjustment);
@@ -719,9 +719,9 @@ class InfixExpr extends Expr {
   }
 
   // Combine two existing expressions into an InfixExpr, joined by
-  // 'op_expr' as the infix operator.
-  // If one or both of the expressions are already InfixExprs, they are
-  // flattened into a larger InfixExpr.
+  // 'op_expr' as the infix operator.  If one or both of the expressions
+  // are already InfixExprs, they are flattened into a larger InfixExpr.
+  // Autoparenthesization is not applied here.
   static combine_infix(left_expr, right_expr, op_expr, check_special_cases = true) {
     if(check_special_cases) {
       // We want x + -y => x - y.
@@ -778,10 +778,11 @@ class InfixExpr extends Expr {
   // and it's "better" to just parenthesize: x - (-y - z).
   static add_exprs(left_expr, right_expr) {
     if(right_expr.is_unary_minus_expr()) {
-      // x + (-y) => x - y
+      // x + PrefixExpr(-y) => x - y
       return this.combine_infix(
         left_expr, right_expr.base_expr,
-        new TextExpr('-'), false);
+        new TextExpr('-'),
+        false /* prevent recursion for checking this case */);
     }
     else if(right_expr.is_infix_expr() &&
             right_expr.operand_exprs[0].is_unary_minus_expr() &&
@@ -812,10 +813,8 @@ class InfixExpr extends Expr {
           ...right_expr.exprs.slice(1)]),
         new TextExpr('-'), false);
     }
-    else
-      return this.combine_infix(
-        left_expr, right_expr,
-        new TextExpr('+'), false);
+    else return this.combine_infix(
+      left_expr, right_expr, new TextExpr('+'), false);
   }
 
   expr_type() { return 'infix'; }
@@ -841,6 +840,7 @@ class InfixExpr extends Expr {
   // Check if this is a "low-precedence" infix expression like x+y.
   // This determines if things like x - expr should convert to
   // x - (expr) or not.
+  // TODO: rename this
   needs_autoparenthesization() {
     // TODO: maybe \oplus, \ominus, \pm, \mp
     return this.operator_exprs.some(op_expr =>
@@ -853,7 +853,8 @@ class InfixExpr extends Expr {
   is_differential_form() {
     return this.operator_exprs.every(operator_expr =>
       operator_expr.is_command_expr_with(0, 'wedge')) &&
-      this.operand_exprs.every(operand_expr => operand_expr.is_differential_form());
+      this.operand_exprs.every(
+        operand_expr => operand_expr.is_differential_form());
   }
 
   // 'inside_delimiters' is set to true when this InfixExpr is rendered
@@ -862,20 +863,16 @@ class InfixExpr extends Expr {
   // their flexible \middle counterparts.
   emit_latex(emitter, inside_delimiters) {
     const is_top_level = this === emitter.base_expr;
-    for(let i = 0; i < this.operator_exprs.length; i++) {
+    for(const [i, operator_expr] of this.operator_exprs.entries()) {
       emitter.expr(this.operand_exprs[i], 2*i);
       if(is_top_level && this.linebreaks_at.includes(2*i)) {
         // Break before ith operator.
         emitter.command("\\");  // outputs two backslashes (LaTeX newline command)
         emitter.command('qquad');
       }
-      let emitted_expr = this.operator_exprs[i];
-      if(inside_delimiters) {
-        // Try converting to flex delimiter.
-        const converted_expr = this._convert_to_flex_delimiter(emitted_expr);
-        if(converted_expr)
-          emitted_expr = converted_expr;
-      }
+      let emitted_expr = operator_expr;
+      if(inside_delimiters)
+        emitted_expr = this._convert_to_flex_delimiter(emitted_expr) || emitted_expr;
       emitter.expr(emitted_expr, 2*i+1);
       if(is_top_level && this.linebreaks_at.includes(2*i+1)) {
         // Break after ith operator.
@@ -883,11 +880,11 @@ class InfixExpr extends Expr {
         emitter.command('qquad');
       }
     }
+    // Last operand.
     emitter.expr(
       this.operand_exprs[this.operand_exprs.length-1],
       2*this.operator_exprs.length);
   }
-
   _convert_to_flex_delimiter(expr) {
     let new_text = null;
     if(expr.is_text_expr_with('/'))
@@ -910,9 +907,9 @@ class InfixExpr extends Expr {
   subexpressions() {
     // Interleave operators and operands.
     let exprs = [];
-    for(let i = 0; i < this.operator_exprs.length; i++) {
+    for(const [i, operator_expr] of this.operator_exprs.entries()) {
       exprs.push(this.operand_exprs[i]);
-      exprs.push(this.operator_exprs[i]);
+      exprs.push(operator_expr);
     }
     exprs.push(this.operand_exprs[this.operand_exprs.length-1]);
     return exprs;
@@ -981,7 +978,7 @@ class InfixExpr extends Expr {
         return new InfixExpr(
           this.operand_exprs.slice(operator_index+1),
           this.operator_exprs.slice(operator_index+1),
-          0, null);
+          0, null /* clear linebreaks */);
     }
     else {
       if(operator_index === 0)
@@ -1007,8 +1004,7 @@ class InfixExpr extends Expr {
         this.split_at_index,
         this.linebreaks_at);
     }
-    else
-      return super.as_logical_negation();
+    else return super.as_logical_negation();
   }
 
   // InfixExprs dissolve into their operand expressions.
@@ -1049,7 +1045,7 @@ class PlaceholderExpr extends Expr {
 }
 
 
-// Prefixed unary expressions such as: +x, -x, \neg x
+// Unary prefix expressions such as: +x, -x, \neg x
 class PrefixExpr extends Expr {
   static unary_minus(expr) {
     return new this(expr, new TextExpr('-'));
@@ -1070,6 +1066,7 @@ class PrefixExpr extends Expr {
 
   has_subexpressions() { return true; }
   subexpressions() { return [this.operator_expr, this.base_expr]; }
+  dissolve() { return this.subexpressions(); }
 
   operator_text() {
     if(this.operator_expr.is_text_expr())
@@ -1077,7 +1074,7 @@ class PrefixExpr extends Expr {
     else if(this.operator_expr.is_command_expr_with(0))
       return this.operator_expr.command_name;
     else
-      return '';  // shouldn't happen
+      return '';  // shouldn't normally happen
   }
 
   is_unary_minus() { return this.operator_text() === '-'; }
@@ -1089,13 +1086,17 @@ class PrefixExpr extends Expr {
   }
 
   as_editable_string() {
-    const operator_string = this.operator_expr.as_editable_string();
-    const base_string = this.base_expr.as_editable_string();
-    if(base_string && operator_string)
-      return [operator_string, base_string].join('');
-    else return null;
+    if(['+', '-'].includes(this.operator_text())) {
+      const operator_string = this.operator_expr.as_editable_string();
+      const base_string = this.base_expr.as_editable_string();
+      if(base_string && operator_string)
+        return [operator_string, base_string].join('');
+    }
+    return null;
   }
 
+  // Mainly useful for converting '= x' <=> '\ne x'.
+  // TODO: Maybe have \neg x => x.
   as_logical_negation() {
     const negated_operator_expr =
           this.operator_expr.as_logical_negation();
@@ -1105,13 +1106,9 @@ class PrefixExpr extends Expr {
       return super.as_logical_negation();
   }
 
-  dissolve() { return this.subexpressions(); }
-
   as_bold() {
     // Don't bold the operator (analogous to what InfixExpr does).
-    return new PrefixExpr(
-      this.base_expr.as_bold(),
-      this.operator_expr);
+    return new PrefixExpr(this.base_expr.as_bold(), this.operator_expr);
   }
 }
 
@@ -1126,11 +1123,11 @@ class PrefixExpr extends Expr {
 //       PostfixExpr(PostfixExpr(x, '!'), '!') instead of PostfixExpr(x, '!!').
 class PostfixExpr extends Expr {
   // Create a factorial expression with 'factorial_depth' exclamation points.
-  static factorial_expr(base_expr, factorial_depth) {
+  static factorial_expr(base_expr, factorial_depth, autoparenthesize = true) {
     return this._factorial_expr(
       // Parenthesization: we want (x+1)! but not (x!)!
-      base_expr.is_postfix_expr() ? base_expr :
-        DelimiterExpr.parenthesize_for_power(base_expr),
+      (base_expr.is_postfix_expr() || !autoparenthesize) ?
+        base_expr : DelimiterExpr.parenthesize_for_power(base_expr),
       factorial_depth);
   }
   static _factorial_expr(base_expr, factorial_depth) {
@@ -1154,6 +1151,7 @@ class PostfixExpr extends Expr {
 
   has_subexpressions() { return true; }
   subexpressions() { return [this.base_expr, this.operator_expr]; }
+  dissolve() { return this.subexpressions(); }
 
   replace_subexpression(index, new_expr) {
     return new PostfixExpr(
@@ -1161,20 +1159,24 @@ class PostfixExpr extends Expr {
       index === 1 ? new_expr : this.operator_expr);
   }
 
-  as_editable_string() {
-    const base_string = this.base_expr.as_editable_string();
-    const operator_string = this.operator_expr.as_editable_string();
-    if(base_string && operator_string)
-      return [base_string, operator_string].join('');
-    else return null;
-  }
+  // TODO: .operator_text() method like PrefixExpr
 
-  dissolve() { return this.subexpressions(); }
+  as_editable_string() {
+    // Postfix operators other than '!' (if they ever end up getting used)
+    // are not considered editable.
+    if(this.operator_expr.is_text_expr_with('!')) {
+      const base_string = this.base_expr.as_editable_string();
+      const operator_string = this.operator_expr.as_editable_string();
+      if(base_string && operator_string)
+        return [base_string, operator_string].join('');
+    }
+    return null;
+  }
 
   as_bold() {
     // Unlike Infix/PrefixExpr, the postfix operator is also bolded here.
     // This is mainly because '!' is not exactly a normal operator, but
-    // more like a concatenation like 'x!'.
+    // more like a concatenation of x and '!'.
     // NOTE: It's possible to create PostfixExprs with other operators,
     // for example by swapping a unary minus PrefixExpr with [/][w].
     // In that case, the operator is not bolded, for consistency with
@@ -1206,7 +1208,8 @@ class PostfixExpr extends Expr {
 
 
 // Represents a function call like: f(x,y,z)
-// Here fn_expr = f, args_expr = (x,y,z).
+// Here fn_expr = f, args_expr = (x,y,z).  The args_expr should always
+// be a DelimiterExpr of some sort (doesn't have to be plain parentheses).
 // Note that "operator-style" functions like 'sin x' use CommandExpr, not this.
 class FunctionCallExpr extends Expr {
   constructor(fn_expr, args_expr) {
@@ -1220,8 +1223,8 @@ class FunctionCallExpr extends Expr {
   emit_latex(emitter) {
     // The args_expr gets wrapped in an "empty" latex command
     // (i.e. a set of braces).  f(x) becomes f{(x)}.
-    // This has the effect of tightening
-    // the spacing after f to better match normal function notation.
+    // This has the effect of tightening the spacing after f
+    // to better match normal function notation.
     emitter.expr(this.fn_expr, 0);
     emitter.grouped_expr(this.args_expr, 'force', 1);
   }
@@ -1371,14 +1374,15 @@ class SequenceExpr extends Expr {
 
   replace_subexpression(index, new_expr) {
     return new SequenceExpr(
-      this.exprs.map(
-        (subexpr, subexpr_index) => subexpr_index === index ? new_expr : subexpr));
+      this.exprs.map((subexpr, subexpr_index) =>
+        subexpr_index === index ? new_expr : subexpr));
   }
 
   dissolve() { return this.exprs; }
 
   as_bold() {
-    return new SequenceExpr(this.exprs.map(expr => expr.as_bold()));
+    return new SequenceExpr(
+      this.exprs.map(expr => expr.as_bold()));
   }
 
   as_logical_negation() {
@@ -1390,13 +1394,12 @@ class SequenceExpr extends Expr {
   }
 
   // 'dx', etc.  The 'd' may be in a roman font.
-  // 'd^2 x' etc. also count as differential forms.
+  // 'd^2 x', 'd^(n) x' etc. also count as differential forms.
   is_differential_form() {
     if(this.exprs.length !== 2) return false;
     let d_expr = this.exprs[0];
     if(d_expr.is_subscriptsuperscript_expr() &&
-       d_expr.superscript_expr &&
-       d_expr.superscript_expr.is_text_expr())
+       d_expr.superscript_expr)
       d_expr = d_expr.base_expr;
     if(d_expr.is_text_expr_with('d')) return true;
     if(d_expr.is_font_expr() && d_expr.typeface === 'roman' &&
@@ -1411,7 +1414,6 @@ class SequenceExpr extends Expr {
 // Represents an expression enclosed in left/right delimiters.
 // Normally the delimiters are "flex-size": \left(xyz\right)
 // but setting fixed_sized to true gives "normal" delimiters (xyz) instead.
-//
 // NOTE: If the enclosed expression is an InfixExpr, this attempts to convert
 // infix operators to their flex-size equivalent if they have one.
 // For example: <x|y> => \left\langle x\middle\vert y\right\rangle
@@ -1424,24 +1426,29 @@ class DelimiterExpr extends Expr {
     this.fixed_size = fixed_size || false;
   }
 
-  // Wrap expr in delimiters of the given type (defaulting to '(', ')').
+  // Wrap expr in delimiters of the given type.
   // Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
-  // the blank delimiters are removed first.
-  static parenthesize(expr, left_type, right_type) {
+  // the blank delimiters are removed first (recursively).
+  // TODO: make into instance method of Expr (parenthesize_if_not_already too)
+  static parenthesize(expr, left_type = '(', right_type = ')',
+                      if_not_already = false /* true = don't double-wrap if already parenthesized */) {
     while(expr.is_delimiter_expr() &&
        expr.left_type === '.' && expr.right_type === '.')
       expr = expr.inner_expr;
-    return new this(left_type || '(', right_type || ')', expr);
+    // Normally, parenthesizing (x) gives ((x)).
+    // The if_not_already flag inhibits this behavior to avoid
+    // possibly-useless doubled parentheses.  Instead, the parentheses
+    // types are converted to the new ones: parenthesize((x), '[', ']') => [x].
+    let fixed_size = false;
+    if(if_not_already && expr.is_delimiter_expr()) {
+      fixed_size = expr.fixed_size;  // keep the flag even if changing parentheses type
+      expr = expr.inner_expr;
+    }
+    return new this(left_type, right_type, expr, fixed_size);
   }
 
-  static parenthesize_if_not_already(expr, left_type, right_type) {
-    while(expr.is_delimiter_expr() &&
-       expr.left_type === '.' && expr.right_type === '.')
-      expr = expr.inner_expr;
-    if(expr.is_delimiter_expr())
-      return expr;
-    else
-      return this.parenthesize(expr, left_type, right_type);
+  static parenthesize_if_not_already(expr, left_type = '(', right_type = ')') {
+    return this.parenthesize(expr, left_type, right_type, true);
   }
 
   // expr is about to become the base of a SubscriptSuperscriptExpr.
@@ -1550,7 +1557,6 @@ class DelimiterExpr extends Expr {
       emitter.text_or_command(this.right_type);
   }
 
-  // Return a copy of this expression but with the given fixed_size flag.
   as_fixed_size(fixed_size) {
     return new DelimiterExpr(
       this.left_type, this.right_type,
@@ -1695,11 +1701,13 @@ class SubscriptSuperscriptExpr extends Expr {
       // with [.]['] to get x+y', turning autoparenthesization back on with [$][(]
       // and then adding another prime creates (x+y)''.  Later removing primes with
       // .remove_prime() will not remove the parenthesization.
-      return this.with_superscript(null).with_superscript(
-        new SequenceExpr(new Array(prime_count+1).fill(new CommandExpr('prime'))));
+      return this
+        .with_superscript(null)
+        .with_superscript(
+          new SequenceExpr(
+            new Array(prime_count+1).fill(new CommandExpr('prime'))));
     }
-    else
-      return super.with_prime(autoparenthesize);
+    else return super.with_prime(autoparenthesize);
   }
 
   // Remove one \prime; f'' => f', etc.
@@ -1711,7 +1719,8 @@ class SubscriptSuperscriptExpr extends Expr {
       return this.with_superscript(null);
     else
       return this.with_superscript(null).with_superscript(
-        new SequenceExpr(new Array(prime_count-1).fill(new CommandExpr('prime'))));
+        new SequenceExpr(
+          new Array(prime_count-1).fill(new CommandExpr('prime'))));
   }
 
   // Overridden from Expr superclass.
@@ -2001,8 +2010,7 @@ class ArrayExpr extends Expr {
     else
       emitter.begin_environment(this.array_type);
     for(const [row_index, row_exprs] of this.element_exprs.entries()) {
-      if(row_index > 0)
-        emitter.row_separator();
+      if(row_index > 0) emitter.row_separator();
       for(const [col_index, expr] of row_exprs.entries()) {
         if(col_index > 0) emitter.align_separator();
         if(expr) emitter.expr(expr, subexpr_index);  // should always be true
@@ -2099,8 +2107,8 @@ class ArrayExpr extends Expr {
       return this.split_rows();
   }
 
+  // NOTE: Row/column separators are disregarded for matching purposes.
   matches(expr) {
-    // NOTE: row/column separators are disregarded for matching purposes
     return super.matches(expr) &&
       this.array_type === expr.array_type &&
       this.row_count === expr.row_count &&
