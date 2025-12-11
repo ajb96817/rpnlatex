@@ -89,7 +89,7 @@ const KeybindingTable = {
     //'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;build_function_call",  // f x y z -> f(x,y|z): same as [/][K] - undocumented
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
-    //'Ctrl+n': "rot",
+    'Ctrl+n': "typeface roman",  // same as [.][r]
     'Ctrl+o': "parenthesize;build_function_call",  // -> f(x): same as [/][o]
     'Ctrl+p': "delimiters ( )",  // same as [(]
     //'Ctrl+q': "unrot",
