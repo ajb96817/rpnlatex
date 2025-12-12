@@ -71,15 +71,22 @@ const keybinding_table = {
     '(': "delimiters ( )",
     '{': "delimiters \\{ \\}",
 
-    // Document commands
+    // Document scrolling commands
     'ArrowUp': "change_document_selection -1",
-    'Shift+ArrowUp': "shift_document_selection -1",
     'ArrowDown': "change_document_selection +1",
-    'Shift+ArrowDown': "shift_document_selection +1",
     'PageUp': "change_document_selection -5",  // TODO: scroll based on viewport height instead
     'PageDown': "change_document_selection +5",
-    'Home': "change_document_selection -10000",  // TODO: top/bottom instead of 10000
-    'End': "change_document_selection +10000",
+    'Home': "change_document_selection top",
+    'End': "change_document_selection bottom",
+
+    // Document selection shifting commands
+    'Shift+ArrowUp': "shift_document_selection -1",
+    'Shift+ArrowDown': "shift_document_selection +1",
+    // TODO: Check these on all browsers/OSs; maybe use different keybindings
+    'Shift+PageUp': "shift_document_selection -5",
+    'Shift+PageDown': "shift_document_selection +5",
+    'Shift+Home': "shift_document_selection top",
+    'Shift+End': "shift_document_selection bottom",
 
     // Horizontal scrolling commands
     'ArrowRight': "scroll stack_panel horizontal 50",
@@ -125,7 +132,6 @@ const keybinding_table = {
     'Ctrl+i': "pop_to_document",
     'Ctrl+j': "extract_from_document",
     'Ctrl+k': "infix \\,\\vert\\,;parenthesize;function_call",  // f(x|y): same as [/][k]
-    //'Ctrl+K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;function_call",  // f x y z -> f(x,y|z): same as [/][K] - undocumented
     'Ctrl+l': "recenter_document 50",
     'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
     'Ctrl+n': "typeface roman",  // same as [.][r]
@@ -136,12 +142,10 @@ const keybinding_table = {
     'Ctrl+R': "infix ,;infix ,;parenthesize;function_call",  // f x y z -> f(x,y,z): same as [/][R] - undocumented
     'Ctrl+s': "save_file",
     'Ctrl+t': "autoparenthesize;push t;parenthesize;function_call",  // y -> y(t)
-    //'Ctrl+T': "push y;push t;parenthesize;function_call",  // y(t) - undocumented
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
     'Ctrl+w': "swap_floating_item",
     'Ctrl+x': "autoparenthesize;push x;parenthesize;function_call",  // f -> f(x)
-    //'Ctrl+X': "push f;push x;parenthesize;function_call",  // f(x) - undocumented
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
     'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]

@@ -92,6 +92,10 @@ class InputContext {
         // Reset context variables for the handler functions to use.
         this._reset();
         // Execute the handler and assemble the new state.
+        // The action handler function is expected to return the "new" (updated) stack,
+        // or null/undefined to indicate no changes (leaving any arguments on the stack).
+        // Helper functions like .notify() therefore should return 'undefined' so the
+        // action handler functions can do "return this.notify('...')" etc.
         const new_stack = (handler_function.bind(this))(app_state.stack, ...parameters);
         let new_app_state = new AppState(
           new_stack || app_state.stack,
@@ -585,39 +589,47 @@ class InputContext {
     return new_stack.pop(new_stack.depth())[0].push_all(items);
   }
 
+  // amount_string: integer or 'top'/'bottom'
   do_change_document_selection(stack, amount_string) {
-    const amount = parseInt(amount_string);
     this.suppress_undo();
     if(this.settings.dock_helptext) {
-      // When the helptext is docked, treat 'change document selection' commands as
-      // scrolling the helptext instead.  Do an ad-hoc conversion from number
+      // When the helptext is docked, treat 'change document selection' commands
+      // as scrolling the helptext instead.  Do an ad-hoc conversion from number
       // of items scrolled to percentage of panel height scrolled.
-      let percentage = 0;
-      if(Math.abs(amount) > 3) percentage = 75;
-      else if(Math.abs(amount) > 0) percentage = 25;
-      if(amount < 0) percentage = -percentage;
+      const percentage_string =
+            ['top', 'bottom'].includes(amount_string) ? amount_string :
+            amount > 3 ? '75' : amount < 3 ? '-75' :
+            amount > 0 ? '25' : '-25';
       return this.do_scroll(
-        stack, 'document_panel', 'vertical',
-        percentage.toString());
+        stack, 'document_panel', 'vertical', percentage_string);
     }
-    else this.update_document(
-      this.app_state.document.move_selection_by(amount));
-    return stack;
-  }
-
-  do_shift_document_selection(stack, amount_string) {
-    const amount = parseInt(amount_string);
-    if(this.settings.dock_helptext) {
-      // Ignore these commands while the helptext is docked (the document contents
-      // are obscured so this is probably a user mistake).
+    else {
+      const document = this.app_state.document;
+      const amount =
+            amount_string === 'top' ? -document.item_count() :
+            amount_string === 'bottom' ? document.item_count() :
+            parseInt(amount_string);
+      this.update_document(document.move_selection_by(amount));
       return stack;
     }
-    const new_document = this.app_state.document.shift_selection_by(amount);
+  }
+
+  // amount_string: integer or 'top'/'bottom'
+  do_shift_document_selection(stack, amount_string) {
+    // Ignore these commands while the helptext is docked (the document contents
+    // are obscured so this is probably a user mistake).
+    if(this.settings.dock_helptext)
+      return stack;
+    const document = this.app_state.document;
+    const amount =
+          amount_string === 'top' ? 1 - document.selection_index :
+          amount_string === 'bottom' ? document.item_count() - document.selection_index :
+          parseInt(amount_string);
+    const new_document = document.shift_selection_by(amount);
     if(new_document)
-      this.update_document(new_document);
+      return this.update_document(new_document);
     else
-      this.error_flash_document();
-    return stack;
+      return this.error_flash_document();
   }
 
   do_save_file(stack) {
@@ -2246,33 +2258,12 @@ class InputContext {
     }
   }
 
-  // screen_percentage=0 means try to scroll so that the top of the selection is flush with the top of the document panel.
-  // screen_percentage=100 tries to make the bottom of the selection flush with the bottom of the panel.
-  // Anything in between is a linear interpolation between the two.
+  // See AppState.recenter_document()
   do_recenter_document(stack, screen_percentage_string) {
     const screen_percentage = parseInt(screen_percentage_string);
+    this.app_component.recenter_document(screen_percentage);
     this.suppress_undo();
-    // TODO: Accessing the DOM elements directly like this is a hack but there's not an easy
-    // way to get it properly from React here.  May want to restructure things to make this cleaner.
-    const container = document.getElementById('document_panel');
-    if(!container) return;
-    const selected_elts = container.getElementsByClassName('selected')
-    if(selected_elts.length === 0) return;
-    const selected_elt = selected_elts[0];
-    if([0, 50, 100].includes(screen_percentage) && !this.settings.debug_mode) {
-      // For these special cases, the browser's native scrollIntoView can be used.
-      const block_mode = screen_percentage === 0 ? 'start' :
-            screen_percentage === 100 ? 'end' : 'center';
-      selected_elt.scrollIntoView({block: block_mode, inline: 'start'});
-    }
-    else {
-      // Fallback by explicitly setting the scrollTop.
-      // NOTE: If debug mode is on, this method is always used.
-      const top_scrolltop = selected_elt.offsetTop;
-      const bottom_scrolltop = selected_elt.offsetTop + selected_elt.offsetHeight - container.clientHeight;
-      const ratio = screen_percentage/100;
-      container.scrollTop = Math.round(top_scrolltop*(1-ratio) + bottom_scrolltop*ratio);
-    }
+    return stack;
   }
 
   // direction_string:

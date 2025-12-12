@@ -51,6 +51,7 @@ class App extends React.Component {
 
   componentDidMount() {
     this.apply_layout_to_dom();
+    this.recenter_document(50);  // make selected item visible
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
@@ -102,6 +103,36 @@ class App extends React.Component {
     const new_title = '[' + (filename || 'rpnlatex') + ']';
     if(new_title !== document.title)
       document.title = new_title;
+  }
+
+  // Recenter the document panel scroll position to center on the selected item.
+  // screen_percentage:
+  //   - 0: try to scroll so that the top of the selection is flush
+  //        with the top of the document panel
+  //   - 100: try to make the bottom of the selection flush with the
+  //          bottom of the panel
+  //   - anything in between is a linear interpolation between the two
+  recenter_document(screen_percentage) {
+    const document_panel = this.document_panel_ref.current;
+    if(!document_panel) return;
+    const selected_elts = document_panel.getElementsByClassName('selected')
+    if(selected_elts.length === 0) return;
+    const selected_elt = selected_elts[0];
+    if([0, 50, 100].includes(screen_percentage) &&
+       !this.state.settings.debug_mode) {
+      // For these special cases, the browser's native scrollIntoView can be used.
+      const block_mode = screen_percentage === 0 ? 'start' :
+            screen_percentage === 100 ? 'end' : 'center';
+      selected_elt.scrollIntoView({block: block_mode, inline: 'start'});
+    }
+    else {
+      // Fallback by explicitly setting the scrollTop.
+      // NOTE: If debug mode is on, this method is always used.
+      const top_scrolltop = selected_elt.offsetTop;
+      const bottom_scrolltop = selected_elt.offsetTop + selected_elt.offsetHeight - document_panel.clientHeight;
+      const ratio = screen_percentage/100;
+      document_panel.scrollTop = Math.round(top_scrolltop*(1-ratio) + bottom_scrolltop*ratio);
+    }
   }
 
   render() {
@@ -457,6 +488,7 @@ class DocumentComponent extends React.Component {
     if(!item) return;
     // Use the nonstandard scrollIntoViewIfNeeded method if available.
     // (Chrome has this, but not Firefox)
+    // TODO: get panel elt from app_component.document_panel_ref.current
     const container = document.getElementById('document_panel');
     if(item.scrollIntoViewIfNeeded) {
       // scrollIntoViewIfNeeded resets the document container's horizontal scroll position

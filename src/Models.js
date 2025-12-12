@@ -473,7 +473,7 @@ class AppState {
   // Total number of contained items (stack+document).
   item_count() {
     return this.stack.depth() +
-      this.document.items.length +
+      this.document.item_count() +
       (this.stack.floating_item ? 1 : 0);
   }
 }
@@ -1735,6 +1735,8 @@ class Document {
     else
       return null;
   }
+
+  item_count() { return this.items.length; }
 
   // Insert one or more items below the current selection.
   // The last inserted item becomes the new selection.
