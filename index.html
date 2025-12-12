@@ -63,6 +63,11 @@
         Invalid or unassigned key inputs are silently ignored.
         Other errors are signaled by a brief flash of the screen.
       </p>
+      <p>
+        Several <a href="#help_examples">examples</a> of how to create different
+        math formulas are available at the end of this User Guide.  You can jump
+        directly to the examples by pressing <span class="k">x</span>.
+      </p>
 
       <h2>Single-Key Commands</h2>
       <ul class="keybindings">
@@ -95,7 +100,8 @@
         </li>
         <li>
           <span class="k">&nbsp;</span> <em>(space)</em>
-          Concatenate the top two stack entries.
+          Concatenate the top two stack items.  This can also be used to create longer
+          integers from individual digits.
         </li>
         <li>
           <span class="k">^</span> or <span class="k">`</span> <em>(backtick)</em>
@@ -2945,6 +2951,145 @@
           &ndash; same as <span class="k">Tab</span><span class="k">n</span>
         </li>
       </ul>
+
+      <h2 id="help_examples">Examples</h2>
+      <p>
+        Key-by-key examples of how to create some different math formulas.
+        You can follow along more easily by docking this User Guide into the document
+        area by pressing <span class="k">?</span> again.
+      </p>
+
+      <h3>Beta function</h3>
+      <p class="example">
+        <code>\displaystyle{B{\left(\alpha,\beta\right)}=\int^1_0{\left(1-t\right)}^{\alpha-1}t^{\beta-1}\,dt}</code>
+      </p>
+      <ul class="example">
+        <li>
+          <span class="k">B</span><span class="k">;</span><span class="k">a</span><span class="k">;</span><span class="k">b</span><span class="k">/</span><span class="k">r</span>
+          <code>\Rightarrow B{\left(\alpha,\beta\right)}</code>
+        </li>
+        <li>
+          <span class="k">/</span><span class="k">I</span><span class="k">u</span>
+          <code>\Rightarrow \int_0^1</code>
+        </li>
+        <li>
+          <span class="k">t</span><span class="k">.</span><span class="k">c</span><span class="k">;</span><span class="k">a</span><span class="k">1</span><span class="k">-</span><span class="k">`</span>
+          <code>\Rightarrow \left(1-t\right)^{\alpha-1}</code>
+        </li>
+        <li>
+          <span class="k">t</span><span class="k">;</span><span class="k">b</span><span class="k">1</span><span class="k">-</span><span class="k">`</span>
+          <code>\Rightarrow t^{\beta-1}</code>
+        </li>
+        <li>
+          <span class="k">&nbsp;</span><span class="k">&nbsp;</span><span class="k">t</span><span class="k">/</span><span class="k">d</span><span class="k">i</span>
+          <code>\Rightarrow \int^1_0{\left(1-t\right)}^{\alpha-1}t^{\beta-1}\,dt</code>
+        </li>
+        <li>
+          <span class="k">=</span><span class="k">=</span>
+          <code>\Rightarrow B{\left(\alpha,\beta\right)}=\int^1_0{\left(1-t\right)}^{\alpha-1}t^{\beta-1}\,dt</code>
+        </li>
+      </ul>
+
+      <h3>Schrödinger equation</h3>
+      <p class="example">
+        <code>\displaystyle{i\hslash\frac{\partial\Psi}{\partial t}=-\frac{\hslash^2}{2m}\nabla^2\Psi+\phi\Psi}</code>
+      </p>
+      <ul class="example">
+        <li>
+          <span class="k">i</span><span class="k">'</span><span class="k">h</span><span class="k">&nbsp;</span><span class="k">;</span><span class="k">Y</span><span class="k">t</span><span class="k">/</span><span class="k">d</span><span class="k">j</span><span class="k">&nbsp;</span>
+          <code>\Rightarrow i\hslash\frac{\partial\Psi}{\partial t}</code>
+        </li>
+        <li>
+          <span class="k">'</span><span class="k">h</span><span class="k">.</span><span class="k">2</span><span class="k">2</span><span class="k">m</span><span class="k">&nbsp;</span><span class="k">/</span><span class="k">/</span><span class="k">.</span><span class="k">-</span><span class="k">;</span><span class="k">Y</span><span class="k">/</span><span class="k">d</span><span class="k">l</span><span class="k">&nbsp;</span>
+          <code>\Rightarrow -\frac{\hslash^2}{2m}\nabla^2\Psi</code>
+        </li>
+        <li>
+          <span class="k">;</span><span class="k">f</span><span class="k">;</span><span class="k">Y</span><span class="k">&nbsp;</span><span class="k">+</span>
+          <code>\Rightarrow -\frac{\hslash^2}{2m}\nabla^2\Psi+\phi\Psi</code>
+        </li>
+        <li>
+          <span class="k">=</span><span class="k">=</span>
+          <code>\Rightarrow i\hslash\frac{\partial\Psi}{\partial t}=-\frac{\hslash^2}{2m}\nabla^2\Psi+\phi\Psi</code>
+        </li>
+      </ul>
+
+      <h3>Sine power series</h3>
+      <p class="example">
+        <code>\displaystyle{\sin{\omega t}=\sum_{k\ge0}{\left(-1\right)}^k\frac{{\left(\omega t\right)}^{2k+1}}{\left(2k+1\right)!}}</code>
+      </p>
+      <ul class="example">
+        <li>
+          <span class="k">;</span><span class="k">w</span><span class="k">t</span><span class="k">&nbsp;</span><span class="k">/</span><span class="k">s</span>
+          <code>\Rightarrow \sin{\omega t}</code>
+        </li>
+        <li>
+          <span class="k">k</span><span class="k">0</span><span class="k">/</span><span class="k">+</span><span class="k">'</span><span class="k">1</span><span class="k">k</span><span class="k">`</span>
+          <code>\Rightarrow \sum_{k\ge0}{\left(-1\right)}^k</code>
+        </li>
+        <li>
+          <span class="k">;</span><span class="k">w</span><span class="k">t</span><span class="k">&nbsp;</span><span class="k">2</span><span class="k">k</span><span class="k">&nbsp;</span><span class="k">1</span><span class="k">+</span><span class="k">`</span>
+          <code>\Rightarrow {\left(\omega t\right)}^{2k+1}</code>
+        </li>
+        <li>
+          <span class="k">2</span><span class="k">k</span><span class="k">&nbsp;</span><span class="k">1</span><span class="k">+</span><span class="k">!</span><span class="k">/</span><span class="k">/</span>
+          <code>\Rightarrow \frac{{\left(\omega t\right)}^{2k+1}}{\left(2k+1\right)!}</code>
+        </li>
+        <li>
+          <span class="k">&nbsp;</span><span class="k">&nbsp;</span><span class="k">=</span><span class="k">=</span>
+          <code>\Rightarrow \sin{\omega t}=\sum_{k\ge0}{\left(-1\right)}^k\frac{{\left(\omega t\right)}^{2k+1}}{\left(2k+1\right)!}</code>
+        </li>
+      </ul>
+      
+      <h3>Fourier transform</h3>
+      <p class="example">
+        <code>\displaystyle{\mathscr{F}{\left[\phi\right]}=\hat{\phi}{\left(k\right)}=\frac{1}{\sqrt{2\pi}}\int^{\infty}_{-\infty}\phi{\left(x\right)}{\mathrm{e}}^{-ikx}\,dx}</code>
+      </p>
+      <ul class="example">
+        <li>
+          <span class="k">&</span><span class="k">F</span><span class="k">;</span><span class="k">f</span><span class="k">/</span><span class="k">[</span><span class="k">;</span><span class="k">f</span><span class="k">.</span><span class="k">h</span><span class="k">k</span><span class="k">/</span><span class="k">o</span><span class="k">=</span><span class="k">=</span>
+          <code>\Rightarrow \mathscr{F}{\left[\phi\right]}=\hat{\phi}{\left(k\right)}</code>
+        </li>
+        <li>
+          <span class="k">2</span><span class="k">;</span><span class="k">p</span><span class="k">&nbsp;</span><span class="k">/</span><span class="k">q</span><span class="k">/</span><span class="k">1</span>
+          <code>\Rightarrow \frac{1}{\sqrt{2\pi}}</code>
+        </li>
+        <li>
+          <span class="k">/</span><span class="k">I</span><span class="k">r</span><span class="k">;</span><span class="k">f</span><span class="k">x</span><span class="k">/</span><span class="k">o</span><span class="k">&nbsp;</span>
+          <code>\Rightarrow \int^{\infty}_{-\infty}\phi{\left(x\right)}</code>
+        </li>
+        <li>
+          <span class="k">i</span><span class="k">k</span><span class="k">x</span><span class="k">&nbsp;</span><span class="k">&nbsp;</span><span class="k">.</span><span class="k">-</span><span class="k">/</span><span class="k">e</span><span class="k">&nbsp;</span><span class="k">x</span><span class="k">/</span><span class="k">d</span><span class="k">i</span>
+          <code>\Rightarrow \int^{\infty}_{-\infty}\phi{\left(x\right)}{\mathrm{e}}^{-ikx}\,dx</code>
+        </li>
+        <li>
+          <span class="k">&nbsp;</span><span class="k">=</span><span class="k">=</span>
+          <code>\Rightarrow \mathscr{F}{\left[\phi\right]}=\hat{\phi}{\left(k\right)}=\frac{1}{\sqrt{2\pi}}\int^{\infty}_{-\infty}\phi{\left(x\right)}{\mathrm{e}}^{-ikx}\,dx</code>
+        </li>
+      </ul>
+      
+      <h3>Cauchy integral formula</h3>
+      <p class="example">
+        <code>\displaystyle{f^{\left(n\right)}{\left(z_0\right)}=\frac{n!}{2\pi i}\oint\frac{f{\left(z\right)}\,dz}{{\left(z-z_0\right)}^{n+1}}}</code>
+      </p>
+      <ul class="example">
+        <li>
+          <span class="k">f</span><span class="k">n</span><span class="k">(</span><span class="k">`</span><span class="k">z</span><span class="k">.</span><span class="k">0</span><span class="k">/</span><span class="k">o</span>
+          <code>\Rightarrow f^{\left(n\right)}{\left(z_0\right)}=\frac{n!}{2\pi i}\oint\frac{f{\left(z\right)}\,dz}{{\left(z-z_0\right)}^{n+1}}</code>
+        </li>
+        <li>
+          <span class="k">n</span><span class="k">!</span><span class="k">2</span><span class="k">;</span><span class="k">p</span><span class="k">&nbsp;</span><span class="k">i</span><span class="k">&nbsp;</span><span class="k">/</span><span class="k">/</span>
+          <code>\Rightarrow \frac{n!}{2\pi i}</code>
+        </li>
+        <li>
+          <span class="k">'</span><span class="k">y</span><span class="k">f</span><span class="k">z</span><span class="k">/</span><span class="k">o</span><span class="k">z</span><span class="k">/</span><span class="k">d</span><span class="k">i</span><span class="k">z</span><span class="k">z</span><span class="k">.</span><span class="k">0</span><span class="k">-</span><span class="k">n</span><span class="k">1</span><span class="k">+</span><span class="k">`</span><span class="k">/</span><span class="k">/</span><span class="k">&nbsp;</span>
+          <code>\Rightarrow \oint\frac{f{\left(z\right)}\,dz}{{\left(z-z_0\right)}^{n+1}}</code>
+        </li>
+        <li>
+          <span class="k">&nbsp;</span><span class="k">=</span><span class="k">=</span>
+          <code>\Rightarrow f^{\left(n\right)}{\left(z_0\right)}=\frac{n!}{2\pi i}\oint\frac{f{\left(z\right)}\,dz}{{\left(z-z_0\right)}^{n+1}}</code>
+        </li>
+      </ul>
+      
       <p><!-- small spacer --></p>
     </div> <!-- end #helptext -->
   </body>

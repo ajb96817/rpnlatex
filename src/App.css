@@ -459,6 +459,18 @@ body.eink_mode #files_panel { border: 2px solid black; }
   margin: 0.5em 0;
 }
 body.eink_mode div.help h1 { border-bottom-color: #666; }
+
+/* User Guide examples */
+div.help h3 {
+  font-size: 110%;
+  margin: 0;
+  border-bottom: 1px solid #ccf;
+  display: inline-block;
+}
+div.help p.example { margin-left: 1em; }
+div.help ul.example { list-style-type: none; }
+div.help ul.example li { text-indent: -1.2em; margin-bottom: 0.2em; }
+
 #files_panel div.current_file span.filename {
   padding-left: 0.5em;
   font-weight: bold;

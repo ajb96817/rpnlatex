@@ -238,6 +238,7 @@ const keybinding_table = {
     ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
     'Backspace': "scroll_to help_prefix_keys",
+    'x': "scroll_to help_examples",
     'c': "scroll_to help_control_keys"  // undocumented
   },
 
