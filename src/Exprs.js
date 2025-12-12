@@ -185,8 +185,8 @@ class Expr {
   // some simple Expr types will convert to editable strings.
   as_editable_string() { return null; }
 
-  // Return a list of all immediate subexpressions of this one, in (at least approximate)
-  // left-to-right order.
+  // Return a list of all immediate subexpressions of this one, in
+  // (at least approximate) left-to-right order.
   subexpressions() { return []; }
 
   // True if this has any subexpressions to descend into via ExprPath.
@@ -197,13 +197,14 @@ class Expr {
   // sometimes return false even if subexpressions() is nonempty.
   has_subexpressions() { return this.subexpressions().length > 0; }
 
-  // Return a new Expr like this one but with the subexpression at the given index replaced
-  // with a new one.  The subexpression indexes here correspond to what is returned by subexpressions().
+  // Return a new Expr like this one but with the subexpression at the
+  // given index replaced with a new one.  The subexpression indexes
+  // here correspond to what is returned by subexpressions().
   replace_subexpression(/* index, new_expr */) { return this; }
 
-  // Check if this Expr "matches" another Expr (i.e., has the same visual content).
-  // Subclasses can extend this to match additional fields that aren't just subexpressions
-  // (such as the delimiter type in DelimiterExpr).
+  // Check if this Expr "matches" another Expr (i.e., has the same visual
+  // content).  Subclasses can extend this to match additional fields that
+  // aren't just subexpressions (such as the delimiter type in DelimiterExpr).
   matches(expr) {
     if(this === expr) return true;
     if(this.expr_type() !== expr.expr_type()) return false;
@@ -440,7 +441,7 @@ class CommandExpr extends Expr {
       return super.as_logical_negation();
   }
 
-  // 0-argument commands are left as-is (\alpha, etc)
+  // 0-argument commands are left as-is (\alpha, etc).
   // 1-argument commands dissolve into their only argument.
   // 2-argument \frac breaks into numerator and denominator.
   // 2-argument \overset and \underset break into their components in the proper visual order.
@@ -482,7 +483,7 @@ class FontExpr extends Expr {
   //   'roman': \mathrm - [.][r] - upright version of 'normal' font
   //   'sans_serif': \mathsf - [.][s] - latin letters/digits plus Greek uppercase
   //   'sans_serif_italic': \mathsfit - [.][S] - similar to sans_serif
-  //   'typewriter': \mathtt - [.][m] ('monospace')  - similar to sans_serif
+  //   'typewriter': \mathtt - [.][m] ('monospace') - similar to sans_serif
   //   'fraktur': \mathfrak - [.][k] - latin lowercase/uppercase plus digits
   //   'calligraphic': \mathcal - [@] prefix - uppercase latin only, no digits
   //   'script': \mathscr - [&] prefix - similar to calligraphic
@@ -500,7 +501,8 @@ class FontExpr extends Expr {
   }
 
   // Wrap an expression in FontExpr if it's not already.
-  // This allows the FontExpr methods like with_typeface() to be used to add further styles.
+  // This allows the FontExpr methods like with_typeface()
+  // to be used to add further styles.
   static wrap(expr) {
     if(expr.is_font_expr())
       return expr;
@@ -517,7 +519,8 @@ class FontExpr extends Expr {
     return this.roman(new TextExpr(LatexEmitter.latex_escape(str)));
   }
 
-  // Return true when the two expressions are both FontExprs with the same font parameters.
+  // Return true when the two expressions are both FontExprs with
+  // the same font parameters.
   static font_exprs_compatible(left_expr, right_expr) {
     return left_expr.is_font_expr() && right_expr.is_font_expr() &&
       left_expr.typeface === right_expr.typeface &&
@@ -1695,7 +1698,7 @@ class SubscriptSuperscriptExpr extends Expr {
     if(prime_count > 0) {
       // NOTE: with_superscript(null) first strips the existing primes before
       // replacing them with the new set.
-      // NOTE: In some edge cases, this may end up parenthesizing the base expression
+      // In some edge cases, this may end up parenthesizing the base expression
       // (which already has at least one prime) if it wasn't before.  For example,
       // entering x+y, turning off autoparenthesization with [$][)], adding a prime
       // with [.]['] to get x+y', turning autoparenthesization back on with [$][(]
@@ -1802,9 +1805,8 @@ class ArrayExpr extends Expr {
   static hstack_arrays(expr1, expr2) {
     if(expr1.row_count !== expr2.row_count)
       return null;
-    let new_element_exprs = [];
-    for(let i = 0; i < expr1.row_count; i++)
-      new_element_exprs.push(expr1.element_exprs[i].concat(expr2.element_exprs[i]));
+    const new_element_exprs = expr1.element_exprs.map(
+      (row_exprs1, i) => row_exprs1.concat(expr2.element_exprs[i]));
     return new this(
       expr1.array_type,
       expr1.row_count,

@@ -213,6 +213,7 @@ const keybinding_table = {
     '@': "scroll_to help_insert_calligraphic",
     "\\": "scroll_to help_math_entry",
     "\"": "scroll_to help_text_entry",
+    'Backspace': "scroll_to help_prefix_keys",
     "Shift+Enter": "scroll_to help_edit_text",
     'Tab': "scroll_to help_stack",
     "'": "scroll_to help_symbols",
@@ -237,9 +238,8 @@ const keybinding_table = {
     ';': "scroll_to help_greek",
     ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
-    'Backspace': "scroll_to help_prefix_keys",
-    'x': "scroll_to help_examples",
-    'c': "scroll_to help_control_keys"  // undocumented
+    'c': "scroll_to help_control_keys",
+    'x': "scroll_to help_examples"
   },
 
   // [Tab] prefix: stack/misc operations
@@ -815,7 +815,7 @@ const keybinding_table = {
     '^': "infix \\star",
     ':': "infix \\colon",
     ';': "infix semicolon",
-    '`': "swap;push T;typeface roman;superscript false;swap;concat",  // xTy
+    '`': "swap;autoparenthesize;push T;typeface roman;superscript false;swap;concat",  // xTy
     '~': "push T;typeface roman;superscript false;concat",  // xyT
     '/': "autoparenthesize 2;infix /",
     "\\": "autoparenthesize 2;infix \\backslash",
