@@ -195,8 +195,8 @@ const keybinding_table = {
     'Ctrl+ ': 'scroll helptext_panel vertical -95',  // Ctrl+Space
     'J': 'scroll helptext_panel vertical 95',
     'K': 'scroll helptext_panel vertical -95',
-    'Home': 'scroll helptext_panel top',
-    'End': 'scroll helptext_panel bottom',
+    'Home': 'scroll helptext_panel vertical top',
+    'End': 'scroll helptext_panel vertical bottom',
 
     // Independent zoom factor for User Guide
     '+': "config helptext_zoom_factor increase",

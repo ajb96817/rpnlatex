@@ -63,6 +63,10 @@ class App extends React.Component {
     // window.removeEventListener('focus', this.handleVisibilityChange);
   }
 
+  componentDidUpdate() {
+    this.update_page_title();
+  }
+
   apply_layout_to_dom() {
     const settings = this.state.settings;
     // Set up color filter / theme CSS classes.
@@ -91,10 +95,6 @@ class App extends React.Component {
       document_panel,
       this.file_manager_panel_ref.current,
       this.helptext_panel_ref.current);
-  }
-
-  componentDidUpdate() {
-    this.update_page_title();
   }
 
   update_page_title() {

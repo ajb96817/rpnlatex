@@ -597,9 +597,9 @@ class InputContext {
       // as scrolling the helptext instead.  Do an ad-hoc conversion from number
       // of items scrolled to percentage of panel height scrolled.
       const percentage_string =
-            ['top', 'bottom'].includes(amount_string) ? amount_string :
-            amount > 3 ? '75' : amount < 3 ? '-75' :
-            amount > 0 ? '25' : '-25';
+            ['top', 'bottom'].includes(amount_string) ? amount_string :   
+            parseInt(amount_string) > 3 ? '75' : parseInt(amount_string) < -3 ? '-75' :
+            parseInt(amount_string) > 0 ? '25' : '-25';
       return this.do_scroll(
         stack, 'document_panel', 'vertical', percentage_string);
     }
@@ -2258,7 +2258,7 @@ class InputContext {
     }
   }
 
-  // See AppState.recenter_document()
+  // See App.recenter_document()
   do_recenter_document(stack, screen_percentage_string) {
     const screen_percentage = parseInt(screen_percentage_string);
     this.app_component.recenter_document(screen_percentage);
@@ -2266,27 +2266,34 @@ class InputContext {
     return stack;
   }
 
-  // direction_string:
-  //   'vertical' or 'horizontal' for normal scrolling;
-  //   'top' or 'bottom' to go to the beginning or end (vertically)
-  // percentage_string: fraction of the current popup height (or width) to scroll by
+  // direction_string: 'vertical' or 'horizontal'
+  // percentage_string:
+  //   - 'top' or 'bottom' to go to the beginning or end (vertical only)
+  //   - or: percentage of the current popup height (or width) to scroll by
   do_scroll(stack, panel_name, direction_string, percentage_string) {
     // When the helptext is docked, redirect document scrolling commands
     // to the helptext container instead.
     if(this.settings.dock_helptext && panel_name === 'document_panel')
       panel_name = 'helptext_panel';
+    // TODO: get elements from app_component.*_ref.current
     const panel_elt = document.getElementById(panel_name);
     if(!panel_elt) return;
-    const percentage = parseInt(percentage_string || '50') / 100.0;
-    switch(direction_string) {
-    case 'top': panel_elt.scrollTop = 0; break;
-    case 'bottom': panel_elt.scrollTop = 100000; break;
-    case 'horizontal':
-      panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage);
-      break;
-    case 'vertical':
-      panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
-      break;
+    if(direction_string === 'vertical' &&
+       ['top', 'bottom'].includes(percentage_string)) {
+      if(percentage_string === 'top') panel_elt.scrollTop = 0;
+      else panel_elt.scrollTop = panel_elt.scrollHeight;
+      return stack;
+    }
+    else {
+      const percentage = parseInt(percentage_string || '50') / 100.0;
+      switch(direction_string) {
+      case 'horizontal':
+        panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage);
+        break;
+      case 'vertical':
+        panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
+        break;
+      }
     }
   }
 
