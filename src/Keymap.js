@@ -273,6 +273,7 @@ const keybinding_table = {
     'y': "redo",
     'z': "undo",
     'Enter': "dup",
+    'Tab': "dup",
     'Shift+Enter': "edit_item",
     'Backspace': "pop",
     'Shift+Backspace': "nip",

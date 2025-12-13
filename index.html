@@ -29,7 +29,7 @@
       <p>
         Close the user guide and return to the editor with
         <span class="k">q</span> or <span class="k">Esc</span>.
-        Reopen the user guide at any time with <span class="k">?</span>.
+        Reopen the user guide with <span class="k">?</span>.
       </p>
       <p>
         The editor is divided into two sections: the <em>stack</em> and the <em>document</em>.  The stack is where
@@ -65,7 +65,7 @@
       </p>
       <p>
         Several <a href="#help_examples">examples</a> of how to create different
-        math formulas are available at the end of this User Guide.  You can jump
+        math formulas are available at the end of this user guide.  You can jump
         directly to the examples by pressing <span class="k">x</span>.
       </p>
 
@@ -77,8 +77,7 @@
             Typing <span class="k">?</span> a second time will &quot;dock&quot; the user guide
             into the document section for easier reference.  While docked, the user guide can be
             scrolled with the <span class="k">&uarr;</span> <span class="k">&darr;</span> arrow keys.
-            Typing <span class="k">?</span> a third time will then close the user guide and
-            reveal the document section again.
+            Typing <span class="k">?</span> a third time will reveal the document section again.
           </p>
           <p>
             <strong>NOTE:</strong> While the user guide popup is visible (and not docked),
@@ -400,7 +399,10 @@
         In the descriptions below, N refers to the prefix argument if given, otherwise the default is used.
       </p>
       <ul class="keybindings">
-        <li><span class="k">Enter</span> <em>(Dup)</em> Duplicate the top N items (default 1).</li>
+        <li>
+          <span class="k">Enter</span> or <span class="k">Tab</span>
+          <em>(Dup)</em> Duplicate the top N items (default 1).
+        </li>
         <li><span class="k">a</span> <em>(Sw<strong>a</strong>p)</em>
           Reverse the order of the top N items (default 2).
         </li>
@@ -1145,6 +1147,7 @@
             <td>
               <span class="k">b</span>
               <code>x\enspace y \Rightarrow \displaystyle{\binom{x}{y}}</code>
+              <em>(<strong>b</strong>inomial)</em>
             </td>
             <td>
               <span class="k">g</span>
@@ -1162,7 +1165,7 @@
             </td>
           </tr>
           <tr>
-            <td><span class="k">q</span> <code>\sqrt{x}</code></td>
+            <td><span class="k">q</span> <code>\sqrt{x}</code> <em>(s<strong>q</strong>uare root)</em></td>
             <td><span class="k">Q</span> <code>\sqrt[3]{x}</code></td>
           </tr>
           <tr>
@@ -2806,7 +2809,7 @@
         On macOS, the Command key also functions as an alias to Control.
       </p>
       <p>
-        <strong>NOTE:</strong> Pressing <span class="k">c</span> while the User Guide
+        <strong>NOTE:</strong> Pressing <span class="k">c</span> while the user guide
         popup is open will take you directly to this section.
       </p>
 
@@ -2959,7 +2962,7 @@
       <h2 id="help_examples">Examples</h2>
       <p>
         Key-by-key examples of how to create some different math formulas.
-        You can follow along more easily by docking this User Guide into the document
+        You can follow along more easily by docking this user guide into the document
         area by pressing <span class="k">?</span> again.
       </p>
 
@@ -3108,7 +3111,6 @@
           <code>\Rightarrow f{\left(\boldsymbol{x}\right)}=\frac{1}{\sqrt{{\left(2\pi\right)}^n\det{\boldsymbol{\Sigma}}}}\exp{\left[-\frac{1}{2}{\left(\boldsymbol{x}-\boldsymbol{\mu}\right)}^{\mathrm{T}}{\boldsymbol{\Sigma}}^{-1}\left(\boldsymbol{x}-\boldsymbol{\mu}\right)\right]}</code>
         </li>
       </ul>
-
       <p><!-- small spacer --></p>
     </div> <!-- end #helptext -->
   </body>

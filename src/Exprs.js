@@ -2278,8 +2278,8 @@ class TensorExpr extends Expr {
         }
       }
       // In-place updates, but the sorting above has made shallow copies.
-      upper_exprs.splice(0, upper_exprs.length, ...new_upper_exprs);
-      lower_exprs.splice(0, lower_exprs.length, ...new_lower_exprs);
+      upper_exprs.splice(0, Infinity, ...new_upper_exprs);
+      lower_exprs.splice(0, Infinity, ...new_lower_exprs);
     }
     return new TensorExpr(this.base_expr, new_index_exprs);
   }

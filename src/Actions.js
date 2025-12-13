@@ -2286,14 +2286,10 @@ class InputContext {
     }
     else {
       const percentage = parseInt(percentage_string || '50') / 100.0;
-      switch(direction_string) {
-      case 'horizontal':
-        panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage);
-        break;
-      case 'vertical':
+      if(direction_string === 'vertical')
         panel_elt.scrollTop += Math.round(panel_elt.clientHeight * percentage);
-        break;
-      }
+      else if(direction_string === 'horizontal')
+        panel_elt.scrollLeft += Math.round(panel_elt.clientWidth * percentage);
     }
   }
 
