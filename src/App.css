@@ -467,6 +467,7 @@ div.help h3 {
   border-bottom: 1px solid #ccf;
   display: inline-block;
 }
+#helptext_panel.docked div.help span.only_if_undocked { display: none; }
 div.help p.example { margin-left: 1em; }
 div.help ul.example { list-style-type: none; }
 div.help ul.example li { text-indent: -1.2em; margin-bottom: 0.2em; }

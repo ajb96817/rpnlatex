@@ -293,7 +293,7 @@ class LatexEmitter {
 
   // selected_expr_path is optional, but if provided it is an ExprPath
   // object that indicates which Expr is to be rendered with a "highlight"
-  // indicating that it is currently selected.
+  // showing that it is currently selected.
   constructor(base_expr, selected_expr_path) {
     this.base_expr = base_expr;
     this.tokens = [];
@@ -479,9 +479,13 @@ class AppState {
 }
 
 
+// Stack of prior AppState instances.  Each editor action generates a new AppState
+// (including stack/document contents, etc).  Since Expr/Item instances are never
+// modified in-place, most objects will be aliased between the AppStates in the
+// stack, so this is relatively efficient.
 class UndoStack {
   constructor() {
-    // Stack of saved AppState instances (most recent one at the end).
+    // Most recent AppState is at the end of this stack.
     this.state_stack = [];
     // Maximum size of this.state_stack.
     this.max_stack_depth = 100;

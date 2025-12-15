@@ -43,8 +43,8 @@ class App extends React.Component {
       undo_stack: new UndoStack(),
       clipboard_items: {}
     };
-    this.update_page_title();
     this.state.undo_stack.clear(this.state.app_state);
+    this.update_page_title();
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
   }

@@ -310,6 +310,14 @@ class Expr {
 }
 
 
+// Built-in LaTeX named functions/operators:
+const latex_named_operators = new Set([
+  'arccos', 'cos', 'csc', 'exp', 'ker', 'limsup', 'min', 'sinh',
+  'arcsin', 'cosh', 'deg', 'gcd', 'lg', 'ln', 'Pr', 'sup',
+  'arctan', 'cot', 'det', 'hom', 'lim', 'log', 'sec', 'tan',
+  'arg', 'coth', 'dim', 'inf', 'liminf', 'max', 'sin', 'tanh'
+]);
+
 // Represents a LaTeX command such as \sqrt or \frac{x}{y}.
 class CommandExpr extends Expr {
   static frac(numer_expr, denom_expr) {
@@ -357,6 +365,25 @@ class CommandExpr extends Expr {
   // to the LaTeX math-entry mode as would be done for a normal command like \alpha.
   is_special_latex_command() {
     return !/^[a-zA-Z]/.test(this.command_name);
+  }
+
+  // Something like \sin{x} that represents a named function/operator, as opposed
+  // to a "decoration" like \hat{x}.  This affects autoparenthesization.
+  // Commands like \operatorname{myfunc} (as created with [Tab] in math entry mode)
+  // are also considered named operators.
+  is_named_operator() {
+    // For \operatorname, ignore the argument count, because it can come in
+    // one- or two-argument forms: \operatorname{myfunc}{x} vs
+    // \operatorname{myfunc}.
+    if(this.command_name === 'operatorname')
+      return true;
+    // Trigonometric functions may have a superscript attached directly
+    // to the command_name, as in \sin^{-1} (see do_named_function()).
+    if(this.command_name.indexOf('^') >= 0 ||
+       this.command_name.indexOf('_') >= 0)
+      return true;
+    return this.operand_count() === 1 &&
+      latex_named_operators.has(this.command_name);
   }
 
   emit_latex(emitter) {
@@ -1480,8 +1507,9 @@ class DelimiterExpr extends Expr {
        expr.inner_expr.is_infix_expr()) ||
       // \frac{x}{y}
       expr.is_command_expr_with(2, 'frac') ||
-      // \sin{x}, \ln{x}, etc., but not \sin({x})
-      (expr.is_command_expr_with(1) &&
+      // \sin{x}, \ln{x}, etc., but not \sin({x}),
+      // and also not things like \hat{x}
+      (expr.is_command_expr() && expr.is_named_operator() &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
       // FontExpr(x) where x itself should be parenthesized.
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
@@ -1518,8 +1546,7 @@ class DelimiterExpr extends Expr {
        expr.inner_expr.is_infix_expr()) ||
       // \frac{x}{y}
       expr.is_command_expr_with(2, 'frac') ||
-      // \sin{x}, \ln{x}, etc., but not \sin({x})
-      (expr.is_command_expr_with(1) &&
+      (expr.is_command_expr() && expr.is_named_operator() &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
       // FontExpr(x) where x itself should be parenthesized.
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
