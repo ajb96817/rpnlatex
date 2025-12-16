@@ -17,6 +17,9 @@ import {
 import {
   AlgebriteInterface, double_to_expr
 } from './CAS';
+import {
+  loadPyodide
+} from 'pyodide';
 
 
 // This acts as a sort of extension to the main App component.
@@ -267,7 +270,12 @@ class InputContext {
   do_redo() { this.perform_undo_or_redo = 'redo'; }
 
   // Hook for [$][~] debugging command.
-  do_debug(/*stack*/) {}
+  do_debug(stack) {
+    loadPyodide().then(p => {
+      alert(p.runPython('123+456'));
+    });
+    return stack;
+  }
 
   do_subscript(stack, autoparenthesize) {
     return this._build_subscript_superscript(stack, true, autoparenthesize);
