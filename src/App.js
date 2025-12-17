@@ -804,6 +804,16 @@ class ItemComponent extends React.Component {
       else return $e(
         'div', {className: 'item', ref: item_ref},
         'Unknown code language: ' + item.language);
+    case 'sympy':
+      this.katex_ref = React.createRef();  // KaTeX rendering target node
+      return $e(
+        'div', {className: 'item sympy_item', ref: item_ref},
+        tag_element,
+        $e('div', {className: 'sympy_command_info'},
+           $e('span', {className: 'sympy_operation_label'}, item.operation_label),
+           $e('span', {}, ': '),
+           $e('span', {className: 'sympy_status'}, item.status.state)),
+        $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''));
     default:
       return $e(
         'div', {className: 'item', ref: item_ref},
@@ -833,6 +843,14 @@ class ItemComponent extends React.Component {
         katex_target_node,
         false,
         false);
+    }
+    else if(item.is_sympy_item()) {
+      const displayed_expr = item.result_expr || item.arg_exprs[0];
+      this._render_with_katex(
+        displayed_expr.latex_string,
+        katex_target_node,
+        !this.props.inline_math,
+        this.props.centered);
     }
   }
 

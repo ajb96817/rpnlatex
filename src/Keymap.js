@@ -113,6 +113,7 @@ const keybinding_table = {
     '~': "mode tensor",
     '_': "start_dissect_mode",
     '#': "mode algebrite",
+    //'#': "mode symbolic",
     '$': "mode config",
     '?': "toggle_popup help",
 
@@ -1178,14 +1179,15 @@ const keybinding_table = {
   // SymPy - work in progress
   symbolic: {
     'i': "sympy initialize",
+    '#': "sympify",  // convert to SymPyExpr, but don't run any extra command
     'x': "sympy shutdown",
-    's': "sympy simplify"
+    'e': "sympy expand",
+    'd': "sympy debug"
   },
 
   // [#] prefix: symbolic algebra mode
   algebrite: {
     '#': "algebrite bothsides eval",
-    '!': "mode symbolic",  // temporary hook
     '/': "rationalize",  // not part of Algebrite
     '=': "algebrite bothsides float",
     '*': "algebrite default conj",

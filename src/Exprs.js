@@ -156,6 +156,7 @@ class Expr {
   is_subscriptsuperscript_expr() { return this.expr_type() === 'subscriptsuperscript'; }
   is_array_expr() { return this.expr_type() === 'array'; }
   is_tensor_expr() { return this.expr_type() === 'tensor'; }
+  is_sympy_expr() { return this.expr_type() === 'sympy'; }
   is_matrix_expr() { return this.is_array_expr() && this.is_matrix(); }
   is_text_expr_with(text) { return this.is_text_expr() && this.text === text; }
   is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
@@ -2434,10 +2435,30 @@ class TensorExpr extends Expr {
 }
 
 
+class SymPyExpr extends Expr {
+  constructor(srepr_string, latex_string) {
+    super();
+    this.srepr_string = srepr_string;
+    this.latex_string = latex_string;
+  }
+
+  expr_type() { return 'sympy'; }
+
+  emit_latex(emitter) {
+    emitter.text(this.latex_string);
+  }
+
+  matches(expr) {
+    return super.matches(expr) &&
+      this.srepr_string === expr.srepr_string;
+  }
+}
+
+
 export {
   Expr, CommandExpr, FontExpr, InfixExpr,
   PrefixExpr, PostfixExpr, FunctionCallExpr,
   PlaceholderExpr, TextExpr, SequenceExpr,
   DelimiterExpr, SubscriptSuperscriptExpr,
-  ArrayExpr, TensorExpr
+  ArrayExpr, TensorExpr, SymPyExpr
 };

@@ -97,6 +97,7 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
   background-color: #ccf;
   padding: 0.25em 1em;
   font-family: monospace;
+  z-index: 3;
 }
 
 /* These elements float on the top-right of the stack panel: */
@@ -257,6 +258,9 @@ div.latex_fragment {
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
+div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
+
+div.sympy_item span.sympy_operation_label { font-weight: bold; }
 
 /* Highlight the stack item(s) that are the "target" for a stack (Tab)
    or array (|) command with an active prefix argument. */
@@ -264,6 +268,7 @@ div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
 div.separator_item.highlighted { border-left-color: #66d; }
 div.latex_source_item.highlighted { border-left-color: #484; }
+div.sympy_item.highlighted { border-left-color: #96c; }
 div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833; }
 
 /* Override item type indicator bar if it contains a KaTeX error. */

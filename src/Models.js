@@ -10,7 +10,8 @@ import {
 import {
   Expr, TextExpr, CommandExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, InfixExpr, PrefixExpr, PostfixExpr,
-  FontExpr, PlaceholderExpr, FunctionCallExpr, ArrayExpr, TensorExpr
+  FontExpr, PlaceholderExpr, FunctionCallExpr, ArrayExpr,
+  TensorExpr, SymPyExpr
 } from './Exprs.js';
 import {
   AlgebriteInterface, double_to_expr
@@ -1158,14 +1159,13 @@ class RationalizeToExpr {
 }
 
 
+// Serial number generator for Items; used for React collection keys.
+// Each entry in a React component list is supposed to have a unique ID.
+let serial_number = 1;
+
 // Represents an entry in the stack or document.
 class Item {
-  // Used for React collection keys.  Each entry in a React component list is
-  // supposed to have a unique ID.
-  // NOTE: iOS Safari doesn't seem to like static variables like this?
-  // As a workaround, this will be initialized after the class definition instead.
-  //static serial_number = 1;
-  static next_serial() { return Item.serial_number++; }
+  static next_serial() { return serial_number++; }
 
   // 'tag_string' is an optional tag shown to the right of the item.
   // 'source_string' is the original "source code" string for items
@@ -1183,16 +1183,17 @@ class Item {
 
   is_expr_item() { return this.item_type() === 'expr'; }
   is_text_item() { return this.item_type() === 'text'; }
+  is_sympy_item() { return this.item_type() === 'sympy'; }
 
   // Return a new Item of the same type and contents (shallow copy) but with a new serial_number.
   // This is mainly needed for React, which needs a distinct React key for each item in
   // a list (like the list of stack items).  Things like 'dup' that can duplicate items
   // need to make sure to use clone() so that every Item in the stack/document is distinct.
-  clone() { return null; }
+  clone() {
+    // Reuse/abuse with_tag to make the copy.
+    return this.with_tag(this.tag_string);
+  }
 }
-
-// iOS Safari workaround
-Item.serial_number = 1;
 
 
 // Represents a math expression (Expr instance) in the stack or document.
@@ -1200,7 +1201,7 @@ class ExprItem extends Item {
   // 'selected_expr_path' is an optional ExprPath object; the indicated
   // subexpression(s) will be highlighted in a "selected" style by the
   // renderer (used for dissect mode).
-  constructor(expr, tag_string, source_string, selected_expr_path) {
+  constructor(expr, tag_string, source_string, selected_expr_path = null) {
     super(tag_string, source_string);
     this.expr = expr;
     this.selected_expr_path = selected_expr_path;
@@ -1217,16 +1218,18 @@ class ExprItem extends Item {
       return rendered_latex;
   }
 
+  with_tag(new_tag_string) {
+    return new ExprItem(this.expr, new_tag_string, this.source_string);
+  }
+
   clone() {
-    return new ExprItem(this.expr, this.tag_string, this.source_string);
+    // Reuse with_tag to make the copy.
+    // Note that selected_expr_path is discarded.
+    return this.with_tag(this.tag_string);
   }
 
   as_bold() {
     return new ExprItem(this.expr.as_bold(), this.tag_string, this.source_string);
-  }
-  
-  with_tag(new_tag_string) {
-    return new ExprItem(this.expr, new_tag_string, this.source_string);
   }
 }
 
@@ -1560,12 +1563,17 @@ class TextItem extends Item {
         element => element.to_latex(export_mode)).join('');
   }
 
-  clone() {
+  with_tag(new_tag_string) {
     return new TextItem(
       this.elements,
-      this.tag_string,
+      new_tag_string,
       this.source_string,
       this.is_heading);
+  }
+
+  clone() {
+    // Reuse with_tag to make the copy.
+    return this.with_tag(this.tag_string);
   }
 
   // Return a clone of this with all elements bolded.
@@ -1573,14 +1581,6 @@ class TextItem extends Item {
     return new TextItem(
       this.elements.map(element => element.as_bold()),
       this.tag_string,
-      this.source_string,
-      this.is_heading);
-  }
-
-  with_tag(new_tag_string) {
-    return new TextItem(
-      this.elements,
-      new_tag_string,
       this.source_string,
       this.is_heading);
   }
@@ -1628,6 +1628,51 @@ class CodeItem extends Item {
   clone() { return new CodeItem(this.language, this.source); }
 
   as_bold() { return this.clone(); }
+}
+
+
+// Represents an in-progress SymPy command being executed against one or more
+// SymPyExpr arguments.  If the command completes successfully, this item will
+// be replaced with an ordinary ExprItem wrapping the result SymPyExpr.
+// NOTE: Some fields of Item are updated in-place as things change
+// (i.e. when execution starts/stops, errors occur, or the result is finished).
+class SymPyItem extends Item {
+  // status: {
+  //   state: 'complete', 'running', 'cancelled', 'error'
+  //   command_id: unique integer for this command; shared between cloned items
+  //   error_message: string (if state==='error')
+  //   error_arg_index: which Expr in arg_exprs caused the error
+  //   error_expr_path: points to the subexpression that caused the error
+  //   start_time: timestamp (float) when command execution started or null
+  //   stop_time: timestamp the command finished/errored/was cancelled
+  // }
+  // function_name: SymPy function name being applied, or null if none; this is the full "path" with module name if needed
+  // operation_label: User-visible label of the operation performed (null if none); generally matches the function_name (without the module path) but doesn't have to
+  //   (in this case arg_exprs will be a single-element [SymPyExpr] array)
+  // result_expr: SymPyExpr with the result, non-null if status === 'complete'
+  // tag_string: tag as in TextItem/ExprItem
+  constructor(status, function_name, operation_label, arg_exprs, result_expr, tag_string) {
+    super(tag_string, null /* no source_string for SymPyItems */);
+    this.status = status;
+    this.function_name = function_name;
+    this.operation_label = operation_label;
+    this.arg_exprs = arg_exprs;
+    this.result_expr = result_expr;
+  }
+
+  item_type() { return 'sympy'; }
+
+  clone() {
+    // Reuse with_tag to make the copy.
+    // (Subclasses without tags need to reimplement this.)
+    return this.with_tag(this.tag_string);
+  }
+
+  with_tag(new_tag_string) {
+    return new SymPyItem(
+      this.status, this.function_name, this.operation_label,
+      this.args_expr, this.result_expr, new_tag_string);
+  }
 }
 
 
@@ -1875,6 +1920,7 @@ class MsgpackEncoder {
     case 'expr': return this.pack_expr_item(item);
     case 'text': return this.pack_text_item(item);
     case 'code': return this.pack_code_item(item);
+    case 'sympy': return this.pack_sympy_item(item);
     default:
       throw new Error("Unknown Item type in MsgpackEncoder: " + item.item_type());
     }
@@ -1891,6 +1937,33 @@ class MsgpackEncoder {
   }
   pack_code_item(item) {
     return [3, item.language, item.source];
+  }
+  pack_sympy_item(item) {
+    // NOTE: Items with in-progress evaluation will be saved in 'cancelled' state
+    // (they can be re-run after loading the saved file).
+    let saved_status = {...item.status};
+    if(saved_status.state === 'running') {
+      saved_status.state = 'cancelled';
+      saved_status.stop_time = Date.now();
+    }
+    saved_status.command_id = null;
+    // Convert error_expr_path to a plain array for serialization.
+    if(saved_status.error_expr_path) {
+      saved_status.error_expr_path_indexes =
+        saved_status.error_expr_path.subexpr_indexes
+      saved_status.error_expr_path = null;
+    }
+    // The item is serialized as a hash for future flexibility if the
+    // fields need to change.
+    const saved_properties = {
+      status: saved_status,
+      function_name: item.function_name,
+      operation_label: item.operation_label,
+      arg_exprs: item.arg_exprs,
+      result_expr: item.result_expr,
+      tag_string: item.tag_string
+    };
+    return [4, saved_properties];
   }
 
   // TextItemElement subclasses:
@@ -1932,6 +2005,7 @@ class MsgpackEncoder {
     case 'function_call': return this.pack_function_call_expr(expr);
     case 'array': return this.pack_array_expr(expr);
     case 'tensor': return this.pack_tensor_expr(expr);
+    case 'sympy': return this.pack_sympy_expr(expr);
     default:
       throw new Error("Unknown Expr type in MsgpackEncoder: " + expr.expr_type());
     }
@@ -2008,6 +2082,9 @@ class MsgpackEncoder {
       expr.index_exprs[position_name].map(index_expr =>
         this.maybe_pack_expr(index_expr))));
   }
+  pack_sympy_expr(expr) {
+    return [14, expr.srepr_string, expr.latex_string];
+  }
 }
 
 
@@ -2058,6 +2135,7 @@ class MsgpackDecoder {
     case 1: return this.unpack_expr_item(item_state);
     case 2: return this.unpack_text_item(item_state);
     case 3: return this.unpack_code_item(item_state);
+    case 4: return this.unpack_sympy_item(item_state);
     default: this.error("Unknown Item typecode in MsgpackDecoder: " + type_code);
     }
   }
@@ -2070,9 +2148,6 @@ class MsgpackDecoder {
     return new TextItem(
       element_states.map(element_state => this.unpack_text_item_element(element_state)),
       tag_string, source_string, is_heading);
-  }
-  unpack_code_item([language, source]) {
-    return new CodeItem(language, source);
   }
   unpack_text_item_element([type_code, ...element_state]) {
     switch(type_code) {
@@ -2091,6 +2166,26 @@ class MsgpackDecoder {
   unpack_text_item_raw_element([string]) {
     return new TextItemRawElement(string);
   }
+  unpack_code_item([language, source]) {
+    return new CodeItem(language, source);
+  }
+  unpack_sympy_item([props]) {
+    let status = {...props.status};
+    // Reconstitute the error_expr_path if present.
+    const arg_exprs = props.arg_exprs.map(
+      expr_state => this.unpack_expr(expr_state));
+    if(status.error_expr_path_indexes) {
+      status.error_expr_path = new ExprPath(
+        arg_exprs[status.error_arg_index],
+        status.error_expr_path_indexes);
+      delete status.error_expr_path_indexes;
+    }
+    return new SymPyItem(
+      props.status,
+      props.function_name, props.operation_label,
+      arg_exprs, this.maybe_unpack_expr(props.result_expr),
+      props.tag_string);
+  }
 
   unpack_expr(array) {
     const [typecode, ...state] = array;
@@ -2108,6 +2203,7 @@ class MsgpackDecoder {
     case 11: return this.unpack_function_call_expr(state);
     case 12: return this.unpack_array_expr(state);
     case 13: return this.unpack_tensor_expr(state);
+    case 14: return this.unpack_sympy_expr(state);
     default: this.error("Unknown Expr typecode in MsgpackDecoder: " + typecode);
     }
   }
@@ -2190,6 +2286,9 @@ class MsgpackDecoder {
       this.unpack_expr(base_expr_state),
       index_exprs, options);
   }
+  unpack_sympy_expr([srepr_string, latex_string]) {
+    return new SymPyExpr(srepr_string, latex_string);
+  }
 }
 
 
@@ -2197,7 +2296,7 @@ export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
   UndoStack, FileManager,
   ExprPath, RationalizeToExpr, Item, ExprItem,
-  TextItem, CodeItem, Stack, Document,
+  TextItem, CodeItem, SymPyItem, Stack, Document,
   MsgpackEncoder, MsgpackDecoder
 };
 
