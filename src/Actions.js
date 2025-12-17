@@ -17,9 +17,6 @@ import {
 import {
   AlgebriteInterface, double_to_expr
 } from './CAS';
-import {
-  loadPyodide
-} from 'pyodide';
 
 
 // This acts as a sort of extension to the main App component.
@@ -271,9 +268,6 @@ class InputContext {
 
   // Hook for [$][~] debugging command.
   do_debug(stack) {
-    loadPyodide().then(p => {
-      alert(p.runPython('123+456'));
-    });
     return stack;
   }
 
@@ -308,6 +302,20 @@ class InputContext {
     else
       return new_stack.push_expr(
         base_expr.with_prime(this.settings.autoparenthesize));
+  }
+
+  do_sympy(stack, operation) {
+    const pyodide = this.app_component.state.pyodide_interface;
+    switch(operation) {
+    case 'initialize':
+      if(pyodide.state === 'uninitialized')
+        pyodide.initialize();
+      break;
+    case 'shutdown':
+      pyodide.shutdown();
+      break;
+    }
+    return stack;
   }
 
   // function_name:

@@ -22,7 +22,7 @@ class Keymap {
       const command = this.lookup_binding(
         mode_map['[delegate]'], key, true);
       if(command) return command;
-      // (try [default] if not found in the delegate keymap)
+      // (fall through and try [default] if not found in the delegate keymap)
     }
     if(mode_map['[default]'])
       return mode_map['[default]'];
@@ -36,7 +36,7 @@ class Keymap {
 
 // All editor keybindings are in here.  This table maps each editor mode to a
 // set of keyname->command bindings.  The 'commands' are in a simple macro language
-// of one or more action names separated by semicolons.  Each action invokes one
+// of one or more action strings separated by semicolons.  Each action invokes one
 // of the do_* methods of InputContext.  The actions can have extra arguments which
 // are passed as strings to these methods.
 //
@@ -806,18 +806,18 @@ const keybinding_table = {
     'V': "infix \\veebar",
     'w': "infix \\wedge",
     'W': "infix \\barwedge",
-    'x': "infix \\times",
+    'x': "autoparenthesize 2;infix \\times",
     'X': "infix \\otimes",
     '=': "infix \\Rightarrow",
     '+': "infix \\Longrightarrow",
     '-': "infix \\ominus",
-    '.': "infix \\cdot",
+    '.': "autoparenthesize 2;infix \\cdot",
     ',': "infix ,",
     '(': "infix ,;delimiters ( )",  // (x,y)
     '>': "infix \\cdots",
     '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
-    '*': "infix *",
-    '^': "infix \\star",
+    '*': "autoparenthesize 2;infix *",
+    '^': "autoparenthesize 2;infix \\star",
     ':': "infix \\colon",
     ';': "infix semicolon",
     '`': "swap;autoparenthesize;push T;typeface roman;superscript false;swap;concat",  // xTy
@@ -1175,9 +1175,17 @@ const keybinding_table = {
     'T': "dissect_copy_selection trim"
   },
 
+  // SymPy - work in progress
+  symbolic: {
+    'i': "sympy initialize",
+    'x': "sympy shutdown",
+    's': "sympy simplify"
+  },
+
   // [#] prefix: symbolic algebra mode
   algebrite: {
     '#': "algebrite bothsides eval",
+    '!': "mode symbolic",  // temporary hook
     '/': "rationalize",  // not part of Algebrite
     '=': "algebrite bothsides float",
     '*': "algebrite default conj",

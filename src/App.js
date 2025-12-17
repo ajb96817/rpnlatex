@@ -11,6 +11,9 @@ import {
 import {
   InputContext
 } from './Actions';
+import {
+  PyodideInterface
+} from './SymPy';
 
 
 const $e = React.createElement;
@@ -41,7 +44,8 @@ class App extends React.Component {
       file_manager: file_manager,
       input_context: new InputContext(this, settings),
       undo_stack: new UndoStack(),
-      clipboard_items: {}
+      clipboard_items: {},
+      pyodide_interface: new PyodideInterface()
     };
     this.state.undo_stack.clear(this.state.app_state);
     this.update_page_title();
@@ -136,10 +140,12 @@ class App extends React.Component {
   }
 
   render() {
-    const app_state = this.state.app_state;
+    const {
+      app_state,
+      settings,
+      input_context,
+      pyodide_interface } = this.state;
     const stack = app_state.stack;
-    const settings = this.state.settings;
-    const input_context = this.state.input_context;
     let stack_panel_components = [];
     // TODO: floating item and mode indicator could go inside StackItemsComponent instead
     if(stack.floating_item) {
@@ -159,6 +165,10 @@ class App extends React.Component {
             key: stack.floating_item.react_key(0)
           })]));
     }
+    stack_panel_components.push(
+      $e(PyodideStatusComponent, {
+        pyodide_interface: pyodide_interface
+      }));
     stack_panel_components.push(
       $e(IndicatorsComponent, {
         input_context: input_context,
@@ -288,6 +298,41 @@ class App extends React.Component {
       undo_stack.push_state(new_app_state);
       return new_app_state;
     }
+  }
+}
+
+
+class PyodideStatusComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {status_text: this.props.pyodide_interface.state};
+  }
+
+  render() {
+    const pyodide = this.props.pyodide_interface;
+    const status_text = this.state.status_text;
+    if(status_text === 'uninitialized')
+      return null;
+    return $e(
+      'div', {className: 'pyodide_status'},
+      $e('span', {style: {fontWeight: 'bold'}},
+         'pyodide'),
+      $e('span', {}, ' '),
+      (pyodide && pyodide.version()) ?
+       $e('span', {}, 'v'+pyodide.version()) : null,
+      $e('span', {}, ' '),
+      $e('span', {}, status_text));
+  }
+
+  componentDidMount() {
+    const on_state_change = (pyodide, new_state) => {
+      this.setState({status_text: new_state});
+    };
+    this.props.pyodide_interface.onStateChange = on_state_change.bind(this);
+  }
+
+  componentWillUnmount() {
+    this.props.pyodide_interface.onStateChange = null;
   }
 }
 
