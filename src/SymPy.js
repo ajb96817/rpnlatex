@@ -242,8 +242,9 @@ class PyodideInterface {
       code: command_code
     };
     this.post_worker_message(message);
-    
-    // setTimeout
+    window.setTimeout(() => {
+      this.app_component.update_long_running_sympy_items()
+    }, SymPyItem.long_running_computation_threshold());
   }
 
   command_finished(command_id, result) {
@@ -254,6 +255,7 @@ class PyodideInterface {
   }
 
   generate_command_code(function_name, arg_exprs) {
+    const insert_artificial_delay = true;
     // Generate builder functions, one per argument expression.
     const builder_function_name = (index) => 'build_expr_' + index.toString();
     const builder_function_codes = arg_exprs
@@ -264,6 +266,8 @@ class PyodideInterface {
     // Generate a function to build all the argument expressions and
     // execute the requested command.
     let lines = [];
+    if(insert_artificial_delay)
+      lines.push('import time');
     lines.push('def execute_command():');
     lines.push(...arg_exprs.map((arg_expr, arg_index) =>
       ['  arg_', arg_index.toString(),
@@ -277,6 +281,8 @@ class PyodideInterface {
       function_name, '(', args_string, ')'].join(''));
     // Convert the result expression into srepr/latex format
     // and return a dict structure.
+    if(insert_artificial_delay)
+      lines.push('  time.sleep(2)');
     lines.push(
       "  result_srepr = srepr(result)",
       "  result_latex = latex(result)",

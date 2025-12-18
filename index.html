@@ -52,8 +52,9 @@
         these first few items.
       </p>
       <p>
-        Note that items on the stack have a small colored bar shown to the left of them.  This indicates the item's
-        size as well as its &quot;type&quot;: usually a symbolic expression (grey) or a piece of text (blue).
+        Note that items on the stack have a small colored <em>type indicator bar</em>
+        shown to the left of them.  This indicates the item's size as well as its &quot;type&quot;:
+        usually a symbolic expression (grey) or a piece of text (blue).
       </p>
       <p>
         This editor is designed to be operated entirely from the keyboard.  Most operations are performed using
@@ -2244,342 +2245,121 @@
       </h2>
       <p>
         These commands perform symbolic algebra and calculus operations on expressions
-        using the <a href="https://github.com/davidedc/Algebrite">Algebrite</a> library.
+        using the Python <a href="https://www.sympy.org/">SymPy</a> library, powered by
+        <a href="https://pyodide.org/">Pyodide</a>.  Pyodide runs a full Python interpreter
+        directly in your browser via <a href="https://webassembly.org/">WebAssembly</a>.
       </p>
       <p>
-        Most of these commands come in two varieties: lowercase letters try to guess
-        the appropriate variable to use in the operation (for example,
-        <code>\displaystyle{y^2 - 1}</code> uses <code>y</code>), while uppercase
-        letters require the variable to be specified explicitly.
+        The first time you use one of these commands in a session, the full Python environment
+        will be initialized, so it may take a few seconds to get a result.  After that, operations
+        should run at full speed.  These operations may potentially be time-consuming, so they
+        are run in a background thread and results are displayed as they become available.
+        Long-running computations may be cancelled via <span class="k">#</span><span class="k">x</span>
+        as long as (for technical reasons) the proper <a href="#">security measures</a> have been taken.
       </p>
       <p>
-        <strong>NOTE:</strong> Algebrite is a relatively simple and lightweight computer
-        algebra system, so not everything can be expected to work.
-        It's also easy to perform operations that are too large or
-        time-consuming, such as expanding <code>(x+1)^{10000}</code>, and the Algebrite
-        library itself has some bugs, so be careful using these commands and make sure to
-        save your work.  There is no way to interrupt a long-running computation other
-        than closing the browser tab itself.
+        Performing these symbolic operations comes with some caveats:
       </p>
-
-      <p><strong>Algebra:</strong></p>
+      <ul>
+        <li>
+          Expressions must be translated into a form acceptable by SymPy,
+          and unfortunately traditional math notation can be ambiguous.
+          This editor makes a best-effort at translating expressions into
+          something SymPy can understand, but if that process fails an error
+          will be signaled.
+        </li>
+        <li style="margin-top: 0.5em;">
+          Conversely, the output from SymPy must be translated into math
+          expressions usable by the editor.  SymPy can perform its own
+          translation, but that comes with a loss of symbolic structure.
+          The output of these symbolic commands cannot be edited with
+          <a href="#help_dissect">dissect mode</a> or destructured with
+          commands such as <span class="k">/</span><span class="k">z</span>
+          <em>(dissolve)</em>.  They can still be combined with other expressions
+          as usual, though.  This loss of structure is indicated by a light purple
+          <em>type indicator bar</em> to the left of the item.
+        </li>
+      </ul>
+      <p>
+        SymPy has many different commands available, and for conciseness
+        only the general form of the commands is given here.  Please see
+        the <a href="https://docs.sympy.org/">SymPy documentation</a>
+        for full details.
+      </p>
+      <p><strong>Algebraic Commands:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="k">#</span>
-          &quot;Run&quot; an expression through Algebrite, evaluating any indicated
-          operations like <code>5^2</code> and performing default simplifications
-          such as combining like terms.
-        </li>
-        <li>
-          <span class="k">x</span> and <span class="k">X</span>
-          E<strong>x</strong>pand a polynomial or rational function, rewriting with partial fractions if possible:
-          <code>\displaystyle{
-            \frac{{\left(x+3\right)}^2}{\left(x+1\right)\left(x+2\right)}
-            \Rightarrow 1+\frac{4}{x+1}-\frac{1}{x+2}}
-          </code>
-        </li>
-        <li>
-          <span class="k">f</span> and <span class="k">F</span>
-          Factor a polynomial over the integers:
-          <code>\displaystyle{
-            x^3-1 \Rightarrow \left(x-1\right)\left(x^2+x+1\right)}
-          </code>.
-          Applied to a literal integer, factor into primes instead:
-          <code>123456 \Rightarrow 2^6\cdot 3\cdot 643</code>
-        </li>
-        <li>
-          <span class="k">c</span> and <span class="k">C</span>
-          Complete the square in an expression by rewriting in a way that eliminates
-          the term linear in a variable:
-          <code>2x^2-3x+1 \Rightarrow
-            2{\left(x-\frac{3}{4}\right)}^2-\frac{1}{8}
-          </code>.
-          Any extra terms like <code>x^3</code> or <code>\sin x</code> are left alone.
-        </li>
-        <li>
-          <span class="k">r</span>
-          Rationalize an expression by putting everything over a common denominator:
-          <code>\displaystyle{
-            \frac{1}{x+1}+\frac{1}{x-1}\Rightarrow\frac{2x}{\left(x-1\right)\left(x+1\right)}}
-          </code>
-        </li>
-        <li>
           <span class="k">s</span>
-          Attempt to rewrite an expression in a <strong>s</strong>impler form:
-          <code>\displaystyle{
-            \frac{\left(x+2\right)!}{x!} \Rightarrow
-            \left(x+1\right)\left(x+2\right)}
-          </code>
-        </li>
-        <li>
-          <span class="k">w</span> and <span class="k">W</span>
-          <em>(<strong>w</strong>here)</em>
-          Substitute a value for a variable in an expression:
-          <span class="k">w</span>
-          <code>x^2\enspace 10 \Rightarrow 100</code>
-          or <span class="k">W</span>
-          <code>x+y\enspace y\enspace 10 \Rightarrow x+10</code>.
-          Note that with <span class="k">W</span>, the &quot;variable&quot;
-          can be any arbitrary expression:
-          <code>3\mathrm{e}^x\enspace \mathrm{e}^x\enspace y\Rightarrow 3y</code>.
+          <code>x\Rightarrow \mathtt{simplify(x)}</code>
         </li>
         <li>
           <span class="k">e</span>
-          Rewrite trigonometric functions using <strong>e</strong>xponentials:
-          <code>\displaystyle{
-            \sin{x} \Rightarrow \frac{i{\mathrm e}^{-2ix}}{2}-\frac{i{\mathrm e}^{2ix}}{2}}
-          </code>
+          <code>x\Rightarrow \mathtt{expand(x)}</code>:
+          <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
         </li>
         <li>
-          <span class="k">P</span> and <span class="k">R</span>
-          Rewrite a complex value in <span class="k">P</span> polar
-          or <span class="k">R</span> rectangular form:
-          <code>
-            \displaystyle{
-              {\mathrm e}^{i\pi/3} \Leftrightarrow \frac{1}{2}+\frac{i\sqrt{3}}{2}}
-          </code>
+          <span class="k">f</span>
+          <code>x\Rightarrow \mathtt{factor(x)}</code>:
+          <code>x^2-2x+1 \Rightarrow (x-1)^2</code>
         </li>
         <li>
-          <span class="k">*</span>
-          Complex conjugation:
-          <code>\displaystyle{
-            {\mathrm e}^{2ix}\Rightarrow{\mathrm e}^{-2ix}}
-          </code>
+          <span class="k">k</span>
+          <code>x\Rightarrow \mathtt{cancel(x)}</code>
         </li>
         <li>
-          <span class="k">z</span> and <span class="k">Z</span>
-          Find the (real or complex) exact roots of a polynomial if possible.
-          Multiple roots are displayed as a list:
-          <code>
-            x^2+2 \Rightarrow
-            \begin{aligned}
-            x_1 & {}=-i\sqrt{2}\\
-            x_2 & {}=i\sqrt{2}
-            \end{aligned}
-          </code>
+          <span class="k">a</span>
+          <code>x\Rightarrow \mathtt{apart(x)}</code>
         </li>
         <li>
-          <span class="k">m</span>
-          <code>f\enspace a\enspace b \Rightarrow \displaystyle{\sum_{x=a}^b f{(x)}}</code>
-          or
-          <span class="k">M</span>
-          <code>f\enspace x\enspace a\enspace b \Rightarrow \displaystyle{\sum_{x=a}^b f{(x)}}</code>:
-          Su<strong>m</strong> <code>f{(x)}</code> for values of the variable
-          ranging from <code>a</code> to <code>b</code>;
-          <code>a</code> and <code>b</code> must be finite integers.
+          <span class="k">l</span>
+          <code>x\Rightarrow \mathtt{logcombine(x)}</code>
         </li>
         <li>
-          <span class="k">o</span>
-          <code>f\enspace a\enspace b \Rightarrow \displaystyle{\prod_{x=a}^b f{(x)}}</code>
-          or
-          <span class="k">O</span>
-          <code>f\enspace x\enspace a\enspace b \Rightarrow \displaystyle{\prod_{x=a}^b f{(x)}}</code>:
-          Pr<strong>o</strong>duct of <code>f{(x)}</code> values.
-        </li>
-      </ul>
-      
-      <p><strong>Calculus:</strong></p>
-      <ul class="keybindings">
-        <li>
-          <span class="k">d</span> and <span class="k">D</span>
-          Differentiate an expression:
-          <code>\displaystyle{x^2\sin{x} \Rightarrow 2x\sin{x}+x^2\cos{x}}</code>.
-          Generic functions like <code>f{(x)}</code> can also be handled
-          and are shown with &quot;prime&quot; notation:
-          <code>\displaystyle{
-            xf{\left(x\right)}
-            \Rightarrow f{\left(x\right)}+xf^{\prime}{\left(x\right)}}
-          </code>
+          <span class="k">L</span>
+          <code>x\Rightarrow \mathtt{expand\_log(x)}</code>
         </li>
         <li>
-          <span class="k">i</span> and <span class="k">I</span>
-          Attempt to calculate the indefinite integral of an expression:
-          <code>\displaystyle{
-            2\sin{x}\cos{x} \Rightarrow {\left(\sin{x}\right)}^2}
-          </code>
+          <span class="k">c</span>
+          <code>x\Rightarrow \mathtt{cancel(x)}</code>
+          <em>(variable is guessed)</em>
         </li>
         <li>
-          <span class="k">j</span>
-          <code>f\enspace a\enspace b \Rightarrow \int_a^b f{(x)}\,dx</code>:
-          Attempt to calculate a definite integral.
-          The integration bounds can be symbolic expressions or rational numbers.
-          Currently, numerical integration (quadrature) is not supported,
-          and the integration bounds must be finite.  Example:
-          <code>\displaystyle{
-            \tan x \enspace 0 \enspace \pi/3 \Rightarrow \ln 2}
-          </code>
-        </li>
-        <li>
-          <span class="k">J</span>
-          <code>f\enspace z\enspace a\enspace b \Rightarrow \int_a^b f{(z)}\,dz</code>:
-          Specify the integration variable explicitly.
-        </li>
-        <li>
-          <span class="k">t</span> and <span class="k">T</span>
-          Expand a function in Taylor series.  Lowercase <span class="k">t</span>
-          performs a default expansion about <code>x=0</code> to order 7:
-          <code>\displaystyle{
-              \sin{2x} \Rightarrow -\frac{8x^7}{315}+\frac{4x^5}{15}-\frac{4x^3}{3}+2x}
-          </code>.  Uppercase <span class="k">T</span>
-          takes 4 arguments on the stack:
-          <code>f\enspace x\enspace a\enspace n</code> and calculates the expansion
-          about <code>f(x=a)</code> to order <code>n</code>.
+          <span class="k">C</span>
+          <code>x\enspace y\Rightarrow \mathtt{cancel(x,y)}</code>
+          <em>(variable specified)</em>
         </li>
       </ul>
 
-      <p><strong>Linear Algebra:</strong></p>
+      <p><strong>Expression Evaluation:</strong></p>
       <p>
-        These operations are performed by applying the usual
-        math syntax to matrices or vectors created with the
-        <span class="k">|</span> commands.
-        Evaluating the expression with
         <span class="k">#</span><span class="k">#</span>
-        will then execute the matrix or vector operation(s).
+        performs general <em>expression evaluation</em>.
+        Arithmetic expressions such as <code>1+2 = 3</code>
+        and <code>\sqrt{16}=4</code> will be evaluated, default simplifications
+        performed (such as combining like terms) and also a variety of math notation
+        will be interpreted:
       </p>
+      <ul>
+        <li>Indefinite integrals: <code>\int x^2\,dx \Rightarrow x^3/3</code></li>
+        <li>Definite integrals: <code>\int_0^{\pi/3} \tan{x}\,dx \Rightarrow \ln{2}</code></li>
+        <li>Differentiation: <code>\frac{d}{dx} \sin{\omega x} \Rightarrow \omega\cos{\omega x}</code></li>
+        <li>Summation:</li>
+        <li>Products:</li>
+        <li>Limits:</li>
+        <li>Integral transforms:
+          <ul>
+            <li>Laplace:</li>
+          </ul>
+        </li>
+      </ul>
+
+      <p><strong>Equation solving:</strong></p>
       <p>
-        <strong>NOTE:</strong> the matrices or vectors must be &quot;literal&quot;
-        matrices, not generic variables like <code>M</code>.  However,
-        they can contain symbolic expressions as their elements.
-      </p>
-      <ul class="keybindings">
-        <li>
-          <code>A\cdot B</code> or <code>AB</code>:
-          Matrix product.  A row vector times a column vector
-          yields the inner product (a scalar), while a column
-          vector times a row vector yields the outer product
-          (a rank-1 matrix).
-        </li>
-        <li>
-          <code>A + B</code> or <code>A - B:</code>
-          Matrix or vector sum or difference.
-        </li>
-        <li>
-          <code>A^{-1}</code>:
-          Matrix inverse:
-          <code>
-            {\begin{bmatrix}a & b\\c & d\end{bmatrix}}^{-1}
-            \Rightarrow \begin{bmatrix}
-              \frac{d}{ad-bc} & -\frac{b}{ad-bc}\\
-              -\frac{c}{ad-bc} & \frac{a}{ad-bc}
-            \end{bmatrix}
-          </code>
-        </li>
-        <li>
-          <code>A^n</code>: Matrix power (<code>n</code> integer).
-        </li>
-        <li>
-          <code>A^{\mathrm{T}}</code>: Matrix/vector transpose.
-          <strong>NOTE:</strong> the
-          <span class="k">|</span><span class="k">T</span>
-          command also performs transpose directly.
-        </li>
-        <li>
-          <code>\det A</code>:
-          Determinant <span class="k">/</span><span class="k">f</span><span class="k">d</span>
-          of a square matrix:
-          <code>
-            \det{\begin{bmatrix}a & b\\c & d\end{bmatrix}}
-            \Rightarrow ad-bc
-          </code>
-        </li>
-        <li>
-          <code>\operatorname{Tr} A</code>:
-          Trace <span class="k">/</span><span class="k">f</span><span class="k">t</span>
-          of a square matrix:
-          <code>
-            \operatorname{Tr}{\begin{bmatrix}a & b\\c & d\end{bmatrix}}
-            \Rightarrow a+d
-          </code>
-        </li>
-        <!-- <li>
-          <code>\boldsymbol x \times \boldsymbol y</code>:
-          Cross product of two vectors; both must be three-element column vectors.
-        </li> -->
-      </ul>
-
-      <p><strong>Numerical Operations:</strong></p>
-      <ul class="keybindings">
-        <li>
-          <span class="k">=</span>
-          Evaluate constants in an expression, replacing them with
-          decimal approximations:
-          <code>(\ln{2})^3 \Rightarrow 0.333024651</code>
-        </li>
-        <li>
-          <span class="k">/</span>
-          Given a decimal number, try to find a close rational approximation to that number.
-          Rational factors of values like <code>\pi</code> and <code>\sqrt{3}</code> can also
-          be detected: <code>1.644934066 \Rightarrow \pi^2/6</code>
-        </li>
-        <li>
-          <span class="k">y</span> and <span class="k">Y</span>
-          Numerically find all (real or complex) roots of a polynomial.
-        </li>
-        <li>
-          <span class="k">q</span> and <span class="k">Q</span>
-          Check whether an equation or inequality like <code>x^2 &gt; \sin x</code> is true or not.
-          <!-- If this can be determined algebraically, it will be; otherwise, the -->
-          The expression will be evaluated randomly at several points
-          sampled from <code>\mathcal{N}(\mu=0,\sigma=10)</code>
-          to test for likely truth or falsehood.
-          <span class="k">Q</span>
-          <code>f\enspace\mu\enspace\sigma</code>
-          allows you to specify the mean and standard deviation
-          <code>\mathcal{N}(\mu,\sigma)</code> explicitly.
-        </li>
-        <li>
-          <span class="k">v</span>
-          Compute numerical eigenvalues of a matrix.  The matrix must be real, symmetric, and contain
-          only numeric values (no symbols).  A diagonal matrix containing the eigenvalues is
-          returned.
-        </li>
-        <li>
-          <span class="k">V</span>
-          Compute numerical eigenvectors of a matrix.  A matrix containing the eigenvectors as its columns is returned.
-        </li>
-      </ul>
-
-      <p><strong>Special Functions:</strong></p>
+        
+      <p><strong>Matrix algebra:</strong></p>
       <p>
-        These commands generate special functions and polynomials that
-        occur frequently in mathematics.  They require the subprefix key
-        <span class="k">p</span> to be pressed first.
-        The resulting generated functions always use <code>x</code> as the variable
-        (though this can be changed to something else using the
-        <span class="k">#</span><span class="k">w</span> command).
-      </p>
-      <ul class="keybindings">
-        <li>
-          <span class="k">p</span><span class="k">p</span>
-          <code>n \Rightarrow P_n{(x)}</code>: Legendre polynomial of degree <code>n</code>.
-        </li>
-        <li>
-          <span class="k">p</span><span class="k">P</span>
-          <code>n\enspace m \Rightarrow P_n^m{(x)}</code>: Associated Legendre function of order <code>(n,m)</code>.
-        </li>
-        <li>
-          <span class="k">p</span><span class="k">l</span>
-          <code>n \Rightarrow L_n{(x)}</code>: Laguerre polynomial of degree <code>n</code>.
-        </li>
-        <li>
-          <span class="k">p</span><span class="k">L</span>
-          <code>n\enspace m \Rightarrow L_n^{(m)}{(x)}</code>: Associated Laguerre polynomial of order <code>(n,m)</code>.
-        </li>
-        <li>
-          <span class="k">p</span><span class="k">h</span>
-          <code>n \Rightarrow H_n{(x)}</code>: Hermite polynomial of degree <code>n</code>.
-          These use the &quot;physicist's&quot; scaling convention.
-        </li>
-        <li>
-          <span class="k">p</span><span class="k">j</span>
-          <code>\alpha \Rightarrow J_{\alpha}{(x)}</code>: Bessel function of the first kind.
-        </li>
-        <li>
-          <span class="k">p</span><span class="k">y</span>
-          <code>\alpha \Rightarrow Y_{\alpha}{(x)}</code>: Bessel function of the second kind.
-        </li>
-      </ul>
 
+      </p>
           
       <h2 id="help_greek">
         <span class="k">;</span>&nbsp;<span class="k">:</span> Greek Letters

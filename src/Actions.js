@@ -319,8 +319,13 @@ class InputContext {
 
   do_sympy(stack, operation) {
     switch(operation) {
+    case 'apart':
+    case 'cancel':
     case 'expand':
     case 'factor':
+    case 'logcombine':
+    case 'expand_log':
+    case 'simplify':
       return this._sympy_command(stack, operation, 1);
     }
     return stack;
@@ -2246,9 +2251,10 @@ class InputContext {
   // arguments with stack commands highlight items on the stack which is bad UI.
   do_copy_to_clipboard(stack) {
     const [new_stack, item] = stack.pop(1);
-    const slot = this._get_prefix_argument(1, '*');
-    this.app_component.state.clipboard_items[slot] = item;
-    if(slot === 1)
+    const clipboard = this.app_component.state.clipboard;
+    const slot = this._get_prefix_argument(1, '*').toString();
+    clipboard.set_slot(slot, item);
+    if(slot === '1')
       this.notify("Copied to clipboard");
     else
       this.notify("Copied to clipboard slot " + slot);
@@ -2257,10 +2263,11 @@ class InputContext {
   }
 
   do_paste_from_clipboard(stack) {
-    const slot = this._get_prefix_argument(1, '*');
-    const item = this.app_component.state.clipboard_items[slot];
+    const clipboard = this.app_component.state.clipboard;
+    const slot = this._get_prefix_argument(1, '*').toString();
+    const item = clipboard.copy_from_slot(slot);
     if(item)
-      return stack.push(item.clone());
+      return stack.push(item);
     else
       return this.error_flash_stack();
   }

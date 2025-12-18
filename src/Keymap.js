@@ -112,8 +112,8 @@ const keybinding_table = {
     '|': "mode array",
     '~': "mode tensor",
     '_': "start_dissect_mode",
-    '#': "mode algebrite",
-    //'#': "mode symbolic",
+    //'#': "mode algebrite",
+    '#': "mode symbolic",
     '$': "mode config",
     '?': "toggle_popup help",
 
@@ -1180,8 +1180,13 @@ const keybinding_table = {
   symbolic: {
     'i': "sympy initialize",
     '#': "sympy sympify",  // convert to SymPyExpr, but don't run any extra command
+    'a': "sympy apart",
     'e': "sympy expand",
-    'f': "sympy factor"
+    'f': "sympy factor",
+    'k': "sympy cancel",
+    'l': "sympy logcombine",
+    'L': "sympy expand_log",
+    's': "sympy simplify"
   },
 
   // [#] prefix: symbolic algebra mode

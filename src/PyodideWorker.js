@@ -12,16 +12,35 @@ async function load_pyodide_if_needed() {
   postMessage({message: 'loading'});
   await self.pyodide.loadPackage("sympy", {checkIntegrity: false});
   const initcode = `
-      import time
       from sympy import *
       def log2(x): return log(x,2)
       def log10(x): return log(x,10)
-      def divide(x,y): return sympify(x)/simpify(y)
-      def subtract(x,y): return sympify(x)-sympify(y)
+      def divide(x,y): return S(x)/S(y)
+      def subtract(x,y): return S(x)-S(y)
       def negate(x): return -S(x)`;
   await self.pyodide.runPythonAsync(initcode);
   postMessage({message: 'ready'});
-}  
+}
+
+async function pump_message_queue() {
+  const queue = self.message_queue || [];
+  while(queue.length > 0) {
+    const message = queue.pop(0);
+    await handle_message(message);
+  }
+}
+
+function enqueue_message(message) {
+  self.message_queue ||= [];
+  self.message_queue.push(message);
+}
+
+async function handle_message(message) {
+  if(message.command === 'sympy_command') {
+    await load_pyodide_if_needed();
+    await run_sympy_command(message.command_id, message.code);
+  }
+}
 
 async function run_sympy_command(command_id, code) {
   const pyodide = self.pyodide;
@@ -48,15 +67,7 @@ async function run_sympy_command(command_id, code) {
 
 
 onmessage = async (event) => {
-  const data = event.data;
-  const command = data.command;
-  switch(command) {
-  case 'sympy_command':
-    await load_pyodide_if_needed();
-    await run_sympy_command(data.command_id, data.code);
-    break;
-  default:
-    break;
-  }
+  enqueue_message(event.data);
+  pump_message_queue();
 };
 

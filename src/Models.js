@@ -471,11 +471,84 @@ class AppState {
     return this.stack === app_state.stack && this.document === app_state.document;
   }
 
+  // See stack.resolve_pending_item().
+  resolve_pending_item(command_id, new_item) {
+    const [new_stack, stack_modified] =
+          this.stack.resolve_pending_item(command_id, new_item);
+    const [new_document, document_modified] =
+          this.document.resolve_pending_item(command_id, new_item);
+    if(stack_modified || document_modified)
+      return [new AppState(new_stack, new_document), true];
+    else return [this, false];
+  }
+  
   // Total number of contained items (stack+document).
   item_count() {
     return this.stack.depth() +
       this.document.item_count() +
       (this.stack.floating_item ? 1 : 0);
+  }
+}
+
+
+// Internal clipboard that stores Items.  Accessible with the
+// [Tab][c] and [Tab][v] commands.  The default clipboard slot is
+// just '1', but other slots can be accessed using prefix arguments.
+class ItemClipboard {
+  constructor() {
+    // Maps clipboard slot names (arbitrary strings) to Items.
+    this.slot_to_item_map = {};
+    this._check_for_pending_items();
+  }
+
+  // Recalculate an internal flag saying whether there are any Items in
+  // the clipboard representing in-progress computations (via SymPy).
+  // These will need to be replaced if/when the computations finish.
+  _check_for_pending_items() {
+    this.has_pending_items = false;
+    for(const [, item] of Object.entries(this.slot_to_item_map)) {
+      if(item && item.is_pending_item()) {
+        this.has_pending_items = true;
+        break;
+      }
+    }
+  }
+
+  resolve_pending_item(command_id, new_item) {
+    if(!this.has_pending_items)
+      return [this, false];
+    let any_replaced = false;
+    for(const [key, item] of Object.entries(this.slot_to_item_map)) {
+      if(item && item.is_pending_item() &&
+         item.has_command_id(command_id)) {
+        this.slot_to_item_map[key] = new_item.clone();
+        any_replaced = true;
+      }
+    }
+    if(any_replaced)
+      this._check_for_pending_items();
+    return [this, any_replaced];
+  }
+
+  has_item_in_slot(slot) {
+    return !!this.slot_to_item_map[slot];
+  }
+
+  get_slot(slot) {
+    return this.slot_to_item_map[slot];
+  }
+
+  // Clone the clipboard item (if present) so that it gets a new
+  // serial number.
+  copy_from_slot(slot) {
+    const item = this.get_slot(slot);
+    return item ? item.clone() : null;
+  }
+
+  set_slot(slot, new_item) {
+    this.slot_to_item_map[slot] = new_item;
+    this._check_for_pending_items();
+    return new_item;
   }
 }
 
@@ -536,6 +609,17 @@ class UndoStack {
     }
     else
       return null;
+  }
+
+  resolve_pending_item(command_id, new_item) {
+    let any_replaced = false;
+    for(const [i, app_state] of this.state_stack.entries()) {
+      const [new_app_state, flag] = app_state
+            .resolve_pending_item(command_id, new_item);
+      this.state_stack[i] = new_app_state;
+      any_replaced ||= flag;
+    }
+    return [this, any_replaced];
   }
 }
 
@@ -1185,6 +1269,18 @@ class Item {
   is_text_item() { return this.item_type() === 'text'; }
   is_sympy_item() { return this.item_type() === 'sympy'; }
 
+  // Check if this Item contains a background computation that may
+  // resolve asynchronously in the future.  This is used for SymPy
+  // calculations; when a calculation completes the item gets replaced
+  // with an ExprItem with the result (or an error item if it fails
+  // or gets cancelled).
+  // If command_id is specified, the pending item's command_id must
+  // also match it.
+  is_pending_item(command_id = null) {
+    return this.is_sympy_item() && this.status.state === 'running' &&
+      (!command_id || this.has_command_id(command_id));
+  }
+
   // Return a new Item of the same type and contents (shallow copy) but with a new serial_number.
   // This is mainly needed for React, which needs a distinct React key for each item in
   // a list (like the list of stack items).  Things like 'dup' that can duplicate items
@@ -1573,6 +1669,7 @@ class TextItem extends Item {
 
   clone() {
     // Reuse with_tag to make the copy.
+    // (Subclasses without tags need to reimplement this.)
     return this.with_tag(this.tag_string);
   }
 
@@ -1678,7 +1775,7 @@ class SymPyItem extends Item {
   // header on SymPyItems that are currently being computed.
   is_recently_spawned() {
     const ms_ago = Date.now() - this.status.start_time;
-    return ms_ago < SymPyItem.long_running_computation_threshold()*1.2;
+    return ms_ago < SymPyItem.long_running_computation_threshold()*0.8;
   }
 
   to_latex(export_mode) {
@@ -1687,16 +1784,10 @@ class SymPyItem extends Item {
     return rendered_latex;
   }
 
-  clone() {
-    // Reuse with_tag to make the copy.
-    // (Subclasses without tags need to reimplement this.)
-    return this.with_tag(this.tag_string);
-  }
-
   with_tag(new_tag_string) {
     return new SymPyItem(
       this.status, this.function_name, this.operation_label,
-      this.args_expr, this.result_expr, new_tag_string);
+      this.arg_exprs, this.result_expr, new_tag_string);
   }
 }
 
@@ -1730,7 +1821,7 @@ class Stack {
   }
 
   // Returns [new_stack, item1, item2, ...].
-  pop(n=1) {
+  pop(n = 1) {
     if(!this.check(n)) this.underflow();
     return this._unchecked_pop(n);
   }
@@ -1789,24 +1880,23 @@ class Stack {
       this.floating_item ? this.floating_item.clone() : null);
   }
 
-  // Replace any SymPyItem instances with the given command_id with a different item.
+  // Replace any pending SymPyItems with the given command_id with a different item.
   // This is used when an in-progress background SciPy computation finishes (or errors).
   // Returns [new_stack, flag], where flag is true if anything was replaced (so that the
   // displayed items need to be refreshed).
   // NOTE: the new_item will be .cloned() each time it's replacing something, so that it
   // gets a new serial_number.
-  replace_sympy_item_with_command_id(command_id, new_item) {
+  resolve_pending_item(command_id, new_item) {
     let any_replaced = false;
     let new_items = [...this.items];
     for(const [i, item] of new_items.entries()) {
-      if(item.is_sympy_item() && item.has_command_id(command_id)) {
+      if(item.is_pending_item(command_id)) {
         new_items[i] = new_item.clone();
         any_replaced = true;
       }
     }
     let floating_item = this.floating_item;
-    if(floating_item && floating_item.is_sympy_item() &&
-       floating_item.has_command_id(command_id)) {
+    if(floating_item && floating_item.is_pending_item(command_id)) {
       floating_item = new_item.clone();
       any_replaced = true;
     }
@@ -1892,8 +1982,8 @@ class Document {
     }
   }
 
-  // See stack.replace_sympy_item_with_command_id().
-  replace_sympy_item_with_command_id(command_id, new_item) {
+  // See stack.resolve_pending_item().
+  resolve_pending_item(command_id, new_item) {
     let any_replaced = false;
     let new_items = [...this.items];
     for(const [i, item] of new_items.entries()) {
@@ -2360,7 +2450,7 @@ class MsgpackDecoder {
 
 export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
-  UndoStack, FileManager,
+  ItemClipboard, UndoStack, FileManager,
   ExprPath, RationalizeToExpr, Item, ExprItem,
   TextItem, CodeItem, SymPyItem, Stack, Document,
   MsgpackEncoder, MsgpackDecoder

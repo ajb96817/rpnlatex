@@ -6,7 +6,7 @@ import './App.css';
 import React from 'react';
 import katex from 'katex';
 import {
-  AppState, UndoStack, FileManager
+  AppState, ItemClipboard, UndoStack, FileManager
 } from './Models';
 import {
   InputContext
@@ -44,7 +44,7 @@ class App extends React.Component {
       file_manager: file_manager,
       input_context: new InputContext(this, settings),
       undo_stack: new UndoStack(),
-      clipboard_items: {},
+      clipboard: new ItemClipboard(),
       pyodide_interface: new PyodideInterface(this)
     };
     this.state.undo_stack.clear(this.state.app_state);
@@ -111,14 +111,22 @@ class App extends React.Component {
 
   handle_sympy_command_finished(command_id, new_item) {
     const app_state = this.state.app_state;
-    const [new_stack, stack_updated] = app_state.stack
-          .replace_sympy_item_with_command_id(command_id, new_item);
-    const [new_document, document_updated] = app_state.document
-          .replace_sympy_item_with_command_id(command_id, new_item);
-    if(stack_updated || document_updated) {
-      const new_app_state = new AppState(new_stack, new_document);
+    const [new_app_state, app_state_modified] =
+          app_state.resolve_pending_item(command_id, new_item);
+    this.state.clipboard.resolve_pending_item(command_id, new_item);
+    this.state.undo_stack.resolve_pending_item(command_id, new_item);
+    if(app_state_modified)
       this.setState({app_state: new_app_state});
-    }
+  }
+
+  // TODO: optimize, only refresh if the long-running state changed
+  // for stack/document.
+  update_long_running_sympy_items() {
+    const app_state = this.state.app_state;
+    const new_app_state = new AppState(
+      app_state.stack.clone_all_items(),
+      app_state.document.clone_all_items());
+    this.setState({app_state: new_app_state});
   }
 
   // Recenter the document panel scroll position to center on the selected item.
@@ -817,20 +825,27 @@ class ItemComponent extends React.Component {
         'div', {className: 'item', ref: item_ref},
         'Unknown code language: ' + item.language);
     case 'sympy':
-      this.katex_ref = React.createRef();  // KaTeX rendering target node
-      return $e(
-        'div', {className: 'item sympy_item', ref: item_ref},
-        tag_element,
-        $e('div', {className: 'sympy_command_info'},
-           $e('span', {className: 'sympy_operation_label'}, item.operation_label),
-           $e('span', {}, ': '),
-           $e('span', {className: 'sympy_status'}, item.status.state)),
-        $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''));
+      return this._render_sympy_item(item, item_ref, className, tag_element);
     default:
       return $e(
         'div', {className: 'item', ref: item_ref},
         'Unknown item type: ' + item.item_type());
     }
+  }
+
+  _render_sympy_item(item, item_ref, className, tag_element) {
+    this.katex_ref = React.createRef();  // KaTeX rendering target node
+    const operation_label_element = item.is_recently_spawned() ? null :
+          $e('div', {className: 'sympy_command_info'},
+             $e('span', {className: 'spinner'}, ''),
+             $e('span', {className: 'sympy_status'}, item.status.state),
+             $e('span', {}, ' '),
+             $e('span', {className: 'sympy_operation_label'}, item.operation_label));
+    return $e(
+      'div', {className: 'item sympy_item', ref: item_ref},
+      tag_element,
+      $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''),
+      operation_label_element);
   }
 
   componentDidMount() {
