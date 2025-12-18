@@ -45,7 +45,7 @@ class App extends React.Component {
       input_context: new InputContext(this, settings),
       undo_stack: new UndoStack(),
       clipboard_items: {},
-      pyodide_interface: new PyodideInterface()
+      pyodide_interface: new PyodideInterface(this)
     };
     this.state.undo_stack.clear(this.state.app_state);
     this.update_page_title();
@@ -107,6 +107,18 @@ class App extends React.Component {
     const new_title = '[' + (filename || 'rpnlatex') + ']';
     if(new_title !== document.title)
       document.title = new_title;
+  }
+
+  handle_sympy_command_finished(command_id, new_item) {
+    const app_state = this.state.app_state;
+    const [new_stack, stack_updated] = app_state.stack
+          .replace_sympy_item_with_command_id(command_id, new_item);
+    const [new_document, document_updated] = app_state.document
+          .replace_sympy_item_with_command_id(command_id, new_item);
+    if(stack_updated || document_updated) {
+      const new_app_state = new AppState(new_stack, new_document);
+      this.setState({app_state: new_app_state});
+    }
   }
 
   // Recenter the document panel scroll position to center on the selected item.

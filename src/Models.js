@@ -1637,10 +1637,13 @@ let pyodide_command_id = 1;
 // Represents an in-progress SymPy command being executed against one or more
 // SymPyExpr arguments.  If the command completes successfully, this item will
 // be replaced with an ordinary ExprItem wrapping the result SymPyExpr.
-// NOTE: Some fields of Item are updated in-place as things change
-// (i.e. when execution starts/stops, errors occur, or the result is finished).
 class SymPyItem extends Item {
   static next_command_id() { return pyodide_command_id++; }
+
+  // Milliseconds before a SymPy computation is considered "long running" and
+  // therefore gets shown with a status indicator on the item.  This shifts around
+  // the item display so needs to be avoided when possible.
+  static long_running_computation_threshold() { return 100.0; }
   
   // status: {
   //   state: 'complete', 'running', 'cancelled', 'error'
@@ -1658,7 +1661,7 @@ class SymPyItem extends Item {
   // tag_string: tag as in TextItem/ExprItem
   constructor(status, function_name, operation_label, arg_exprs, result_expr, tag_string) {
     super(tag_string, null /* no source_string for SymPyItems */);
-    this.status = {command_id: pyodide_command_id++, ...status};
+    this.status = {...status};
     this.function_name = function_name;
     this.operation_label = operation_label;
     this.arg_exprs = arg_exprs;
@@ -1666,6 +1669,17 @@ class SymPyItem extends Item {
   }
 
   item_type() { return 'sympy'; }
+
+  has_command_id(command_id) {
+    return this.status.command_id === command_id;
+  }
+
+  // Used to determine whether or not to display the progress/status
+  // header on SymPyItems that are currently being computed.
+  is_recently_spawned() {
+    const ms_ago = Date.now() - this.status.start_time;
+    return ms_ago < SymPyItem.long_running_computation_threshold()*1.2;
+  }
 
   to_latex(export_mode) {
     const displayed_expr = this.result_expr || this.arg_exprs[0];
@@ -1775,6 +1789,32 @@ class Stack {
       this.floating_item ? this.floating_item.clone() : null);
   }
 
+  // Replace any SymPyItem instances with the given command_id with a different item.
+  // This is used when an in-progress background SciPy computation finishes (or errors).
+  // Returns [new_stack, flag], where flag is true if anything was replaced (so that the
+  // displayed items need to be refreshed).
+  // NOTE: the new_item will be .cloned() each time it's replacing something, so that it
+  // gets a new serial_number.
+  replace_sympy_item_with_command_id(command_id, new_item) {
+    let any_replaced = false;
+    let new_items = [...this.items];
+    for(const [i, item] of new_items.entries()) {
+      if(item.is_sympy_item() && item.has_command_id(command_id)) {
+        new_items[i] = new_item.clone();
+        any_replaced = true;
+      }
+    }
+    let floating_item = this.floating_item;
+    if(floating_item && floating_item.is_sympy_item() &&
+       floating_item.has_command_id(command_id)) {
+      floating_item = new_item.clone();
+      any_replaced = true;
+    }
+    return [
+      any_replaced ? new Stack(new_items, floating_item) : this,
+      any_replaced];
+  }
+
   underflow() { throw new Error('stack_underflow'); }
   type_error() { throw new Error('stack_type_error'); }
 }
@@ -1852,6 +1892,21 @@ class Document {
     }
   }
 
+  // See stack.replace_sympy_item_with_command_id().
+  replace_sympy_item_with_command_id(command_id, new_item) {
+    let any_replaced = false;
+    let new_items = [...this.items];
+    for(const [i, item] of new_items.entries()) {
+      if(item.is_sympy_item() && item.has_command_id(command_id)) {
+        new_items[i] = new_item.clone();
+        any_replaced = true;
+      }
+    }
+    return [
+      any_replaced ? new Document(new_items, this.selection_index) : this,
+      any_replaced];
+  }
+  
   // See Stack.clone_all_items()
   clone_all_items() {
     return new Document(

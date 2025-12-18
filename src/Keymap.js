@@ -1180,7 +1180,8 @@ const keybinding_table = {
   symbolic: {
     'i': "sympy initialize",
     '#': "sympy sympify",  // convert to SymPyExpr, but don't run any extra command
-    'e': "sympy expand"
+    'e': "sympy expand",
+    'f': "sympy factor"
   },
 
   // [#] prefix: symbolic algebra mode

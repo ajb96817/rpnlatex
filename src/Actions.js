@@ -320,7 +320,8 @@ class InputContext {
   do_sympy(stack, operation) {
     switch(operation) {
     case 'expand':
-      return this._sympy_command(stack, 'expand', 1);
+    case 'factor':
+      return this._sympy_command(stack, operation, 1);
     }
     return stack;
   }

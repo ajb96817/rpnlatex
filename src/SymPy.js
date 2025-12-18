@@ -7,6 +7,9 @@ import {
   ArrayExpr, PlaceholderExpr, SubscriptSuperscriptExpr,
   SymPyExpr
 } from './Exprs';
+import {
+  ExprItem, SymPyItem
+} from './Models';
 
 
 // Translations between internal command names and SymPy functions.
@@ -181,7 +184,8 @@ function _guess_variable_in_expr(expr, var_map) {
 
 
 class PyodideInterface {
-  constructor() {
+  constructor(app_component) {
+    this.app_component = app_component;
     this.change_state('uninitialized');
   }
 
@@ -191,7 +195,7 @@ class PyodideInterface {
   }
 
   start_pyodide_worker_if_needed() {
-    if(window.Worker) {
+    if(!this.worker && window.Worker) {
       this.worker = new Worker(
         new URL("./PyodideWorker.js", import.meta.url),
         {type: 'module'});
@@ -199,6 +203,7 @@ class PyodideInterface {
         this.handle_worker_message(event.data);
       };
     }
+    return this.worker;
   }
 
   post_worker_message(data) {
@@ -208,16 +213,12 @@ class PyodideInterface {
 
   handle_worker_message(data) {
     switch(data.message) {
-    case 'pyodide_loading':
-      this.change_state('loading');
-      break;
-    case 'pyodide_ready':
-      this.change_state('ready');
-      break;
+    case 'loading': this.change_state('loading'); break;
+    case 'ready': this.change_state('ready'); break;
+    case 'running': this.change_state('running'); break;
     case 'command_finished':
-      console.log('command finished:');
-      console.log(data.command_id);
-      console.log(data.result);
+      this.command_finished(data.command_id, data.result);
+      this.change_state('ready');
       break;
     default:
       break;
@@ -231,16 +232,25 @@ class PyodideInterface {
   }
 
   start_executing(sympy_item) {
-    this.start_pyodide_worker_if_needed();
+    if(!this.start_pyodide_worker_if_needed())
+      return this.error('Pyodide not available');
     const command_code = this.generate_command_code(
       sympy_item.function_name, sympy_item.arg_exprs);
-    navigator.clipboard.writeText(command_code);
     const message = {
-      command: 'run_sympy_command',
-      commind_id: sympy_item.status.command_id,
+      command: 'sympy_command',
+      command_id: sympy_item.status.command_id,
       code: command_code
     };
     this.post_worker_message(message);
+    
+    // setTimeout
+  }
+
+  command_finished(command_id, result) {
+    const new_expr = new SymPyExpr(
+      result.result_expr.srepr, result.result_expr.latex);
+    const new_item = new ExprItem(new_expr, null, null);
+    this.app_component.handle_sympy_command_finished(command_id, new_item);
   }
 
   generate_command_code(function_name, arg_exprs) {
