@@ -1631,12 +1631,17 @@ class CodeItem extends Item {
 }
 
 
+// Serial numbers for SymPyItem command_ids.
+let pyodide_command_id = 1;
+
 // Represents an in-progress SymPy command being executed against one or more
 // SymPyExpr arguments.  If the command completes successfully, this item will
 // be replaced with an ordinary ExprItem wrapping the result SymPyExpr.
 // NOTE: Some fields of Item are updated in-place as things change
 // (i.e. when execution starts/stops, errors occur, or the result is finished).
 class SymPyItem extends Item {
+  static next_command_id() { return pyodide_command_id++; }
+  
   // status: {
   //   state: 'complete', 'running', 'cancelled', 'error'
   //   command_id: unique integer for this command; shared between cloned items
@@ -1653,7 +1658,7 @@ class SymPyItem extends Item {
   // tag_string: tag as in TextItem/ExprItem
   constructor(status, function_name, operation_label, arg_exprs, result_expr, tag_string) {
     super(tag_string, null /* no source_string for SymPyItems */);
-    this.status = status;
+    this.status = {command_id: pyodide_command_id++, ...status};
     this.function_name = function_name;
     this.operation_label = operation_label;
     this.arg_exprs = arg_exprs;
@@ -1661,6 +1666,12 @@ class SymPyItem extends Item {
   }
 
   item_type() { return 'sympy'; }
+
+  to_latex(export_mode) {
+    const displayed_expr = this.result_expr || this.arg_exprs[0];
+    const rendered_latex = displayed_expr.to_latex(null, export_mode);
+    return rendered_latex;
+  }
 
   clone() {
     // Reuse with_tag to make the copy.
@@ -2171,9 +2182,9 @@ class MsgpackDecoder {
   }
   unpack_sympy_item([props]) {
     let status = {...props.status};
-    // Reconstitute the error_expr_path if present.
     const arg_exprs = props.arg_exprs.map(
       expr_state => this.unpack_expr(expr_state));
+    // Reconstitute the error_expr_path if present.
     if(status.error_expr_path_indexes) {
       status.error_expr_path = new ExprPath(
         arg_exprs[status.error_arg_index],

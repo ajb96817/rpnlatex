@@ -304,29 +304,21 @@ class InputContext {
         base_expr.with_prime(this.settings.autoparenthesize));
   }
 
-  // Convert one or more Exprs on the stack into SymPyExprs.
-  // Once this is done, SymPy commands can be executed with do_sympy().
-  do_sympify(stack, expr_count_string = '1') {
-    const pyodide = this.app_component.state.pyodide_interface;
-    if(pyodide.state !== 'ready')
-      return this.report_error('Pyodide not initialized');
-    const expr_count = parseInt(expr_count_string);
-    const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-    const sympy_exprs = exprs.map(
-      expr => pyodide.expr_to_sympy_expr(expr));
-    return new_stack.push_all_exprs(sympy_exprs);
-  }
+  // // Convert one or more Exprs on the stack into SymPyExprs.
+  // // Once this is done, SymPy commands can be executed with do_sympy().
+  // do_sympify(stack, expr_count_string = '1') {
+  //   const pyodide = this.app_component.state.pyodide_interface;
+  //   if(pyodide.state !== 'ready')
+  //     return this.report_error('Pyodide not initialized');
+  //   const expr_count = parseInt(expr_count_string);
+  //   const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
+  //   const sympy_exprs = exprs.map(
+  //     expr => pyodide.expr_to_sympy_expr(expr));
+  //   return new_stack.push_all_exprs(sympy_exprs);
+  // }
 
   do_sympy(stack, operation) {
-    const pyodide = this.app_component.state.pyodide_interface;
     switch(operation) {
-    case 'initialize':
-      if(pyodide.state === 'uninitialized')
-        pyodide.initialize();
-      break;
-    case 'shutdown':
-      pyodide.shutdown();
-      break;
     case 'expand':
       return this._sympy_command(stack, 'expand', 1);
     }
@@ -338,23 +330,17 @@ class InputContext {
   // SymPyItem representing the computation.
   _sympy_command(stack, function_name, arg_count) {
     const pyodide = this.app_component.state.pyodide_interface;
-    if(pyodide.state !== 'ready')
-      return this.report_error('Pyodide not initialized');
     const [new_stack, ...exprs] = stack.pop_exprs(arg_count);
-    if(!exprs.every(expr => expr.is_sympy_expr()))
-      return stack.type_error();
+    const status = {
+      state: 'running',
+      command_id: SymPyItem.next_command_id(),
+      start_time: Date.now()
+    };
     const new_item = new SymPyItem(
-      {state: 'running', start_time: Date.now()},
-      function_name, function_name,
+      status, function_name, function_name,
       exprs, null, null);
-    // TODO: for now, execute the command synchronously.
-    // This needs to be replaced with a WebWorker.
-    const result_expr = pyodide.execute_command(function_name, exprs);
-    const result_item = new SymPyItem(
-      {state: 'complete', start_time: new_item.start_time, stop_time: Date.now()},
-      function_name, function_name,
-      exprs, result_expr, null);
-    return new_stack.push(result_item);
+    pyodide.start_executing(new_item);
+    return new_stack.push(new_item);
   }
 
   // function_name:

@@ -318,8 +318,8 @@ class PyodideStatusComponent extends React.Component {
       $e('span', {style: {fontWeight: 'bold'}},
          'pyodide'),
       $e('span', {}, ' '),
-      (pyodide && pyodide.version()) ?
-       $e('span', {}, 'v'+pyodide.version()) : null,
+      // (pyodide && pyodide.version()) ?
+      //  $e('span', {}, 'v'+pyodide.version()) : null,
       $e('span', {}, ' '),
       $e('span', {}, status_text));
   }
@@ -845,9 +845,8 @@ class ItemComponent extends React.Component {
         false);
     }
     else if(item.is_sympy_item()) {
-      const displayed_expr = item.result_expr || item.arg_exprs[0];
       this._render_with_katex(
-        displayed_expr.latex_string,
+        item.to_latex(false),
         katex_target_node,
         !this.props.inline_math,
         this.props.centered);

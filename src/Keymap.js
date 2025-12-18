@@ -1179,10 +1179,8 @@ const keybinding_table = {
   // SymPy - work in progress
   symbolic: {
     'i': "sympy initialize",
-    '#': "sympify",  // convert to SymPyExpr, but don't run any extra command
-    'x': "sympy shutdown",
-    'e': "sympy expand",
-    'd': "sympy debug"
+    '#': "sympy sympify",  // convert to SymPyExpr, but don't run any extra command
+    'e': "sympy expand"
   },
 
   // [#] prefix: symbolic algebra mode
