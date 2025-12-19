@@ -1499,7 +1499,8 @@ class DelimiterExpr extends Expr {
   static should_parenthesize_for_power(expr) {
     return (
       // Any sequence/infix/prefix/postfix/tensor expression
-      ['sequence', 'infix', 'prefix', 'postfix', 'tensor'
+      [ 'sequence', 'infix', 'prefix', 'postfix', 'tensor',
+        'sympy'
       ].includes(expr.expr_type()) ||
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
@@ -1536,7 +1537,8 @@ class DelimiterExpr extends Expr {
     return (
       // NOTE: Only parenthesize SequenceExprs if they don't start
       // with a PrefixExpr: sin 2x, but sin(-2x)
-      ['infix', 'prefix', 'postfix', 'tensor'
+      [ 'infix', 'prefix', 'postfix', 'tensor',
+        'sympy'
       ].includes(expr.expr_type()) ||
       // Something like '-2x'.
       (expr.is_sequence_expr() && expr.exprs[0].is_prefix_expr()) ||
@@ -2435,11 +2437,17 @@ class TensorExpr extends Expr {
 }
 
 
+// srepr_string: srepr(expr) from SymPy: a string that can be evaluated
+//               (in Python) to recreate the expression.
+// latex_string: latex(expr) from SymPy: rendered LaTeX code
+// variable_name: optional "primary variable" (string) of the expression;
+//                used as the default variable for operations like solve().
 class SymPyExpr extends Expr {
-  constructor(srepr_string, latex_string) {
+  constructor(srepr_string, latex_string, variable_name = null) {
     super();
     this.srepr_string = srepr_string;
     this.latex_string = latex_string;
+    this.variable_name = variable_name;
   }
 
   expr_type() { return 'sympy'; }
@@ -2449,8 +2457,15 @@ class SymPyExpr extends Expr {
   }
 
   matches(expr) {
+    // NOTE: variable_expr not used for matching
     return super.matches(expr) &&
       this.srepr_string === expr.srepr_string;
+  }
+
+  with_variable_name(variable_name) {
+    return new SymPyExpr(
+      this.srepr_string, this.latex_string,
+      variable_name);
   }
 }
 

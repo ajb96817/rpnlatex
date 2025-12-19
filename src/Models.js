@@ -1755,14 +1755,19 @@ class SymPyItem extends Item {
   // operation_label: User-visible label of the operation performed (null if none); generally matches the function_name (without the module path) but doesn't have to
   //   (in this case arg_exprs will be a single-element [SymPyExpr] array)
   // result_expr: SymPyExpr with the result, non-null if status === 'complete'
+  // variable_name: If given, the result_expr will be assigned this as its
+  //   variable name (in order to remember the 'guessed' variable for
+  //   commands like solve)
   // tag_string: tag as in TextItem/ExprItem
-  constructor(status, function_name, operation_label, arg_exprs, result_expr, tag_string) {
+  constructor(status, function_name, operation_label, arg_exprs,
+              result_expr, variable_name, tag_string) {
     super(tag_string, null /* no source_string for SymPyItems */);
     this.status = {...status};
     this.function_name = function_name;
     this.operation_label = operation_label;
     this.arg_exprs = arg_exprs;
     this.result_expr = result_expr;
+    this.variable_name = variable_name;
   }
 
   item_type() { return 'sympy'; }
@@ -1787,7 +1792,8 @@ class SymPyItem extends Item {
   with_tag(new_tag_string) {
     return new SymPyItem(
       this.status, this.function_name, this.operation_label,
-      this.arg_exprs, this.result_expr, new_tag_string);
+      this.arg_exprs, this.result_expr,
+      this.variable_name, new_tag_string);
   }
 }
 
@@ -2117,6 +2123,7 @@ class MsgpackEncoder {
       operation_label: item.operation_label,
       arg_exprs: item.arg_exprs,
       result_expr: item.result_expr,
+      variable_name: item.variable_name,
       tag_string: item.tag_string
     };
     return [4, saved_properties];
@@ -2239,7 +2246,9 @@ class MsgpackEncoder {
         this.maybe_pack_expr(index_expr))));
   }
   pack_sympy_expr(expr) {
-    return [14, expr.srepr_string, expr.latex_string];
+    return [
+      14, expr.srepr_string, expr.latex_string,
+      expr.variable_name];
   }
 }
 
@@ -2340,7 +2349,7 @@ class MsgpackDecoder {
       props.status,
       props.function_name, props.operation_label,
       arg_exprs, this.maybe_unpack_expr(props.result_expr),
-      props.tag_string);
+      props.variable_name, props.tag_string);
   }
 
   unpack_expr(array) {
@@ -2442,8 +2451,9 @@ class MsgpackDecoder {
       this.unpack_expr(base_expr_state),
       index_exprs, options);
   }
-  unpack_sympy_expr([srepr_string, latex_string]) {
-    return new SymPyExpr(srepr_string, latex_string);
+  unpack_sympy_expr([srepr_string, latex_string, variable_name]) {
+    return new SymPyExpr(
+      srepr_string, latex_string, variable_name);
   }
 }
 

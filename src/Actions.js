@@ -304,20 +304,7 @@ class InputContext {
         base_expr.with_prime(this.settings.autoparenthesize));
   }
 
-  // // Convert one or more Exprs on the stack into SymPyExprs.
-  // // Once this is done, SymPy commands can be executed with do_sympy().
-  // do_sympify(stack, expr_count_string = '1') {
-  //   const pyodide = this.app_component.state.pyodide_interface;
-  //   if(pyodide.state !== 'ready')
-  //     return this.report_error('Pyodide not initialized');
-  //   const expr_count = parseInt(expr_count_string);
-  //   const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-  //   const sympy_exprs = exprs.map(
-  //     expr => pyodide.expr_to_sympy_expr(expr));
-  //   return new_stack.push_all_exprs(sympy_exprs);
-  // }
-
-  do_sympy(stack, operation) {
+  do_sympy(stack, operation, guess_variable = null) {
     switch(operation) {
     case 'apart':
     case 'cancel':
@@ -326,25 +313,57 @@ class InputContext {
     case 'logcombine':
     case 'expand_log':
     case 'simplify':
-      return this._sympy_command(stack, operation, 1);
+      return this._sympy_command(
+        stack, {function_name: operation, arg_count: 1});
+    case 'solve':
+      return this._sympy_command(
+        stack, {function_name, operation, arg_count: 2, variable_index: 0});
+    case 'guess_variable_and_solve':
+      return this._sympy_command(
+        stack, {
+          function_name: 'solve',
+          arg_count: 1,
+          guess_variable_in_index: 0,
+          variable_index: 1});
     }
     return stack;
   }
 
-  // Take arg_count SymPyExprs from the stack and start up a computation
-  // (applying the Python function_name to the expressions); replace with a
+  // Take SymPyExprs from the stack and start up a computation
+  // (applying a Python/SymPy function to the expressions); replace with a
   // SymPyItem representing the computation.
-  _sympy_command(stack, function_name, arg_count) {
+  // spec: {
+  //   function_name: 'solve',  (SymPy function to call)
+  //   arg_count: 2,
+  //   variable_index: 0  (the nth arg should contain the variable name)
+  //   guess_variable_in_index: 0  (examine nth arg expr and guess the variable;
+  //                                this becomes an additional argument to the call)
+  // }
+  _sympy_command(stack, spec) {
+    const {
+      function_name, arg_count,
+      variable_index, guess_variable_in_index} = spec;
     const pyodide = this.app_component.state.pyodide_interface;
-    const [new_stack, ...exprs] = stack.pop_exprs(arg_count);
+    const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
     const status = {
       state: 'running',
       command_id: SymPyItem.next_command_id(),
       start_time: Date.now()
     };
+    let variable_name = null, variable_expr = null;
+    if(guess_variable_in_index !== undefined) {
+      [variable_name, variable_expr] =
+        pyodide.guess_variable_in_expr(arg_exprs[guess_variable_in_index]);
+      if(!variable_expr)
+        return this.report_error('Could not guess variable');
+      arg_exprs.push(variable_expr);
+    }
+    else if(variable_index !== undefined)
+      variable_name = pyodide.
+        expr_to_variable_name(arg_exprs[variable_index]);
     const new_item = new SymPyItem(
       status, function_name, function_name,
-      exprs, null, null);
+      arg_exprs, null, variable_name, null);
     pyodide.start_executing(new_item);
     return new_stack.push(new_item);
   }

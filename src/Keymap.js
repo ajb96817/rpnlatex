@@ -1182,6 +1182,8 @@ const keybinding_table = {
     '#': "sympy sympify",  // convert to SymPyExpr, but don't run any extra command
     'a': "sympy apart",
     'e': "sympy expand",
+    'i': "sympy guess_variable_and_solve",  // [i]solate
+    'I': "sympy solve",
     'f': "sympy factor",
     'k': "sympy cancel",
     'l': "sympy logcombine",

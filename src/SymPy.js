@@ -55,6 +55,22 @@ const sympy_relation_types = [
   ['ge', "\\ge", 'GreaterThan']
 ];
 
+// LaTeX commands like \alpha that can be treated as variable names
+// in SymPy by spelling out the command name.
+const latex_letter_commands = new Set([
+  'alpha', 'beta', 'chi', 'delta', 'epsilon', 'phi', 'gamma', 'eta',
+  'iota', 'varphi', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'pi',
+  'vartheta', 'rho', 'sigma', 'tau', 'upsilon', 'theta', 'omega',
+  'xi', 'psi', 'zeta', 'Delta', 'varepsilon', 'Phi', 'Gamma',
+  'varkappa', 'Lambda', 'varpi', 'Omega', 'Pi', 'vartheta', 'varrho',
+  'Sigma', 'varsigma', 'Upsilon', 'Theta', 'Omega', 'Xi', 'Psi',
+  'digamma', 'mho', 'nabla', 'varDelta', 'varPhi', 'varGamma',
+  'varLambda', 'varOmega', 'varPi', 'varTheta', 'varSigma',
+  'varUpsilon', 'varXi', 'varPsi',
+  'hbar', 'hslash'
+]);
+
+
 // 'to_algebrite'=true converts from editor commands to SymPy
 // (e.g. binom=>binomial); false is the inverse.
 function translate_function_name(f, to_sympy) {
@@ -130,12 +146,58 @@ function expr_to_variable_name(expr, ignore_superscript = false,
 }
 
 
+// Inverse of expr_to_variable_name; returns null if the conversion
+// is not possible.
+function variable_name_to_expr(s) {
+  return _variable_name_to_expr(s.split('_'), true);
+}
+function _variable_name_to_expr(pieces, allow_subscript) {
+  let bold = false;
+  let subscript_expr = null;
+  let base_name = pieces.shift();
+  if(base_name === 'bold') {
+    // 'bold_something'
+    bold = true;
+    if(pieces.length === 0)
+      return null;  // 'bold' by itself is disallowed
+    base_name = pieces.shift();
+  }
+  if(pieces.length > 0 && allow_subscript) {
+    // There is a subscript.  Everything normally allowed in variable
+    // names also applies to subscripts, so recurse to handle it.
+    // However, subscripts can't have their own subscripts.
+    subscript_expr = _variable_name_to_expr(pieces, false);
+    if(!subscript_expr)
+      return null;
+  }
+  // There should be nothing left over at this point.
+  if(pieces.length > 0)
+    return null;
+  let base_expr = null;
+  if(latex_letter_commands.has(base_name))
+    base_expr = new CommandExpr(base_name);  // Greek letter, etc.
+  else if(base_name.length === 1)
+    base_expr = new TextExpr(base_name);  // one-letter variable
+  else  // longer-than-one variables are rendered in roman font
+    base_expr = new FontExpr(new TextExpr(base_name), 'roman');
+  if(bold)
+    base_expr = base_expr.as_bold();
+  // Attach the subscript if there is one.
+  if(subscript_expr)
+    base_expr = base_expr.with_subscript(subscript_expr);
+  return base_expr;
+}
+
 // Scan an expression and try to find the variable to use for the
-// "implicit variable" for Algebrite commands like [#][d] (derivative).
+// "implicit variable" for SymPy commands like [#][d] (derivative).
 // Returns [variable_name_string, variable_expr].
 // If no variable is found, or if there's more than one like in
 // sin(y*z) and therefore ambiguous, returns [null, null].
 function guess_variable_in_expr(expr) {
+  // SymPy expressions may already be tagged with the previously
+  // used or guessed variable name.
+  if(expr.is_sympy_expr() && expr.variable_name)
+    return [expr.variable_name, variable_name_to_expr(variable_name)];
   const var_map = {};
   _guess_variable_in_expr(expr, var_map);
   const var_names = Object.getOwnPropertyNames(var_map);  // not ideal
@@ -231,11 +293,24 @@ class PyodideInterface {
       this.onStateChange(this, new_state);
   }
 
+  guess_variable_in_expr(expr) {
+    return guess_variable_in_expr(expr);
+  }
+
+  expr_to_variable_name(expr) {
+    return expr_to_variable_name(expr);
+  }
+
+  variable_name_to_expr(variable_name) {
+    return variable_name_to_expr(variable_name);
+  }
+
   start_executing(sympy_item) {
     if(!this.start_pyodide_worker_if_needed())
       return this.error('Pyodide not available');
     const command_code = this.generate_command_code(
-      sympy_item.function_name, sympy_item.arg_exprs);
+      sympy_item.function_name, sympy_item.arg_exprs,
+      sympy_item.variable_name);
     const message = {
       command: 'sympy_command',
       command_id: sympy_item.status.command_id,
@@ -249,13 +324,14 @@ class PyodideInterface {
 
   command_finished(command_id, result) {
     const new_expr = new SymPyExpr(
-      result.result_expr.srepr, result.result_expr.latex);
+      result.result_expr.srepr, result.result_expr.latex,
+      result.variable_name);
     const new_item = new ExprItem(new_expr, null, null);
     this.app_component.handle_sympy_command_finished(command_id, new_item);
   }
 
-  generate_command_code(function_name, arg_exprs) {
-    const insert_artificial_delay = true;
+  generate_command_code(function_name, arg_exprs, variable_name = null) {
+    const insert_artificial_delay = false;
     // Generate builder functions, one per argument expression.
     const builder_function_name = (index) => 'build_expr_' + index.toString();
     const builder_function_codes = arg_exprs
@@ -286,7 +362,11 @@ class PyodideInterface {
     lines.push(
       "  result_srepr = srepr(result)",
       "  result_latex = latex(result)",
-      "  return {'result_expr': {'srepr': result_srepr, 'latex': result_latex}}")
+      // TODO: escape variable_name string
+      variable_name ?
+        ["  variable_name = '", variable_name, "'"].join('') :
+        "  variable_name = None",
+      "  return {'result_expr': {'srepr': result_srepr, 'latex': result_latex}, 'variable_name': variable_name}")
     const execute_command_code = lines.join("\n")
     // Assemble everything together.
     return [
