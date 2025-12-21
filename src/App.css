@@ -259,6 +259,7 @@ div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
 div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
+div.sympy_item div.sympy_error { border-left: var(--itemtype-bar-width) solid #833; }
 
 
 /* Highlight the stack item(s) that are the "target" for a stack (Tab)
@@ -370,6 +371,28 @@ div.sympy_item span.spinner {
 @keyframes spinner_rotation {
   0% { transform: rotate(0turn); }
   100% { transform: rotate(1turn); }
+}
+div.sympy_item div.sympy_error {
+  padding-left: 0.5em;
+}
+div.sympy_item div.sympy_error_info {
+  padding: 0.2em 0.5em;
+  color: #600;
+  font-weight: bold;
+}
+div.sympy_item div.sympy_error_message {
+  padding: 0.25em 0.5em;
+  font-size: 90%;
+  color: #400;
+  border-top: 1px solid #f88;
+  border-bottom: 1px solid #f88;
+  margin-bottom: 0.5em;
+  background-color: #fee;
+  font-family: monospace;
+  overflow-wrap: break-word;
+}
+div.sympy_item div.sympy_error_message div.error_line {
+  padding: 0.2em 0;
 }
 
 

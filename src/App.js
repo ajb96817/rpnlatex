@@ -109,12 +109,14 @@ class App extends React.Component {
       document.title = new_title;
   }
 
-  handle_sympy_command_finished(command_id, new_item) {
+  // new_item_fn is applied to existing SymPyItems that match the given
+  // command_id.  The function should return the new Item to replace it with.
+  resolve_pending_item(command_id, new_item_fn) {
     const app_state = this.state.app_state;
     const [new_app_state, app_state_modified] =
-          app_state.resolve_pending_item(command_id, new_item);
-    this.state.clipboard.resolve_pending_item(command_id, new_item);
-    this.state.undo_stack.resolve_pending_item(command_id, new_item);
+          app_state.resolve_pending_item(command_id, new_item_fn);
+    this.state.clipboard.resolve_pending_item(command_id, new_item_fn);
+    this.state.undo_stack.resolve_pending_item(command_id, new_item_fn);
     if(app_state_modified)
       this.setState({app_state: new_app_state});
   }
@@ -834,18 +836,32 @@ class ItemComponent extends React.Component {
   }
 
   _render_sympy_item(item, item_ref, className, tag_element) {
-    this.katex_ref = React.createRef();  // KaTeX rendering target node
-    const operation_label_element = item.is_recently_spawned() ? null :
-          $e('div', {className: 'sympy_command_info'},
-             $e('span', {className: 'spinner'}, ''),
-             $e('span', {className: 'sympy_status'}, item.status.state),
-             $e('span', {}, ' '),
-             $e('span', {className: 'sympy_operation_label'}, item.operation_label));
-    return $e(
-      'div', {className: 'item sympy_item', ref: item_ref},
-      tag_element,
-      $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''),
-      operation_label_element);
+    if(item.status.state === 'error') {
+      const error_lines = item.status.error_message
+            .split("\n")
+            .map(line => $e('div', {className: 'error_line'}, line));
+      return $e(
+        'div', {className: className + 'item sympy_item', ref: item_ref},
+        $e('div', {className: 'sympy_error'},
+           $e('div', {className: 'sympy_error_info'},
+              $e('span', {}, 'SymPy error:')),
+           $e('div', {className: 'sympy_error_message'},
+              ...error_lines)));
+    }
+    else if(item.status.state === 'running') {
+      this.katex_ref = React.createRef();  // KaTeX rendering target node
+      const operation_label_element = item.is_recently_spawned() ? null :
+            $e('div', {className: 'sympy_command_info'},
+               $e('span', {className: 'spinner'}, ''),
+               $e('span', {className: 'sympy_status'}, item.status.state),
+               $e('span', {}, ' '),
+               $e('span', {className: 'sympy_operation_label'}, item.operation_label));
+      return $e(
+        'div', {className: 'item sympy_item', ref: item_ref},
+        tag_element,
+        $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''),
+        operation_label_element);
+    }
   }
 
   componentDidMount() {

@@ -36,9 +36,13 @@ const sympy_function_translations = [
   ['log_{10}', 'log10']  // not yet implemented in the editor
 ];
 
-// TODO
-const allowed_sympy_functions = new Set([
-  'sin', 'cos'
+const allowed_unary_sympy_functions = new Set([
+  'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
+  'sinh', 'cosh', 'tanh', 'sech', 'csch', 'coth',
+  'asin', 'acos', 'atan', 'asec', 'acsc', 'acot',
+  'asinh', 'acohs', 'atanh', 'asech', 'acsch', 'acoth',
+
+  'det', 'trace', 're', 'im', 'log', 'log2', 'log10'
 ]);
 
 // Maps between LaTeX commands and SymPy relation "classes".
@@ -293,6 +297,7 @@ class PyodideInterface {
       this.onStateChange(this, new_state);
   }
 
+  // TODO: remove
   guess_variable_in_expr(expr) {
     return guess_variable_in_expr(expr);
   }
@@ -312,6 +317,7 @@ class PyodideInterface {
       sympy_item.function_name,
       sympy_item.arg_exprs,
       sympy_item.arg_options);
+    //console.log(command_code);  // TODO: remove
     const message = {
       command: 'sympy_command',
       command_id: sympy_item.status.command_id,
@@ -324,11 +330,20 @@ class PyodideInterface {
   }
 
   command_finished(command_id, result) {
-    const new_expr = new SymPyExpr(
-      result.result_expr.srepr, result.result_expr.latex,
-      result.variable_name);
-    const new_item = new ExprItem(new_expr, null, null);
-    this.app_component.handle_sympy_command_finished(command_id, new_item);
+    let new_item_fn = null;
+    if(result.result === 'error')
+      new_item_fn = (sympy_item) => sympy_item
+        .with_new_status({
+          state: 'error',
+          error_message: result.error_message
+        });
+    else
+      new_item_fn = (sympy_item) => new ExprItem(
+        new SymPyExpr(
+          result.result_expr.srepr,
+          result.result_expr.latex));
+    this.app_component.resolve_pending_item(
+      command_id, new_item_fn);
   }
 
   generate_command_code(function_name, arg_exprs, arg_options) {
@@ -362,16 +377,30 @@ class PyodideInterface {
     // and return a dict structure.
     if(insert_artificial_delay)
       lines.push('  time.sleep(2)');
-    lines.push(
-      "  result_srepr = srepr(result)",
-      "  result_latex = latex(result)",
-      "  return {'result_expr': {'srepr': result_srepr, 'latex': result_latex}}")
+    lines.push(`  return {
+    'result': 'success',
+    'result_expr': {
+      'srepr': srepr(result),
+      'latex': latex(result)
+    } }`);
     const execute_command_code = lines.join("\n")
+    // Build an exception-handling wrapper around execute_command();
+    // this will return an error-result structure if needed.
+    const execute_command_safe_code =
+      `def execute_command_safe():
+  try:
+    return execute_command()
+  except Exception as ex:
+    return {
+      'result': 'error',
+      'error_message': str(ex)
+    }`;
     // Assemble everything together.
     return [
       ...builder_function_codes,
       execute_command_code,
-      'execute_command()'
+      execute_command_safe_code,
+      'execute_command_safe()'
     ].join("\n");
   }
 }
@@ -388,7 +417,7 @@ class SymPyConstant extends SymPyNode {
     this.value_string = value_string;
   }
   to_py_string() {
-    return ['sympify(', this.value_string, ')'].join('');
+    return ['S(', this.value_string, ')'].join('');
   }
 }
 
@@ -737,7 +766,7 @@ class ExprToSymPy {
     // Check for unary functions like sin(x).
     // Translate 'Tr' => 'contract', etc. if needed.
     const sympy_command = translate_function_name(command_name, true);
-    if(allowed_sympy_functions.has(sympy_command) && nargs === 1)
+    if(allowed_unary_sympy_functions.has(sympy_command) && nargs === 1)
       return this.fncall(sympy_command, [this.emit_expr(args[0])]);
     // Special case for \binom{n}{m}; this is the only two-argument
     // function used with Algebrite.
@@ -854,7 +883,7 @@ class ExprToSymPy {
          exprs[i].operand_exprs[0].is_text_expr()) {
         const sympy_command = translate_function_name(
           exprs[i].operand_exprs[0].text, true);
-        if(allowed_sympy_functions.has(sympy_command)) {
+        if(allowed_unary_sympy_functions.has(sympy_command)) {
           // TODO: handle multi-argument functions
           term_nodes.push(this.fncall(
             sympy_command, [this.emit_expr(exprs[i+1])]));

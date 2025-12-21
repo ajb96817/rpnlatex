@@ -472,11 +472,11 @@ class AppState {
   }
 
   // See stack.resolve_pending_item().
-  resolve_pending_item(command_id, new_item) {
+  resolve_pending_item(command_id, new_item_fn) {
     const [new_stack, stack_modified] =
-          this.stack.resolve_pending_item(command_id, new_item);
+          this.stack.resolve_pending_item(command_id, new_item_fn);
     const [new_document, document_modified] =
-          this.document.resolve_pending_item(command_id, new_item);
+          this.document.resolve_pending_item(command_id, new_item_fn);
     if(stack_modified || document_modified)
       return [new AppState(new_stack, new_document), true];
     else return [this, false];
@@ -514,14 +514,14 @@ class ItemClipboard {
     }
   }
 
-  resolve_pending_item(command_id, new_item) {
+  resolve_pending_item(command_id, new_item_fn) {
     if(!this.has_pending_items)
       return [this, false];
     let any_replaced = false;
     for(const [key, item] of Object.entries(this.slot_to_item_map)) {
       if(item && item.is_pending_item() &&
          item.has_command_id(command_id)) {
-        this.slot_to_item_map[key] = new_item.clone();
+        this.slot_to_item_map[key] = new_item_fn(item);
         any_replaced = true;
       }
     }
@@ -611,11 +611,11 @@ class UndoStack {
       return null;
   }
 
-  resolve_pending_item(command_id, new_item) {
+  resolve_pending_item(command_id, new_item_fn) {
     let any_replaced = false;
     for(const [i, app_state] of this.state_stack.entries()) {
       const [new_app_state, flag] = app_state
-            .resolve_pending_item(command_id, new_item);
+            .resolve_pending_item(command_id, new_item_fn);
       this.state_stack[i] = new_app_state;
       any_replaced ||= flag;
     }
@@ -1734,6 +1734,25 @@ let pyodide_command_id = 1;
 // Represents an in-progress SymPy command being executed against one or more
 // SymPyExpr arguments.  If the command completes successfully, this item will
 // be replaced with an ordinary ExprItem wrapping the result SymPyExpr.
+//
+// - status: {
+//   state: 'complete', 'running', 'cancelled', 'error'
+//   command_id: unique integer for this command; shared between cloned items
+//   error_message: string (if state==='error')
+//   error_arg_index: which Expr in arg_exprs caused the error
+//   error_expr_path: points to the subexpression that caused the error
+//   start_time: timestamp (float) when command execution started or null
+//   stop_time: timestamp the command finished/errored/was cancelled
+// }
+// - function_name: SymPy function name being applied, or null if none;
+//     this is the full "path" with module name if needed
+// - operation_label: User-visible label of the operation performed (null if none);
+//     generally matches the function_name (without the module th) but doesn't have to
+//     (in this case arg_exprs will be a single-element [SymPyExpr] array)
+// - arg_exprs: SymPyExprs to be passed to the function
+// - arg_options: [['optname', 'True'], ...] - keyword arguments to pass to the function
+// - result_expr: SymPyExpr with the result, non-null if status === 'complete'
+// - tag_string: tag as in TextItem/ExprItem
 class SymPyItem extends Item {
   static next_command_id() { return pyodide_command_id++; }
 
@@ -1742,22 +1761,6 @@ class SymPyItem extends Item {
   // the item display so needs to be avoided when possible.
   static long_running_computation_threshold() { return 100.0; }
   
-  // status: {
-  //   state: 'complete', 'running', 'cancelled', 'error'
-  //   command_id: unique integer for this command; shared between cloned items
-  //   error_message: string (if state==='error')
-  //   error_arg_index: which Expr in arg_exprs caused the error
-  //   error_expr_path: points to the subexpression that caused the error
-  //   start_time: timestamp (float) when command execution started or null
-  //   stop_time: timestamp the command finished/errored/was cancelled
-  // }
-  // function_name: SymPy function name being applied, or null if none; this is the full "path" with module name if needed
-  // operation_label: User-visible label of the operation performed (null if none); generally matches the function_name (without the module path) but doesn't have to
-  //   (in this case arg_exprs will be a single-element [SymPyExpr] array)
-  // arg_exprs: SymPyExprs to be passed to the function
-  // arg_options: [['optname', 'True'], ...] - keyword arguments to pass to the function
-  // result_expr: SymPyExpr with the result, non-null if status === 'complete'
-  // tag_string: tag as in TextItem/ExprItem
   constructor(status, function_name, operation_label, arg_exprs, arg_options, result_expr, tag_string) {
     super(tag_string, null /* no source_string for SymPyItems */);
     this.status = {...status};
@@ -1791,6 +1794,19 @@ class SymPyItem extends Item {
     return new SymPyItem(
       this.status, this.function_name, this.operation_label,
       this.arg_exprs, this.arg_options, this.result_expr, new_tag_string);
+  }
+
+  // Update status.* fields, e.g.:
+  //   item.with_new_status(
+  //     {state: 'error', error_message: 'Something went wrong'})
+  with_new_status(status_fields) {
+    const new_status = {...this.status, ...status_fields};
+    const result = new SymPyItem(
+      new_status, this.function_name, this.operation_label,
+      this.arg_exprs, this.arg_options, this.result_expr, this.tag_string);
+    console.log(result);
+    return result;
+    
   }
 }
 
@@ -1883,24 +1899,23 @@ class Stack {
       this.floating_item ? this.floating_item.clone() : null);
   }
 
-  // Replace any pending SymPyItems with the given command_id with a different item.
+  // Replace any pending SymPyItems with the given command_id with a different item
+  // (new_item_fn is applied to the old item to generate the replacement item).
   // This is used when an in-progress background SciPy computation finishes (or errors).
   // Returns [new_stack, flag], where flag is true if anything was replaced (so that the
   // displayed items need to be refreshed).
-  // NOTE: the new_item will be .cloned() each time it's replacing something, so that it
-  // gets a new serial_number.
-  resolve_pending_item(command_id, new_item) {
+  resolve_pending_item(command_id, new_item_fn) {
     let any_replaced = false;
     let new_items = [...this.items];
     for(const [i, item] of new_items.entries()) {
       if(item.is_pending_item(command_id)) {
-        new_items[i] = new_item.clone();
+        new_items[i] = new_item_fn(item);
         any_replaced = true;
       }
     }
     let floating_item = this.floating_item;
     if(floating_item && floating_item.is_pending_item(command_id)) {
-      floating_item = new_item.clone();
+      floating_item = new_item_fn(floating_item);
       any_replaced = true;
     }
     return [
@@ -1986,12 +2001,12 @@ class Document {
   }
 
   // See stack.resolve_pending_item().
-  resolve_pending_item(command_id, new_item) {
+  resolve_pending_item(command_id, new_item_fn) {
     let any_replaced = false;
     let new_items = [...this.items];
     for(const [i, item] of new_items.entries()) {
       if(item.is_sympy_item() && item.has_command_id(command_id)) {
-        new_items[i] = new_item.clone();
+        new_items[i] = new_item_fn(item);
         any_replaced = true;
       }
     }
