@@ -239,7 +239,7 @@ const keybinding_table = {
     '|': "scroll_to help_arrays",
     '~': "scroll_to help_tensors",
     '_': "scroll_to help_dissect",
-    '#': "scroll_to help_cas",
+    '#': "scroll_to help_symbolic",
     ';': "scroll_to help_greek",
     ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
@@ -1178,16 +1178,20 @@ const keybinding_table = {
 
   // SymPy - work in progress
   symbolic: {
-    'i': "sympy initialize",
     '#': "sympy sympify",  // convert to SymPyExpr, but don't run any extra command
     'a': "sympy apart",
+    'A': "sympy together",
+    'd': "sympy diff",
+    'D': "sympy diff_with_variable",
     'e': "sympy expand",
-    'i': "sympy guess_variable_and_solve",  // [i]solate
-    'I': "sympy solve",
+    'i': "sympy solve",  // [i]solate
+    'I': "sympy solve_for_variable",
     'f': "sympy factor",
     'k': "sympy cancel",
     'l': "sympy logcombine",
     'L': "sympy expand_log",
+    'p': "sympy integrate",  // [p]rimitive
+    'P': "sympy integrate_with_variable",
     's': "sympy simplify"
   },
 

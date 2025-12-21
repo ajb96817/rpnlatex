@@ -197,7 +197,7 @@
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="k">~</span> Build <a href="#help_tensors">tensor</a> expressions using index notation.</li>
         <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
-        <li><span class="k">#</span> Perform <a href="#help_cas">symbolic algebra and calculus</a> operations.</li>
+        <li><span class="k">#</span> Perform <a href="#help_symbolic">symbolic algebra and calculus</a> operations.</li>
         <li><span class="k">;</span> <span class="k">:</span> Create <a href="#help_greek">Greek letters</a>.</li>
         <li id="help_insert_calligraphic">
           <span class="k">@</span>
@@ -2240,7 +2240,7 @@
         </li>
       </ul>
 
-      <h2 id="help_cas">
+      <h2 id="help_symbolic">
         <span class="k">#</span> Symbolic Algebra
       </h2>
       <p>
@@ -2286,7 +2286,7 @@
         the <a href="https://docs.sympy.org/">SymPy documentation</a>
         for full details.
       </p>
-      <p><strong>Algebraic Commands:</strong></p>
+      <p><strong>Algebra/Calculus Commands:</strong></p>
       <ul class="keybindings">
         <li>
           <span class="k">s</span>
@@ -2311,6 +2311,10 @@
           <code>x\Rightarrow \mathtt{apart(x)}</code>
         </li>
         <li>
+          <span class="k">A</span>
+          <code>x\Rightarrow \mathtt{together(x)}</code>
+        </li>
+        <li>
           <span class="k">l</span>
           <code>x\Rightarrow \mathtt{logcombine(x)}</code>
         </li>
@@ -2319,14 +2323,34 @@
           <code>x\Rightarrow \mathtt{expand\_log(x)}</code>
         </li>
         <li>
-          <span class="k">c</span>
-          <code>x\Rightarrow \mathtt{cancel(x)}</code>
-          <em>(variable is guessed)</em>
+          <span class="k">i</span>
+          <code>f\Rightarrow \mathtt{solve(f)}</code>
+          <em>(<strong>i</strong>solate variable)</em>
         </li>
         <li>
-          <span class="k">C</span>
-          <code>x\enspace y\Rightarrow \mathtt{cancel(x,y)}</code>
-          <em>(variable specified)</em>
+          <span class="k">I</span>
+          <code>f\enspace x\Rightarrow \mathtt{solve(f,x)}</code>
+          <em>(variable specified explicitly)</em>
+        </li>
+        <li>
+          <span class="k">p</span>
+          <code>f\Rightarrow \mathtt{integrate(f)}</code>
+          <em>(<strong>p</strong>rimitive)</em>
+        </li>
+        <li>
+          <span class="k">P</span>
+          <code>f\enspace x\Rightarrow \mathtt{integrate(f,x)}</code>
+          <em>(integration variable specified)</em>
+        </li>
+        <li>
+          <span class="k">d</span>
+          <code>f\Rightarrow \mathtt{diff(f)}</code>
+          <em>(<strong>d</strong>erivative)</em>
+        </li>
+        <li>
+          <span class="k">D</span>
+          <code>f\enspace x\Rightarrow \mathtt{diff(f,x)}</code>
+          <em>(differentiation variable specified)</em>
         </li>
       </ul>
 
@@ -2353,12 +2377,8 @@
         </li>
       </ul>
 
-      <p><strong>Equation solving:</strong></p>
+      <p><strong>Matrix Operations:</strong></p>
       <p>
-        
-      <p><strong>Matrix algebra:</strong></p>
-      <p>
-
       </p>
           
       <h2 id="help_greek">

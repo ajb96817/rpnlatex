@@ -309,8 +309,9 @@ class PyodideInterface {
     if(!this.start_pyodide_worker_if_needed())
       return this.error('Pyodide not available');
     const command_code = this.generate_command_code(
-      sympy_item.function_name, sympy_item.arg_exprs,
-      sympy_item.variable_name);
+      sympy_item.function_name,
+      sympy_item.arg_exprs,
+      sympy_item.arg_options);
     const message = {
       command: 'sympy_command',
       command_id: sympy_item.status.command_id,
@@ -330,7 +331,7 @@ class PyodideInterface {
     this.app_component.handle_sympy_command_finished(command_id, new_item);
   }
 
-  generate_command_code(function_name, arg_exprs, variable_name = null) {
+  generate_command_code(function_name, arg_exprs, arg_options) {
     const insert_artificial_delay = false;
     // Generate builder functions, one per argument expression.
     const builder_function_name = (index) => 'build_expr_' + index.toString();
@@ -349,12 +350,14 @@ class PyodideInterface {
       ['  arg_', arg_index.toString(),
        ' = ', builder_function_name(arg_index), '()'
       ].join('')));
-    const args_string = arg_exprs
-          .map((arg_expr, arg_index) => 'arg_'+arg_index.toString())
-          .join(', ');
+    let arg_pieces = arg_exprs.map(
+      (arg_expr, arg_index) => 'arg_'+arg_index.toString());
+    for(const [option_name, option_value] of arg_options)
+      arg_pieces.push([option_name, '=', option_value].join(''));
+    const arg_string = arg_pieces.join(', ');
     lines.push([
       '  result = ',
-      function_name, '(', args_string, ')'].join(''));
+      function_name, '(', arg_string, ')'].join(''));
     // Convert the result expression into srepr/latex format
     // and return a dict structure.
     if(insert_artificial_delay)
@@ -362,11 +365,7 @@ class PyodideInterface {
     lines.push(
       "  result_srepr = srepr(result)",
       "  result_latex = latex(result)",
-      // TODO: escape variable_name string
-      variable_name ?
-        ["  variable_name = '", variable_name, "'"].join('') :
-        "  variable_name = None",
-      "  return {'result_expr': {'srepr': result_srepr, 'latex': result_latex}, 'variable_name': variable_name}")
+      "  return {'result_expr': {'srepr': result_srepr, 'latex': result_latex}}")
     const execute_command_code = lines.join("\n")
     // Assemble everything together.
     return [
@@ -907,33 +906,6 @@ class ExprToSymPy {
   }
 }
 
-
-class SymPyToExpr {
-  constructor() {
-  }
-
-  error(message /*, offending_obj */) {
-    throw new Error('SymPy: ' + message);
-  }
-
-  // TODO
-  sympy_to_expr(s) {
-    const head = s.func.__name__;
-    switch(head) {
-    case 'One':
-    case 'NegativeOne':
-    case 'Zero': borked();
-    case 'Integer':
-    case 'Rational':
-    case 'Float':
-    case 'Pi':
-    case 'Exp1':
-    case 'Add': return this._add_to_expr(s);
-    case 'sin':
-      break;
-    }
-  }
-}
 
 
 export { PyodideInterface };

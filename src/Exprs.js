@@ -2440,14 +2440,11 @@ class TensorExpr extends Expr {
 // srepr_string: srepr(expr) from SymPy: a string that can be evaluated
 //               (in Python) to recreate the expression.
 // latex_string: latex(expr) from SymPy: rendered LaTeX code
-// variable_name: optional "primary variable" (string) of the expression;
-//                used as the default variable for operations like solve().
 class SymPyExpr extends Expr {
-  constructor(srepr_string, latex_string, variable_name = null) {
+  constructor(srepr_string, latex_string) {
     super();
     this.srepr_string = srepr_string;
     this.latex_string = latex_string;
-    this.variable_name = variable_name;
   }
 
   expr_type() { return 'sympy'; }
@@ -2460,12 +2457,6 @@ class SymPyExpr extends Expr {
     // NOTE: variable_expr not used for matching
     return super.matches(expr) &&
       this.srepr_string === expr.srepr_string;
-  }
-
-  with_variable_name(variable_name) {
-    return new SymPyExpr(
-      this.srepr_string, this.latex_string,
-      variable_name);
   }
 }
 
