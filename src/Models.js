@@ -29,7 +29,7 @@ class Settings {
   static to_json(settings) {
     let json = {};
     for(const key of this.saved_keys())
-      json[key] = this[key];
+      json[key] = settings[key];
     return json;
   }
 
@@ -1739,9 +1739,7 @@ let pyodide_command_id = 1;
 //   state: 'complete', 'running', 'cancelled', 'error'
 //   command_id: unique integer for this command; shared between cloned items
 //   error_message: string (if state==='error')
-// - errored_expr: SymPyExpr expression that "caused" the error, if available
-//   //   error_arg_index: which Expr in arg_exprs caused the error
-//   //   error_expr_path: points to the subexpression that caused the error
+//   errored_expr: SymPyExpr expression that "caused" the error, if available
 //   start_time: timestamp (float) when command execution started or null
 //   stop_time: timestamp the command finished/errored/was cancelled
 // }
@@ -1756,7 +1754,7 @@ let pyodide_command_id = 1;
 // - tag_string: tag as in TextItem/ExprItem
 //
 // TODO: clean up all these properties, have a more unified way of doing it and
-// get so many things out of the constructor.
+// not so many things in the constructor.
 class SymPyItem extends Item {
   static next_command_id() { return pyodide_command_id++; }
 
