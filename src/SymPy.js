@@ -317,7 +317,7 @@ class PyodideInterface {
       sympy_item.function_name,
       sympy_item.arg_exprs,
       sympy_item.arg_options);
-    //console.log(command_code);  // TODO: remove
+    //console.log(command_code);
     const message = {
       command: 'sympy_command',
       command_id: sympy_item.status.command_id,
@@ -332,11 +332,14 @@ class PyodideInterface {
   command_finished(command_id, result) {
     let new_item_fn = null;
     if(result.result === 'error')
-      new_item_fn = (sympy_item) => sympy_item
-        .with_new_status({
-          state: 'error',
-          error_message: result.error_message
-        });
+      new_item_fn = (sympy_item) => sympy_item.with_new_status({
+        state: 'error',
+        error_message: result.error_message,
+        errored_expr: result.errored_expr ?
+          new SymPyExpr(
+            result.errored_expr.srepr,
+            result.errored_expr.latex) : null
+      });
     else
       new_item_fn = (sympy_item) => new ExprItem(
         new SymPyExpr(
@@ -360,42 +363,57 @@ class PyodideInterface {
     let lines = [];
     if(insert_artificial_delay)
       lines.push('import time');
-    lines.push('def execute_command():');
-    lines.push(...arg_exprs.map((arg_expr, arg_index) =>
-      ['  arg_', arg_index.toString(),
-       ' = ', builder_function_name(arg_index), '()'
-      ].join('')));
-    let arg_pieces = arg_exprs.map(
-      (arg_expr, arg_index) => 'arg_'+arg_index.toString());
-    for(const [option_name, option_value] of arg_options)
-      arg_pieces.push([option_name, '=', option_value].join(''));
-    const arg_string = arg_pieces.join(', ');
-    lines.push([
-      '  result = ',
-      function_name, '(', arg_string, ')'].join(''));
-    // Convert the result expression into srepr/latex format
-    // and return a dict structure.
+    lines.push(
+      'def execute_command():',
+      ...arg_exprs.map((arg_expr, arg_index) =>
+        ['  arg_', arg_index.toString(),
+         ' = ', builder_function_name(arg_index), '()'
+        ].join('')));
     if(insert_artificial_delay)
       lines.push('  time.sleep(2)');
+    const arguments_string = arg_exprs
+          .map((arg_expr, arg_index) => 'arg_'+arg_index.toString())
+          .concat(arg_options.map(([option_name, option_value]) =>
+            [option_name, '=', option_value].join('')))
+          .join(', ');
+    lines.push([
+      '  result = ', function_name,
+      '(', arguments_string, ')'].join(''));
+    // Convert the result expression into srepr/latex format
+    // and return a dict structure.
     lines.push(`  return {
-    'result': 'success',
-    'result_expr': {
-      'srepr': srepr(result),
-      'latex': latex(result)
-    } }`);
+      'result': 'success',
+      'result_expr': {
+        'srepr': srepr(result),
+        'latex': latex(result)
+      } }`);
     const execute_command_code = lines.join("\n")
     // Build an exception-handling wrapper around execute_command();
     // this will return an error-result structure if needed.
-    const execute_command_safe_code =
-      `def execute_command_safe():
+    lines = [`def execute_command_safe():
   try:
     return execute_command()
   except Exception as ex:
-    return {
+    result_obj = {
       'result': 'error',
       'error_message': str(ex)
-    }`;
+    }`];
+    if(arg_exprs.length > 0) {
+      // "Blame" the error on the first argument expression if there is one.
+      // This rebuilds the SymPy argument expr using the previously-created
+      // builder function.  Could re-use the already-build expr, but passing
+      // to the exception handler is awkward.
+      lines.push(
+        ['    errored_expr = ', builder_function_name(0), '()'
+        ].join(''),
+        "    result_obj['errored_expr'] = {",
+        "      'srepr': srepr(errored_expr),",
+        "      'latex': latex(errored_expr)",
+        "    }");
+    }
+    lines.push('    return result_obj');
     // Assemble everything together.
+    const execute_command_safe_code = lines.join("\n");
     return [
       ...builder_function_codes,
       execute_command_code,

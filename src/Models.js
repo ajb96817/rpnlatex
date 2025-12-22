@@ -1739,8 +1739,9 @@ let pyodide_command_id = 1;
 //   state: 'complete', 'running', 'cancelled', 'error'
 //   command_id: unique integer for this command; shared between cloned items
 //   error_message: string (if state==='error')
-//   error_arg_index: which Expr in arg_exprs caused the error
-//   error_expr_path: points to the subexpression that caused the error
+// - errored_expr: SymPyExpr expression that "caused" the error, if available
+//   //   error_arg_index: which Expr in arg_exprs caused the error
+//   //   error_expr_path: points to the subexpression that caused the error
 //   start_time: timestamp (float) when command execution started or null
 //   stop_time: timestamp the command finished/errored/was cancelled
 // }
@@ -1753,6 +1754,9 @@ let pyodide_command_id = 1;
 // - arg_options: [['optname', 'True'], ...] - keyword arguments to pass to the function
 // - result_expr: SymPyExpr with the result, non-null if status === 'complete'
 // - tag_string: tag as in TextItem/ExprItem
+//
+// TODO: clean up all these properties, have a more unified way of doing it and
+// get so many things out of the constructor.
 class SymPyItem extends Item {
   static next_command_id() { return pyodide_command_id++; }
 
@@ -1784,10 +1788,19 @@ class SymPyItem extends Item {
     return ms_ago < SymPyItem.long_running_computation_threshold()*0.8;
   }
 
+  // TODO: clean this up
   to_latex(export_mode) {
-    const displayed_expr = this.result_expr || this.arg_exprs[0];
-    const rendered_latex = displayed_expr.to_latex(null, export_mode);
-    return rendered_latex;
+    if(this.status.state === 'error') {
+      let pieces = ["\\mathtt{", this.operation_label, "\\left["];
+      if(this.status.errored_expr)
+        pieces.push(this.status.errored_expr.to_latex(null, export_mode));
+      pieces.push("\\right]}");
+      return pieces.join('');
+    }
+    else if(this.status.state === 'complete')
+      return this.result_expr.to_latex(null, export_mode);
+    else
+      return this.arg_exprs[0].to_latex(null, export_mode);
   }
 
   with_tag(new_tag_string) {
@@ -1801,12 +1814,9 @@ class SymPyItem extends Item {
   //     {state: 'error', error_message: 'Something went wrong'})
   with_new_status(status_fields) {
     const new_status = {...this.status, ...status_fields};
-    const result = new SymPyItem(
+    return new SymPyItem(
       new_status, this.function_name, this.operation_label,
       this.arg_exprs, this.arg_options, this.result_expr, this.tag_string);
-    console.log(result);
-    return result;
-    
   }
 }
 
@@ -2136,6 +2146,7 @@ class MsgpackEncoder {
       arg_exprs: item.arg_exprs.map(expr => this.pack_expr(expr)),
       arg_options: item.arg_options,
       result_expr: this.maybe_pack_expr(item.result_expr),
+      errored_expr: this.maybe_pack_expr(item.status.errored_expr),
       tag_string: item.tag_string
     };
     return [4, saved_properties];
@@ -2356,6 +2367,7 @@ class MsgpackDecoder {
         status.error_expr_path_indexes);
       delete status.error_expr_path_indexes;
     }
+    status.errored_expr = this.maybe_unpack_expr(props.errored_expr);
     return new SymPyItem(
       props.status,
       props.function_name, props.operation_label,

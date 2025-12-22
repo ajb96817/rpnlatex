@@ -836,6 +836,7 @@ class ItemComponent extends React.Component {
   }
 
   _render_sympy_item(item, item_ref, className, tag_element) {
+    this.katex_ref = React.createRef();  // KaTeX rendering target node
     if(item.status.state === 'error') {
       const error_lines = item.status.error_message
             .split("\n")
@@ -844,12 +845,12 @@ class ItemComponent extends React.Component {
         'div', {className: className + 'item sympy_item', ref: item_ref},
         $e('div', {className: 'sympy_error'},
            $e('div', {className: 'sympy_error_info'},
-              $e('span', {}, 'SymPy error:')),
+              $e('span', {}, 'SymPy error running:')),
+           $e('div', {className: 'sympy_errored_expr', ref: this.katex_ref}, ''),
            $e('div', {className: 'sympy_error_message'},
               ...error_lines)));
     }
     else if(item.status.state === 'running') {
-      this.katex_ref = React.createRef();  // KaTeX rendering target node
       const operation_label_element = item.is_recently_spawned() ? null :
             $e('div', {className: 'sympy_command_info'},
                $e('span', {className: 'spinner'}, ''),
@@ -892,7 +893,7 @@ class ItemComponent extends React.Component {
         item.to_latex(false),
         katex_target_node,
         !this.props.inline_math,
-        this.props.centered);
+        false /* !centered */);
     }
   }
 

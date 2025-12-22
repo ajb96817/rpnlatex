@@ -260,7 +260,10 @@ div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid 
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
 div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
 div.sympy_item div.sympy_error { border-left: var(--itemtype-bar-width) solid #833; }
-
+div.sympy_item div.sympy_errored_expr {
+  font-size: 90%;
+  margin-left: 1em;
+}
 
 /* Highlight the stack item(s) that are the "target" for a stack (Tab)
    or array (|) command with an active prefix argument. */
@@ -376,13 +379,14 @@ div.sympy_item div.sympy_error {
   padding-left: 0.5em;
 }
 div.sympy_item div.sympy_error_info {
-  padding: 0.2em 0.5em;
+  padding: 0;
   color: #600;
   font-weight: bold;
 }
 div.sympy_item div.sympy_error_message {
   padding: 0.25em 0.5em;
   font-size: 90%;
+  font-weight: bolder;
   color: #400;
   border-top: 1px solid #f88;
   border-bottom: 1px solid #f88;
