@@ -476,12 +476,13 @@ class SymPyAssignment extends SymPyNode {
   to_py_string() {
     return [
       this.subexpression_node.to_py_string(),
-      ' = ', this.value_node.to_py_string()
-    ].join('');
+      this.value_node.to_py_string()
+    ].join(' = ');
   }
 }
 
 // f(x,y,z)
+// Used for Python tuples too (x,y,z).
 class SymPyFunctionCall extends SymPyNode {
   constructor(function_name, args) {
     super();
@@ -566,6 +567,11 @@ class ExprToSymPy {
   fncall(function_name, args = []) {
     return this.add_assignment(
       new SymPyFunctionCall(function_name, args));
+  }
+
+  // Python (x,y,z) tuple - treated as a function call with empty function name.
+  tuple(args = []) {
+    return this.fncall('', args);
   }
 
   add_assignment(value_node) {
@@ -662,6 +668,9 @@ class ExprToSymPy {
   // { fn: binary sympy function to apply
   //   prec: higher numbers bind tighter }
   _infix_op_info(op_name) {
+    // NOTE: Mul/Add are "native" SymPy operators;
+    // divide/subtract are created by the initialization
+    // in load_pyodide_if_needed().
     switch(op_name) {
     case '*': return {fn: 'Mul', prec: 2};
     case 'cdot': return {fn: 'Mul', prec: 2};
@@ -885,30 +894,82 @@ class ExprToSymPy {
     return this.emit_expr(base_expr);
   }
 
-  // SequenceExprs are mostly assumed to be implicit multiplications.
-  sequence_expr_to_node(expr) {
-    const exprs = expr.exprs;
-    const term_nodes = [];  // arguments to a multiply(...) call
-    for(let i = 0; i < exprs.length; i++) {
-      // Look for \operatorname{something} followed by another expression,
-      // assumed to be the operator's argument.  Sequences like this could
-      // created by [/][f] commands (like 'erf'), or by finishing math
-      // entry mode with [Tab] to create an operatorname.
-      // If the operator name is a valid Algebrite function, convert
-      // the two-Expr sequence into a function call.
-      if(i < exprs.length-1 &&
-         exprs[i].is_command_expr_with(1, 'operatorname') &&
-         exprs[i].operand_exprs[0].is_text_expr()) {
-        const sympy_command = translate_function_name(
-          exprs[i].operand_exprs[0].text, true);
-        if(allowed_unary_sympy_functions.has(sympy_command)) {
-          // TODO: handle multi-argument functions
-          term_nodes.push(this.fncall(
-            sympy_command, [this.emit_expr(exprs[i+1])]));
-          i++;
+  // SymPyExpr already has the 'srepr' direct representation available; use that.
+  emit_sympy_expr(expr) {
+    return this.srepr(expr.srepr_string);
+  }
+
+  // The SequenceExpr is broken up into one or more 'terms' to be implicitly
+  // multiplied together.  Each term can be a single simple Expr like x^2,
+  // or a possibly longer subsequence of Exprs that represents something like
+  // an integral.  What is not allowed are "non-term-like" Exprs, for example
+  // InfixExprs like 'x+y'.  If they are wrapped in delimiters as in '(x+y)'
+  // then that is still valid, and the term is the single DelimiterExpr.
+  // Normally, the delimiters are created automatically when needed so most
+  // typical sequences of concatenated Exprs can be interpreted this way.
+  emit_sequence_expr(sequence_expr) {
+    // List of "converted" terms to be implicitly multiplied together with Mul(...).
+    // If we wind up with only a single term, the Mul() is omitted.
+    // TODO: check zero-term case
+    let term_nodes = [];
+    const exprs = sequence_expr.exprs;
+    let start_index = 0, stop_index = exprs.length;
+    while(start_index < stop_index) {
+      // Scan for integrals.
+      const integral_result = this.recognize_integral(
+        exprs, start_index, stop_index);
+      if(integral_result) {
+        console.log(integral_result);
+        const {
+          success, integrate_command_node, stopped_at_index,
+          error_message, errored_expr_index
+        } = integral_result;
+        if(success) {
+          term_nodes.push(integrate_command_node);
+          start_index = stopped_at_index;
           continue;
         }
+        else return this.error(
+          error_message, /* errored_expr... */);
       }
+      // Check for "ordinary" terms that can be included in the implicit
+      // product (excluding things like 'x+y').
+      if(this.is_implicit_product_term(exprs[start_index], start_index === 0)) {
+        term_nodes.push(this.emit_expr(exprs[start_index]));
+        start_index++;
+        continue;
+      }
+      return this.error(
+        'Term not allowed in an implicit product',
+        /* exprs[start_index] */);
+    }
+    if(term_nodes.length === 1)  // e.g. nothing but inner(M1, M2, ...)
+      return term_nodes[0];
+    else
+      return this.fncall('Mul', term_nodes);
+  }
+
+    // for(let i = 0; i < exprs.length; i++) {
+    //   // Look for \operatorname{something} followed by another expression,
+    //   // assumed to be the operator's argument.  Sequences like this could
+    //   // created by [/][f] commands (like 'erf'), or by finishing math
+    //   // entry mode with [Tab] to create an operatorname.
+    //   // If the operator name is a valid Algebrite function, convert
+    //   // the two-Expr sequence into a function call.
+    //   if(i < exprs.length-1 &&
+    //      exprs[i].is_command_expr_with(1, 'operatorname') &&
+    //      exprs[i].operand_exprs[0].is_text_expr()) {
+    //     const sympy_command = translate_function_name(
+    //       exprs[i].operand_exprs[0].text, true);
+    //     if(allowed_unary_sympy_functions.has(sympy_command)) {
+    //       // TODO: handle multi-argument functions
+    //       term_nodes.push(this.fncall(
+    //         sympy_command, [this.emit_expr(exprs[i+1])]));
+    //       i++;
+    //       continue;
+    //     }
+    //   }
+
       // // Look for d/dx f(x) (two adjacent terms in a SequenceExpr).
       // // Convert to d(f(x), x) calls.  Any parentheses around the
       // // f(x) part are stripped: d/dx (arg x) => d(arg(x), x)
@@ -938,21 +999,326 @@ class ExprToSymPy {
       //   i += matrix_count-1;
       //   continue;
       // }
-      // Ordinary term.
-      term_nodes.push(this.emit_expr(exprs[i]));
+    // Ordinary term.
+
+
+  // Check whether expr can be a term in an implicit product;
+  // these can be:
+  //   - TextExpr (variable names and numbers)
+  //   - \frac{a}{b} (a and b can be any expressions)
+  //   - Certain other CommandExprs like \lim and \binom
+  //   - "Hat" CommandExprs like \dot{x}
+  //   - DelimiterExprs, as long as both delimiters are present (non-blank)
+  //   - PostfixExpr factorials
+  //   - Unary plus/minus PrefixExpr at the beginning
+  //     (based on the is_at_beginning flag)
+  //   - FontExprs (contents examined recursively)
+  //   - SubscriptSuperscriptExpr (base expr examined recursively)
+  //   - TensorExpr (base expr examined recursively)
+  //   - FunctionCallExpr
+  //   - Named functions like \sin or \operatorname{...}{...}
+  //     (only the two-argument version of \operatorname though)
+  //   - Literal matrices
+  //   - Integral sequences, as in recognize_integral()
+  //   - Summation and product sequences, as in recognize_summation()
+  //   - SymPy expressions that also follow these term rules
+  //     (TODO: not implemented yet)
+  // Notably excluded are:
+  //   - Nested SequenceExprs (including those representing
+  //     differential forms like dx)
+  //   - Any InfixExpr (including things like x \cdot y)
+  //   - PrefixExprs other than unary plus/minus at the beginning
+  //     of the product
+  //   - CommandExprs other than things like \frac or \sin{x}
+  is_implicit_product_term(expr, is_at_beginning = false) {
+    if(expr.is_text_expr())
+      return true;
+    // TODO: For now, allow any CommandExpr.  Needs revisiting.
+    // In particular, need to make sure we don't allow \int etc here.
+    if(expr.is_command_expr()) {
+      if(expr.command_name === 'int') return false;  // temporary
+      return true;
     }
-    if(term_nodes.length === 1)  // e.g. nothing but inner(M1, M2, ...)
-      return term_nodes[0];
-    else
-      return this.fncall('Mul', term_nodes);
+    if(expr.is_delimiter_expr() &&
+       expr.left_type !== '.' && expr.right_type !== '.')
+      return true;
+    if(expr.is_postfix_expr() && expr.factorial_signs_count() > 0)
+      return true;
+    if(expr.is_prefix_expr() && is_at_beginning &&
+       ['+', '-'].includes(expr.operator_text()))
+      return true;
+    if(expr.is_font_expr() && this.is_implicit_product_term(expr.expr))
+      return true;
+    if(expr.is_subscriptsuperscript_expr() &&
+       this.is_implicit_product_term(expr.base_expr))
+      return true;
+    if(expr.is_tensor_expr() &&
+       this.is_implicit_product_term(expr.base_expr))
+      return true;
+    if(expr.is_function_call_expr())
+      return true;
+    if(expr.is_matrix_expr())
+      return true;
+    
+    // TODO: recognize_summation()
+    
+    return false;
   }
 
-  emit_sympy_expr(expr) {
-    // SymPyExpr already has the 'srepr' direct representation available; use that.
-    return this.srepr(expr.srepr_string);
+  // Recognize the following forms within a SequenceExpr:
+  //   \int x^2 dx
+  //   \int dx x^2
+  //   \int \frac{... dx}{...} - see below
+  //   \int \frac{dx ...}{...}
+  //   \int\int (x+y)^2 dx dy - inner integral evaluated first
+  //   \int x^2 dx \int y^2 - product of two separate integrals;
+  //      this is handled as ordinary implicit multiplication and
+  //      not treated specially here
+  //   \int\int (x+y)^2 dx \wedge dy - the dx^dy differential form
+  //      is treated as 'dx dy' (not exactly correct mathematically
+  //      but it's the best we can do without actual exterior calculus
+  //      support in SymPy)
+  // Notes:
+  //   - Whitespace around the integrand is disregarded;
+  //     \int x^2 \, dx is a typical case.
+  //   - \iint and \iiint are treated as synonyms for multiple \int
+  //   - \int signs may have limits or not; if not, it's treated as an
+  //     indefinite integration.
+  //   - The integrand must be either:
+  //     - one or more Exprs that can be combined with implicit multiplication
+  //       (using the is_implicit_product_term() logic); or
+  //     - an infix expression where all the operators are \cdot
+  //       (e.g. \iint x\cdot y dx dy).
+  //     Therefore, \iint x+y dx dy isn't allowed but \iint (x+y) dx dy is OK.
+  //   - The differential must be either directly adjacent to the integral
+  //     sign(s) or else directly after the integrand.
+  //   - A \frac integrand is scanned for differential(s) in its denominator
+  //     (in the first or last positions), but "inline" fractions are not
+  //     recognized: \int dx/x (this could be added)
+  //   - Forms like \iint\frac{dx dy}{x+y} are allowed.
+  //   - Cyclic integrals (\oint etc) are not recognized, but this could
+  //     be added (just as synonyms for \int).
+  // The return value will be one of:
+  //   - No integral expression found: null
+  //   - On success: {success: true, integrate_command_node: ..., stopped_at_index: ...}
+  //   - On failure: {success: false, error_message: '...', errored_expr_index: 3}
+  recognize_integral(exprs, start_index, stop_index) {
+    let index = start_index;
+    // Count the number of integral signs at the start and record
+    // the integral limits.
+    // This will be a list of {lower: expr1, upper: expr2}.
+    // One or both exprs may be null if limits are not specified.
+    // Multiple integral signs like \iint get multiple duplicate
+    // entries in this list (this isn't very useful for definite
+    // integrals though).
+    let integral_limit_exprs = [];
+    while(index < stop_index) {
+      const integral_info = this._analyze_integral_sign(exprs[index]);
+      if(!integral_info) {
+        if(index === start_index) {
+          // No initial integral sign, so the integral check
+          // "fails" (not considered an error, it just falls through
+          // to the next check).
+          return null;
+        }
+        else break;  // found all the integral signs
+      }
+      const {
+        integral_count, lower_limit, upper_limit
+      } = integral_info;
+      // It's considered an error if we have an upper limit without
+      // a lower, or vice versa.
+      if(!upper_limit !== !lower_limit) {
+        return {
+          success: false,
+          error_message: 'Definite integrals need both limits specified',
+          errored_expr_index: index
+        };
+      }
+      for(let j = 0; j < integral_info.integral_count; j++)
+        integral_limit_exprs.push(
+          {lower: lower_limit, upper: upper_limit});
+      index++;
+    }
+    const {
+      success, dx_exprs, integrand_terms, stopped_at_index, error_message
+    } = this._extract_integrand_and_differentials(
+      exprs, index, stop_index, integral_limit_exprs.length);
+    if(success) {
+      if(integrand_terms.length === 0) {
+        // Implicit '1' integrand, as in '\int dx'.
+        integrand_terms.push(TextExpr.integer(1));
+      }
+      // Multiply all integrand terms together.
+      const integrand_term_nodes = integrand_terms
+        .map(term_expr => this.emit_expr(term_expr));
+      const integrand_node = integrand_term_nodes.length > 1 ?
+            this.fncall('Mul', integrand_term_nodes) :
+            integrand_term_nodes[0];
+      // Build integrate() SymPy calls from the "inside out".
+      const integrate_command_node =
+            this._build_integrate_command(
+              integrand_node, integral_limit_exprs, dx_exprs);
+      return {
+        success: true,
+        integrate_command_node: integrate_command_node,
+        stopped_at_index: stopped_at_index
+      };
+    }
+    else {
+      // TODO: check/revisit
+      // TODO: errored_expr_index
+      return this.error(error_message);
+    }
+  }
+
+  // NOTE: integral_limit_exprs and dx_exprs must be the same length.
+  _build_integrate_command(integrand_node, integral_limit_exprs, dx_exprs) {
+    if(dx_exprs.length > 1) {
+      // Recurse to construct the inner integral(s) first.
+      integrand_node = this._build_integrate_command(
+        integrand_node, integral_limit_exprs.slice(1), dx_exprs.slice(0, -1));
+    }
+    const inner_integral_limit_exprs = integral_limit_exprs[0];
+    const inner_dx_expr = dx_exprs[dx_exprs.length-1];
+    // Construct 2nd argument to integrate();
+    // indefinite integrals use 'x', definite use '(x, a, b)' tuple.
+    let dx_node = this.emit_expr(inner_dx_expr);
+    const {lower, upper} = inner_integral_limit_exprs;
+    if(lower && upper)
+      dx_node = this.tuple([
+        dx_node, this.emit_expr(lower), this.emit_expr(upper)]);
+    return this.fncall('integrate', [integrand_node, dx_node]);
+  }
+
+  _restructure_fraction_integrand(expr) {
+    // \frac{x dx}{x+1} -> \frac{x}{x+1}, [dx]
+    // \frac{dx}{x} -> \frac{1}{x}, [dx]
+    // \frac{dx dy}{x+y} -> \frac{1}{x+y}, [dx, dy]
+    borked();
+  }
+
+  _analyze_integral_sign(expr) {
+    // Look for either a "raw" \int, etc. command, or a SubscriptSuperscriptExpr
+    // with an \int command as the base.  In this case, the subscript and superscript
+    // are assumed to be the integral limits.
+    let lower_limit = null, upper_limit = null;
+    if(expr.is_subscriptsuperscript_expr()) {
+      [lower_limit, upper_limit] =
+        [expr.subscript_expr, expr.superscript_expr];
+      // Special case: interpret lower \mathcal{R} as -inf..+inf
+      // (as created by the [/][i][R] keybinding).
+      if(!upper_limit &&
+         lower_limit.is_font_expr() && lower_limit.typeface === 'calligraphic' &&
+         lower_limit.expr.is_text_expr_with('R')) {
+        upper_limit = new CommandExpr('infty');
+        lower_limit = PrefixExpr.unary_minus(upper_limit);
+      }
+      expr = expr.base_expr;  // look for \int in the base
+    }
+    if(!expr.is_command_expr_with(0))
+      return null;
+    // TODO: could handle \oint, etc. here too
+    const integral_commands = {'int': 1, 'iint': 2, 'iiint': 3, 'iiiint': 4};
+    if(expr.command_name in integral_commands)
+      return {
+        integral_count: integral_commands[expr.command_name],
+        lower_limit: lower_limit,
+        upper_limit: upper_limit
+      };
+    else return null;
+  }
+
+  // dx -> [x]
+  // dx^dy -> [x, y]
+  // Non-differential form -> []
+  _analyze_differential_form(expr) {
+    if(!expr.is_differential_form())
+      return [];
+    else if(expr.is_infix_expr())  // dx^dy
+      return [].concat(...expr.operand_exprs.map(
+        operand_expr => this._analyze_differential_form()));
+    else if(expr.is_sequence_expr())
+      return [expr.exprs[1]];  // [d x] sequence -> x
+    else
+      return [];  // shouldn't happen
+  }
+
+  // Look for [dx dy] <integrand> [dz dw] patterns.
+  // The differentials must come either at the beginning or end of the range
+  // (or both, as an edge case: \iint dx 2xy dy).
+  _extract_integrand_and_differentials(exprs, start_index, stop_index,
+                                       expected_differential_count) {
+    let index = start_index;
+    let all_dx_exprs = [];
+    let integrand_terms = null;
+    while(index < stop_index) {
+      let expr = exprs[index];
+      const dx_exprs = this._analyze_differential_form(expr);
+      if(dx_exprs.length > 0) {
+        // Record the differential(s).
+        all_dx_exprs.push(...dx_exprs);
+        index++;
+      }
+      else if(expr.is_whitespace()) {
+        // Skip whitespace.
+        index++;
+      }
+      // Non-differential form expression.
+      else if(integrand_terms !== null) {
+        // We've already found the integrand and now there are
+        // no more differentials after the integrand - all done.
+        break;
+      }
+      // Get the integrand - must be an Expr of the appropriate kind.
+      else if(expr.is_infix_expr() &&
+              expr.operator_exprs.every(
+                operator_expr => operator_expr.is_command_expr_with(0, 'cdot'))) {
+        // x \cdot y \cdot z
+        integrand_terms = [expr];
+        index++;
+      }
+      else if(this.is_implicit_product_term(expr, true)) {
+        // Collect implicit product terms until we hit something that's not
+        // one, or hit a differential form (or run out of expressions to scan).
+        integrand_terms = [expr];
+        index++;
+        while(index < stop_index) {
+          expr = exprs[index];
+          if(expr.is_differential_form() || expr.is_whitespace() ||
+             !this.is_implicit_product_term(expr, false))
+            break;
+          integrand_terms.push(expr);
+          index++;
+        }
+      }
+      else if(all_dx_exprs.length === expected_differential_count) {
+        // We've seen enough differentials to match the number of integral signs.
+        // The integrand will be assumed to be '1'.  This handles: '\int\int dx dy'
+        // and also '\int dx \int dy' (the second integration here will be handled
+        // by the caller after the '\int dx'.
+        break;
+      }
+      else return {
+        success: false,
+        error_message: 'Could not find integrand'
+      };
+    }  // end while
+    // Done with the scan.
+    if(all_dx_exprs.length === expected_differential_count) {
+      return {
+        success: true,
+        dx_exprs: all_dx_exprs,
+        integrand_terms: integrand_terms,
+        stopped_at_index: index
+      };
+    }
+    else return {
+      success: false,
+      error_message: 'Number of differentials does not match number of integral signs'
+    };
   }
 }
-
 
 
 export { PyodideInterface };

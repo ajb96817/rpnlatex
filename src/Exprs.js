@@ -168,6 +168,7 @@ class Expr {
   }
   // 'dx', 'dx ^ dy', etc.
   is_differential_form() { return false; }
+  is_whitespace() { return false; }
 
   to_latex(selected_expr_path, export_mode = false) {
     let emitter = new LatexEmitter(this, selected_expr_path);
@@ -368,6 +369,14 @@ class CommandExpr extends Expr {
     return !/^[a-zA-Z]/.test(this.command_name);
   }
 
+  // NOTE: Not all possible LaTeX whitespace commands are checked (there are many),
+  // only the most common ones.
+  is_whitespace() {
+    return this.operand_count() === 0 &&
+      [',', '!', ':', ';', 'quad', 'qquad'
+      ].includes(this.command_name);
+  }
+  
   // Something like \sin{x} that represents a named function/operator, as opposed
   // to a "decoration" like \hat{x}.  This affects autoparenthesization.
   // Commands like \operatorname{myfunc} (as created with [Tab] in math entry mode)
@@ -1339,6 +1348,8 @@ class TextExpr extends Expr {
   }
 
   expr_type() { return 'text'; }
+
+  is_whitespace() { return /^\s+/.test(this.text); }
 
   emit_latex(emitter) {
     if(this.text === '') {

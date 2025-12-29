@@ -309,17 +309,19 @@ class InputContext {
     case 'apart':      case 'together':    case 'cancel':      case 'expand':
     case 'factor':     case 'logcombine':  case 'expand_log':  case 'simplify':
     case 'integrate':  case 'diff':
-      return this._sympy_command(stack, operation, 1);
+      return this._sympy_command(stack, operation, operation, 1);
+    case 'sympify':
+      return this._sympy_command(stack, operation, 'evaluate', 1);
     case 'solve':
-      return this._sympy_command(stack, 'solve', 1, [['dict', 'True']]);
+      return this._sympy_command(stack, 'solve', 'solve', 1, [['dict', 'True']]);
     case 'solve_for_variable':
-      return this._sympy_command(stack, 'solve', 2, [['dict', 'True']]);
+      return this._sympy_command(stack, 'solve', 'solve', 2, [['dict', 'True']]);
     case 'integrate_with_variable':
-      return this._sympy_command(stack, 'integrate', 2);
+      return this._sympy_command(stack, 'integrate', 'integrate', 2);
     case 'diff_with_variable':
-      return this._sympy_command(stack, 'diff', 2);
+      return this._sympy_command(stack, 'diff', 'differentiate', 2);
     }
-    return stack;
+    return this.error_flash_stack();  // shouldn't happen
   }
 
   // Take SymPyExprs from the stack and start up a computation
@@ -327,10 +329,12 @@ class InputContext {
   // SymPyItem representing the computation.
   //
   // function_name: 'solve' (SymPy function to call)
+  // operation_label: user-visible version of function_name (usually the same)
   // arg_count: Number of argument expressions from the stack
   // arg_options: [['optname', 'True'], ...]
   //     (extra keyword options to the function call)
-  _sympy_command(stack, function_name, arg_count, arg_options=[]) {
+  _sympy_command(stack, function_name, operation_label,
+                 arg_count, arg_options = []) {
     const pyodide = this.app_component.state.pyodide_interface;
     const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
     const status = {
@@ -339,7 +343,7 @@ class InputContext {
       start_time: Date.now()
     };
     const new_item = new SymPyItem(
-      status, function_name, function_name,
+      status, function_name, operation_label,
       arg_exprs, arg_options, null, null);
     pyodide.start_executing(new_item);
     return new_stack.push(new_item);

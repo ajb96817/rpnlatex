@@ -498,25 +498,10 @@ class ItemClipboard {
   constructor() {
     // Maps clipboard slot names (arbitrary strings) to Items.
     this.slot_to_item_map = {};
-    this._check_for_pending_items();
   }
 
-  // Recalculate an internal flag saying whether there are any Items in
-  // the clipboard representing in-progress computations (via SymPy).
-  // These will need to be replaced if/when the computations finish.
-  _check_for_pending_items() {
-    this.has_pending_items = false;
-    for(const [, item] of Object.entries(this.slot_to_item_map)) {
-      if(item && item.is_pending_item()) {
-        this.has_pending_items = true;
-        break;
-      }
-    }
-  }
-
+  // See stack.resolve_pending_item().
   resolve_pending_item(command_id, new_item_fn) {
-    if(!this.has_pending_items)
-      return [this, false];
     let any_replaced = false;
     for(const [key, item] of Object.entries(this.slot_to_item_map)) {
       if(item && item.is_pending_item() &&
@@ -525,8 +510,6 @@ class ItemClipboard {
         any_replaced = true;
       }
     }
-    if(any_replaced)
-      this._check_for_pending_items();
     return [this, any_replaced];
   }
 
