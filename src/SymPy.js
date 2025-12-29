@@ -919,7 +919,6 @@ class ExprToSymPy {
       const integral_result = this.recognize_integral(
         exprs, start_index, stop_index);
       if(integral_result) {
-        console.log(integral_result);
         const {
           success, integrate_command_node, stopped_at_index,
           error_message, errored_expr_index
@@ -1059,6 +1058,9 @@ class ExprToSymPy {
       return true;
     if(expr.is_matrix_expr())
       return true;
+
+    if(expr.is_sympy_expr())
+      return true;  // TODO: distinguish between x*y, x+y
     
     // TODO: recognize_summation()
     
@@ -1092,7 +1094,7 @@ class ExprToSymPy {
   //     Therefore, \iint x+y dx dy isn't allowed but \iint (x+y) dx dy is OK.
   //   - The differential must be either directly adjacent to the integral
   //     sign(s) or else directly after the integrand.
-  //   - A \frac integrand is scanned for differential(s) in its denominator
+  //   - A \frac integrand is scanned for differential(s) in its numerator
   //     (in the first or last positions), but "inline" fractions are not
   //     recognized: \int dx/x (this could be added)
   //   - Forms like \iint\frac{dx dy}{x+y} are allowed.
@@ -1191,11 +1193,43 @@ class ExprToSymPy {
     return this.fncall('integrate', [integrand_node, dx_node]);
   }
 
-  _restructure_fraction_integrand(expr) {
-    // \frac{x dx}{x+1} -> \frac{x}{x+1}, [dx]
-    // \frac{dx}{x} -> \frac{1}{x}, [dx]
-    // \frac{dx dy}{x+y} -> \frac{1}{x+y}, [dx, dy]
-    borked();
+  // Pull out any differentials from the numerator of a \frac.
+  // Return the (possibly) rewritten \frac along with a list of
+  // expressions for the differentials (e.g. dx dy -> [x, y]).
+  // The "rules" for what terms are allowed in the numerator
+  // are less strict than those for normal integrands: we simply
+  // filter out any top-level differential forms from the numerator.
+  //   \frac{x dx}{x+1} -> \frac{x}{x+1}, [x]
+  //   \frac{dx}{x} -> \frac{1}{x}, [x]
+  //   \frac{dx dy}{x+y} -> \frac{1}{x+y}, [x, y]
+  _extract_differentials_from_fraction(frac_expr) {
+    const [numer_expr, denom_expr] = frac_expr.operand_exprs;
+    let all_dx_exprs = [];
+    // Check the numerator as a whole to see if it's a differential
+    // on its own, like SequenceExpr['d', 'x'].
+    let new_numer_exprs = [];
+    const dx_exprs = this._analyze_differential_form(numer_expr);
+    if(dx_exprs.length > 0)
+      all_dx_exprs.push(...dx_exprs);
+    else {
+      // Check individual top-level pieces of the numerator and
+      // build the (possible) new numerator.
+      for(const expr of
+          numer_expr.is_sequence_expr() ? numer_expr.exprs : [numer_expr]) {
+        const dx_exprs = this._analyze_differential_form(expr);
+        if(dx_exprs.length > 0)
+          all_dx_exprs.push(...dx_exprs);
+        else if(expr.is_whitespace())
+          ;  // ignore whitespace
+        else
+          new_numer_exprs.push(expr);
+      }
+    }
+    if(new_numer_exprs.length === 0)
+      new_numer_exprs.push(TextExpr.integer(1));
+    const new_numer_expr = new_numer_exprs.length === 1 ?
+          new_numer_exprs[0] : new SequenceExpr(new_numer_exprs);
+    return [CommandExpr.frac(new_numer_expr, denom_expr), all_dx_exprs];
   }
 
   _analyze_integral_sign(expr) {
@@ -1281,22 +1315,28 @@ class ExprToSymPy {
       else if(this.is_implicit_product_term(expr, true)) {
         // Collect implicit product terms until we hit something that's not
         // one, or hit a differential form (or run out of expressions to scan).
-        integrand_terms = [expr];
-        index++;
-        while(index < stop_index) {
-          expr = exprs[index];
-          if(expr.is_differential_form() || expr.is_whitespace() ||
-             !this.is_implicit_product_term(expr, false))
-            break;
+        integrand_terms = [];
+        do {
+          if(expr.is_command_expr_with(2, 'frac')) {
+            // Check for differentials inside the numerators of fractions.
+            const [new_frac_expr, dx_exprs] =
+                  this._extract_differentials_from_fraction(expr);
+            expr = new_frac_expr;
+            all_dx_exprs.push(...dx_exprs);
+          }
           integrand_terms.push(expr);
           index++;
-        }
+          if(index < stop_index)
+            expr = exprs[index];
+        } while(index < stop_index &&
+                !(expr.is_differential_form() || expr.is_whitespace() ||
+                  !this.is_implicit_product_term(expr, false)));
       }
       else if(all_dx_exprs.length === expected_differential_count) {
         // We've seen enough differentials to match the number of integral signs.
         // The integrand will be assumed to be '1'.  This handles: '\int\int dx dy'
         // and also '\int dx \int dy' (the second integration here will be handled
-        // by the caller after the '\int dx'.
+        // by the caller after the '\int dx').
         break;
       }
       else return {
@@ -1309,7 +1349,7 @@ class ExprToSymPy {
       return {
         success: true,
         dx_exprs: all_dx_exprs,
-        integrand_terms: integrand_terms,
+        integrand_terms: integrand_terms || [],
         stopped_at_index: index
       };
     }
