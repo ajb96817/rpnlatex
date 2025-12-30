@@ -170,6 +170,20 @@ class Expr {
   is_differential_form() { return false; }
   is_whitespace() { return false; }
 
+  // Determine if this expression is a 'term'; that is, something that
+  // can be implicitly (by concatenation) or explicitly multiplied by
+  // something without affecting the "visual" precedence grouping.
+  // For example, 'x', 'sin(x)', \frac{x}{y} are terms while 'x+y' is
+  // not because 2 * x+y -> 2*(x+y).  So parentheses had to be added
+  // around 'x+y', changing the precedence grouping.
+  // 'is_leftmost' is an optional flag saying whether this Expr is
+  // considered as the first item in an implicit multiplication group.
+  // For example, in '-3 sin(x)' the -3 is the first item and can be
+  // concatenated to sin(x) without changing the meaning, but 'sin(x) -3'
+  // needs to become 'sin(x) (-3)'.  Currently this only affects prefix
+  // unary plus/minus.
+  is_term_expr(is_leftmost = false) { return true; }
+
   to_latex(selected_expr_path, export_mode = false) {
     let emitter = new LatexEmitter(this, selected_expr_path);
     emitter.export_mode = export_mode;
@@ -358,6 +372,12 @@ class CommandExpr extends Expr {
   }
 
   expr_type() { return 'command'; }
+
+  // TODO: This is complex, revisit.
+  is_term_expr(is_leftmost = false) {
+    if(this.command_name === 'int') return false;
+    return true;
+  }
 
   operand_count() { return this.operand_exprs.length; }
 
@@ -590,6 +610,10 @@ class FontExpr extends Expr {
   }
 
   expr_type() { return 'font'; }
+
+  is_term_expr(is_leftmost = false) {
+    return this.expr.is_term_expr(is_leftmost);
+  }
 
   // See comment in Expr.has_subexpressions().
   has_subexpressions() { return this.expr.has_subexpressions(); }
@@ -859,6 +883,9 @@ class InfixExpr extends Expr {
 
   expr_type() { return 'infix'; }
 
+  // InfixExprs are never considered terms, even x \cdot y.
+  is_term_expr(is_leftmost = false) { return false; }
+
   // If the given infix operator is a simple command like '+' or '\cap',
   // return the command name (without the initial \ if it has one).
   // If it's anything more complex, return null.
@@ -1067,6 +1094,8 @@ class InfixExpr extends Expr {
 class PlaceholderExpr extends Expr {
   expr_type() { return 'placeholder'; }
 
+  is_term_expr(is_leftmost = false) { return true; }
+
   emit_latex(emitter) {
     if(emitter.export_mode)
       emitter.expr(new TextExpr("\\blacksquare"), null);
@@ -1118,6 +1147,10 @@ class PrefixExpr extends Expr {
   }
 
   is_unary_minus() { return this.operator_text() === '-'; }
+
+  is_term_expr(is_leftmost = false) {
+    return is_leftmost && ['+', '-'].includes(this.operator_text());
+  }
 
   replace_subexpression(index, new_expr) {
     return new PrefixExpr(
@@ -1183,6 +1216,10 @@ class PostfixExpr extends Expr {
   }
 
   expr_type() { return 'postfix'; }
+
+  is_term_expr(is_leftmost = false) {
+    return this.factorial_signs_count() > 0;
+  }
 
   emit_latex(emitter) {
     emitter.expr(this.base_expr, 0);
@@ -1259,6 +1296,8 @@ class FunctionCallExpr extends Expr {
   }
 
   expr_type() { return 'function_call'; }
+
+  is_term_expr(is_leftmost = false) { return true; }
 
   emit_latex(emitter) {
     // The args_expr gets wrapped in an "empty" latex command
@@ -1349,7 +1388,9 @@ class TextExpr extends Expr {
 
   expr_type() { return 'text'; }
 
-  is_whitespace() { return /^\s+/.test(this.text); }
+  is_whitespace() { return /^\s*$/.test(this.text); }
+
+  is_term_expr(is_leftmost = false) { return true; }
 
   emit_latex(emitter) {
     if(this.text === '') {
@@ -1404,6 +1445,10 @@ class SequenceExpr extends Expr {
   }
 
   expr_type() { return 'sequence'; }
+
+  // Nested SequenceExprs are not considered terms.
+  // Generally these will be differentials like 'dx'.
+  is_term_expr(is_leftmost = false) { return false; }
 
   emit_latex(emitter) {
     for(const [index, expr] of this.exprs.entries())
@@ -1578,6 +1623,15 @@ class DelimiterExpr extends Expr {
   
   expr_type() { return 'delimiter'; }
 
+  // If either delimiter is 'blank', delegate to the inner_expr.
+  // "Full" parentheses, etc., are always considered terms.
+  is_term_expr(is_leftmost = false) {
+    if(this.left_type === '.' || this.left_type === '.')
+      return this.inner_expr.is_term_expr(is_leftmost);
+    else
+      return true;
+  }
+
   emit_latex(emitter) {
     if(this.fixed_size)
       this.emit_latex_fixed_size(emitter);
@@ -1654,6 +1708,10 @@ class SubscriptSuperscriptExpr extends Expr {
   }
 
   expr_type() { return 'subscriptsuperscript'; }
+
+  is_term_expr(is_leftmost = false) {
+    return this.base_expr.is_term_expr(is_leftmost);
+  }
 
   emit_latex(emitter) {
     // If the base_expr is a command, don't put it inside grouping braces.
@@ -1921,6 +1979,8 @@ class ArrayExpr extends Expr {
   }
 
   expr_type() { return 'array'; }
+
+  is_term_expr(is_leftmost = false) { return this.is_matrix(); }
 
   is_matrix() {
     // TODO: t.endsWith('matrix')?
@@ -2239,6 +2299,10 @@ class TensorExpr extends Expr {
 
   expr_type() { return 'tensor'; }
 
+  is_term_expr(is_leftmost = false) {
+    return this.base_expr.is_term_expr(is_leftmost);
+  }
+
   // Add an upper or lower index (or both) to the given side ('left' or 'right')
   // of the tensor expression.  Null can be used to indicate an empty index slot,
   // but at least one of the new index expressions must be non-null.
@@ -2459,6 +2523,10 @@ class SymPyExpr extends Expr {
   }
 
   expr_type() { return 'sympy'; }
+
+  // TODO: This needs to be based on the underlying SymPy expr structure.
+  // Mul(x,y) is a term but Add(x,y) isn't.
+  is_term_expr(is_leftmost = false) { return true; }
 
   emit_latex(emitter) {
     emitter.text(this.latex_string);
