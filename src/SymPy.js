@@ -512,14 +512,15 @@ class SymPySRepr extends SymPyNode {
 
 class ExprToSymPy {
   constructor() {
-    this.symbol_table = {};
+    this.symbol_table = {};  // maps strings to SymPySymbols
     this.symbol_list = [];  // linear list of what is in symbol_table
-    this.assignment_list = [];
+    this.assignment_list = [];  // contains SymPyAssignments
     this.subexpression_count = 0;
     // Rules are tried in the order listed.
     // The implicit product rule should generally come last.
     this.analyzer_rules = [
       new IntegralAnalyzerRule(this),
+      new DerivativeAnalyzerRule(this),
       new ImplicitProductAnalyzerRule(this)
     ];
   }
@@ -535,8 +536,7 @@ class ExprToSymPy {
   }
 
   generate_code(builder_function_name, return_node) {
-    let lines = [];
-    lines.push(['def ', builder_function_name, '():'].join(''));
+    let lines = [['def ', builder_function_name, '():'].join('')];
     const symbol_names = this.symbol_list
           .map(symbol => ["'", symbol.name, "'"].join(''))
           .join(', ');
@@ -551,6 +551,7 @@ class ExprToSymPy {
   }
 
   // Only one Symbol per distinct variable name is created.
+  // (SymPy uniquifies Symbols anyways, this is just for tidiness.)
   symbol(variable_name, source_expr = null) {
     const old_symbol = this.symbol_table[variable_name];
     if(old_symbol) return old_symbol;
@@ -603,7 +604,7 @@ class ExprToSymPy {
     case 'placeholder': return this.error('Placeholders not allowed', expr);
     case 'tensor': return this.error('Tensors not allowed', expr);
     case 'sympy': return this.emit_sympy_expr(expr);
-    default: return this.error('Unknown expr type: ' + expr.expr_type());
+    default: return this.error('Unknown expr type: ' + expr.expr_type(), expr);
     }
   }
 
@@ -666,7 +667,7 @@ class ExprToSymPy {
   // them into a SymPy expression node that goes back on the stack.
   _resolve_infix_operator(node_stack, operator_stack) {
     const operator_info = operator_stack.pop();
-    let rhs_node = node_stack.pop();
+    const rhs_node = node_stack.pop();
     const lhs_node = node_stack.pop();
     node_stack.push(
       this.fncall(operator_info.fn, [lhs_node, rhs_node]));
@@ -674,7 +675,7 @@ class ExprToSymPy {
   // { fn: binary sympy function to apply
   //   prec: higher numbers bind tighter }
   _infix_op_info(op_name) {
-    // NOTE: Mul/Add are "native" SymPy operators;
+    // NOTE: Mul/Add are "native" SymPy operators (classes);
     // divide/subtract are created by the initialization
     // in load_pyodide_if_needed().
     switch(op_name) {
@@ -690,14 +691,12 @@ class ExprToSymPy {
 
   // Only '+' and '-' prefix operators are supported (and + is disregarded).
   emit_prefix_expr(prefix_expr) {
-    if(prefix_expr.operator_expr.is_text_expr()) {
-      switch(prefix_expr.operator_expr.text) {
-      case '-': return this.fncall(
-        'negate', [this.emit_expr(prefix_expr.base_expr)]);
-      case '+': return this.emit_expr(prefix_expr.base_expr);
-      }
+    switch(prefix_expr.operator_text()) {
+    case '-': return this.fncall(
+      'negate', [this.emit_expr(prefix_expr.base_expr)]);
+    case '+': return this.emit_expr(prefix_expr.base_expr);
+    default: return this.error('Invalid prefix operator', prefix_expr);
     }
-    return this.error('Invalid prefix operator', prefix_expr);
   }
       
   // Single and double factorials are supported.
@@ -960,10 +959,6 @@ class ExprToSymPy {
 // trying a series of these AnalyzerRules until one matches.  A matching
 // rule will convert its match into a SymPyNode and also report on the
 // extent (number of Exprs) consumed for the match.
-//
-// For example, we might have: '-x \int x\,dx (sin x)'.  This is a
-// SequenceExpr[Prefix(-x), Command(\int), Text(x), Command(\,),
-//              DelimiterExpr('(sin x)')].
 class AnalyzerRule {
   constructor(emitter) {
     this.emitter = emitter;
@@ -1065,7 +1060,7 @@ class IntegralAnalyzerRule extends AnalyzerRule {
     // integrals though).
     let integral_limit_exprs = [];
     while(index < stop_index) {
-      const integral_info = this._analyze_integral_sign(exprs[index]);
+      const integral_info = this.analyze_integral_sign(exprs[index]);
       if(!integral_info) {
         if(index === start_index) {
           // No initial integral sign, so the integral check
@@ -1091,7 +1086,7 @@ class IntegralAnalyzerRule extends AnalyzerRule {
     }
     const {
       success, dx_exprs, integrand_terms, stopped_at_index, error_message
-    } = this._extract_integrand_and_differentials(
+    } = this.extract_integrand_and_differentials(
       exprs, index, stop_index, integral_limit_exprs.length);
     if(success) {
       if(integrand_terms.length === 0) {
@@ -1106,7 +1101,7 @@ class IntegralAnalyzerRule extends AnalyzerRule {
             integrand_term_nodes[0];
       // Build integrate() SymPy calls from the "inside out".
       const integrate_command_node =
-            this._build_integrate_command(
+            this.build_integrate_command(
               integrand_node, integral_limit_exprs, dx_exprs);
       return this.success(integrate_command_node, stopped_at_index);
     }
@@ -1118,10 +1113,10 @@ class IntegralAnalyzerRule extends AnalyzerRule {
   }
 
   // NOTE: integral_limit_exprs and dx_exprs must be the same length.
-  _build_integrate_command(integrand_node, integral_limit_exprs, dx_exprs) {
+  build_integrate_command(integrand_node, integral_limit_exprs, dx_exprs) {
     if(dx_exprs.length > 1) {
       // Recurse to construct the inner integral(s) first.
-      integrand_node = this._build_integrate_command(
+      integrand_node = this.build_integrate_command(
         integrand_node, integral_limit_exprs.slice(1), dx_exprs.slice(0, -1));
     }
     const inner_integral_limit_exprs = integral_limit_exprs[0];
@@ -1147,13 +1142,13 @@ class IntegralAnalyzerRule extends AnalyzerRule {
   //   \frac{x dx}{x+1} -> \frac{x}{x+1}, [x]
   //   \frac{dx}{x} -> \frac{1}{x}, [x]
   //   \frac{dx dy}{x+y} -> \frac{1}{x+y}, [x, y]
-  _extract_differentials_from_fraction(frac_expr) {
+  extract_differentials_from_fraction(frac_expr) {
     const [numer_expr, denom_expr] = frac_expr.operand_exprs;
     let all_dx_exprs = [];
     // Check the numerator as a whole to see if it's a differential
     // on its own, like SequenceExpr['d', 'x'].
     let new_numer_exprs = [];
-    const dx_exprs = this._analyze_differential_form(numer_expr);
+    const dx_exprs = this.analyze_differential_form(numer_expr);
     if(dx_exprs.length > 0)
       all_dx_exprs.push(...dx_exprs);
     else {
@@ -1161,7 +1156,7 @@ class IntegralAnalyzerRule extends AnalyzerRule {
       // build the (possible) new numerator.
       for(const expr of
           numer_expr.is_sequence_expr() ? numer_expr.exprs : [numer_expr]) {
-        const dx_exprs = this._analyze_differential_form(expr);
+        const dx_exprs = this.analyze_differential_form(expr);
         if(dx_exprs.length > 0)
           all_dx_exprs.push(...dx_exprs);
         else if(expr.is_whitespace())
@@ -1177,7 +1172,7 @@ class IntegralAnalyzerRule extends AnalyzerRule {
     return [CommandExpr.frac(new_numer_expr, denom_expr), all_dx_exprs];
   }
 
-  _analyze_integral_sign(expr) {
+  analyze_integral_sign(expr) {
     // Look for either a "raw" \int, etc. command, or a SubscriptSuperscriptExpr
     // with an \int command as the base.  In this case, the subscript and superscript
     // are assumed to be the integral limits.
@@ -1211,12 +1206,12 @@ class IntegralAnalyzerRule extends AnalyzerRule {
   // dx -> [x]
   // dx^dy -> [x, y]
   // Non-differential form -> []
-  _analyze_differential_form(expr) {
+  analyze_differential_form(expr) {
     if(!expr.is_differential_form())
       return [];
     else if(expr.is_infix_expr())  // dx^dy
       return [].concat(...expr.operand_exprs.map(
-        operand_expr => this._analyze_differential_form()));
+        operand_expr => this.analyze_differential_form()));
     else if(expr.is_sequence_expr())
       return [expr.exprs[1]];  // [d x] sequence -> x
     else
@@ -1226,14 +1221,14 @@ class IntegralAnalyzerRule extends AnalyzerRule {
   // Look for [dx dy] <integrand> [dz dw] patterns.
   // The differentials must come either at the beginning or end of the range
   // (or both, as an edge case: \iint dx 2xy dy).
-  _extract_integrand_and_differentials(exprs, start_index, stop_index,
-                                       expected_differential_count) {
+  extract_integrand_and_differentials(exprs, start_index, stop_index,
+                                      expected_differential_count) {
     let index = start_index;
     let all_dx_exprs = [];
     let integrand_terms = null;
     while(index < stop_index) {
       let expr = exprs[index];
-      const dx_exprs = this._analyze_differential_form(expr);
+      const dx_exprs = this.analyze_differential_form(expr);
       if(dx_exprs.length > 0) {
         // Record the differential(s).
         all_dx_exprs.push(...dx_exprs);
@@ -1265,7 +1260,7 @@ class IntegralAnalyzerRule extends AnalyzerRule {
           if(expr.is_command_expr_with(2, 'frac')) {
             // Check for differentials inside the numerators of fractions.
             const [new_frac_expr, dx_exprs] =
-                  this._extract_differentials_from_fraction(expr);
+                  this.extract_differentials_from_fraction(expr);
             expr = new_frac_expr;
             all_dx_exprs.push(...dx_exprs);
           }
@@ -1303,6 +1298,154 @@ class IntegralAnalyzerRule extends AnalyzerRule {
       success: false,
       error_message: 'Number of differentials does not match number of integral signs'
     };
+  }
+}
+
+
+// Recognize Leibniz (d/dx) derivative notation.
+// Lagrange f'(x) and Newton \dot{y} notation are handled separately.
+// Note that with SymPy, everything is translated to the diff() function,
+// so 'd' and '\partial' are considered equivalent.
+// The derivative operation can have the following forms:
+// Single derivatives:
+//   - \frac{d}{dx} x^2
+//   - \frac{d}{dx} x \sin x
+//   - \frac{d}{dx} (x + \sin x)
+//   - \frac{d x^2}{dx}
+// Higher-order derivatives:
+//   - \frac{d^2}{dx^2} x^3
+//   - \frac{d^2 x^3}{dx^2}
+// Mixed-partial derivatives:
+//   - \frac{d^2}{dx dy} x^2 y
+//   - \frac{d^2}{dx dy} (x^2 + y^2)
+//   - \frac{\partial^2}{\partial x \partial y} (x^2 y)
+//   - \frac{d^2}{dx^2 dy} (x^2 + y^2)
+// Note that the rules for what can be to the right of the derivative
+// operator are the same for integrands in integral expressions:
+// a sequence of implicit multiplications is allowed (like x^2 y), but
+// lower-precedence things like x+y must be explicitly parenthesized.
+class DerivativeAnalyzerRule extends AnalyzerRule {
+  analyze(exprs, start_index, stop_index) {
+    let index = start_index;
+    const derivative_info = this
+          .analyze_derivative_operator(exprs[index++]);
+    if(!derivative_info)
+      return this.no_match();
+    const [f_expr, differentials_info] = derivative_info;
+    // If we got a f_expr from 'df/dx', that's the expression to be
+    // differentiated.  Otherwise, we take 1 term from the rest of the
+    // sequence.  In the future, this could be expanded to multiple
+    // terms to support things like (d/dx) x \sin x.  For now it has to
+    // be parenthesized.
+    let diff_expr = null;
+    if(f_expr)
+      diff_expr = f_expr;
+    else if(index < stop_index)
+      diff_expr = exprs[index++];
+    else return this.no_match();  // e.g. d/dx without anything after it (TODO: .failure)
+    // Build the diff(diff_expr, x, y, z) call.
+    const diff_args = differentials_info.map(info => {
+      const variable_node = this.emitter.emit_expr(info.variable_expr);
+      if(info.degree_expr.is_text_expr_with('1'))
+        return variable_node;  // diff(f, x)
+      else
+        return this.emitter.tuple(  // diff(f, (x, n))
+          [variable_node, this.emitter.emit_expr(info.degree_expr)]);
+    });
+    const diff_expr_node = this.emitter.emit_expr(diff_expr);
+    const diff_command_node = this.emitter.fncall(
+      'diff', [diff_expr_node].concat(diff_args));
+    return this.success(diff_command_node, index);
+  }
+
+  analyze_derivative_operator(expr) {
+    if(!expr.is_command_expr_with(2, 'frac'))
+      return null;
+    const numer_info = this.analyze_d_numerator(expr.operand_exprs[0]);
+    const denom_info = this.analyze_d_denominator(expr.operand_exprs[1]);
+    console.log(numer_info);
+    console.log(denom_info);
+    if(!(numer_info && denom_info))
+      return null;  // doesn't match pattern
+    return [numer_info.f_expr, denom_info];
+  }
+
+  // Look at the "numerator" of a dy/dx expression.
+  // If it doesn't match one of these patterns, null is returned.
+  // Otherwise:
+  //   d (by itself): {degree_expr: 1, f_expr: null}
+  //   df:    {degree_expr: 1, f_expr: f}
+  //   d^n:   {degree_expr: n, f_expr: null}
+  //   d^n f: {degree_expr: n, f_expr: f}
+  // NOTE: The degree_expr isn't actually used, all that is needed is
+  // the "denominator" degrees for calling SymPy diff().
+  analyze_d_numerator(numer_expr) {
+    let maybe_d_expr = null, f_expr = null;
+    if(numer_expr.is_sequence_expr()) {
+      if(numer_expr.exprs.length === 2)
+        [maybe_d_expr, f_expr] = numer_expr.exprs;
+      else return null;
+    }
+    else maybe_d_expr = numer_expr;
+    // Check for d, d^2, d^n.
+    let degree_expr = null;
+    if(this.is_d_or_partial(maybe_d_expr))
+      degree_expr = TextExpr.integer(1);
+    else if(maybe_d_expr.is_subscriptsuperscript_expr() &&
+            maybe_d_expr.superscript_expr &&
+            !maybe_d_expr.subscript_expr &&
+            this.is_d_or_partial(maybe_d_expr.base_expr)) {
+      // NOTE: SymPy supports arbitrary expressions for the derivative
+      // order via diff(expr, (x, n)).  So we can just use what's in the
+      // d's exponent directly.
+      degree_expr = expr.superscript_expr;
+    }
+    if(!degree_expr)
+      return null;
+    return {
+      degree_expr: degree_expr,
+      f_expr: f_expr
+    };
+  }
+
+  // Look at the "denominator" of a dy/dx expression.
+  // This always has to be one or more 'plain' differentials
+  // (not exterior dx^dy).  If not, null is returned.  Otherwise
+  // return a list of {variable_expr: x, degree_expr: n}.
+  // NOTE: whitespace between differentials is filtered out.
+  analyze_d_denominator(denom_expr) {
+    let exprs = null;
+    if(denom_expr.is_sequence_expr() && denom_expr.is_differential_form(true))
+      exprs = [denom_expr];  // 2-element differential sequence ('d', 'x')
+    else if(denom_expr.is_sequence_expr())
+      exprs = denom_expr.exprs;  // sequence that should contain only differentials
+    else
+      exprs = [denom_expr];  // possibly a single differential expr (shouldn't happen currently)
+    const results = exprs
+          .filter(expr => !expr.is_whitespace())
+          .map(expr => {
+            if(expr.is_sequence_expr()) {  // exclude dx^dy
+              const degree_expr = expr.is_differential_form(true);
+              if(degree_expr)
+                return {degree_expr: degree_expr, variable_expr: expr.exprs[1]};
+            }
+            return null;
+          });
+    // TODO: return failures for the failed cases here
+    if(results.length === 0)
+      return null;  // nothing but whitespace
+    else if(results.some(result => result === null))
+      return null;  // something wasn't a differential
+    else
+      return results;
+  }
+
+  // Check for roman or italic 'd', or \partial.
+  is_d_or_partial(expr) {
+    return (expr.is_text_expr_with('d') ||
+            (expr.is_font_expr() && expr.typeface === 'roman' &&
+             expr.expr.is_text_expr_with('d')) ||
+            expr.is_command_expr_with(0, 'partial'));
   }
 }
 

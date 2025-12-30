@@ -1482,18 +1482,26 @@ class SequenceExpr extends Expr {
 
   // 'dx', etc.  The 'd' may be in a roman font.
   // 'd^2 x', 'd^(n) x' etc. also count as differential forms.
-  is_differential_form() {
-    if(this.exprs.length !== 2) return false;
+  // allow_partial=true allows \partial too instead of 'd'.
+  // Instead of just true/false, this returns the 'd^n' exponent n
+  // (or '1' if not present).
+  is_differential_form(allow_partial = false) {
+    if(this.exprs.length !== 2)
+      return null;
     let d_expr = this.exprs[0];
+    let degree_expr = null;
     if(d_expr.is_subscriptsuperscript_expr() &&
-       d_expr.superscript_expr)
+       d_expr.superscript_expr && !d_expr.subscript_expr) {
       d_expr = d_expr.base_expr;
-    if(d_expr.is_text_expr_with('d')) return true;
-    if(d_expr.is_font_expr() && d_expr.typeface === 'roman' &&
-       !d_expr.is_bold && d_expr.size_adjustment === 0 &&
-       d_expr.expr.is_text_expr_with('d'))
-      return true;
-    return false;
+      degree_expr = d_expr.superscript_expr;
+    }
+    if(d_expr.is_text_expr_with('d') ||
+       (d_expr.is_font_expr() && d_expr.typeface === 'roman' &&
+        !d_expr.is_bold && d_expr.size_adjustment === 0 &&
+        d_expr.expr.is_text_expr_with('d')) ||
+       (allow_partial && d_expr.is_command_expr_with(0, 'partial')))
+      return degree_expr || TextExpr.integer(1);
+    return null;
   }
 }
 
@@ -1553,6 +1561,10 @@ class DelimiterExpr extends Expr {
 
   // TODO: make non-static
   static should_parenthesize_for_power(expr) {
+    // Don't parenthesize dx => (dx)^2; need to allow dx^2 for
+    // higher-order differentials like d^2/dx^2.  Same for '\partial x'.
+    if(expr.is_sequence_expr() && expr.is_differential_form(true))
+      return false;
     return (
       // Any sequence/infix/prefix/postfix/tensor expression
       [ 'sequence', 'infix', 'prefix', 'postfix', 'tensor',
