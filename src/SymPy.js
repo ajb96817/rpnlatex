@@ -350,14 +350,12 @@ class PyodideInterface {
   }
 
   generate_command_code(function_name, arg_exprs, arg_options) {
-    const insert_artificial_delay = false;
+    const insert_artificial_delay = false;  // TODO: make this a debug option
     // Generate builder functions, one per argument expression.
-    const builder_function_name = (index) => 'build_expr_' + index.toString();
-    const builder_function_codes = arg_exprs
-          .map((arg_expr, arg_index) => {
-            return new ExprToSymPy()
-              .expr_to_code(arg_expr, builder_function_name(arg_index));
-          });
+    const builder_function_name = index => 'build_expr_' + index.toString();
+    const builder_function_codes = arg_exprs.map(
+      (arg_expr, arg_index) => ExprToSymPy.expr_to_code(
+        arg_expr, builder_function_name(arg_index)));
     // Generate a function to build all the argument expressions and
     // execute the requested command.
     let lines = [];
@@ -510,19 +508,47 @@ class SymPySRepr extends SymPyNode {
 }
 
 
+// This handles the overall conversion of Expr trees to SymPy code.
 class ExprToSymPy {
+  // Given an Expr tree, try to build a string of Python code
+  // that will create the corresponding SymPy expression.
+  // The generated code will be a Python function with the
+  // supplied 'builder_function_name'.
+  static expr_to_code(expr, builder_function_name) {
+    return new this().expr_to_code(expr, builder_function_name);
+  }
+  
   constructor() {
     this.symbol_table = {};  // maps strings to SymPySymbols
     this.symbol_list = [];  // linear list of what is in symbol_table
     this.assignment_list = [];  // contains SymPyAssignments
-    this.subexpression_count = 0;
-    // Rules are tried in the order listed.
-    // The implicit product rule should generally come last.
-    this.analyzer_rules = [
-      new IntegralAnalyzerRule(this),
-      new DerivativeAnalyzerRule(this),
-      new ImplicitProductAnalyzerRule(this)
-    ];
+    this.subexpression_count = 0;  // serial number for expr_1,2,3 in generated code
+
+    // Analyzers are heuristic rulesets that try to interpret Exprs.
+    // They are tried in the order listed until one works.
+    this.analyzer_table = {
+      command: [
+        // CommandExprs try these analyzers with themselves as the
+        // expression list (as if they were single-element SequenceExprs).
+        // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
+        // handle gets to it.
+        new DerivativeAnalyzer(this),
+        new CommandAnalyzer(this)
+      ],
+      sequence: [
+        // SequenceExprs use these; most "complicated" patterns occur
+        // within sequences.
+        new IntegralAnalyzer(this),
+        new DerivativeAnalyzer(this),
+        // CommandAnalyzer needs to come after DerivativeAnalyzer so that
+        // the latter has a chance to examine \frac{dy}{dx}.
+        new CommandAnalyzer(this),
+        // Sequences that don't have any other special interpretation
+        // are generally treated as implicit multiplications
+        // (such as 3 x \sin{x}).
+        new ImplicitProductAnalyzer(this)
+      ]
+    };
   }
 
   // TODO: fix this
@@ -767,72 +793,18 @@ class ExprToSymPy {
   }
 
   emit_command_expr(expr) {
-    // Some built-in commands use \operatorname{fn}{x} (a 2-argument CommandExpr).
-    // These include: Tr(), sech(), csch(), erf(), erfc(), which aren't present in LaTeX.
-    // For these cases, the command name and argument to use are extracted
-    // from the \operatorname command.
-    let args, nargs, command_name;
-    if(expr.is_command_expr_with(2, 'operatorname') &&
-       expr.operand_exprs[0].is_text_expr()) {
-      args = expr.operand_exprs.slice(1);
-      nargs = expr.operand_count()-1;
-      command_name = expr.operand_exprs[0].text;
-    }
-    else {
-      args = expr.operand_exprs;
-      nargs = expr.operand_count();
-      command_name = expr.command_name;
-    }
-    if(command_name === 'frac' && nargs === 2)
-      return this.fncall('divide', [
-        this.emit_expr(args[0]),
-        this.emit_expr(args[1])]);
-    if(command_name === 'sqrt' && nargs === 1) {
-      if(expr.options) {
-        // sqrt[3], etc.  The option is assumed to be valid (positive integer).
-        return this.fncall('root', [this.emit_expr(args[0]), this.number(expr.options)]);
+    // Try the command analyzers as if this were a one-element SequenceExpr.
+    for(const analyzer of this.analyzer_table.command) {
+      const analyzer_result = analyzer.analyze([expr], 0, 1);
+      if(analyzer_result) {
+        if(analyzer_result.success)
+          return analyzer_result.result_node;
+        else return this.error(
+          analyzer_result.error_message, /* errored_expr... */);
       }
-      else
-        return this.fncall('sqrt', [this.emit_expr(args[0])]);
     }
-    // Check for unary functions like sin(x).
-    // Translate 'Tr' => 'trace', etc. if needed.
-    const sympy_command = translate_function_name(command_name, true);
-    if(allowed_unary_sympy_functions.has(sympy_command) && nargs === 1)
-      return this.fncall(sympy_command, [this.emit_expr(args[0])]);
-    // Infinity is 'oo' in SymPy.
-    if(command_name === 'infty' && nargs === 0)
-      return this.number('oo');
-    // Special case for \binom{n}{m}; this is the only two-argument
-    // function used with SymPy.
-    if(command_name === 'binom' && nargs === 2)
-      return this.fncall('binomial', [this.emit_expr(args[0]), this.emit_expr(args[1])]);
-    // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
-    // having the command_name be a literal 'sin^2'.  This needs to be translated
-    // as sin^2(x) => sin(x)^2 for SymPy.  Also, reciprocal trig functions
-    // need to be translated as csc^2(x) => sin(x)^(-2).
-    const match = [
-      // [rpnlatex, sympy_function, power]
-      ['sin^2', 'sin', 2],    ['cos^2', 'cos', 2],    ['tan^2', 'tan', 2],
-      ['sinh^2', 'sinh', 2],  ['cosh^2', 'cosh', 2],  ['tanh^2', 'tanh', 2],
-      ['sec^2', 'cos', -2],   ['csc^2', 'sin', -2],   ['cot^2', 'tan', -2],
-      ['sech^2', 'cosh', -2], ['csch^2', 'sinh', -2], ['coth^2', 'tanh', -2]
-    ].find(pair => command_name === pair[0]);
-    if(match && nargs === 1) {
-      alert('sin^2 etc not yet implemented');
-      // return new AlgebriteCall('power', [
-      //   new AlgebriteCall(match[1], [this.expr_to_node(args[0])]),
-      //   new AlgebriteNumber(match[2].toString())]);
-    }
-    
-    // Zero-argument commands like \alpha are converted to their corresponding
-    // alphanumeric variable name ('alpha').
-    if(nargs === 0) {
-      const variable_name = expr_to_variable_name(expr);
-      if(variable_name)
-        return this.symbol(variable_name);
-    }
-    return this.error('Cannot use "' + command_name + '" here', expr);
+    // TODO: revisit
+    this.error('Cannot use command here');
   }
 
   emit_subscriptsuperscript_expr(expr) {
@@ -923,18 +895,18 @@ class ExprToSymPy {
     const exprs = sequence_expr.exprs;
     let start_index = 0, stop_index = exprs.length;
     while(start_index < stop_index) {
-      for(const analyzer_rule of this.analyzer_rules) {
-        const rule_result = analyzer_rule
-              .analyze(exprs, start_index, stop_index);
-        if(rule_result === null)
-          continue;  // no match, try next rule
-        if(rule_result.success) {
-          term_nodes.push(rule_result.result_node);
-          start_index = rule_result.stopped_at_index;
+      for(const analyzer of this.analyzer_table.sequence) {
+        const analyzer_result = analyzer.analyze(
+          exprs, start_index, stop_index);
+        if(analyzer_result === null)
+          continue;  // no match, try next analyzer
+        if(analyzer_result.success) {
+          term_nodes.push(analyzer_result.result_node);
+          start_index = analyzer_result.stopped_at_index;
           break;
         }
         else return this.error(
-          error_message, /* errored_expr... */);
+          analyzer_result.error_message, /* errored_expr... */);
       }
     }
     if(term_nodes.length === 1)
@@ -956,10 +928,10 @@ class ExprToSymPy {
 // for SequenceExpr, we may have several different kinds of multi-Expr
 // notations for various types of mathematical notation.  Generally,
 // SequenceExprs are converted to SymPy by scanning them left-to-right,
-// trying a series of these AnalyzerRules until one matches.  A matching
+// trying a series of these Analyzers until one matches.  A matching
 // rule will convert its match into a SymPyNode and also report on the
 // extent (number of Exprs) consumed for the match.
-class AnalyzerRule {
+class Analyzer {
   constructor(emitter) {
     this.emitter = emitter;
   }
@@ -1001,7 +973,7 @@ class AnalyzerRule {
 }
 
 
-class ImplicitProductAnalyzerRule extends AnalyzerRule {
+class ImplicitProductAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     if(exprs[start_index].is_term_expr(start_index === 0))
       return this.success(
@@ -1048,7 +1020,7 @@ class ImplicitProductAnalyzerRule extends AnalyzerRule {
 //   - Forms like \iint\frac{dx dy}{x+y} are allowed.
 //   - Cyclic integrals (\oint etc) are not recognized, but this could
 //     be added (just as synonyms for \int).
-class IntegralAnalyzerRule extends AnalyzerRule {
+class IntegralAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     let index = start_index;
     // Count the number of integral signs at the start and record
@@ -1324,7 +1296,7 @@ class IntegralAnalyzerRule extends AnalyzerRule {
 // operator are the same for integrands in integral expressions:
 // a sequence of implicit multiplications is allowed (like x^2 y), but
 // lower-precedence things like x+y must be explicitly parenthesized.
-class DerivativeAnalyzerRule extends AnalyzerRule {
+class DerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     let index = start_index;
     const derivative_info = this
@@ -1446,6 +1418,90 @@ class DerivativeAnalyzerRule extends AnalyzerRule {
             (expr.is_font_expr() && expr.typeface === 'roman' &&
              expr.expr.is_text_expr_with('d')) ||
             expr.is_command_expr_with(0, 'partial'));
+  }
+}
+
+
+// Recognize various CommandExprs that have a meaning to SymPy.
+// These are generally single-Expr commands like \sin{x}, \frac{x}{y}, etc.
+// One exception is '\operatorname{fn} x', using a one-argument \operatorname
+// command followed by the actual command argument.
+class CommandAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    const expr = exprs[start_index];
+    if(!expr.is_command_expr())
+      return this.no_match();
+    const result_node = this.analyze_command_expr(expr);
+    return this.success(result_node, start_index+1);
+  }
+
+  analyze_command_expr(expr) {
+    // Some built-in commands use \operatorname{fn}{x} (a 2-argument CommandExpr).
+    // These include: Tr(), sech(), csch(), erf(), erfc(), which aren't present in LaTeX.
+    // For these cases, the command name and argument to use are extracted
+    // from the \operatorname command.
+    let args, nargs, command_name;
+    if(expr.is_command_expr_with(2, 'operatorname') &&
+       expr.operand_exprs[0].is_text_expr()) {
+      args = expr.operand_exprs.slice(1);
+      nargs = expr.operand_count()-1;
+      command_name = expr.operand_exprs[0].text;
+    }
+    else {
+      args = expr.operand_exprs;
+      nargs = expr.operand_count();
+      command_name = expr.command_name;
+    }
+    if(command_name === 'frac' && nargs === 2)
+      return this.emitter.fncall('divide', [
+        this.emitter.emit_expr(args[0]),
+        this.emitter.emit_expr(args[1])]);
+    if(command_name === 'sqrt' && nargs === 1) {
+      if(expr.options) {
+        // sqrt[3], etc.  The option is assumed to be valid (positive integer).
+        return this.emitter.fncall('root', [this.emitter.emit_expr(args[0]), this.number(expr.options)]);
+      }
+      else
+        return this.emitter.fncall('sqrt', [this.emitter.emit_expr(args[0])]);
+    }
+    // Check for unary functions like sin(x).
+    // Translate 'Tr' => 'trace', etc. if needed.
+    const sympy_command = translate_function_name(command_name, true);
+    if(allowed_unary_sympy_functions.has(sympy_command) && nargs === 1)
+      return this.emitter.fncall(sympy_command, [this.emitter.emit_expr(args[0])]);
+    // Infinity is 'oo' in SymPy.
+    if(command_name === 'infty' && nargs === 0)
+      return this.number('oo');
+    // Special case for \binom{n}{m}; this is the only two-argument
+    // function used with SymPy.
+    if(command_name === 'binom' && nargs === 2)
+      return this.emitter.fncall('binomial', [this.emitter.emit_expr(args[0]), this.emitter.emit_expr(args[1])]);
+    // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
+    // having the command_name be a literal 'sin^2'.  This needs to be translated
+    // as sin^2(x) => sin(x)^2 for SymPy.  Also, reciprocal trig functions
+    // need to be translated as csc^2(x) => sin(x)^(-2).
+    const match = [
+      // [rpnlatex, sympy_function, power]
+      ['sin^2', 'sin', 2],    ['cos^2', 'cos', 2],    ['tan^2', 'tan', 2],
+      ['sinh^2', 'sinh', 2],  ['cosh^2', 'cosh', 2],  ['tanh^2', 'tanh', 2],
+      ['sec^2', 'cos', -2],   ['csc^2', 'sin', -2],   ['cot^2', 'tan', -2],
+      ['sech^2', 'cosh', -2], ['csch^2', 'sinh', -2], ['coth^2', 'tanh', -2]
+    ].find(pair => command_name === pair[0]);
+    if(match && nargs === 1) {
+      alert('sin^2 etc not yet implemented');
+      // return new AlgebriteCall('power', [
+      //   new AlgebriteCall(match[1], [this.expr_to_node(args[0])]),
+      //   new AlgebriteNumber(match[2].toString())]);
+    }
+    
+    // Zero-argument commands like \alpha are converted to their corresponding
+    // alphanumeric variable name ('alpha').
+    if(nargs === 0) {
+      const variable_name = expr_to_variable_name(expr);
+      if(variable_name)
+        return this.symbol(variable_name);
+    }
+    return this.error('Cannot use "' + command_name + '" here', expr);
   }
 }
 
