@@ -531,9 +531,12 @@ class ExprToSymPy {
         // CommandExprs try these analyzers with themselves as the
         // expression list (as if they were single-element SequenceExprs).
         // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
-        // handle gets to it.
+        // handler gets to it.
         new DerivativeAnalyzer(this),
         new CommandAnalyzer(this)
+      ],
+      infix: [
+        new InfixAnalyzer(this)
       ],
       sequence: [
         // SequenceExprs use these; most "complicated" patterns occur
@@ -657,62 +660,18 @@ class ExprToSymPy {
   // InfixExprs are flat lists of operators and operands, so we have
   // to "parse" the terms and take into account operator precedence.
   // (x+y*z => x+(y*z)).
-  emit_infix_expr(infix_expr) {
-    // Gather operator precedence, etc, for all infix operators, and
-    // check that all are supported in SymPy.
-    const operator_infos = infix_expr.operator_exprs.map(
-      operator_expr => this._infix_operator_expr_info(operator_expr) ||
-        this.error('Invalid binary operator', operator_expr));
-    const operand_exprs = infix_expr.operand_exprs;
-    const node_stack = [this.emit_expr(operand_exprs[0])];
-    const operator_stack = [];  // stores operator info structures
-    for(const [i, operator_info] of operator_infos.entries()) {
-      while(operator_stack.length > 0 &&
-            operator_stack[operator_stack.length-1].prec >= operator_info.prec)
-        this._resolve_infix_operator(node_stack, operator_stack);
-      operator_stack.push(operator_info);
-      node_stack.push(this.emit_expr(operand_exprs[i+1]));
+  emit_infix_expr(expr) {
+    for(const analyzer of this.analyzer_table.infix) {
+      const analyzer_result = analyzer.analyze([expr], 0, 1);
+      if(analyzer_result) {
+        if(analyzer_result.success)
+          return analyzer_result.result_node;
+        else return this.error(
+          analyzer_result.error_message, /* errored_expr... */);
+      }
     }
-    while(operator_stack.length > 0)
-      this._resolve_infix_operator(node_stack, operator_stack);
-    // All that remains is the top-level SymPyNode on the stack.
-    return node_stack.pop();
-  }
-  _infix_operator_expr_info(expr) {
-    let op_name = null;
-    if(expr.is_text_expr())
-      op_name = expr.text;  // something like + or /
-    else if(expr.is_command_expr_with(0))
-      op_name = expr.command_name;  // times, cdot, etc
-    if(op_name)
-      return this._infix_op_info(op_name);
-    else
-      return null;
-  }
-  // Take an operator and two nodes off the stacks, combining
-  // them into a SymPy expression node that goes back on the stack.
-  _resolve_infix_operator(node_stack, operator_stack) {
-    const operator_info = operator_stack.pop();
-    const rhs_node = node_stack.pop();
-    const lhs_node = node_stack.pop();
-    node_stack.push(
-      this.fncall(operator_info.fn, [lhs_node, rhs_node]));
-  }
-  // { fn: binary sympy function to apply
-  //   prec: higher numbers bind tighter }
-  _infix_op_info(op_name) {
-    // NOTE: Mul/Add are "native" SymPy operators (classes);
-    // divide/subtract are created by the initialization
-    // in load_pyodide_if_needed().
-    switch(op_name) {
-    case '*': return {fn: 'Mul', prec: 2};
-    case 'cdot': return {fn: 'Mul', prec: 2};
-    // case 'times': return {fn: 'cross', prec: 2};  // TODO: revisit
-    case '/': return {fn: 'divide', prec: 2};
-    case '+': return {fn: 'Add', prec: 1};
-    case '-': return {fn: 'subtract', prec: 1};
-    default: return null;
-    }
+    // TODO: revisit
+    this.error('Invalid infix expression');
   }
 
   // Only '+' and '-' prefix operators are supported (and + is disregarded).
@@ -794,6 +753,7 @@ class ExprToSymPy {
 
   emit_command_expr(expr) {
     // Try the command analyzers as if this were a one-element SequenceExpr.
+    // TODO: factor out the following with InfixAnalyzer / other similar
     for(const analyzer of this.analyzer_table.command) {
       const analyzer_result = analyzer.analyze([expr], 0, 1);
       if(analyzer_result) {
@@ -926,7 +886,7 @@ class ExprToSymPy {
 // Generally, non-Sequence expressions have their own, simpler rules
 // for handling things like SubscriptSuperscriptExpr -> powers.  But
 // for SequenceExpr, we may have several different kinds of multi-Expr
-// notations for various types of mathematical notation.  Generally,
+// notations for various types of mathematical notation.
 // SequenceExprs are converted to SymPy by scanning them left-to-right,
 // trying a series of these Analyzers until one matches.  A matching
 // rule will convert its match into a SymPyNode and also report on the
@@ -1037,7 +997,7 @@ class IntegralAnalyzer extends Analyzer {
         if(index === start_index) {
           // No initial integral sign, so the integral check
           // "fails" (not considered an error, it just falls through
-          // to the next check).
+          // to the next analyzer).
           return null;
         }
         else break;  // found all the integral signs
@@ -1335,8 +1295,6 @@ class DerivativeAnalyzer extends Analyzer {
       return null;
     const numer_info = this.analyze_d_numerator(expr.operand_exprs[0]);
     const denom_info = this.analyze_d_denominator(expr.operand_exprs[1]);
-    console.log(numer_info);
-    console.log(denom_info);
     if(!(numer_info && denom_info))
       return null;  // doesn't match pattern
     return [numer_info.f_expr, denom_info];
@@ -1471,7 +1429,7 @@ class CommandAnalyzer extends Analyzer {
       return this.emitter.fncall(sympy_command, [this.emitter.emit_expr(args[0])]);
     // Infinity is 'oo' in SymPy.
     if(command_name === 'infty' && nargs === 0)
-      return this.number('oo');
+      return this.emitter.number('oo');
     // Special case for \binom{n}{m}; this is the only two-argument
     // function used with SymPy.
     if(command_name === 'binom' && nargs === 2)
@@ -1499,9 +1457,90 @@ class CommandAnalyzer extends Analyzer {
     if(nargs === 0) {
       const variable_name = expr_to_variable_name(expr);
       if(variable_name)
-        return this.symbol(variable_name);
+        return this.emitter.symbol(variable_name);
     }
     return this.error('Cannot use "' + command_name + '" here', expr);
+  }
+}
+
+
+// InfixExprs are flat lists of operators and operands, so we have
+// to "parse" the terms and take into account operator precedence.
+// (x+y*z => x+(y*z)).
+class InfixAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    const expr = exprs[start_index];
+    if(!expr.is_infix_expr())
+      return this.no_match();
+    try {
+      const result_node = this.analyze_infix_expr(expr);
+      return this.success(result_node, start_index+1);
+    } finally {
+      // Clear stacks to avoid (temporarily) leaking memory.
+      this.node_stack = null;
+      this.operator_stack = null;
+    }
+  }
+
+  analyze_infix_expr(infix_expr) {
+    // Gather operator precedence, etc, for all infix operators, and
+    // check that all are supported in SymPy.
+    const operator_infos = infix_expr.operator_exprs.map(
+      operator_expr => this.infix_operator_expr_info(operator_expr) ||
+        this.error('Invalid binary operator', operator_expr));
+    const operand_exprs = infix_expr.operand_exprs;
+    this.node_stack = [this.emitter.emit_expr(operand_exprs[0])];
+    this.operator_stack = [];  // stores operator info structures
+    for(const [i, operator_info] of operator_infos.entries()) {
+      while(this.operator_stack.length > 0 &&
+            this.operator_stack.at(-1).prec >= operator_info.prec)
+        this.resolve_infix_operator();
+      this.operator_stack.push(operator_info);
+      this.node_stack.push(this.emitter.emit_expr(operand_exprs[i+1]));
+    }
+    while(this.operator_stack.length > 0)
+      this.resolve_infix_operator();
+    // All that remains is the top-level SymPyNode on the stack.
+    return this.node_stack.pop();
+  }
+
+  infix_operator_expr_info(expr) {
+    let op_name = null;
+    if(expr.is_text_expr())
+      op_name = expr.text;  // something like + or /
+    else if(expr.is_command_expr_with(0))
+      op_name = expr.command_name;  // times, cdot, etc
+    if(op_name)
+      return this.infix_op_info(op_name);
+    else
+      return null;
+  }
+
+  // Take an operator and two nodes off the stacks, combining
+  // them into a SymPy expression node that goes back on the stack.
+  resolve_infix_operator() {
+    const operator_info = this.operator_stack.pop();
+    const rhs_node = this.node_stack.pop();
+    const lhs_node = this.node_stack.pop();
+    this.node_stack.push(
+      this.emitter.fncall(operator_info.fn, [lhs_node, rhs_node]));
+  }
+
+  // { fn: binary sympy function to apply
+  //   prec: higher numbers bind tighter }
+  infix_op_info(op_name) {
+    // NOTE: Mul/Add are "native" SymPy operators (classes);
+    // divide/subtract are created by the initialization
+    // in load_pyodide_if_needed().
+    switch(op_name) {
+    case '*': return {fn: 'Mul', prec: 2};
+    case 'cdot': return {fn: 'Mul', prec: 2};
+    // case 'times': return {fn: 'cross', prec: 2};  // TODO: revisit
+    case '/': return {fn: 'divide', prec: 2};
+    case '+': return {fn: 'Add', prec: 1};
+    case '-': return {fn: 'subtract', prec: 1};
+    default: return null;
+    }
   }
 }
 
