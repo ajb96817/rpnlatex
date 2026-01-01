@@ -399,7 +399,7 @@ class PyodideInterface {
     if(arg_exprs.length > 0) {
       // "Blame" the error on the first argument expression if there is one.
       // This rebuilds the SymPy argument expr using the previously-created
-      // builder function.  Could re-use the already-build expr, but passing
+      // builder function.  Could re-use the already-built expr, but passing
       // to the exception handler is awkward.
       lines.push(
         ['    errored_expr = ', builder_function_name(0), '()'
@@ -543,8 +543,9 @@ class ExprToSymPy {
         // within sequences.
         new IntegralAnalyzer(this),
         new DerivativeAnalyzer(this),
+        new SumOrProductAnalyzer(this),
         // CommandAnalyzer needs to come after DerivativeAnalyzer so that
-        // the latter has a chance to examine \frac{dy}{dx}.
+        // the latter has a chance to examine \frac{dy}{dx}, \sum ..., etc.
         new CommandAnalyzer(this),
         // Sequences that don't have any other special interpretation
         // are generally treated as implicit multiplications
@@ -1541,6 +1542,144 @@ class InfixAnalyzer extends Analyzer {
     case '-': return {fn: 'subtract', prec: 1};
     default: return null;
     }
+  }
+}
+
+
+// Handle \sum and \prod operators:
+//   \sum_{x=k}^{n} summand
+//   \sum_{x=k} summand (x=k..\infty)
+//   \sum_{x>=k} summand (x=k..\infty)
+//   \sum_{x>k} summand (x=k+1..\infty)
+//   \sum_{m<=i<=n} summand (< or <= can be used)
+// The 'summand' is taken as one or more 'term expressions', which are combined
+// with implicit multiplication.
+// These become SymPy summation(...) or product(...) calls.
+class SumOrProductAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    let index = start_index;
+    const operator_info = this.analyze_operator(exprs[index]);
+    if(!operator_info)
+      return this.no_match();
+    if(operator_info.error_message)
+      return this.failure(operator_info.error_message, index);
+    index++;
+    // Get "argument" to the sum/product operator.
+    let summand_exprs = [];
+    while(index < stop_index &&
+          exprs[index].is_term_expr(index === start_index+1)) {
+      summand_exprs.push(exprs[index]);
+      index++;
+    }
+    if(summand_exprs.length === 0)
+      return this.failure(
+        'No valid expression to right of ' + operator_info.operator_type,
+        index);
+    const summand_term_nodes = summand_exprs
+          .map(term_expr => this.emitter.emit_expr(term_expr));
+    const summand_node = summand_term_nodes.length > 1 ?
+          this.emitter.fncall('Mul', summand_term_nodes) :
+          summand_term_nodes[0];
+    const command_node = this.build_summation_command(
+      summand_node, operator_info.operator_type, operator_info.variable_expr,
+      operator_info.lower_limit_expr, operator_info.upper_limit_expr);
+    return this.success(command_node, index);
+  }
+
+  build_summation_command(summand_node, command_name, variable_expr,
+                          lower_limit_expr, upper_limit_expr) {
+    const variable_node = this.emitter.emit_expr(variable_expr);
+    let argument_node = variable_node;
+    if(lower_limit_expr && upper_limit_expr)
+      argument_node = this.emitter.tuple([
+        variable_node,
+        this.emitter.emit_expr(lower_limit_expr),
+        this.emitter.emit_expr(upper_limit_expr)]);
+    return this.emitter.fncall(
+      command_name,
+      [summand_node, argument_node]);
+  }
+
+  analyze_operator(expr) {
+    if(!expr.is_subscriptsuperscript_expr())
+      return null;
+    const operator_expr = expr.base_expr;
+    const operator_type =
+          operator_expr.is_command_expr_with(0, 'sum') ? 'summation' :
+          operator_expr.is_command_expr_with(0, 'prod') ? 'product' :
+          null;
+    if(!operator_type)
+      return null;
+    const index_info = this.analyze_index_expr(expr.subscript_expr);
+    if(!index_info)
+      return {error_message: 'Invalid ' + operator_type + ' index'};
+    // NOTE: If lower limit is 'x=k', upper limit must be provided.
+    // But for 'x>=k', upper limit is assumed to be \infty if absent.
+    const upper_limit_expr = expr.superscript_expr ?? index_info.upper_limit_expr;
+    if(!upper_limit_expr)
+      return {error_message: 'Invalid ' + operator_type + ' upper limit'};
+    return {...index_info, operator_type, upper_limit_expr};
+  }
+
+  // Lower limit expression.  Allowed forms are:
+  //   i=k, i>=k, i>k, m<=i<=n
+  // In the latter case, either < or <= can be used.
+  analyze_index_expr(expr) {
+    if(!expr.is_infix_expr())
+      return null;
+    const operand_count = expr.operand_exprs.length;
+    let variable_expr = null, lower_limit_expr = null, upper_limit_expr = null;
+    const infty_expr = new CommandExpr('infty');
+    if(operand_count === 2) {
+      variable_expr = expr.operand_exprs[0];
+      switch(expr.operator_text_at(0)) {
+      case '=':
+        lower_limit_expr = expr.operand_exprs[1];
+        break;
+      case '>': case 'gt':
+        lower_limit_expr = Infix.add_exprs(
+          expr.operand_exprs[1], TextExpr.integer(1));
+        upper_limit_expr = infty_expr;
+        break;
+      case '>=': case 'ge':
+        lower_limit_expr = expr.operand_exprs[1];
+        upper_limit_expr = infty_expr;
+        break;
+      default:
+        return null;
+      }
+    }
+    else if(operand_count === 3) {
+      lower_limit_expr = expr.operand_exprs[0];
+      variable_expr = expr.operand_exprs[1];
+      upper_limit_expr = expr.operand_exprs[2];
+      switch(expr.operator_text_at(0)) {
+      case '<=': case 'le':
+        break;
+      case '<': case 'lt':
+        lower_limit_expr = Infix.add_exprs(
+          lower_limit_expr, TextExpr.integer(1));
+        break;
+      default:
+        return null;
+      }
+      switch(expr.operator_text_at(1)) {
+      case '<=': case 'le':
+        break;
+      case '<': case 'lt':
+        lower_limit_expr = Infix.add_exprs(
+          lower_limit_expr, TextExpr.integer(-1));
+        break;
+      default:
+        return null;
+      }
+    }
+    else
+      return null;
+    // Index variable must translate to a valid variable name in SymPy.
+    if(!expr_to_variable_name(variable_expr))
+      return null;
+    return {variable_expr, lower_limit_expr, upper_limit_expr};
   }
 }
 
