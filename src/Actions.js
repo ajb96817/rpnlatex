@@ -587,7 +587,7 @@ class InputContext {
     const arg = this._get_prefix_argument(2, stack.depth());
     const [new_stack, ...items] = stack.pop(arg);
     if(items.length > 0) {
-      const last_item = items[items.length-1];
+      const last_item = items.at(-1);
       return new_stack.push_all([last_item.clone()].concat(items));
     }
     else

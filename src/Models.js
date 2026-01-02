@@ -530,7 +530,6 @@ class ItemClipboard {
 
   set_slot(slot, new_item) {
     this.slot_to_item_map[slot] = new_item;
-    this._check_for_pending_items();
     return new_item;
   }
 }

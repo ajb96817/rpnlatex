@@ -949,7 +949,7 @@ class InfixExpr extends Expr {
     }
     // Last operand.
     emitter.expr(
-      this.operand_exprs[this.operand_exprs.length-1],
+      this.operand_exprs.at(-1),
       2*this.operator_exprs.length);
   }
   _convert_to_flex_delimiter(expr) {
@@ -978,7 +978,7 @@ class InfixExpr extends Expr {
       exprs.push(this.operand_exprs[i]);
       exprs.push(operator_expr);
     }
-    exprs.push(this.operand_exprs[this.operand_exprs.length-1]);
+    exprs.push(this.operand_exprs.at(-1));
     return exprs;
   }
 
@@ -1457,7 +1457,7 @@ class SequenceExpr extends Expr {
 
   subexpressions() { return this.exprs; }
 
-  last_expr() { return this.exprs[this.exprs.length-1]; }
+  last_expr() { return this.exprs.at(-1); }
 
   replace_subexpression(index, new_expr) {
     return new SequenceExpr(
@@ -2340,8 +2340,8 @@ class TensorExpr extends Expr {
     const exprs = this.index_exprs;
     const upper_exprs = side === 'left' ? exprs.left_upper : exprs.right_upper;
     const lower_exprs = side === 'left' ? exprs.left_lower : exprs.right_lower;
-    const do_upper = upper_exprs.length === 0 || upper_exprs[at_beginning ? 0 : upper_exprs.length-1];
-    const do_lower = lower_exprs.length === 0 || lower_exprs[at_beginning ? 0 : lower_exprs.length-1];
+    const do_upper = upper_exprs.length === 0 || upper_exprs.at(at_beginning ? 0 : -1);
+    const do_lower = lower_exprs.length === 0 || lower_exprs.at(at_beginning ? 0 : -1);
     return this.add_indices(
       side,
       do_upper ? index_expr : null,

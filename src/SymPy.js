@@ -317,7 +317,7 @@ class PyodideInterface {
       sympy_item.function_name,
       sympy_item.arg_exprs,
       sympy_item.arg_options);
-    //console.log(command_code);
+    console.log(command_code);
     const message = {
       command: 'sympy_command',
       command_id: sympy_item.status.command_id,
@@ -384,7 +384,7 @@ class PyodideInterface {
       'result_expr': {
         'srepr': srepr(result),
         'latex': latex(result)
-      } }`);
+      } }`, '');
     const execute_command_code = lines.join("\n")
     // Build an exception-handling wrapper around execute_command();
     // this will return an error-result structure if needed.
@@ -409,14 +409,15 @@ class PyodideInterface {
         "      'latex': latex(errored_expr)",
         "    }");
     }
-    lines.push('    return result_obj');
+    lines.push('    return result_obj', '');
     // Assemble everything together.
     const execute_command_safe_code = lines.join("\n");
     return [
       ...builder_function_codes,
       execute_command_code,
       execute_command_safe_code,
-      'execute_command_safe()'
+      'execute_command_safe()',
+      ''
     ].join("\n");
   }
 }
@@ -532,25 +533,23 @@ class ExprToSymPy {
         // expression list (as if they were single-element SequenceExprs).
         // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
         // handler gets to it.
-        new DerivativeAnalyzer(this),
-        new CommandAnalyzer(this)
+        DerivativeAnalyzer,
+        CommandAnalyzer
       ],
-      infix: [
-        new InfixAnalyzer(this)
-      ],
+      infix: [InfixAnalyzer],
       sequence: [
         // SequenceExprs use these; most "complicated" patterns occur
         // within sequences.
-        new IntegralAnalyzer(this),
-        new DerivativeAnalyzer(this),
-        new SumOrProductAnalyzer(this),
+        IntegralAnalyzer,
+        DerivativeAnalyzer,
+        SumOrProductAnalyzer,
         // CommandAnalyzer needs to come after DerivativeAnalyzer so that
         // the latter has a chance to examine \frac{dy}{dx}, \sum ..., etc.
-        new CommandAnalyzer(this),
+        CommandAnalyzer,
         // Sequences that don't have any other special interpretation
         // are generally treated as implicit multiplications
         // (such as 3 x \sin{x}).
-        new ImplicitProductAnalyzer(this)
+        ImplicitProductAnalyzer
       ]
     };
   }
@@ -577,6 +576,7 @@ class ExprToSymPy {
       lines.push(['  ', assignment.to_py_string()].join(''));
     // Return last subexpression.
     lines.push(['  return ', return_node.to_py_string()].join(''));
+    lines.push('');
     return lines.join("\n");
   }
 
@@ -662,17 +662,12 @@ class ExprToSymPy {
   // to "parse" the terms and take into account operator precedence.
   // (x+y*z => x+(y*z)).
   emit_infix_expr(expr) {
-    for(const analyzer of this.analyzer_table.infix) {
-      const analyzer_result = analyzer.analyze([expr], 0, 1);
-      if(analyzer_result) {
-        if(analyzer_result.success)
-          return analyzer_result.result_node;
-        else return this.error(
-          analyzer_result.error_message, /* errored_expr... */);
-      }
-    }
-    // TODO: revisit
-    this.error('Invalid infix expression');
+    const result = this.try_analyzers(
+      this.analyzer_table.infix, [expr]);
+    if(result)
+      return result;
+    else
+      this.error('Invalid infix expression');
   }
 
   // Only '+' and '-' prefix operators are supported (and + is disregarded).
@@ -753,19 +748,12 @@ class ExprToSymPy {
   }
 
   emit_command_expr(expr) {
-    // Try the command analyzers as if this were a one-element SequenceExpr.
-    // TODO: factor out the following with InfixAnalyzer / other similar
-    for(const analyzer of this.analyzer_table.command) {
-      const analyzer_result = analyzer.analyze([expr], 0, 1);
-      if(analyzer_result) {
-        if(analyzer_result.success)
-          return analyzer_result.result_node;
-        else return this.error(
-          analyzer_result.error_message, /* errored_expr... */);
-      }
-    }
-    // TODO: revisit
-    this.error('Cannot use command here');
+    const result = this.try_analyzers(
+      this.analyzer_table.command, [expr]);
+    if(result)
+      return result;
+    else
+      return this.error('Cannot use command here');
   }
 
   emit_subscriptsuperscript_expr(expr) {
@@ -856,9 +844,9 @@ class ExprToSymPy {
     const exprs = sequence_expr.exprs;
     let start_index = 0, stop_index = exprs.length;
     while(start_index < stop_index) {
-      for(const analyzer of this.analyzer_table.sequence) {
-        const analyzer_result = analyzer.analyze(
-          exprs, start_index, stop_index);
+      for(const analyzer_class of this.analyzer_table.sequence) {
+        const analyzer_result = new analyzer_class(this)
+              .analyze(exprs, start_index, stop_index);
         if(analyzer_result === null)
           continue;  // no match, try next analyzer
         if(analyzer_result.success) {
@@ -874,6 +862,20 @@ class ExprToSymPy {
       return term_nodes[0];
     else
       return this.fncall('Mul', term_nodes);
+  }
+
+  try_analyzers(analyzer_classes, exprs) {
+    for(const analyzer_class of analyzer_classes) {
+      const analyzer_result = new analyzer_class(this).
+            analyze(exprs, 0, 1);
+      if(analyzer_result) {
+        if(analyzer_result.success)
+          return analyzer_result.result_node;
+        else return this.error(
+          analyzer_result.error_message, /* errored_expr... */);
+      }
+    }
+    return null;
   }
 }
 
@@ -1053,7 +1055,7 @@ class IntegralAnalyzer extends Analyzer {
         integrand_node, integral_limit_exprs.slice(1), dx_exprs.slice(0, -1));
     }
     const inner_integral_limit_exprs = integral_limit_exprs[0];
-    const inner_dx_expr = dx_exprs[dx_exprs.length-1];
+    const inner_dx_expr = dx_exprs.at(-1);
     // Construct 2nd argument to integrate();
     // indefinite integrals use 'x', definite use '(x, a, b)' tuple.
     let dx_node = this.emitter.emit_expr(inner_dx_expr);
@@ -1473,14 +1475,8 @@ class InfixAnalyzer extends Analyzer {
     const expr = exprs[start_index];
     if(!expr.is_infix_expr())
       return this.no_match();
-    try {
-      const result_node = this.analyze_infix_expr(expr);
-      return this.success(result_node, start_index+1);
-    } finally {
-      // Clear stacks to avoid (temporarily) leaking memory.
-      this.node_stack = null;
-      this.operator_stack = null;
-    }
+    const result_node = this.analyze_infix_expr(expr);
+    return this.success(result_node, start_index+1);
   }
 
   analyze_infix_expr(infix_expr) {
