@@ -1770,7 +1770,10 @@ class SymPyItem extends Item {
   // TODO: clean this up
   to_latex(export_mode) {
     if(this.status.state === 'error') {
-      let pieces = ["\\mathtt{", this.operation_label, "\\left["];
+      let pieces = [
+        "\\mathtt{",
+        LatexEmitter.latex_escape(this.operation_label),
+        "\\left["];
       if(this.status.errored_expr)
         pieces.push(this.status.errored_expr.to_latex(null, export_mode));
       pieces.push("\\right]}");

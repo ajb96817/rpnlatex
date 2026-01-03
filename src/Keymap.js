@@ -1178,21 +1178,37 @@ const keybinding_table = {
 
   // SymPy - work in progress
   symbolic: {
-    '#': "sympy sympify",  // convert to SymPyExpr, but don't run any extra command
-    'a': "sympy apart",
-    'A': "sympy together",
-    'd': "sympy diff",
-    'D': "sympy diff_with_variable",
-    'e': "sympy expand",
-    'i': "sympy solve",  // [i]solate
-    'I': "sympy solve_for_variable",
-    'f': "sympy factor",
-    'k': "sympy cancel",
-    'l': "sympy logcombine",
-    'L': "sympy expand_log",
-    'p': "sympy integrate",  // [p]rimitive
-    'P': "sympy integrate_with_variable",
-    's': "sympy simplify"
+    '#': "sympy sympify 1 evaluate",
+    'a': "sympy apart 1",
+    'A': "sympy together 1",
+    'd': "sympy diff 1 differentiate",
+    'D': "sympy diff_with_variable 2 differentiate",
+    'e': "sympy expand 1",
+    'i': "sympy solveset 1 solve",  // [i]solate
+    'I': "sympy solveset 2 solve",
+    'f': "sympy factor 1",
+    'k': "sympy cancel 1",
+    'l': "sympy logcombine 1",
+    'L': "sympy expand_log 1",
+    'p': "sympy integrate 1",  // [p]rimitive
+    'P': "sympy integrate 2",
+    's': "sympy simplify 1",
+    't': "mode integral_transform"
+  },
+
+  // [#][t] prefix: Fourier transforms, etc.
+  integral_transform: {
+    'c': "sympy cosine_transform 3",
+    'C': "sympy inverse_cosine_transform 3",
+    'f': "sympy fourier_transform 3",
+    'F': "sympy inverse_fourier_transform 3",
+    'h': "sympy hankel_transform 4",
+    'H': "sympy inverse_hankel_transform 4",
+    'l': "sympy laplace_transform 3",
+    'L': "sympy inverse_laplace_transform 3",
+    'm': "sympy mellin_transform 4",
+    's': "sympy sine_transform 3",
+    'S': "sympy inverse_sine_transform 3",
   },
 
   // [#] prefix: symbolic algebra mode

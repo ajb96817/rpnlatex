@@ -304,24 +304,13 @@ class InputContext {
         base_expr.with_prime(this.settings.autoparenthesize));
   }
 
-  do_sympy(stack, operation, guess_variable = null) {
-    switch(operation) {
-    case 'apart':      case 'together':    case 'cancel':      case 'expand':
-    case 'factor':     case 'logcombine':  case 'expand_log':  case 'simplify':
-    case 'integrate':  case 'diff':
-      return this._sympy_command(stack, operation, operation, 1);
-    case 'sympify':
-      return this._sympy_command(stack, operation, 'evaluate', 1);
-    case 'solve':
-      return this._sympy_command(stack, 'solveset', 'solveset', 1); //, [['dict', 'True']]);
-    case 'solve_for_variable':
-      return this._sympy_command(stack, 'solveset', 'solveset', 2); //, [['dict', 'True']]);
-    case 'integrate_with_variable':
-      return this._sympy_command(stack, 'integrate', 'integrate', 2);
-    case 'diff_with_variable':
-      return this._sympy_command(stack, 'diff', 'differentiate', 2);
-    }
-    return this.error_flash_stack();  // shouldn't happen
+  do_sympy(stack, operation, arg_count_string, operation_label = null) {
+    const arg_count = parseInt(arg_count_string);
+    return this._sympy_command(
+      stack,
+      operation,
+      operation_label ?? operation,
+      arg_count);
   }
 
   // Take SymPyExprs from the stack and start up a computation

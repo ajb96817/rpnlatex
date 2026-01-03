@@ -453,17 +453,6 @@ class SymPySymbol extends SymPyNode {
   }
 }
 
-// Function('f')
-class SymPyFunctionObject extends SymPyNode {
-  constructor(name) {
-    super();
-    this.name = name;
-  }
-  to_py_string() {
-    return ["Function('", this.name, "')"].join('');
-  }
-}
-
 // Named subexpression (expr_1 = ...)
 class SymPySubexpression extends SymPyNode {
   constructor(expr_number) {
@@ -490,7 +479,7 @@ class SymPyAssignment extends SymPyNode {
   }
 }
 
-// f(x,y,z)
+// f(x,y,z) - Call a built-in SymPy function.
 // Used for Python tuples too (x,y,z).
 class SymPyFunctionCall extends SymPyNode {
   constructor(function_name, args) {
@@ -499,11 +488,27 @@ class SymPyFunctionCall extends SymPyNode {
     this.args = args;
   }
   to_py_string() {
-    const arg_pieces = this.args
+    const args_string = this.args
           .map(arg_node => arg_node.to_py_string())
           .join(', ');
-    return [this.function_name, '(', arg_pieces, ')']
+    return [this.function_name, '(', args_string, ')']
       .join('');
+  }
+}
+
+// Function('f')(x,y,z) - Symbolic function call.
+class SymPyFunctionObjectCall extends SymPyNode {
+  constructor(name, args) {
+    super();
+    this.name = name;
+    this.args = args;
+  }
+  to_py_string() {
+    const args_string = this.args
+          .map(arg_node => arg_node.to_py_string())
+          .join(', ');
+    return ["Function('", this.name, "')(", args_string, ')'
+           ].join('');
   }
 }
 
@@ -573,13 +578,15 @@ class ExprToSymPy {
       new SymPyFunctionCall(function_name, args));
   }
 
-  // Function('f'): SymPy Function object.
+  // Function('f')(...args): SymPy Function object applied to arguments.
+  // This is used to translate "generic" FunctionCallExprs like f(x).
+  // Calls to built-in SymPy functions use .fncall() instead.
   // NOTE: FunctionCallExpr allows arbitrary expressions in the function-name
   // position, but SymPy requires the function name to be a plain string
   // (same as with Symbol).
-  function_object(function_name) {
+  function_object_call(function_name, args = []) {
     return this.add_assignment(
-      new SymPyFunctionObject(function_name));
+      new SymPyFunctionObjectCall(function_name, args));
   }
 
   // Python (x,y,z) tuple - treated as a function call with empty function name.
@@ -671,35 +678,10 @@ class ExprToSymPy {
   }
 
   emit_function_call_expr(expr) {
-    const fn_expr = expr.fn_expr;
-    const arg_exprs = expr.extract_argument_exprs();
-    const arg_count = arg_exprs.length;
-    if(arg_count === 0)
-      return this.error('Malformed function call', expr);
-    const variable_expr = arg_exprs[0];
-    // Check for f'(x), f''(x).
-    // Here, 'x' must be a simple variable name; f'(x^2) not allowed.
-    const prime_count = fn_expr.is_subscriptsuperscript_expr() ?
-          fn_expr.count_primes() : 0;
-    if(arg_count === 1 && prime_count > 0 &&
-       expr_to_variable_name(variable_expr)) {
-      // Remove one prime from the FunctionCallExpr, using that as the argument
-      // to a d() call.  If there is more than one prime, this will
-      // recurse until we arrive at f(x).  f''(x) => d(d(f(x),x),x)
-      alert('derivative notation not yet implemented');
-      // return new AlgebriteCall('d', [
-      //   this.expr_to_node(
-      //     new FunctionCallExpr(fn_expr.remove_prime(), expr.args_expr)),
-      //   this.expr_to_node(variable_expr)]);
-    }
-    // The usual case (not f'(x)):
-    const fn_name = expr_to_variable_name(fn_expr);
-    if(fn_name)
-      return this.fncall(
-        fn_name, arg_exprs
-          .map(arg_expr => this.emit_expr(arg_expr)));
-    else 
-      return this.error('Invalid function', expr);
+    const result = this.try_analyzers(analyzer_table.function_call, [expr]);
+    if(result)
+      return result;
+    else this.error('Invalid function call');
   }
 
   // Other than the basic grouping delimiters, some particular delimiter types
@@ -1522,6 +1504,71 @@ class InfixAnalyzer extends Analyzer {
 }
 
 
+class FunctionCallAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    const expr = exprs[start_index];
+    this.arg_exprs = expr.extract_argument_exprs();
+    if(this.arg_exprs.length === 0)
+      return this.failure('Zero-argument function calls not allowed', start_index);
+    this.arg_nodes = this.arg_exprs.map(
+      arg_expr => this.emitter.emit_expr(arg_expr));
+    const result_node = this.analyze_function_call_expr(expr);
+    if(result_node)
+      return this.success(result_node, start_index+1);
+    else return this.failure('Invalid function call', start_index);
+  }
+
+  analyze_function_call_expr(expr) {
+    return this.analyze_sympy_function_call(expr) ||
+      this.analyze_lagrange_derivative(expr) ||
+      this.analyze_generic_function_call(expr);
+  }
+
+  // Calling a built-in SymPy function (normally would be a CommandExpr).
+  analyze_sympy_function_call(expr) {
+    return null;
+  }
+
+  // f'(x), f''(x)
+  analyze_lagrange_derivative(expr) {
+    if(!expr.is_function_call_expr()) return null;
+    const fn_expr = expr.fn_expr;
+    if(!fn_expr.is_subscriptsuperscript_expr()) return null;
+    const prime_count = fn_expr.count_primes();
+    if(prime_count === 0) return null;
+    const fn_name = expr_to_variable_name(fn_expr.base_expr);
+    if(!fn_name) return null;  // 'f' can't be a "complex" expression
+    if(this.arg_exprs.length !== 1) {
+      // f(x,y), etc. disallowed
+      return this.error('Derivative must be a one-argument function');
+    }
+    const variable_expr = this.arg_exprs[0];
+    if(!expr_to_variable_name(variable_expr)) {
+      // f'(x^2), etc.
+      return this.error('Derivative argument must be a simple variable');
+    }
+    const fn_call_node = this.emitter
+          .function_object_call(fn_name, this.arg_nodes);
+    const diff_command_node = this.emitter.fncall(
+      'diff', [
+        fn_call_node,
+        this.arg_nodes[0],
+        this.emitter.number(prime_count)]);
+    return diff_command_node;
+  }
+
+  // f(x) -> Function('f')(Symbol('x'))
+  // NOTE: 'f' needs to be a valid variable name, even though
+  // FunctionCallExpr allows any expression in the function-name slot.
+  analyze_generic_function_call(expr) {
+    if(!expr.is_function_call_expr()) return null;
+    const fn_name = expr_to_variable_name(expr.fn_expr);
+    if(!fn_name) return null;
+    return this.emitter.function_object_call(fn_name, this.arg_nodes);
+  }
+}
+
+
 // Handle \sum and \prod operators:
 //   \sum_{x=k}^{n} summand
 //   \sum_{x=k} summand (x=k..\infty)
@@ -1670,6 +1717,7 @@ const analyzer_table = {
     CommandAnalyzer
   ],
   infix: [InfixAnalyzer],
+  function_call: [FunctionCallAnalyzer],
   sequence: [
     // SequenceExprs use these; most "complicated" patterns occur
     // within sequences.
