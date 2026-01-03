@@ -1728,8 +1728,6 @@ let pyodide_command_id = 1;
 // - function_name: SymPy function name being applied, or null if none;
 //     this is the full "path" with module name if needed
 // - operation_label: User-visible label of the operation performed (null if none);
-//     generally matches the function_name (without the module th) but doesn't have to
-//     (in this case arg_exprs will be a single-element [SymPyExpr] array)
 // - arg_exprs: SymPyExprs to be passed to the function
 // - arg_options: [['optname', 'True'], ...] - keyword arguments to pass to the function
 // - result_expr: SymPyExpr with the result, non-null if status === 'complete'
@@ -1745,7 +1743,8 @@ class SymPyItem extends Item {
   // the item display so needs to be avoided when possible.
   static long_running_computation_threshold() { return 100.0; }
   
-  constructor(status, function_name, operation_label, arg_exprs, arg_options, result_expr, tag_string) {
+  constructor(status, function_name, operation_label,
+              arg_exprs, arg_options, result_expr, tag_string) {
     super(tag_string, null /* no source_string for SymPyItems */);
     this.status = {...status};
     this.function_name = function_name;
@@ -2111,12 +2110,8 @@ class MsgpackEncoder {
       saved_status.stop_time = Date.now();
     }
     saved_status.command_id = null;
-    // Convert error_expr_path to a plain array for serialization.
-    if(saved_status.error_expr_path) {
-      saved_status.error_expr_path_indexes =
-        saved_status.error_expr_path.subexpr_indexes
-      saved_status.error_expr_path = null;
-    }
+    saved_status.errored_expr =
+      this.maybe_pack_expr(saved_status.errored_expr);
     // The item is serialized as a hash for future flexibility if the
     // fields need to change.
     const saved_properties = {
@@ -2126,7 +2121,6 @@ class MsgpackEncoder {
       arg_exprs: item.arg_exprs.map(expr => this.pack_expr(expr)),
       arg_options: item.arg_options,
       result_expr: this.maybe_pack_expr(item.result_expr),
-      errored_expr: this.maybe_pack_expr(item.status.errored_expr),
       tag_string: item.tag_string
     };
     return [4, saved_properties];
@@ -2340,14 +2334,7 @@ class MsgpackDecoder {
     let status = {...props.status};
     const arg_exprs = props.arg_exprs.map(
       expr_state => this.unpack_expr(expr_state));
-    // Reconstitute the error_expr_path if present.
-    if(status.error_expr_path_indexes) {
-      status.error_expr_path = new ExprPath(
-        arg_exprs[status.error_arg_index],
-        status.error_expr_path_indexes);
-      delete status.error_expr_path_indexes;
-    }
-    status.errored_expr = this.maybe_unpack_expr(props.errored_expr);
+    status.errored_expr = this.maybe_unpack_expr(status.errored_expr);
     return new SymPyItem(
       props.status,
       props.function_name, props.operation_label,

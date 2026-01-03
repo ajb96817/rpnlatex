@@ -313,9 +313,9 @@ class InputContext {
     case 'sympify':
       return this._sympy_command(stack, operation, 'evaluate', 1);
     case 'solve':
-      return this._sympy_command(stack, 'solve', 'solve', 1, [['dict', 'True']]);
+      return this._sympy_command(stack, 'solveset', 'solveset', 1); //, [['dict', 'True']]);
     case 'solve_for_variable':
-      return this._sympy_command(stack, 'solve', 'solve', 2, [['dict', 'True']]);
+      return this._sympy_command(stack, 'solveset', 'solveset', 2); //, [['dict', 'True']]);
     case 'integrate_with_variable':
       return this._sympy_command(stack, 'integrate', 'integrate', 2);
     case 'diff_with_variable':

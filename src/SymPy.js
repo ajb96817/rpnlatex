@@ -429,28 +429,38 @@ class SymPyNode {}
 
 // Numbers, etc.
 class SymPyConstant extends SymPyNode {
-  constructor(value_string) {
+  constructor(value_string, raw = false) {
     super();
     this.value_string = value_string;
+    this.raw = raw;
   }
   to_py_string() {
-    return ['S(', this.value_string, ')'].join('');
+    if(this.raw)
+      return this.value_string;
+    else
+      return ['S(', this.value_string, ')'].join('');
   }
 }
 
-// Symbol('x'), but an explicit symbol table is created in the builder
-// function and that table is referenced instead of calling Symbol.
+// Symbol('x')
 class SymPySymbol extends SymPyNode {
-  constructor(name, index, source_expr = null) {
+  constructor(name) {
     super();
     this.name = name;
-    this.index = index;
-    this.source_expr = source_expr;
   }
   to_py_string() {
-    return [
-      's[', this.index.toString(), ']']
-      .join('');
+    return ["Symbol('", this.name, "')"].join('');
+  }
+}
+
+// Function('f')
+class SymPyFunctionObject extends SymPyNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+  to_py_string() {
+    return ["Function('", this.name, "')"].join('');
   }
 }
 
@@ -520,38 +530,8 @@ class ExprToSymPy {
   }
   
   constructor() {
-    this.symbol_table = {};  // maps strings to SymPySymbols
-    this.symbol_list = [];  // linear list of what is in symbol_table
     this.assignment_list = [];  // contains SymPyAssignments
     this.subexpression_count = 0;  // serial number for expr_1,2,3 in generated code
-
-    // Analyzers are heuristic rulesets that try to interpret Exprs.
-    // They are tried in the order listed until one works.
-    this.analyzer_table = {
-      command: [
-        // CommandExprs try these analyzers with themselves as the
-        // expression list (as if they were single-element SequenceExprs).
-        // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
-        // handler gets to it.
-        DerivativeAnalyzer,
-        CommandAnalyzer
-      ],
-      infix: [InfixAnalyzer],
-      sequence: [
-        // SequenceExprs use these; most "complicated" patterns occur
-        // within sequences.
-        IntegralAnalyzer,
-        DerivativeAnalyzer,
-        SumOrProductAnalyzer,
-        // CommandAnalyzer needs to come after DerivativeAnalyzer so that
-        // the latter has a chance to examine \frac{dy}{dx}, \sum ..., etc.
-        CommandAnalyzer,
-        // Sequences that don't have any other special interpretation
-        // are generally treated as implicit multiplications
-        // (such as 3 x \sin{x}).
-        ImplicitProductAnalyzer
-      ]
-    };
   }
 
   // TODO: fix this
@@ -565,31 +545,17 @@ class ExprToSymPy {
   }
 
   generate_code(builder_function_name, return_node) {
-    let lines = [['def ', builder_function_name, '():'].join('')];
-    const symbol_names = this.symbol_list
-          .map(symbol => ["'", symbol.name, "'"].join(''))
-          .join(', ');
-    lines.push(['  symbol_names = [', symbol_names, ']'].join(''));
-    lines.push('  s = [Symbol(symbol_name) for symbol_name in symbol_names]')
-    // Assemble subexpressions.
+    let lines = [];
+    lines.push(['def ', builder_function_name, '():'].join(''));
     for(const assignment of this.assignment_list)
       lines.push(['  ', assignment.to_py_string()].join(''));
-    // Return last subexpression.
     lines.push(['  return ', return_node.to_py_string()].join(''));
     lines.push('');
     return lines.join("\n");
   }
 
-  // Only one Symbol per distinct variable name is created.
-  // (SymPy uniquifies Symbols anyways, this is just for tidiness.)
-  symbol(variable_name, source_expr = null) {
-    const old_symbol = this.symbol_table[variable_name];
-    if(old_symbol) return old_symbol;
-    const new_symbol = new SymPySymbol(
-      variable_name, this.symbol_list.length, source_expr);
-    this.symbol_table[variable_name] = new_symbol;
-    this.symbol_list.push(new_symbol);
-    return new_symbol;
+  symbol(variable_name) {
+    return new SymPySymbol(variable_name);
   }
 
   number(value) {
@@ -601,14 +567,27 @@ class ExprToSymPy {
       new SymPySRepr(srepr_string));
   }
 
+  // Call a SymPy function.
   fncall(function_name, args = []) {
     return this.add_assignment(
       new SymPyFunctionCall(function_name, args));
   }
 
+  // Function('f'): SymPy Function object.
+  // NOTE: FunctionCallExpr allows arbitrary expressions in the function-name
+  // position, but SymPy requires the function name to be a plain string
+  // (same as with Symbol).
+  function_object(function_name) {
+    return this.add_assignment(
+      new SymPyFunctionObject(function_name));
+  }
+
   // Python (x,y,z) tuple - treated as a function call with empty function name.
   tuple(args = []) {
-    return this.fncall('', args);
+    if(args.length === 1)  // special case (x,) Python syntax
+      return this.fncall('', args.concat([new SymPyConstant('', true)]));
+    else
+      return this.fncall('', args);
   }
 
   add_assignment(value_node) {
@@ -662,12 +641,10 @@ class ExprToSymPy {
   // to "parse" the terms and take into account operator precedence.
   // (x+y*z => x+(y*z)).
   emit_infix_expr(expr) {
-    const result = this.try_analyzers(
-      this.analyzer_table.infix, [expr]);
+    const result = this.try_analyzers(analyzer_table.infix, [expr]);
     if(result)
       return result;
-    else
-      this.error('Invalid infix expression');
+    else this.error('Invalid infix expression');
   }
 
   // Only '+' and '-' prefix operators are supported (and + is disregarded).
@@ -748,12 +725,10 @@ class ExprToSymPy {
   }
 
   emit_command_expr(expr) {
-    const result = this.try_analyzers(
-      this.analyzer_table.command, [expr]);
+    const result = this.try_analyzers(analyzer_table.command, [expr]);
     if(result)
       return result;
-    else
-      return this.error('Cannot use command here');
+    else return this.error('Cannot use command here');
   }
 
   emit_subscriptsuperscript_expr(expr) {
@@ -844,7 +819,7 @@ class ExprToSymPy {
     const exprs = sequence_expr.exprs;
     let start_index = 0, stop_index = exprs.length;
     while(start_index < stop_index) {
-      for(const analyzer_class of this.analyzer_table.sequence) {
+      for(const analyzer_class of analyzer_table.sequence) {
         const analyzer_result = new analyzer_class(this)
               .analyze(exprs, start_index, stop_index);
         if(analyzer_result === null)
@@ -1526,16 +1501,21 @@ class InfixAnalyzer extends Analyzer {
   // { fn: binary sympy function to apply
   //   prec: higher numbers bind tighter }
   infix_op_info(op_name) {
-    // NOTE: Mul/Add are "native" SymPy operators (classes);
+    // NOTE: Mul/Add/etc are "native" SymPy operators (classes);
     // divide/subtract are created by the initialization
     // in load_pyodide_if_needed().
     switch(op_name) {
-    case '*': return {fn: 'Mul', prec: 2};
-    case 'cdot': return {fn: 'Mul', prec: 2};
-    // case 'times': return {fn: 'cross', prec: 2};  // TODO: revisit
-    case '/': return {fn: 'divide', prec: 2};
-    case '+': return {fn: 'Add', prec: 1};
-    case '-': return {fn: 'subtract', prec: 1};
+    case '*': return {fn: 'Mul', prec: 3};
+    case 'cdot': case 'cross': return {fn: 'Mul', prec: 3};
+    case '/': return {fn: 'divide', prec: 3};
+    case '+': return {fn: 'Add', prec: 2};
+    case '-': return {fn: 'subtract', prec: 2};
+    case '=': return {fn: 'Eq', prec: 1};
+    case 'ne': case 'neq': return {fn: 'Ne', prec: 1};
+    case '<': case 'lt': return {fn: 'Lt', prec: 1};
+    case '>': case 'gt': return {fn: 'Gt', prec: 1};
+    case '<=': case 'le': return {fn: 'Le', prec: 1};
+    case '>=': case 'ge': return {fn: 'Ge', prec: 1};
     default: return null;
     }
   }
@@ -1678,6 +1658,33 @@ class SumOrProductAnalyzer extends Analyzer {
     return {variable_expr, lower_limit_expr, upper_limit_expr};
   }
 }
+
+
+const analyzer_table = {
+  command: [
+    // CommandExprs try these analyzers with themselves as the
+    // expression list (as if they were single-element SequenceExprs).
+    // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
+    // handler gets to it.
+    DerivativeAnalyzer,
+    CommandAnalyzer
+  ],
+  infix: [InfixAnalyzer],
+  sequence: [
+    // SequenceExprs use these; most "complicated" patterns occur
+    // within sequences.
+    IntegralAnalyzer,
+    DerivativeAnalyzer,
+    SumOrProductAnalyzer,
+    // CommandAnalyzer needs to come after DerivativeAnalyzer so that
+    // the latter has a chance to examine \frac{dy}{dx}, \sum ..., etc.
+    CommandAnalyzer,
+    // Sequences that don't have any other special interpretation
+    // are generally treated as implicit multiplications
+    // (such as 3 x \sin{x}).
+    ImplicitProductAnalyzer
+  ]
+};
 
 
 export { PyodideInterface };
