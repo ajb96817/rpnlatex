@@ -2538,7 +2538,10 @@ class SymPyExpr extends Expr {
 
   // TODO: This needs to be based on the underlying SymPy expr structure.
   // Mul(x,y) is a term but Add(x,y) isn't.
-  is_term_expr(is_leftmost = false) { return true; }
+  is_term_expr(is_leftmost = false) {
+    // TODO: Temporary hack, need to do this properly.
+    return !this.srepr_string.startsWith('Add(');
+  }
 
   emit_latex(emitter) {
     emitter.text(this.latex_string);

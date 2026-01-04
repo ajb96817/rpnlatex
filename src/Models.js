@@ -1729,7 +1729,7 @@ let pyodide_command_id = 1;
 //     this is the full "path" with module name if needed
 // - operation_label: User-visible label of the operation performed (null if none);
 // - arg_exprs: SymPyExprs to be passed to the function
-// - arg_options: [['optname', 'True'], ...] - keyword arguments to pass to the function
+// - extra_args: ['optname=True', ...] - extra arbitrary arguments to pass to the function
 // - result_expr: SymPyExpr with the result, non-null if status === 'complete'
 // - tag_string: tag as in TextItem/ExprItem
 //
@@ -1744,13 +1744,13 @@ class SymPyItem extends Item {
   static long_running_computation_threshold() { return 100.0; }
   
   constructor(status, function_name, operation_label,
-              arg_exprs, arg_options, result_expr, tag_string) {
+              arg_exprs, extra_args, result_expr, tag_string) {
     super(tag_string, null /* no source_string for SymPyItems */);
     this.status = {...status};
     this.function_name = function_name;
     this.operation_label = operation_label;
     this.arg_exprs = arg_exprs;
-    this.arg_options = arg_options;
+    this.extra_args = extra_args;
     this.result_expr = result_expr;
   }
 
@@ -1788,7 +1788,7 @@ class SymPyItem extends Item {
   with_tag(new_tag_string) {
     return new SymPyItem(
       this.status, this.function_name, this.operation_label,
-      this.arg_exprs, this.arg_options, this.result_expr, new_tag_string);
+      this.arg_exprs, this.extra_args, this.result_expr, new_tag_string);
   }
 
   // Update status.* fields, e.g.:
@@ -1798,7 +1798,7 @@ class SymPyItem extends Item {
     const new_status = {...this.status, ...status_fields};
     return new SymPyItem(
       new_status, this.function_name, this.operation_label,
-      this.arg_exprs, this.arg_options, this.result_expr, this.tag_string);
+      this.arg_exprs, this.extra_args, this.result_expr, this.tag_string);
   }
 }
 
@@ -2122,7 +2122,7 @@ class MsgpackEncoder {
       function_name: item.function_name,
       operation_label: item.operation_label,
       arg_exprs: item.arg_exprs.map(expr => this.pack_expr(expr)),
-      arg_options: item.arg_options,
+      extra_args: item.extra_args,
       result_expr: this.maybe_pack_expr(item.result_expr),
       tag_string: item.tag_string
     };
@@ -2341,7 +2341,7 @@ class MsgpackDecoder {
     return new SymPyItem(
       props.status,
       props.function_name, props.operation_label,
-      arg_exprs, props.arg_options,
+      arg_exprs, props.extra_args,
       this.maybe_unpack_expr(props.result_expr),
       props.tag_string);
   }

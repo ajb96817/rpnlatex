@@ -306,11 +306,21 @@ class InputContext {
 
   do_sympy(stack, operation, arg_count_string, operation_label = null) {
     const arg_count = parseInt(arg_count_string);
+    const extra_args = [];
+    switch(operation) {
+    case 'N':
+      // Truncate low-significance digits.
+      extra_args.push('chop=True');
+      break;
+    case 'nsimplify':
+      extra_args.push('[pi, E]');
+      break;
+    }
     return this._sympy_command(
       stack,
       operation,
       operation_label ?? operation,
-      arg_count);
+      arg_count, extra_args);
   }
 
   // Take SymPyExprs from the stack and start up a computation
@@ -320,10 +330,10 @@ class InputContext {
   // function_name: 'solve' (SymPy function to call)
   // operation_label: user-visible version of function_name (usually the same)
   // arg_count: Number of argument expressions from the stack
-  // arg_options: [['optname', 'True'], ...]
+  // extra_args: ['optname=True', ...]
   //     (extra keyword options to the function call)
   _sympy_command(stack, function_name, operation_label,
-                 arg_count, arg_options = []) {
+                 arg_count, extra_args = []) {
     const pyodide = this.app_component.state.pyodide_interface;
     const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
     const status = {
@@ -333,7 +343,7 @@ class InputContext {
     };
     const new_item = new SymPyItem(
       status, function_name, operation_label,
-      arg_exprs, arg_options, null, null);
+      arg_exprs, extra_args, null, null);
     pyodide.start_executing(new_item);
     return new_stack.push(new_item);
   }

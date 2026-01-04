@@ -258,7 +258,7 @@ div.latex_fragment {
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
-div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
+div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #5ca; }
 div.sympy_item div.sympy_error { border-left: var(--itemtype-bar-width) solid #833; }
 div.sympy_item div.sympy_errored_expr {
   font-size: 90%;

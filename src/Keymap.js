@@ -1176,13 +1176,15 @@ const keybinding_table = {
     'T': "dissect_copy_selection trim"
   },
 
-  // SymPy - work in progress
+  // [#] prefix: SymPy - work in progress
   symbolic: {
     '#': "sympy sympify 1 evaluate",
+    '=': "sympy N 1 evalf",  // numeric eval
+    '/': "sympy nsimplify 1",
     'a': "sympy apart 1",
     'A': "sympy together 1",
     'd': "sympy diff 1 differentiate",
-    'D': "sympy diff_with_variable 2 differentiate",
+    'D': "sympy diff 2 differentiate",
     'e': "sympy expand 1",
     'i': "sympy solveset 1 solve",  // [i]solate
     'I': "sympy solveset 2 solve",
@@ -1193,10 +1195,11 @@ const keybinding_table = {
     'p': "sympy integrate 1",  // [p]rimitive
     'P': "sympy integrate 2",
     's': "sympy simplify 1",
-    't': "mode integral_transform"
+    't': "mode integral_transform",
+    '|': "sympy substitute 3"
   },
 
-  // [#][t] prefix: Fourier transforms, etc.
+  // [#][t] prefix: SymPy integral transforms
   integral_transform: {
     'c': "sympy cosine_transform 3",
     'C': "sympy inverse_cosine_transform 3",
@@ -1207,8 +1210,9 @@ const keybinding_table = {
     'l': "sympy laplace_transform 3",
     'L': "sympy inverse_laplace_transform 3",
     'm': "sympy mellin_transform 4",
+    'M': "sympy inverse_mellin_transform 4",
     's': "sympy sine_transform 3",
-    'S': "sympy inverse_sine_transform 3",
+    'S': "sympy inverse_sine_transform 3"
   },
 
   // [#] prefix: symbolic algebra mode

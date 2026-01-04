@@ -10,14 +10,15 @@ async function load_pyodide_if_needed() {
   // TODO: error handling
   self.pyodide = await loadPyodide({indexURL: '/public'});
   postMessage({message: 'loading'});
-  await self.pyodide.loadPackage("sympy", {checkIntegrity: false});
+  await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
   const initcode = `
       from sympy import *
       def log2(x): return log(x,2)
       def log10(x): return log(x,10)
       def divide(x,y): return S(x)/S(y)
       def subtract(x,y): return S(x)-S(y)
-      def negate(x): return -S(x)`;
+      def negate(x): return -S(x)
+      def substitute(expr,x,y): return expr.subs(x,y)`;
   await self.pyodide.runPythonAsync(initcode);
   postMessage({message: 'ready'});
 }

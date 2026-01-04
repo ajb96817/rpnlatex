@@ -75,7 +75,7 @@ const latex_letter_commands = new Set([
 ]);
 
 
-// 'to_algebrite'=true converts from editor commands to SymPy
+// 'to_sympy'=true converts from editor commands to SymPy
 // (e.g. binom=>binomial); false is the inverse.
 function translate_function_name(f, to_sympy) {
   const match = sympy_function_translations.find(
@@ -316,7 +316,7 @@ class PyodideInterface {
     const command_code = this.generate_command_code(
       sympy_item.function_name,
       sympy_item.arg_exprs,
-      sympy_item.arg_options);
+      sympy_item.extra_args);
     console.log(command_code);
     const message = {
       command: 'sympy_command',
@@ -349,7 +349,7 @@ class PyodideInterface {
       command_id, new_item_fn);
   }
 
-  generate_command_code(function_name, arg_exprs, arg_options) {
+  generate_command_code(function_name, arg_exprs, extra_args) {
     const insert_artificial_delay = false;  // TODO: make this a debug option
     // Generate builder functions, one per argument expression.
     const builder_function_name = index => 'build_expr_' + index.toString();
@@ -371,8 +371,7 @@ class PyodideInterface {
       lines.push('  time.sleep(2)');
     const arguments_string = arg_exprs
           .map((arg_expr, arg_index) => 'arg_'+arg_index.toString())
-          .concat(arg_options.map(([option_name, option_value]) =>
-            [option_name, '=', option_value].join('')))
+          .concat(extra_args)
           .join(', ');
     lines.push([
       '  result = ', function_name,
@@ -628,8 +627,13 @@ class ExprToSymPy {
     if(expr.looks_like_number())
       return this.number(expr.text);
     const variable_name = expr_to_variable_name(expr);
-    if(variable_name)
-      return this.symbol(variable_name);
+    if(variable_name) {
+      // Special case for 'i' (imaginary unit).
+      if(variable_name === 'i')
+        return this.number('I');
+      else
+        return this.symbol(variable_name);
+    }
     else
       return this.error('Invalid variable name', expr);
   }
@@ -726,11 +730,6 @@ class ExprToSymPy {
       const lhs = subscript_expr.operand_exprs[0];
       const rhs = subscript_expr.extract_side_at(0, 'right');
       alert("where syntax not yet implemented");
-      // return new AlgebriteCall(
-      //   'eval', [
-      //     this.expr_to_node(base_expr.inner_expr),
-      //     this.expr_to_node(lhs),
-      //     this.expr_to_node(rhs)]);
     }
     // Check for subscripted variable names (x_1).
     // A possible superscript becomes the exponent.
@@ -1234,7 +1233,15 @@ class DerivativeAnalyzer extends Analyzer {
       diff_expr = f_expr;
     else if(index < stop_index)
       diff_expr = exprs[index++];
-    else return this.no_match();  // e.g. d/dx without anything after it (TODO: .failure)
+    else {
+      // e.g. d/dx without anything after it.
+      // This could technically be interpreted as a fraction
+      // (simplifying to 1/x) but it's much more likely to be
+      // an error.
+      return this.failure(
+        'Expected expression after differentiation operator',
+        index);
+    }
     // Build the diff(diff_expr, x, y, z) call.
     const diff_args = differentials_info.map(info => {
       const variable_node = this.emitter.emit_expr(info.variable_expr);
@@ -1407,17 +1414,18 @@ class CommandAnalyzer extends Analyzer {
     ].find(pair => command_name === pair[0]);
     if(match && nargs === 1) {
       alert('sin^2 etc not yet implemented');
-      // return new AlgebriteCall('power', [
-      //   new AlgebriteCall(match[1], [this.expr_to_node(args[0])]),
-      //   new AlgebriteNumber(match[2].toString())]);
     }
     
     // Zero-argument commands like \alpha are converted to their corresponding
     // alphanumeric variable name ('alpha').
     if(nargs === 0) {
       const variable_name = expr_to_variable_name(expr);
-      if(variable_name)
-        return this.emitter.symbol(variable_name);
+      if(variable_name) {
+        if(variable_name === 'pi')  // special case for pi
+          return this.emitter.number('pi');
+        else
+          return this.emitter.symbol(variable_name);
+      }
     }
     return this.error('Cannot use "' + command_name + '" here', expr);
   }
