@@ -1196,6 +1196,8 @@ const keybinding_table = {
     'P': "sympy integrate 2",
     's': "sympy simplify 1",
     't': "mode integral_transform",
+    'y': "sympy_series_expansion false",
+    'Y': "sympy_series_expansion true",
     '|': "sympy substitute 3"
   },
 
@@ -1209,7 +1211,7 @@ const keybinding_table = {
     'H': "sympy inverse_hankel_transform 4",
     'l': "sympy laplace_transform 3",
     'L': "sympy inverse_laplace_transform 3",
-    'm': "sympy mellin_transform 4",
+    'm': "sympy mellin_transform 3",
     'M': "sympy inverse_mellin_transform 4",
     's': "sympy sine_transform 3",
     'S': "sympy inverse_sine_transform 3"

@@ -2544,7 +2544,17 @@ class SymPyExpr extends Expr {
   }
 
   emit_latex(emitter) {
-    emitter.text(this.latex_string);
+    if(emitter.export_mode)
+      emitter.text(this.latex_string);
+    else {
+      // Show SymPyExpr "fragments" in a slightly different color
+      // to visually indicate the "native" SymPy expressions.
+      emitter.expr(
+        new CommandExpr('htmlClass', [
+          new TextExpr('sympy_expr'),
+          new TextExpr(this.latex_string)]),
+        null);
+    }
   }
 
   matches(expr) {

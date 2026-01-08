@@ -328,6 +328,12 @@ div.separator_item hr {
    (since they're inside an container without a fixed width). */
 div.floating_item div.separator_item hr { width: 4em; }
 
+/* "Highlight" colors for specific expression types.
+   SymPyExprs are shown in a green color to indicate that they are "native" SymPy
+   objects and don't have structure as far as the editor is concerned (yet). */
+.placeholder_expr { color: #6c6; }
+.sympy_expr { color: #060; }
+
 /* "Emphasized" expressions created with [.][e]
    Note that because of how KaTeX layout works, we only really have the foreground color to
    work with here (background and borders won't work right). */
@@ -427,8 +433,6 @@ div.tag_string {
   background-color: #e8ffe8;
   box-shadow: inset 0 0 0.2em 0 #275;
 }
-
-.placeholder_expr { color: #6c6; }  
 
 /* These are to support settings.layout.[stack/document]_math_alignment == 'right'. */
 .rightalign_math .katex-display.fleqn > .katex {

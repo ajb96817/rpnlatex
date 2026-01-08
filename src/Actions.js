@@ -6,7 +6,8 @@
 import {
   AppState, Document, Stack, TextEntryState,
   ExprPath, RationalizeToExpr,
-  ExprItem, TextItem, CodeItem, SymPyItem
+  ExprItem, TextItem, CodeItem,
+  SymPyCommand, SymPyItem
 } from './Models';
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
@@ -307,6 +308,7 @@ class InputContext {
   do_sympy(stack, operation, arg_count_string, operation_label = null) {
     const arg_count = parseInt(arg_count_string);
     const extra_args = [];
+    let transform_result_code = null;
     switch(operation) {
     case 'N':
       // Truncate low-significance digits.
@@ -315,12 +317,53 @@ class InputContext {
     case 'nsimplify':
       extra_args.push('[pi, E]');
       break;
+    case 'laplace_transform':
+    case 'mellin_transform':
+      transform_result_code = 'result[0] if isinstance(result, tuple) else result';
+      break;
     }
     return this._sympy_command(
       stack,
       operation,
       operation_label ?? operation,
-      arg_count, extra_args);
+      arg_count, extra_args,
+      transform_result_code);
+  }
+
+  // Call SymPy series(expr, x, x0, n)
+  // 'n' (the order) defaults to 6 but can be specified via prefix argument.
+  // specify_variable:
+  //   'false': only expr is taken from the stack; x is inferred by SymPy
+  //            and x0 is set to 0.
+  //   'true': expr and a variable specification are taken from the stack;
+  //           the specification can be 'x' or 'x=123'.  In the 'x' case,
+  //           x0 is set to 0.
+  do_sympy_series_expansion(stack, specify_variable) {
+    const pyodide = this.app_component.state.pyodide_interface;
+    let new_stack = null, expr = null, variable_spec_expr = null;
+    let x_expr = null, x0_expr = null;
+    if(specify_variable === 'false')
+      [new_stack, expr] = stack.pop_exprs(1);
+    else
+      [new_stack, expr, variable_spec_expr] = stack.pop_exprs(2);
+    if(variable_spec_expr) {
+      if(variable_spec_expr.is_infix_expr()) {
+        // Check for x=x0
+        if(variable_spec_expr.operator_text() !== '=')
+          return this.report_error('Expected x=x0 expression', variable_spec_expr);
+        [x_expr, x0_expr] = ['left', 'right'].map(side =>
+          variable_spec_expr.extract_side_at(
+            variable_spec_expr.split_at_index, side));
+      }
+      else {
+        // Check for 'x' (variable name).
+        x_expr = variable_spec_expr;
+      }
+      if(!pyodide.expr_to_variable_name(x_expr))
+        return this.report_error('Invalid variable name', x_expr);
+    }
+    unfinished();
+    // TODO: get prefix arg
   }
 
   // Take SymPyExprs from the stack and start up a computation
@@ -333,19 +376,29 @@ class InputContext {
   // extra_args: ['optname=True', ...]
   //     (extra keyword options to the function call)
   _sympy_command(stack, function_name, operation_label,
-                 arg_count, extra_args = []) {
-    const pyodide = this.app_component.state.pyodide_interface;
+                 arg_count, extra_args = [],
+                 transform_result_code = null) {
     const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
+    const new_item = this._start_executing_sympy_item(
+      function_name, operation_label, arg_exprs, extra_args,
+      transform_result_code);
+    return new_stack.push(new_item);
+  }
+
+  _start_executing_sympy_item(function_name, operation_label,
+                              arg_exprs, extra_args, transform_result_code) {
+    const pyodide = this.app_component.state.pyodide_interface;
     const status = {
       state: 'running',
       command_id: SymPyItem.next_command_id(),
       start_time: Date.now()
     };
-    const new_item = new SymPyItem(
-      status, function_name, operation_label,
-      arg_exprs, extra_args, null, null);
+    const command = new SymPyCommand(
+      function_name, operation_label, arg_exprs,
+      extra_args, transform_result_code);
+    const new_item = new SymPyItem(status, command);
     pyodide.start_executing(new_item);
-    return new_stack.push(new_item);
+    return new_item;
   }
 
   // function_name:

@@ -1710,6 +1710,21 @@ class CodeItem extends Item {
 }
 
 
+// 'transform_result_code': optional string to apply to the final result
+// (to extract the relevant info from a result-tuple, etc.)
+class SymPyCommand {
+  constructor(function_name, operation_label,
+              arg_exprs, extra_args,
+              transform_result_code) {
+    this.function_name = function_name;
+    this.operation_label = operation_label;
+    this.arg_exprs = arg_exprs;
+    this.extra_args = extra_args;
+    this.transform_result_code = transform_result_code;
+  }
+}
+
+
 // Serial numbers for SymPyItem command_ids.
 let pyodide_command_id = 1;
 
@@ -1742,15 +1757,13 @@ class SymPyItem extends Item {
   // therefore gets shown with a status indicator on the item.  This shifts around
   // the item display so needs to be avoided when possible.
   static long_running_computation_threshold() { return 100.0; }
-  
-  constructor(status, function_name, operation_label,
-              arg_exprs, extra_args, result_expr, tag_string) {
+
+  // 'command': SymPyCommand instance
+  // 'result_expr': populated once the command completes 
+  constructor(status, command, result_expr = null, tag_string = null) {
     super(tag_string, null /* no source_string for SymPyItems */);
     this.status = {...status};
-    this.function_name = function_name;
-    this.operation_label = operation_label;
-    this.arg_exprs = arg_exprs;
-    this.extra_args = extra_args;
+    this.command = command;
     this.result_expr = result_expr;
   }
 
@@ -1772,7 +1785,7 @@ class SymPyItem extends Item {
     if(this.status.state === 'error') {
       let pieces = [
         "\\mathtt{",
-        LatexEmitter.latex_escape(this.operation_label),
+        LatexEmitter.latex_escape(this.command.operation_label),
         "\\left["];
       if(this.status.errored_expr)
         pieces.push(this.status.errored_expr.to_latex(null, export_mode));
@@ -1782,13 +1795,12 @@ class SymPyItem extends Item {
     else if(this.status.state === 'complete')
       return this.result_expr.to_latex(null, export_mode);
     else
-      return this.arg_exprs[0].to_latex(null, export_mode);
+      return this.command.arg_exprs[0].to_latex(null, export_mode);
   }
 
   with_tag(new_tag_string) {
     return new SymPyItem(
-      this.status, this.function_name, this.operation_label,
-      this.arg_exprs, this.extra_args, this.result_expr, new_tag_string);
+      this.status, this.command, this.result_expr, new_tag_string);
   }
 
   // Update status.* fields, e.g.:
@@ -1797,8 +1809,7 @@ class SymPyItem extends Item {
   with_new_status(status_fields) {
     const new_status = {...this.status, ...status_fields};
     return new SymPyItem(
-      new_status, this.function_name, this.operation_label,
-      this.arg_exprs, this.extra_args, this.result_expr, this.tag_string);
+      new_status, this.command, this.result_expr, this.tag_string);
   }
 }
 
@@ -2105,6 +2116,7 @@ class MsgpackEncoder {
     return [3, item.language, item.source];
   }
   pack_sympy_item(item) {
+    const command = item.command;
     // NOTE: Items with in-progress evaluation will be saved in 'cancelled' state
     // (they can be re-run after loading the saved file).
     let saved_status = {...item.status};
@@ -2119,10 +2131,11 @@ class MsgpackEncoder {
     // fields need to change.
     const saved_properties = {
       status: saved_status,
-      function_name: item.function_name,
-      operation_label: item.operation_label,
-      arg_exprs: item.arg_exprs.map(expr => this.pack_expr(expr)),
-      extra_args: item.extra_args,
+      function_name: command.function_name,
+      operation_label: command.operation_label,
+      arg_exprs: command.arg_exprs.map(expr => this.pack_expr(expr)),
+      extra_args: command.extra_args,
+      transform_result_code: command.transform_result_code,
       result_expr: this.maybe_pack_expr(item.result_expr),
       tag_string: item.tag_string
     };
@@ -2338,10 +2351,12 @@ class MsgpackDecoder {
     const arg_exprs = props.arg_exprs.map(
       expr_state => this.unpack_expr(expr_state));
     status.errored_expr = this.maybe_unpack_expr(status.errored_expr);
-    return new SymPyItem(
-      props.status,
+    const command = new SymPyCommand(
       props.function_name, props.operation_label,
       arg_exprs, props.extra_args,
+      props.transform_result_code);
+    return new SymPyItem(
+      status, command,
       this.maybe_unpack_expr(props.result_expr),
       props.tag_string);
   }
@@ -2455,8 +2470,8 @@ export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
   ItemClipboard, UndoStack, FileManager,
   ExprPath, RationalizeToExpr, Item, ExprItem,
-  TextItem, CodeItem, SymPyItem, Stack, Document,
-  MsgpackEncoder, MsgpackDecoder
+  TextItem, CodeItem, SymPyCommand, SymPyItem,
+  Stack, Document, MsgpackEncoder, MsgpackDecoder
 };
 
 

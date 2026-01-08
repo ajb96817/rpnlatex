@@ -29,7 +29,12 @@ export default defineConfig({
   optimizeDeps: { exclude: ['pyodide'] },
   plugins: [react(), mkcert(), viteStaticCopyPyodide()],
   base: './',
-  build: { outDir: 'build' },
+  worker: {
+    format: 'es'  // needed for pyodide (instead of 'iife' default) (TODO: revisit)
+  },
+  build: {
+    outDir: 'build'
+  },
   server: {
     port: 3000,
     headers: {

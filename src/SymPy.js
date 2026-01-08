@@ -313,10 +313,7 @@ class PyodideInterface {
   start_executing(sympy_item) {
     if(!this.start_pyodide_worker_if_needed())
       return this.error('Pyodide not available');
-    const command_code = this.generate_command_code(
-      sympy_item.function_name,
-      sympy_item.arg_exprs,
-      sympy_item.extra_args);
+    const command_code = this.generate_command_code(sympy_item.command);
     console.log(command_code);
     const message = {
       command: 'sympy_command',
@@ -349,7 +346,10 @@ class PyodideInterface {
       command_id, new_item_fn);
   }
 
-  generate_command_code(function_name, arg_exprs, extra_args) {
+  generate_command_code(command) {
+    const { function_name, operation_label,
+            arg_exprs, extra_args,
+            transform_result_code } = command;
     const insert_artificial_delay = false;  // TODO: make this a debug option
     // Generate builder functions, one per argument expression.
     const builder_function_name = index => 'build_expr_' + index.toString();
@@ -376,6 +376,8 @@ class PyodideInterface {
     lines.push([
       '  result = ', function_name,
       '(', arguments_string, ')'].join(''));
+    if(transform_result_code)
+      lines.push(['  result = ' + transform_result_code])
     // Convert the result expression into srepr/latex format
     // and return a dict structure.
     lines.push(`  return {
@@ -784,7 +786,7 @@ class ExprToSymPy {
     return this.srepr(expr.srepr_string);
   }
 
-  // The SequenceExpr is broken up into one or more 'terms' to be implicitly
+  // A SequenceExpr is broken up into one or more 'terms' to be implicitly
   // multiplied together.  Each term can be a single simple Expr like x^2,
   // or a possibly longer subsequence of Exprs that represents something like
   // an integral.  What is not allowed are "non-term-like" Exprs, for example
@@ -889,9 +891,17 @@ class Analyzer {
     // TODO: errored_expr_index
     return this.emitter.error(error_message);
   }
+
+  multiply_all(term_nodes) {
+    if(term_nodes.length === 1)
+      return term_nodes[0];
+    else return this.emitter.fncall('Mul', term_nodes);
+  }
 }
 
 
+// Multiply adjacent "term" expressions together.
+// This is the default if no other rule matches in a SequenceExpr.
 class ImplicitProductAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     if(exprs[start_index].is_term_expr(start_index === 0))
@@ -986,10 +996,8 @@ class IntegralAnalyzer extends Analyzer {
       }
       // Multiply all integrand terms together.
       const integrand_term_nodes = integrand_terms
-        .map(term_expr => this.emitter.emit_expr(term_expr));
-      const integrand_node = integrand_term_nodes.length > 1 ?
-            this.emitter.fncall('Mul', integrand_term_nodes) :
-            integrand_term_nodes[0];
+            .map(term_expr => this.emitter.emit_expr(term_expr));
+      const integrand_node = this.multiply_all(integrand_term_nodes);
       // Build integrate() SymPy calls from the "inside out".
       const integrate_command_node =
             this.build_integrate_command(
