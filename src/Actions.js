@@ -362,8 +362,16 @@ class InputContext {
       if(!pyodide.expr_to_variable_name(x_expr))
         return this.report_error('Invalid variable name', x_expr);
     }
-    unfinished();
-    // TODO: get prefix arg
+    const order = this._get_prefix_argument(6, 6);
+    const arg_exprs = [
+      expr,
+      x_expr /* variable; may be null */,
+      x0_expr ?? TextExpr.integer(0),
+      TextExpr.integer(order)];
+    const new_item = this._start_executing_sympy_item(
+      'series', 'series',
+      arg_exprs, [], null);
+    return new_stack.push(new_item);
   }
 
   // Take SymPyExprs from the stack and start up a computation

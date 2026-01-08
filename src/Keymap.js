@@ -1178,6 +1178,7 @@ const keybinding_table = {
 
   // [#] prefix: SymPy - work in progress
   symbolic: {
+    '[digit]': "prefix_argument",
     '#': "sympy sympify 1 evaluate",
     '=': "sympy N 1 evalf",  // numeric eval
     '/': "sympy nsimplify 1",

@@ -545,8 +545,9 @@ class ExprToSymPy {
     throw new Error(message);
   }
 
+  // NOTE: expr can be null here; will be converted to None.
   expr_to_code(expr, builder_function_name) {
-    const return_node = this.emit_expr(expr);
+    const return_node = expr ? this.emit_expr(expr) : new SymPySRepr('None');
     return this.generate_code(builder_function_name, return_node);
   }
 
