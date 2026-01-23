@@ -332,7 +332,7 @@ div.floating_item div.separator_item hr { width: 4em; }
    SymPyExprs are shown in a green color to indicate that they are "native" SymPy
    objects and don't have structure as far as the editor is concerned (yet). */
 .placeholder_expr { color: #6c6; }
-.sympy_expr { color: #060; }
+.sympy_expr { text-shadow: 0 0 0.1em #6f6; }
 
 /* "Emphasized" expressions created with [.][e]
    Note that because of how KaTeX layout works, we only really have the foreground color to

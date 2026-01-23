@@ -1606,7 +1606,9 @@ class InputContext {
       // Similar to 'roman_text' but filter out anything but alphanumeric characters,
       // spaces and dashes for use inside \operatorname{...}.
       // Currently in KaTeX, spaces need to be explicitly converted to \, inside \operatorname.
-      const sanitized_text = text.replaceAll(/[^a-zA-Z0-9- ]/g, '').replaceAll(' ', "\\,");
+      const sanitized_text = text
+            .replaceAll(/[^a-zA-Z0-9- ]/g, '')
+            .replaceAll(' ', "\\,");
       new_expr = new CommandExpr('operatorname', [new TextExpr(sanitized_text)]);
       // TODO: detect built-in operator names like 'sin' and convert them to \sin instead
       // of \operatorname{sin}.

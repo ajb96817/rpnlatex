@@ -718,7 +718,7 @@ class FileManagerPanelComponent extends React.Component {
       helpline(keybinding('S'), helptext('Save as...')),
       helpline(keybinding('R'), helptext('Rename selected file...')),
       helpline(keybinding('n'), helptext('Start a new empty file')),
-      helpline(keybinding('x'), helptext('Export selected file as JSON')),
+      helpline(keybinding('x'), helptext('Export (download) selected file')),
       helpline(keybinding('d'), helptext('Delete selected file')),
       helpline(keybinding('D'), helptext('Delete ALL files'))
     ];
@@ -856,7 +856,7 @@ class ItemComponent extends React.Component {
                $e('span', {className: 'spinner'}, ''),
                $e('span', {className: 'sympy_status'}, item.status.state),
                $e('span', {}, ' '),
-               $e('span', {className: 'sympy_operation_label'}, item.operation_label));
+               $e('span', {className: 'sympy_operation_label'}, item.command.operation_label));
       return $e(
         'div', {className: 'item sympy_item', ref: item_ref},
         tag_element,

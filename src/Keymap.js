@@ -112,12 +112,11 @@ const keybinding_table = {
     '|': "mode array",
     '~': "mode tensor",
     '_': "start_dissect_mode",
-    //'#': "mode algebrite",
     '#': "mode symbolic",
     '$': "mode config",
     '?': "toggle_popup help",
 
-    // Other Ctrl-based shortcuts
+    // Ctrl-based shortcuts
     'Ctrl+0': "integer 0;subscript",
     'Ctrl+1': "integer -1;superscript",
     'Ctrl+2': "integer 2;superscript",
@@ -1181,25 +1180,31 @@ const keybinding_table = {
     '[digit]': "prefix_argument",
     '#': "sympy sympify 1 evaluate",
     '=': "sympy N 1 evalf",  // numeric eval
-    '/': "sympy nsimplify 1",
-    'a': "sympy apart 1",
-    'A': "sympy together 1",
+    '/': "sympy nsimplify 1",  // convert float to "fraction"
+    '|': "sympy substitute 3",
     'd': "sympy diff 1 differentiate",
     'D': "sympy diff 2 differentiate",
-    'e': "sympy expand 1",
     'i': "sympy solveset 1 solve",  // [i]solate
     'I': "sympy solveset 2 solve",
-    'f': "sympy factor 1",
-    'k': "sympy cancel 1",
-    'l': "sympy logcombine 1",
-    'L': "sympy expand_log 1",
     'p': "sympy integrate 1",  // [p]rimitive
     'P': "sympy integrate 2",
-    's': "sympy simplify 1",
+    's': "mode simplify",
     't': "mode integral_transform",
     'y': "sympy_series_expansion false",
-    'Y': "sympy_series_expansion true",
-    '|': "sympy substitute 3"
+    'Y': "sympy_series_expansion true"
+  },
+
+  // [#][s] prefix: SymPy "simplification" commands; these change or rearrange
+  // the expression without changing the mathematical meaning.
+  simplify: {
+    'a': "sympy apart 1",
+    'e': "sympy expand 1",
+    'f': "sympy factor 1",
+    'l': "sympy logcombine 1",
+    'L': "sympy expand_log 1",
+    'k': "sympy cancel 1",
+    's': "sympy simplify 1",
+    't': "sympy together 1"
   },
 
   // [#][t] prefix: SymPy integral transforms

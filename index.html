@@ -1165,6 +1165,10 @@
               <code>x\enspace y \Rightarrow \displaystyle\sum_{x\ge y}^{\phantom z}</code>
             </td>
           </tr>
+      </tbody></table>
+
+      <p><strong>Common Functions:</strong></p>
+      <table class="keybindings"><tbody>
           <tr>
             <td><span class="k">q</span> <code>\sqrt{x}</code> <em>(s<strong>q</strong>uare root)</em></td>
             <td><span class="k">Q</span> <code>\sqrt[3]{x}</code></td>
@@ -2104,8 +2108,8 @@
         </li>
         <li>
           Indices are positioned according to the order they are attached, with correct spacing to
-          indicate the axis ordering.  For example, <code>\displaystyle{\Gamma^{i}_{\hphantom{i}jk}}</code>
-          and <code>\displaystyle{\Gamma^{ij}_{\hphantom{ij}k}}</code> have distinct mathematical meanings, but
+          indicate the axis ordering.  For example, <code>\displaystyle{\Gamma^{ij}_{\hphantom{ij}k}}</code>
+          and <code>\displaystyle{\Gamma_k^{\hphantom{k}ij}}</code> have distinct mathematical meanings, but
           would both appear as <code>\displaystyle{\Gamma^{ij}_k}</code> using ordinary subscripts and superscripts.
         </li>
         <li>
@@ -2241,7 +2245,7 @@
       </ul>
 
       <h2 id="help_symbolic">
-        <span class="k">#</span> Symbolic Algebra
+        <span class="k">#</span> Symbolic Algebra and Calculus
       </h2>
       <p style="color: #600; font-style: italic; font-size: 120%;">
         <strong>NOTE:</strong> These commands are under active developoment
@@ -2275,13 +2279,16 @@
         <li style="margin-top: 0.5em;">
           Conversely, the output from SymPy must be translated into math
           expressions usable by the editor.  SymPy can perform its own
-          translation, but that comes with a loss of symbolic structure.
+          translation into LaTeX code, but that comes with a loss of symbolic structure.
           The output of these symbolic commands cannot be edited with
           <a href="#help_dissect">dissect mode</a> or destructured with
           commands such as <span class="k">/</span><span class="k">z</span>
           <em>(dissolve)</em>.  They can still be combined with other expressions
-          as usual, though.  This loss of structure is indicated by a light purple
-          <em>type indicator bar</em> to the left of the item.
+          as usual, though.  This loss of structure is indicated by a green tint on
+          the expression.
+          <strong>NOTE:</strong> This LaTeX conversion is only being done as a
+          temporary stopgap.  In a future update, SymPy expressions will be
+          converted fully back into editor objects.
         </li>
       </ul>
       <p>

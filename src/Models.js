@@ -2133,7 +2133,7 @@ class MsgpackEncoder {
       status: saved_status,
       function_name: command.function_name,
       operation_label: command.operation_label,
-      arg_exprs: command.arg_exprs.map(expr => this.pack_expr(expr)),
+      arg_exprs: command.arg_exprs.map(expr => this.maybe_pack_expr(expr)),
       extra_args: command.extra_args,
       transform_result_code: command.transform_result_code,
       result_expr: this.maybe_pack_expr(item.result_expr),
@@ -2349,7 +2349,7 @@ class MsgpackDecoder {
   unpack_sympy_item([props]) {
     let status = {...props.status};
     const arg_exprs = props.arg_exprs.map(
-      expr_state => this.unpack_expr(expr_state));
+      expr_state => this.maybe_unpack_expr(expr_state));
     status.errored_expr = this.maybe_unpack_expr(status.errored_expr);
     const command = new SymPyCommand(
       props.function_name, props.operation_label,

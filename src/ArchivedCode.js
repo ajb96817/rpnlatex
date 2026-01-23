@@ -551,3 +551,60 @@ class SpecialFunctions {
   }
 }
 
+
+// Scan an expression and try to find the variable to use for the
+// "implicit variable" for SymPy commands like [#][d] (derivative).
+// Returns [variable_name_string, variable_expr].
+// If no variable is found, or if there's more than one like in
+// sin(y*z) and therefore ambiguous, returns [null, null].
+function guess_variable_in_expr(expr) {
+  // SymPy expressions may already be tagged with the previously
+  // used or guessed variable name.
+  if(expr.is_sympy_expr() && expr.variable_name)
+    return [expr.variable_name, variable_name_to_expr(variable_name)];
+  const var_map = {};
+  _guess_variable_in_expr(expr, var_map);
+  const var_names = Object.getOwnPropertyNames(var_map);  // not ideal
+  if(var_names.length === 1)
+    return [var_names[0], var_map[var_names[0]]];
+  // Always use x or t if it's there, even if there are other
+  // potential variables present (unless x and t are both present).
+  else if(var_map['x'] && !var_map['t'])
+    return ['x', var_map['x']];
+  else if(var_map['t'])
+    return ['t', var_map['t']];
+  else
+    return [null, null];
+}
+function _guess_variable_in_expr(expr, var_map) {
+  const variable_name = expr_to_variable_name(expr, true);
+  if(variable_name &&
+     !['e', 'pi', 'i'].includes(variable_name))
+    var_map[variable_name] = expr;
+  // We don't necessarily want to look for variables in every possible
+  // subexpression; for example with x_a, the variable should be x_a as
+  // a whole, even though it has the subexpressions 'x' and 'a'.
+  let subexpressions = [];
+  if(expr.is_function_call_expr())
+    subexpressions.push(expr.args_expr);  // don't look at the function name itself
+  else if(expr.is_subscriptsuperscript_expr()) {
+    // Never recurse into subscripts, and if there is a subscript, don't
+    // recurse into the base expression itself.  Always check superscripts though.
+    if(expr.superscript_expr)
+      subexpressions.push(expr.superscript_expr);
+    if(!expr.subscript_expr)
+      subexpressions.push(expr.base_expr);
+  }
+  else if(expr.is_infix_expr())
+    subexpressions = expr.operand_exprs;  // don't look at the operators, only operands
+  else if(expr.is_font_expr()) {
+    // Don't look inside FontExprs; if it's \bold{x} we want 'bold_x',
+    // not the 'x' inside.  This will miss variables inside other kinds
+    // of bolded expressions, however.
+  }
+  else
+    subexpressions = expr.subexpressions();
+  for(const subexpr of subexpressions)
+    _guess_variable_in_expr(subexpr, var_map);
+}
+
