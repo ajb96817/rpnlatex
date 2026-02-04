@@ -1985,7 +1985,8 @@ class InputContext {
       scratch = this._get_prefix_argument(1, -1);
       scratch2 = layout[config_option] || 0;  // new zoom exponent
       if((this.prefix_argument !== null && scratch <= 0) /* [*] or [0] prefix arg */ ||
-         value === 'reset') scratch2 = 0;
+         value === 'reset')
+        scratch2 = 0;
       else if(value === 'decrease') scratch2 -= scratch;
       else scratch2 += scratch;
       // Limit zoom percentage to around 2% ... 10000%

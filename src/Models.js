@@ -103,7 +103,7 @@ class Settings {
     const headingbar_pixels = Math.max(1, Math.round(3 * zoom_percentage/100));
     root_vars.style.setProperty('--heading-bar-height', headingbar_pixels + 'px');
     // Set up stack/document panel layout.
-    let [stack_bounds, document_bounds] = this._split_rectangle(
+    const [stack_bounds, document_bounds] = this._split_rectangle(
       {x: 0, y: 0, w: 100, h: 100},
       layout.stack_side, layout.stack_split);
     this._apply_bounds(stack_panel_elt, stack_bounds);
@@ -173,7 +173,7 @@ class Settings {
 // Holds context for the text entry mode line editor (InputContext.text_entry).
 // Fields:
 // 'mode': Type of text entry currently being performed.
-//         (these strings also correspond to the InputContext mode).
+//         (These strings also correspond to the InputContext mode).
 //     'text_entry': ["] - text entry will become a TextItem (a section heading if Shift+Enter is used)
 //     'math_entry': [\] - text entry will become a ExprItem with either normal italic math text
 //         (if Enter is used) or \mathrm roman math text (if Shift+Enter)
@@ -295,7 +295,7 @@ class LatexEmitter {
   // selected_expr_path is optional, but if provided it is an ExprPath
   // object that indicates which Expr is to be rendered with a "highlight"
   // showing that it is currently selected.
-  constructor(base_expr, selected_expr_path) {
+  constructor(base_expr, selected_expr_path = null) {
     this.base_expr = base_expr;
     this.tokens = [];
     this.last_token_type = null;
@@ -323,7 +323,7 @@ class LatexEmitter {
   // (Expr objects can be aliased so we can't just rely on object identity.)
   // 'inside_delimiters' will be true if expr is the inner_expr of a DelimiterExpr
   // (cf. InfixExpr.emit_latex()).
-  expr(expr, index, inside_delimiters) {
+  expr(expr, index, inside_delimiters = false) {
     if(index !== null && this.selected_expr_path)
       this.current_path = this.current_path.descend(index);
     // Check if we're now rendering the 'selected' expression.
@@ -387,12 +387,8 @@ class LatexEmitter {
 
   // Emit 'raw' LaTeX code.
   text(text, force_braces = false) {
-    if(force_braces) {
+    if(force_braces)
       this.text('{');
-      this.text(text);
-      this.text('}');
-      return;
-    }
     if(this.last_token_type === 'command') {
       // Determine if a space is needed after the last command; this depends
       // on whether two non-special characters are adjacent.
@@ -402,6 +398,8 @@ class LatexEmitter {
         this.emit_token(' ', 'text');
     }
     this.emit_token(text, 'text');
+    if(force_braces)
+      this.text('}');
   }
 
   _is_latex_identifier_char(ch) {
@@ -524,6 +522,7 @@ class ItemClipboard {
   // Clone the clipboard item (if present) so that it gets a new
   // serial number.
   copy_from_slot(slot) {
+    // TODO: return this.get_slot(slot)?.clone();
     const item = this.get_slot(slot);
     return item ? item.clone() : null;
   }
@@ -1076,7 +1075,7 @@ class RationalizeToExpr {
       return null;
     // Check for very small fractional part; could be either an integer,
     // or a float with large magnitude and thus decayed fractional precision.
-    if(Math.abs(value % 1.0) < 0.000001)
+    if(Math.abs(value % 1.0) < 1e-6)
       return this._int_to_expr(value);
     // Try different variations on \pi
     // NOTE: pi is a little weird because a close rational approximation 
@@ -1213,7 +1212,7 @@ class RationalizeToExpr {
 
   // If we "know" x should be an integer (e.g. as part of a rationalized fraction),
   // this function is used to try to show it without any decimal part.
-  // Very large or small-but-nonzero values are shown in scientific notation.
+  // Very large values are shown in scientific notation.
   _int_to_expr(x) {
     if(isNaN(x))
       return FontExpr.roman_text('NaN');
@@ -1227,11 +1226,11 @@ class RationalizeToExpr {
 
 // Serial number generator for Items; used for React collection keys.
 // Each entry in a React component list is supposed to have a unique ID.
-let serial_number = 1;
+let item_serial_number = 1;
 
 // Represents an entry in the stack or document.
 class Item {
-  static next_serial() { return serial_number++; }
+  static next_serial() { return item_serial_number++; }
 
   // 'tag_string' is an optional tag shown to the right of the item.
   // 'source_string' is the original "source code" string for items
@@ -1263,7 +1262,7 @@ class Item {
       (!command_id || this.has_command_id(command_id));
   }
 
-  // Return a new Item of the same type and contents (shallow copy) but with a new serial_number.
+  // Return a new Item of the same type and contents (shallow copy) but with a new serial number.
   // This is mainly needed for React, which needs a distinct React key for each item in
   // a list (like the list of stack items).  Things like 'dup' that can duplicate items
   // need to make sure to use clone() so that every Item in the stack/document is distinct.
@@ -2047,7 +2046,7 @@ class MsgpackEncoder {
   static encode_app_state_binary(app_state) {
     return msgpack_encode(
       new this().pack_app_state(app_state),
-      {'maxDepth': 200});
+      {'maxDepth': 200 /* TODO: revisit */});
   }
 
   // Like encode_app_state_binary() but return an ordinary String
@@ -2246,7 +2245,7 @@ class MsgpackEncoder {
       12, expr.array_type,
       expr.row_count, expr.column_count,
       expr.element_exprs.map(row_exprs =>
-        row_exprs.map(element_expr => this.pack_expr(element_expr))),
+        row_exprs.map(element_expr => this.maybe_pack_expr(element_expr))),
       expr.row_separators.some(sep => sep !== null) ? expr.row_separators : null,
       expr.column_separators.some(sep => sep !== null) ? expr.column_separators : null];
   }
@@ -2447,7 +2446,7 @@ class MsgpackDecoder {
     return new ArrayExpr(
       array_type, row_count, column_count,
       element_expr_states.map(row_expr_states =>
-        row_expr_states.map(expr_state => this.unpack_expr(expr_state))),
+        row_expr_states.map(expr_state => this.maybe_unpack_expr(expr_state))),
       row_separators, column_separators);
   }
   unpack_tensor_expr([base_expr_state, options, ...index_expr_states]) {

@@ -185,7 +185,7 @@
           <span class="k">/</span><span class="k">d</span>&nbsp;
           <span class="k">/</span><span class="k">D</span>&nbsp;
           <span class="k">/</span><span class="k">v</span>
-          Build different kinds of <a href="#help_derivatives">derivatives</a>.
+          Build different kinds of <a href="#help_derivatives">derivatives and differentials</a>.
         </li>
         <li>
           <span class="k">/</span><span class="k">i</span>&nbsp;
@@ -193,7 +193,7 @@
           Apply <a href="#help_integrals">integral limits</a>.
         </li>
         <li><span class="k">/</span><span class="k">f</span> Apply <a href="#help_named_operators">named operators</a>.</li>
-        <li><span class="k">)</span> Add paired <a href="#help_delimiters">delimiters</a> to an expression.</li>
+        <li><span class="k">)</span> Enclose expressions in paired <a href="#help_delimiters">delimiters</a>.</li>
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="k">~</span> Build <a href="#help_tensors">tensor</a> expressions using index notation.</li>
         <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
@@ -301,7 +301,7 @@
       <p>
         <strong>Named Operators:</strong>
         Typing <span class="k">Tab</span> instead of <span class="k">Enter</span>
-        will typeset your entry as an <em>operator name</em> which behaves the same as built-in operators
+        will typeset your entry as a <em>named operator</em> which behaves the same as built-in operators
         such as <code>\lim</code> and <code>\sin</code>.  This gives extra spacing between anything
         concatenated to (or before) the operator name to match normal math notation.  Only letters,
         numbers, spaces and dashes are allowed in operator names.
@@ -540,11 +540,11 @@
         </li>
         <li>
           <span class="k">!</span> <em>Export document:</em>
-          Copy the document content to the clipboard as LaTeX text.
+          Copy the document content to the system clipboard as LaTeX text.
         </li>
         <li>
           <span class="k">@</span> <em>Export stack item(s):</em>
-          Copy the top N stack items (default 1) to the clipboard as LaTeX text.
+          Copy the top N stack items (default 1) to the system clipboard as LaTeX text.
         </li>
         <li>
           <span class="k">$</span>
@@ -560,7 +560,7 @@
         <span class="k">Tab</span><span class="k">f</span>
         opens the File Manager popup panel.
         If your browser supports it, you can save and manage separate documents in the
-        internal browser storage (localStorage).
+        internal browser storage (<kbd>localStorage</kbd>).
         Your data persists between browser sessions, but this may not work in Private/Incognito Mode.
         Each document has a filename but there is only one level of storage - no subfolders.
       </p>
@@ -571,7 +571,7 @@
         document without opening the file manager first.
       </p>
       <p>
-        Documents can be exported (downloaded) as <kbd>.rpn</kbd> files using the
+        Documents can be exported (downloaded) as binary <kbd>.rpn</kbd> files using the
         <span class="k">x</span> command, and later re-imported by using the upload
         field found at the bottom of the File Manager.
       </p>
@@ -752,7 +752,7 @@
             <td><span class="k">h</span> <code>\hat x</code> <em>(hat)</em></td>
           </tr>
           <tr>
-            <td><span class="k">H</span> <code>\widehat{x\dots}</code></td>
+            <td><span class="k">H</span> <code>\widehat{x\dots}</code> <em>(wide hat)</em></td>
             <td><span class="k">i</span> <code>x^{-}</code></td>
             <td><span class="k">I</span> <code>x^{+}</code></td>
           </tr>
@@ -764,7 +764,7 @@
           <tr>
             <td><span class="k">M</span> <code>\mp x</code> <em>(minus-or-plus)</em></td>
             <td><span class="k">n</span> <code>\bar x</code> <em>(overli<strong>n</strong>e)</em></td>
-            <td><span class="k">o</span> <code>\overline{x\dots}</code> <em>(<strong>o</strong>verline)</em></td>
+            <td><span class="k">o</span> <code>\overline{x\dots}</code> <em>(wide <strong>o</strong>verline)</em></td>
           </tr>
           <tr>
             <td><span class="k">p</span> <code>x_\perp</code> <em>(perpendicular)</em></td>
@@ -807,8 +807,8 @@
             <td><span class="k">,</span> <code>x^{\circ}</code> <em>(degrees)</em></td>
           </tr>
           <tr>
-            <td><span class="k">*</span> <code>x^{*}</code></td>
-            <td><span class="k">^</span> <code>\star x</code></td>
+            <td><span class="k">*</span> <code>x^{*}</code> <em>(conjugate)</em></td>
+            <td><span class="k">^</span> <code>\star x</code> <em>(Hodge star)</em></td>
             <td><span class="k">=</span> <code>\Rightarrow x</code></td>
           </tr>
           <tr>
@@ -1667,7 +1667,7 @@
           <tr>
             <td>
               <span class="k">t</span> <code>\operatorname{Tr} x</code>
-              <em>(<strong>t</strong>race)</em>
+              <em>(trace)</em>
             </td>
             <td><span class="k">v</span> <code>\mathrm{Var}[x]</code></td>
             <td><span class="k">V</span> <code>\mathrm{Var}[x,y]</code></td>
