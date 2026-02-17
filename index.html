@@ -20,6 +20,7 @@
     <!-- The entire user manual is inline here, to be unhidden at runtime when requested. -->
     <div id="helptext" style="display: none;">
       <div class="version_info">rpnlatex v1.4.2</div>
+      <div class="version_info">sympy v1.15.0.dev0</div>
       <h1>User Guide</h1>
       <p>
         Scroll this text up and down with
@@ -358,7 +359,7 @@
         </li>
         <li>
           Finishing the text entry with <span class="k">Shift&nbsp;Enter</span> will
-          create a section header instead (with a larger font and underline).  You can later toggle
+          create a section header instead (with a larger font and an underline).  You can later toggle
           whether or not the text object is a section header with the
           <span class="k">/</span><span class="k">&quot;</span> command.
         </li>
@@ -1396,7 +1397,9 @@
         </li>
         <li>
           <span class="k">&quot;</span>
-          Toggle whether the stack top is displayed as a section header.
+          Turn the stack top into a <em>section header</em> text object, with a larger font and an underline.
+          Math expressions will be automatically converted into text objects containing the expression.
+          Applying this command a second time will remove the section header property.
         </li>
       </ul>
 
@@ -2024,7 +2027,7 @@
         <li>
           <span class="k">f</span> and <span class="k">F</span>
           Same as <span class="k">c</span> and <span class="k">C</span>,
-          but prepend the word "if" to the right-hand side of expressions joined with a colon.
+          but prepend the word "i<strong>f</strong>" to the right-hand side of expressions joined with a colon.
           If there is no colon, the right-hand side becomes the word "otherwise" instead.
           For example:
           <br>

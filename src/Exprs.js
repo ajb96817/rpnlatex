@@ -235,8 +235,8 @@ class Expr {
   // Substitute anything matching 'search_expr' with 'substitution_expr'.
   // NOTE: This can potentially create expressions that are nested internally
   // in a way they ordinarily wouldn't be.  For example: (x+y).substitute(y, z+w)
-  // creates a nested Infix(Infix(x, +, Infix(z, +, w)), which would normally
-  // be Infix(x, +, z, +, w).  This shouldn't be a problem in practice though.
+  // creates a nested Infix(x, +, Infix(z, +, w)), which would normally be
+  // Infix(x, +, z, +, w).  This shouldn't be a problem in practice though.
   substitute(search_expr, substitution_expr) {
     if(this.matches(search_expr))
       return substitution_expr;

@@ -97,7 +97,7 @@ body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
   background-color: #ccf;
   padding: 0.25em 1em;
   font-family: monospace;
-  z-index: 3;
+  z-index: 1;
 }
 
 /* These elements float on the top-right of the stack panel: */
@@ -588,6 +588,7 @@ body.eink_mode #helptext_panel.popup { border: 2px solid black; }
 div.help { padding: 0.5em 1em; }
 div.help .version_info {
   float: right;
+  clear: right;
   color: #888;
   font-family: monospace;
   text-align: right;

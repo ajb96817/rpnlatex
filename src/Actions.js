@@ -1124,6 +1124,9 @@ class InputContext {
   //     it to the base expression, for better horizontal positioning.
   //   - If the 'base' expression itself is also subscripted/superscripted, this rule
   //     is applied recursively: j^2^3 -> \jmath^2^3 (but (j^2)^3 is left alone).
+  //   - If the 'base' expression is a function call, the hat is applied to the
+  //     function name instead of the whole f(x) expression:
+  //     f(x) -> \hat{f}(x), not \hat{f(x)}.
   //   - FontExprs are also examined recursively, but only if they're normal math
   //     typeface (no roman font, etc).  They can still be bolded and/or resized.
   //       \bold{j}   => \bold{\hat{\jmath}}
@@ -1147,6 +1150,10 @@ class InputContext {
       return expr.replace_subexpression(
         0 /* expr.base_expr */,
         this._do_apply_hat(expr.base_expr, hat_op));
+    else if(expr.is_function_call_expr())
+      return new FunctionCallExpr(
+        this._do_apply_hat(expr.fn_expr, hat_op),
+        expr.args_expr);
     else if(expr.is_font_expr() && expr.typeface === 'normal')
       return expr.replace_subexpression(
         0 /* expr.expr */,
