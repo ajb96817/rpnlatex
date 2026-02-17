@@ -1576,6 +1576,7 @@ class InputContext {
   //   'operatorname' - Similar to 'roman_text' but use \operatorname instead of \mathrm
   //   'latex' - ExprItem with arbitrary 0-argument latex command
   //   'latex_unary' - ExprItem with 1-argument (from stack) latex command
+  //   'latex_infix' - 
   //   'text' - TextItem
   //   'heading' - TextItem with is_heading flag set
   //   'conjunction' - "X  iff  Y" style InfixExpr conjunction
@@ -1636,6 +1637,24 @@ class InputContext {
       if(stack.check_exprs(1)) {
         const [new_stack, argument_expr] = stack.pop_exprs(1);
         new_expr = new CommandExpr(trimmed_text, [argument_expr]);
+        this._cancel_text_entry(new_stack);
+        return new_stack.push_expr(new_expr);
+      }
+      else {
+        this.suppress_undo();
+        this.switch_to_mode(this.mode);
+        this.error_flash_stack();
+        return;
+      }
+    }
+    else if(textstyle === 'latex_infix') {
+      // Combine x,y from the stack into an InfixExpr with the LaTeX command
+      // as the infix operator.  Like with 'latex_unary', we need to explicitly
+      // check for two expressions on the stack.
+      if(stack.check_exprs(2)) {
+        const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
+        const infix_op_expr = new CommandExpr(trimmed_text);
+        new_expr = InfixExpr.combine_infix(left_expr, right_expr, infix_op_expr);
         this._cancel_text_entry(new_stack);
         return new_stack.push_expr(new_expr);
       }

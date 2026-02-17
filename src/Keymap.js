@@ -373,6 +373,7 @@ const keybinding_table = {
     'Shift+Enter': "finish_text_entry latex_unary",
     'Delete': "text_entry_backspace delete math_entry",
     'Backspace': "text_entry_backspace backspace math_entry",
+    ',': "finish_text_entry latex_infix",
     '[delegate]': "_editor_commands"
   },
 
