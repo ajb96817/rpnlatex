@@ -323,6 +323,15 @@ class Expr {
   with_prime(autoparenthesize = true) {
     return this.with_superscript(new CommandExpr('prime'), autoparenthesize);
   }
+
+  // x -> x+1, x-1, etc.
+  // InfixExpr overrides this to convert e.g. x+1 => x+2 or x-1 => x.
+  increment(amount) {
+    if(amount === 0)
+      return this;
+    else
+      return InfixExpr.add_exprs(this, TextExpr.integer(amount));
+  }
 }
 
 
@@ -1086,6 +1095,48 @@ class InfixExpr extends Expr {
       this.split_at_index,
       this.linebreaks_at);
   }
+
+  // Add 'amount' (integer) to an InfixExpr.  The amount may be negative (or zero).
+  //   (x-2).increment(5) => x+3 (right operand and possibly operator is replaced)
+  //   (x-2).increment(2) => x (right operand/operator is stripped if it goes to zero)
+  //   (x+y+1).increment(-1) => x+y (base InfixExpr is truncated)
+  // For this to work, the rightmost operand must be a literal integer.
+  // Otherwise, the fallback is just to add or subtract the increment
+  // as usual: x+n => x+n+1, etc.
+  increment(amount) {
+    const [last_operator_expr, last_operand_expr] =
+          [this.operator_exprs.at(-1), this.operand_exprs.at(-1)];
+    // Look for x+(integer) or x-(integer).
+    if((last_operator_expr.is_text_expr_with('+') ||
+        last_operator_expr.is_text_expr_with('-')) &&
+       last_operand_expr.is_text_expr() && last_operand_expr.looks_like_integer()) {
+      const value = parseInt(last_operand_expr.text) *
+            (last_operator_expr.is_text_expr_with('-') ? -1 : +1);
+      if(!isNaN(value)) {
+        const new_value = value + amount;
+        if(new_value === 0 && this.operator_exprs.length === 1) {
+          // x-1 (binary infix expression) is turning into x.
+          // The result is simply 'x' (probably not another InfixExpr).
+          return this.operand_exprs[0];
+        }
+        // Strip the rightmost operator and operand (x+y-1 => x+y).
+        // Preserve split_at_index / linebreaks_at if possible.
+        const new_operator_count =
+              this.operator_exprs.length - (new_value === 0 ? 1 : 0);
+        let new_expr = new InfixExpr(
+          this.operand_exprs.slice(0, -1),
+          this.operator_exprs.slice(0, -1),
+          this.split_at_index < new_operator_count ? this.split_at_index : 0,
+          this.linebreaks_at.filter(linebreak_at => linebreak_at < 2*new_operator_count));
+        if(new_value !== 0)
+          new_expr = InfixExpr.add_exprs(
+            new_expr, TextExpr.integer(new_value));
+        return new_expr;
+      }
+    }
+    // Default fallback case, e.g. x+n => x+n+1
+    return super.increment(amount);
+  }
 }
 
 
@@ -1432,6 +1483,7 @@ class TextExpr extends Expr {
   }
 
   looks_like_number() { return /^-?\d*\.?\d+$/.test(this.text); }
+  looks_like_integer() { return /^-?\d+$/.test(this.text); }
   looks_like_floating_point() { return !isNaN(parseFloat(this.text)); }
   looks_like_negative_number() { return /^-\d*\.?\d+$/.test(this.text); }
 }

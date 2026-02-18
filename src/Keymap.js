@@ -153,6 +153,9 @@ const keybinding_table = {
     'Ctrl+/': "fraction",
     "Ctrl+\\": "integer 1;swap;fraction",  // 1/x, same as [/][1]
     'Ctrl+]': "typeface roman;make_bold",  // same as [.][b]
+    'Ctrl++': "increment 1",  // NOTE: Ctrl++ not currently inputtable, but Ctrl+= works
+    'Ctrl+=': "increment 1",
+    'Ctrl+-': "increment -1",
     'Ctrl+Backspace': "nip"
   },
 
@@ -518,6 +521,7 @@ const keybinding_table = {
     'S': "named_function sec",
     't': "named_function tan",
     'T': "named_function cot",
+    'u': "increment 1",
     'U': "swap;operator underset 2",
     'v': "mode variational",
     'V': "parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x]
@@ -595,6 +599,7 @@ const keybinding_table = {
   },
   // [/][-] prefix
   inverse: {
+    'u': "increment -1",  // special case: [/][-][u]: decrement
     's': "named_function sin -1",
     'S': "named_function sec -1",
     'c': "named_function cos -1",

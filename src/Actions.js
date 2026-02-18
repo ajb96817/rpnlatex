@@ -305,6 +305,12 @@ class InputContext {
         base_expr.with_prime(this.settings.autoparenthesize));
   }
 
+  do_increment(stack, amount_string) {
+    const amount = parseInt(amount_string);
+    const [new_stack, expr] = stack.pop_exprs(1);
+    return new_stack.push_expr(expr.increment(amount));
+  }
+
   do_sympy(stack, operation, arg_count_string, operation_label = null) {
     const arg_count = parseInt(arg_count_string);
     const extra_args = [];
