@@ -112,7 +112,7 @@ const keybinding_table = {
     '|': "mode array",
     '~': "mode tensor",
     '_': "start_dissect_mode",
-    '#': "mode symbolic",
+    '#': "mode sympy",
     '$': "mode config",
     '?': "toggle_popup help",
 
@@ -156,6 +156,8 @@ const keybinding_table = {
     'Ctrl++': "increment 1",  // NOTE: Ctrl++ not currently inputtable, but Ctrl+= works
     'Ctrl+=': "increment 1",
     'Ctrl+-': "increment -1",
+    "Ctrl+'": "autoparenthesize;prime",
+    "Ctrl+.": "apply_hat dot",
     'Ctrl+Backspace': "nip"
   },
 
@@ -241,7 +243,7 @@ const keybinding_table = {
     '|': "scroll_to help_arrays",
     '~': "scroll_to help_tensors",
     '_': "scroll_to help_dissect",
-    '#': "scroll_to help_symbolic",
+    '#': "scroll_to help_sympy",
     ';': "scroll_to help_greek",
     ':': "scroll_to help_greek",
     '$': "scroll_to help_configuration",
@@ -600,6 +602,8 @@ const keybinding_table = {
   // [/][-] prefix
   inverse: {
     'u': "increment -1",  // special case: [/][-][u]: decrement
+    '-': "increment -1",  // [/][-][-] alias for [u] (undocumented)
+    '1': "increment -1",  // [/][-][1] another alias for [u] (undocumented)
     's': "named_function sin -1",
     'S': "named_function sec -1",
     'c': "named_function cos -1",
@@ -1182,7 +1186,7 @@ const keybinding_table = {
   },
 
   // [#] prefix: SymPy - work in progress
-  symbolic: {
+  sympy: {
     '[digit]': "prefix_argument",
     '#': "sympy sympify 1 evaluate",
     '=': "sympy N 1 evalf",  // numeric eval

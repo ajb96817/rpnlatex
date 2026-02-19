@@ -630,7 +630,9 @@ class FontExpr extends Expr {
 
   replace_subexpression(index, new_expr) {
     // 'index' is always 0.
-    return new FontExpr(new_expr, this.typeface, this.is_bold, this.size_adjustment);
+    return new FontExpr(
+      new_expr, this.typeface,
+      this.is_bold, this.size_adjustment);
   }
 
   matches(expr) {
@@ -699,7 +701,7 @@ class FontExpr extends Expr {
     if(!use_pmb && !typeface_command)
       emitter.expr(this.expr, 0);  // no-op (i.e., normal math text)
     else if(use_pmb && typeface_command) {
-      // nested \pmb{\typeface_cmd{...}}
+      // Nested \pmb{\typeface_cmd{...}}.
       emitter.command('pmb');
       emitter.grouped(() => {
         emitter.command(typeface_command);
@@ -707,7 +709,7 @@ class FontExpr extends Expr {
       }, 'force');
     }
     else {
-      // either \pmb{...} or \typeface_cmd{...} (not both)
+      // Either \pmb{...} or \typeface_cmd{...} (not both).
       emitter.command(use_pmb ? 'pmb' : typeface_command);
       emitter.grouped_expr(this.expr, 'force', 0);
     }
@@ -1014,6 +1016,7 @@ class InfixExpr extends Expr {
       this.linebreaks_at.filter(index => index !== old_index));
   }
 
+  // TODO: check for duplicates
   with_linebreak_at(new_index) {
     return new InfixExpr(
       this.operand_exprs,
@@ -1220,7 +1223,6 @@ class PrefixExpr extends Expr {
   }
 
   // Mainly useful for converting '= x' <=> '\ne x'.
-  // TODO: Maybe have \neg x => x.
   as_logical_negation() {
     const negated_operator_expr =
           this.operator_expr.as_logical_negation();

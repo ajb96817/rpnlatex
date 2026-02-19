@@ -202,7 +202,7 @@
         <li><span class="k">|</span> Manipulate <a href="#help_arrays">arrayed structures</a> like matrices, vectors, or lists.</li>
         <li><span class="k">~</span> Build <a href="#help_tensors">tensor</a> expressions using index notation.</li>
         <li><span class="k">_</span> Manipulate subexpressions with <a href="#help_dissect">dissect</a> mode.</li>
-        <li><span class="k">#</span> Perform <a href="#help_symbolic">symbolic algebra and calculus</a> operations.</li>
+        <li><span class="k">#</span> Perform <a href="#help_sympy">symbolic algebra and calculus</a> operations.</li>
         <li><span class="k">;</span> <span class="k">:</span> Create <a href="#help_greek">Greek letters</a>.</li>
         <li id="help_insert_calligraphic">
           <span class="k">@</span>
@@ -817,7 +817,7 @@
           </tr>
           <tr>
             <td><span class="k">&nbsp;</span> <code>x\,</code> <em>(append space)</em></td>
-            <td><span class="k">&#39;</span> <code>x'</code></td>
+            <td><span class="k">&#39;</span> <code>x^\prime</code></td>
             <td><span class="k">,</span> <code>x^{\circ}</code> <em>(degrees)</em></td>
           </tr>
           <tr>
@@ -2273,7 +2273,7 @@
         </li>
       </ul>
 
-      <h2 id="help_symbolic">
+      <h2 id="help_sympy">
         <span class="k">#</span> Symbolic Algebra and Calculus
       </h2>
       <p style="color: #600; font-style: italic; font-size: 120%;">
@@ -2784,6 +2784,16 @@
           &ndash; same as <span class="k">,</span><span class="k">,</span>
         </li>
         <li>
+          <span class="k">Ctrl&nbsp;.</span>
+          <code>x\Rightarrow \dot x</code>
+          &ndash; same as <span class="k">.</span><span class="k">.</span>
+        </li>
+        <li>
+          <span class="k">Ctrl&nbsp;&#39;</span>
+          <code>x\Rightarrow x^\prime</code>
+          &ndash; same as <span class="k">.</span><span class="k">&#39;</span>
+        </li>
+        <li>
           <span class="k">Ctrl&nbsp;+</span> or <span class="k">Ctrl&nbsp;=</span>
           Increment: <code>x\Rightarrow x+1</code>
           &ndash; same as <span class="k">/</span><span class="k">u</span>
@@ -2877,11 +2887,11 @@
           <code>\Rightarrow \sum_{k\ge0}{\left(-1\right)}^k</code>
         </li>
         <li>
-          <span class="k">;</span><span class="k">w</span><span class="k">t</span><span class="k">&nbsp;</span><span class="k">2</span><span class="k">k</span><span class="k">&nbsp;</span><span class="k">1</span><span class="k">+</span><span class="k">`</span>
+          <span class="k">;</span><span class="k">w</span><span class="k">t</span><span class="k">&nbsp;</span><span class="k">2</span><span class="k">k</span><span class="k">&nbsp;</span><span class="k">/</span><span class="k">u</span><span class="k">`</span>
           <code>\Rightarrow {\left(\omega t\right)}^{2k+1}</code>
         </li>
         <li>
-          <span class="k">2</span><span class="k">k</span><span class="k">&nbsp;</span><span class="k">1</span><span class="k">+</span><span class="k">!</span><span class="k">/</span><span class="k">/</span>
+          <span class="k">2</span><span class="k">k</span><span class="k">&nbsp;</span><span class="k">/</span><span class="k">u</span><span class="k">!</span><span class="k">/</span><span class="k">/</span>
           <code>\Rightarrow \frac{{\left(\omega t\right)}^{2k+1}}{\left(2k+1\right)!}</code>
         </li>
         <li>
@@ -2931,7 +2941,7 @@
           <code>\Rightarrow \frac{n!}{2\pi i}</code>
         </li>
         <li>
-          <span class="k">'</span><span class="k">y</span><span class="k">f</span><span class="k">z</span><span class="k">/</span><span class="k">o</span><span class="k">z</span><span class="k">/</span><span class="k">d</span><span class="k">i</span><span class="k">z</span><span class="k">z</span><span class="k">.</span><span class="k">0</span><span class="k">-</span><span class="k">n</span><span class="k">1</span><span class="k">+</span><span class="k">`</span><span class="k">/</span><span class="k">/</span><span class="k">&nbsp;</span>
+          <span class="k">'</span><span class="k">y</span><span class="k">f</span><span class="k">z</span><span class="k">/</span><span class="k">o</span><span class="k">z</span><span class="k">/</span><span class="k">d</span><span class="k">i</span><span class="k">z</span><span class="k">z</span><span class="k">.</span><span class="k">0</span><span class="k">-</span><span class="k">n</span><span class="k">/</span><span class="k">u</span><span class="k">`</span><span class="k">/</span><span class="k">/</span><span class="k">&nbsp;</span>
           <code>\Rightarrow \oint\frac{f{\left(z\right)}\,dz}{{\left(z-z_0\right)}^{n+1}}</code>
         </li>
         <li>
