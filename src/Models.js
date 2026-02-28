@@ -498,7 +498,7 @@ class ItemClipboard {
     this.slot_to_item_map = {};
   }
 
-  // See stack.resolve_pending_item().
+  // See Stack.resolve_pending_item().
   resolve_pending_item(command_id, new_item_fn) {
     let any_replaced = false;
     for(const [key, item] of Object.entries(this.slot_to_item_map)) {

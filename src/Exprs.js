@@ -126,7 +126,7 @@ class Expr {
     }
     if(exprs.length === 0)
       return FontExpr.roman_text('');  // special case: 'string' is empty
-    else if(exprs.length === 1)
+    else if(exprs.length === 1)  // usual case with no '[]'
       return exprs[0];
     else
       return new SequenceExpr(exprs);
@@ -180,8 +180,9 @@ class Expr {
   // considered as the first item in an implicit multiplication group.
   // For example, in '-3 sin(x)' the -3 is the first item and can be
   // concatenated to sin(x) without changing the meaning, but 'sin(x) -3'
-  // needs to become 'sin(x) (-3)'.  Currently this only affects prefix
-  // unary plus/minus.
+  // needs to become 'sin(x) - 3' (an InfixExpr).  Currently this only
+  // affects prefix unary plus/minus.
+  // TODO: clarify this
   is_term_expr(is_leftmost = false) { return true; }
 
   to_latex(selected_expr_path, export_mode = false) {
@@ -371,7 +372,7 @@ class CommandExpr extends Expr {
     if(command_name.endsWith(']')) {
       const index = command_name.indexOf('[');
       this.command_name = command_name.slice(0, index);
-      this.options = command_name.slice(index+1, command_name.length-1);
+      this.options = command_name.slice(index+1, -1);
     }
     else {
       this.command_name = command_name;
@@ -402,7 +403,7 @@ class CommandExpr extends Expr {
   // only the most common ones.
   is_whitespace() {
     return this.operand_count() === 0 &&
-      [',', '!', ':', ';', 'quad', 'qquad'
+      [ ',', '!', ':', ';', 'quad', 'qquad'
       ].includes(this.command_name);
   }
   
@@ -411,9 +412,10 @@ class CommandExpr extends Expr {
   // Commands like \operatorname{myfunc} (as created with [Tab] in math entry mode)
   // are also considered named operators.
   is_named_operator() {
-    // For \operatorname, ignore the argument count, because it can come in
-    // one- or two-argument forms: \operatorname{myfunc}{x} vs
-    // \operatorname{myfunc}.
+    if(this.operand_count() === 0)
+      return false;  // don't count e.g. "raw" \sin from LaTeX entry mode
+    // \operatorname can come in one- or two-argument forms:
+    // \operatorname{myfunc}{x} vs \operatorname{myfunc}.
     if(this.command_name === 'operatorname')
       return true;
     // Trigonometric functions may have a superscript attached directly
@@ -421,8 +423,7 @@ class CommandExpr extends Expr {
     if(this.command_name.indexOf('^') >= 0 ||
        this.command_name.indexOf('_') >= 0)
       return true;
-    return this.operand_count() === 1 &&
-      latex_named_operators.has(this.command_name);
+    return latex_named_operators.has(this.command_name);
   }
 
   emit_latex(emitter) {
@@ -1572,7 +1573,7 @@ class DelimiterExpr extends Expr {
     this.left_type = left_type;
     this.right_type = right_type;
     this.inner_expr = inner_expr;
-    this.fixed_size = fixed_size || false;
+    this.fixed_size = !!fixed_size;
   }
 
   // Wrap expr in delimiters of the given type.
@@ -1582,7 +1583,7 @@ class DelimiterExpr extends Expr {
   static parenthesize(expr, left_type = '(', right_type = ')',
                       if_not_already = false /* true = don't double-wrap if already parenthesized */) {
     while(expr.is_delimiter_expr() &&
-       expr.left_type === '.' && expr.right_type === '.')
+          expr.left_type === '.' && expr.right_type === '.')
       expr = expr.inner_expr;
     // Normally, parenthesizing (x) gives ((x)).
     // The if_not_already flag inhibits this behavior to avoid
@@ -1602,7 +1603,8 @@ class DelimiterExpr extends Expr {
 
   // expr is about to become the base of a SubscriptSuperscriptExpr.
   // The expression will be parenthesized if it is:
-  //   - any kind of SequenceExpr, InfixExpr, PrefixExpr, PostfixExpr, TensorExpr
+  //   - any kind of SequenceExpr, InfixExpr, PrefixExpr, PostfixExpr,
+  //     TensorExpr, SymPyExpr
   //   - blank delimiters containing any kind of InfixExpr
   //   - a normal fraction like \frac{x}{y}
   //   - a "primed" expression like f' (but not f'(x)).
@@ -1613,6 +1615,8 @@ class DelimiterExpr extends Expr {
       return expr;
   }
 
+  // TODO: parenthesize_for('power'), should_parenthesize_for('power')
+  
   // TODO: make non-static
   static should_parenthesize_for_power(expr) {
     // Don't parenthesize dx => (dx)^2; need to allow dx^2 for
@@ -1621,8 +1625,7 @@ class DelimiterExpr extends Expr {
       return false;
     return (
       // Any sequence/infix/prefix/postfix/tensor expression
-      [ 'sequence', 'infix', 'prefix', 'postfix', 'tensor',
-        'sympy'
+      [ 'sequence', 'infix', 'prefix', 'postfix', 'tensor', 'sympy'
       ].includes(expr.expr_type()) ||
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
@@ -1655,12 +1658,12 @@ class DelimiterExpr extends Expr {
       return expr;
   }
 
+  // TODO: factor with should_parenthesize_for_power()
   static should_parenthesize_for_argument(expr) {
     return (
       // NOTE: Only parenthesize SequenceExprs if they don't start
       // with a PrefixExpr: sin 2x, but sin(-2x)
-      [ 'infix', 'prefix', 'postfix', 'tensor',
-        'sympy'
+      [ 'infix', 'prefix', 'postfix', 'tensor', 'sympy'
       ].includes(expr.expr_type()) ||
       // Something like '-2x'.
       (expr.is_sequence_expr() && expr.exprs[0].is_prefix_expr()) ||
@@ -1671,8 +1674,9 @@ class DelimiterExpr extends Expr {
        expr.inner_expr.is_infix_expr()) ||
       // \frac{x}{y}
       expr.is_command_expr_with(2, 'frac') ||
-      (expr.is_command_expr() && expr.is_named_operator() &&
-       !expr.operand_exprs[0].is_delimiter_expr()) ||
+      // \sin{x}, etc.
+        (expr.is_command_expr() && expr.is_named_operator() &&
+         !expr.operand_exprs[0].is_delimiter_expr()) ||
       // FontExpr(x) where x itself should be parenthesized.
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
        this.should_parenthesize_for_argument(expr.expr))
@@ -1692,7 +1696,7 @@ class DelimiterExpr extends Expr {
   // If either delimiter is 'blank', delegate to the inner_expr.
   // "Full" parentheses, etc., are always considered terms.
   is_term_expr(is_leftmost = false) {
-    if(this.left_type === '.' || this.left_type === '.')
+    if(this.left_type === '.' || this.right_type === '.')
       return this.inner_expr.is_term_expr(is_leftmost);
     else
       return true;

@@ -66,7 +66,7 @@
         Other errors are signaled by a brief flash of the screen.
       </p>
       <p>
-        Several <a href="#help_examples">examples</a> of how to create different
+        Several <a href="#help_examples">examples</a> of how to create a selection of
         math formulas are available at the end of this user guide.  You can jump
         directly to the examples by pressing <span class="k">x</span>.
       </p>
@@ -1376,7 +1376,7 @@
         </li>
         <li>
           <span class="k">z</span>
-          "Dissolve" an expression, breaking it apart into its component parts if possible.
+          "Dis<strong>z</strong>olve" an expression, breaking it apart into its component parts if possible.
           Delimiters will be removed, fractions disassembled, and matrix elements put
           on the stack in row-major order.
         </li>
@@ -1509,11 +1509,11 @@
             <td><span class="k">Q</span> <code>x \Rightarrow \displaystyle{\frac{\partial^2}{\partial x^2}}</code></td>
           </tr>
           <tr>
-            <td><span class="k">m</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code></td>
+            <td><span class="k">m</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code> (<strong>m</strong>ixed)</td>
             <td><span class="k">M</span> <code>f\enspace x\enspace y \Rightarrow \displaystyle{\frac{\partial^2 f}{\partial x\,\partial y}}</code></td>
           </tr>
           <tr>
-            <td><span class="k">p</span> <code>x \Rightarrow \partial x</code></td>
+            <td><span class="k">p</span> <code>x \Rightarrow \partial x</code> (<strong>p</strong>artial)</td>
             <td><span class="k">P</span> <code>x\enspace y \Rightarrow \partial_y x</code></td>
           </tr>
           <tr>
@@ -1587,7 +1587,7 @@
 
       <p>
         <strong>Variational Calculus:</strong>
-        Functional derivative operations from the calculus of variations may be entered
+        Functional derivative operations from the calculus of variation may be entered
         with the <span class="k">/</span><span class="k">v</span> prefix.
         The partial derivative commands from
         <span class="k">/</span><span class="k">d</span> are available, the only
@@ -1642,6 +1642,10 @@
           <tr>
             <td><span class="k">T</span> <code>\Rightarrow \int_{-\pi}^\pi</code></td>
             <td><em>symmetric trigonometric</em></td>
+          </tr>
+          <tr>
+            <td><span class="k">P</span> <code>\Rightarrow \int_0^\pi</code></td>
+            <td><em>zero to <code>\pi</code></em></td>
           </tr>
       </tbody></table>
 
@@ -2602,8 +2606,8 @@
         </li>
         <li>
           <span class="k">I</span>
-          Toggle whether the prefix key mode indicator in the upper-right corner of the stack
-          is visible or not.
+          Toggle whether or not the prefix key mode indicator in the upper-right corner of the stack
+          is visible.
         </li>
         <li>
           <span class="k">V</span>
@@ -2665,7 +2669,7 @@
           &ndash; same as <span class="k">Tab</span><span class="k">a</span>
         </li>
         <li><span class="k">Ctrl&nbsp;b</span>
-          Apply a bold font: <code>x\Rightarrow \boldsymbol x</code>
+          Apply a <strong>b</strong>old font: <code>x\Rightarrow \boldsymbol x</code>
           &ndash; same as <span class="k">]</span>
         </li>
         <li><span class="k">Ctrl&nbsp;c</span>
@@ -2673,7 +2677,7 @@
           &ndash; same as <span class="k">Tab</span><span class="k">c</span>
         </li>
         <li><span class="k">Ctrl&nbsp;d</span>
-          Make subscript &ndash; same as <span class="k">Enter</span>
+          Make subscript (<strong>d</strong>own) &ndash; same as <span class="k">Enter</span>
         </li>
         <li><span class="k">Ctrl&nbsp;e</span>
           <code>x \Rightarrow \mathrm{e}^x</code>
@@ -2717,7 +2721,7 @@
         </li>
         <li>
           <span class="k">Ctrl&nbsp;p</span>
-          Enclose the stack top in parentheses
+          Enclose the stack top in <strong>p</strong>arentheses
           &ndash; same as <span class="k">(</span>
         </li>
         <li>
@@ -2739,7 +2743,7 @@
           <code>f \Rightarrow f(t)</code>
         </li>
         <li><span class="k">Ctrl&nbsp;u</span>
-          Make superscript &ndash; same as <span class="k">`</span>
+          Make superscript (<strong>u</strong>p) &ndash; same as <span class="k">`</span>
           or <span class="k">^</span>
         </li>
         <li><span class="k">Ctrl&nbsp;v</span>
@@ -2837,11 +2841,11 @@
           <code>\Rightarrow \int_0^1</code>
         </li>
         <li>
-          <span class="k">t</span><span class="k">.</span><span class="k">c</span><span class="k">;</span><span class="k">a</span><span class="k">1</span><span class="k">-</span><span class="k">`</span>
+          <span class="k">t</span><span class="k">.</span><span class="k">c</span><span class="k">;</span><span class="k">a</span><span class="k">/</span><span class="k">-</span><span class="k">u</span><span class="k">`</span>
           <code>\Rightarrow \left(1-t\right)^{\alpha-1}</code>
         </li>
         <li>
-          <span class="k">t</span><span class="k">;</span><span class="k">b</span><span class="k">1</span><span class="k">-</span><span class="k">`</span>
+          <span class="k">t</span><span class="k">;</span><span class="k">b</span><span class="k">/</span><span class="k">-</span><span class="k">u</span><span class="k">`</span>
           <code>\Rightarrow t^{\beta-1}</code>
         </li>
         <li>

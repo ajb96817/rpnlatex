@@ -500,7 +500,7 @@ const keybinding_table = {
     'f': "mode named_operator",
     'g': "push \\int;swap;superscript;swap;subscript",
     'h': "mode hyperbolic",
-    'i': "mode integral_limits",
+    'i': "mode integral",
     'I': "mode integral_with_limits",
     //'J': "operator atop 2",  // not that useful
     'k': "infix \\,\\vert\\,;parenthesize;function_call",  // f x y -> f(x|y)
@@ -650,7 +650,7 @@ const keybinding_table = {
   },
 
   // [/][i] prefix - add limits to an existing integral sign
-  integral_limits: {
+  integral: {
     'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -inf..inf : [r]eals
     'R': "push R;typeface calligraphic;subscript",  // reals alternative notation
     'n': "push \\infty;negate;subscript;integer 0;superscript",  // -inf..0 : [n]egative 
@@ -658,7 +658,8 @@ const keybinding_table = {
     'u': "integer 0;subscript;integer 1;superscript",  // 0..1 : [u]nit
     'U': "integer -1;subscript;integer 1;superscript",  // -1..1 : symmetric [U]nit
     't': "integer 0;subscript;integer 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
-    'T': "push \\pi;negate;subscript;push \\pi;superscript"  // -pi..pi : symmetric [T]rigonometric
+    'T': "push \\pi;negate;subscript;push \\pi;superscript",  // -pi..pi : symmetric [T]rigonometric
+    'P': "integer 0;subscript;push \\pi;superscript"  // 0..pi
   },
 
   // [/][I] prefix
@@ -671,7 +672,8 @@ const keybinding_table = {
     'u': "push \\int;integer 0;subscript;integer 1;superscript",
     'U': "push \\int;integer -1;subscript;integer 1;superscript",
     't': "push \\int;integer 0;subscript;integer 2;push \\pi;concat;superscript",
-    'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript"
+    'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript",
+    'P': "push \\int;integer 0;subscript;push \\pi;superscript"
   },
 
   // [/][d] prefix: derivative operations
@@ -1198,15 +1200,15 @@ const keybinding_table = {
     'I': "sympy solveset 2 solve",
     'p': "sympy integrate 1",  // [p]rimitive
     'P': "sympy integrate 2",
-    's': "mode simplify",
-    't': "mode integral_transform",
+    's': "mode sympy_simplify",
+    't': "mode sympy_transform",
     'y': "sympy_series_expansion false",
     'Y': "sympy_series_expansion true"
   },
 
   // [#][s] prefix: SymPy "simplification" commands; these change or rearrange
   // the expression without changing the mathematical meaning.
-  simplify: {
+  sympy_simplify: {
     'a': "sympy apart 1",
     'e': "sympy expand 1",
     'f': "sympy factor 1",
@@ -1218,7 +1220,7 @@ const keybinding_table = {
   },
 
   // [#][t] prefix: SymPy integral transforms
-  integral_transform: {
+  sympy_transform: {
     'c': "sympy cosine_transform 3",
     'C': "sympy inverse_cosine_transform 3",
     'f': "sympy fourier_transform 3",
