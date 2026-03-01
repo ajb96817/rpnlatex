@@ -1053,7 +1053,7 @@ const keybinding_table = {
     ']': "adjust_size larger",
     '{': "operator overbrace",
     '}': "operator underbrace",
-    '!': "autoparenthesize;prefix \\neg",
+    '!': "parenthesize_argument;prefix \\neg",
     '_': "operator underline",
     'Tab': "push \\quad;swap;concat false"
   },

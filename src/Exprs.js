@@ -47,13 +47,18 @@ class Expr {
       return PostfixExpr.factorial_expr(left_expr, 1, !no_parenthesize);
     // Autoparenthesize the expressions being combined if needed.
     // The rest of the combination rules will apply to these versions.
-    [left_expr, right_expr] = [left_expr, right_expr].map(expr => {
-      if(expr.is_infix_expr() &&
-         !expr.is_differential_form() &&
-         !no_parenthesize)
-        return DelimiterExpr.parenthesize(expr);
-      else return expr;
-    });
+    if(!(left_expr.is_integral_sign() &&
+         right_expr.is_infix_expr() &&
+         right_expr.operand_exprs.at(-1).is_differential_form())) {
+      // Special case: concatenating an integral sign to something like
+      // 'F \cdot dr' will not parenthesize the integrand.
+      // However, 'F \cdot r' will still be parenthesized.
+      [left_expr, right_expr] = [left_expr, right_expr].map(expr => {
+        if(expr.is_infix_expr() && !expr.is_differential_form() && !no_parenthesize)
+          return DelimiterExpr.parenthesize(expr);
+        else return expr;
+      });
+    }
     // Concatenating a literal '+' or '-' to something creates the
     // corresponding PrefixExpr.
     if(left_expr.is_text_expr_with('+') || left_expr.is_text_expr_with('-'))
@@ -74,10 +79,9 @@ class Expr {
     // except an integral sign on the left.  This includes concatenating a
     // differential form on the right side of a SequenceExpr to something else,
     // for cases like \int dx\,x^2.
-    const integral_on_left = (left_expr.is_command_expr() && left_expr.is_integral_sign()) ||
-          (left_expr.is_sequence_expr() &&
-           left_expr.last_expr().is_command_expr() &&
-           left_expr.last_expr().is_integral_sign());
+    const integral_on_left =
+          left_expr.is_integral_sign() ||
+          (left_expr.is_sequence_expr() && left_expr.last_expr().is_integral_sign());
     const differential_form_on_left = left_expr.is_differential_form() ||
           (left_expr.is_sequence_expr() &&
            left_expr.last_expr().is_differential_form());
@@ -168,6 +172,7 @@ class Expr {
   }
   // 'dx', 'dx ^ dy', etc.
   is_differential_form() { return false; }
+  is_integral_sign() { return false; }
   is_whitespace() { return false; }
 
   // Determine if this expression is a 'term'; that is, something that
@@ -916,16 +921,16 @@ class InfixExpr extends Expr {
     return this.operator_text(this.operator_exprs[index]);
   }
 
-  // Check if this is a "low-precedence" infix expression like x+y.
+  // Check if this is a "low-precedence" infix expression like x+y
+  // (lower than multiplication like a\times b or ab).
   // This determines if things like x - expr should convert to
-  // x - (expr) or not.
-  // TODO: rename this
+  // x - (expr) or not, and whether to parenthesize when concatenating
+  // e.g. x to y+z.
   needs_autoparenthesization() {
-    // TODO: maybe \oplus, \ominus, \pm, \mp
     return this.operator_exprs.some(op_expr =>
       op_expr.is_unary_minus_expr() ||
-        op_expr.is_text_expr_with('+') ||
-        op_expr.is_text_expr_with('-'));
+        ['+', '-'].some(op => op_expr.is_text_expr_with(op)) ||
+        ['pm', 'mp'].some(op => op_expr.is_command_expr_with(0, op)));
   }
 
   // Expressions like dx \wedge dy.
@@ -1781,6 +1786,11 @@ class SubscriptSuperscriptExpr extends Expr {
 
   is_term_expr(is_leftmost = false) {
     return this.base_expr.is_term_expr(is_leftmost);
+  }
+
+  is_integral_sign() {
+    // int_0^x still counts as an integral sign.
+    return this.base_expr.is_integral_sign();
   }
 
   emit_latex(emitter) {

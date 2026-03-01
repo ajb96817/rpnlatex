@@ -1372,7 +1372,22 @@ class InputContext {
   }
 
   // Shortcut for "prefix -", to make the keymap cleaner.
-  do_negate(stack) { return this.do_prefix(stack, '-'); }
+  // As a convenience, also convert \pm x <=> \mp x and -x => x.
+  do_negate(stack) {
+    const [new_stack, expr] = stack.pop_exprs(1);
+    if(expr.is_prefix_expr()) {
+      if(expr.is_unary_minus())
+        return new_stack.push_expr(expr.base_expr);
+      if(expr.operator_text() === 'pm')
+        return new_stack.push_expr(new PrefixExpr(expr.base_expr, new CommandExpr('mp')));
+      if(expr.operator_text() === 'mp')
+        return new_stack.push_expr(new PrefixExpr(expr.base_expr, new CommandExpr('pm')));
+      // Also convert +x => -x
+      if(expr.operator_text() === '+')
+        return new_stack.push_expr(PrefixExpr.unary_minus(expr.base_expr));
+    }
+    return this.do_prefix(stack, '-');
+  }
 
   // Substitute the stack top expression into the first available placeholder marker in the
   // item second from top.  That (second) item can be either an ExprItem or TextItem.
