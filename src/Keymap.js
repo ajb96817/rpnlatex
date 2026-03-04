@@ -1341,7 +1341,7 @@ const keybinding_table = {
 
     '2': "mode variant_greek",
     ';': "infix semicolon",
-    ':': "infix \\colon"
+    ':': "infix :"
   },
 
   // [;][2] prefix: "variant" uppercase Greek letters

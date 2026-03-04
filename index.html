@@ -944,7 +944,7 @@
             <td><span class="k">^</span> <code>x\star y</code>
           </tr>
           <tr>
-            <td><span class="k">:</span> <code>x\colon y</code></td>
+            <td><span class="k">:</span> <code>x\colon y</code> (see below)</td>
             <td><span class="k">;</span> <code>x;y</code></td>
             <td><span class="k">`</span> <code>x^\mathrm{T} y</code></td>
           </tr>
@@ -964,6 +964,12 @@
             </td>
           </tr>
       </tbody></table>
+      <p>
+        <strong>NOTE:</strong>
+        <span class="k">:</span><span class="k">:</span> can be used as an alternative
+        to <span class="k">,</span><span class="k">:</span> to get different spacing:
+        compare <code>x:y</code> vs. <code>x\colon y</code>.
+      </p>
       <p>
         <strong>Apply:</strong>
         The <span class="k">,</span><span class="k">a</span>
@@ -2034,7 +2040,7 @@
           <span class="k">c</span> <em>(case)</em>
           Build a list of N cases for a piecewise function definition.
           If the component items are infix expressions joined with a colon
-          (via <span class="k">,</span><span class="k">:</span>),
+          (via <span class="k">,</span><span class="k">:</span> or <span class="k">:</span><span class="k">:</span>),
           they will be split up and placed as the left and right parts of the case structure.
           For example:
           <br>
@@ -2537,14 +2543,14 @@
       </tbody></table>
       <p>
         <strong>NOTE:</strong>
-        The sequence
+        <span class="k">:</span><span class="k">:</span>
+        combines <code>x\enspace y \Rightarrow x:y</code>
+        similarly to <span class="k">,</span><span class="k">:</span>
+        <code>x\enspace y \Rightarrow x\colon y</code> but with symmetrical spacing, and
         <span class="k">;</span><span class="k">;</span>
         can be used as an alternative to
         <span class="k">,</span><span class="k">;</span>
-        to join two expressions with a semicolon, and
-        <span class="k">;</span><span class="k">:</span>
-        joins with a colon like
-        <span class="k">,</span><span class="k">:</span>.
+        <code>x\enspace y \Rightarrow x;y</code>.
       </p>
 
       <h2 id="help_configuration">
