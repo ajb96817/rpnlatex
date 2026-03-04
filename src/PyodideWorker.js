@@ -8,7 +8,7 @@ import {
 async function load_pyodide_if_needed() {
   if(self.pyodide) return;
   // TODO: error handling
-  self.pyodide = await loadPyodide({indexURL: '/public'});
+  self.pyodide = await loadPyodide({indexURL: '/'});
   postMessage({message: 'loading'});
   await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
   const initcode = `

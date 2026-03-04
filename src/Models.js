@@ -1432,7 +1432,8 @@ class TextItemExprElement extends TextItemElement {
 
 
 // A "raw" piece of LaTeX text (similar to TextExpr) within a TextItem.
-// This is used for things like combining a TextItem and ExprItem with an infix operator.
+// This is used also used for things like combining a TextItem and ExprItem
+// with an infix operatr.
 // TextItemTextElement can't be used for the infix itself because we don't want to wrap it
 // in a \text{...} and we don't want to escape the operator's actual LaTeX command.
 class TextItemRawElement extends TextItemElement {

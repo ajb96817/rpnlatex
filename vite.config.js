@@ -19,7 +19,7 @@ export function viteStaticCopyPyodide() {
     targets: [
       {
         src: [join(pyodideDir, "*")].concat(PYODIDE_EXCLUDE),
-        dest: "public",
+        dest: ".",
       },
     ],
   });
