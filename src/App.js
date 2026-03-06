@@ -244,19 +244,8 @@ class App extends React.Component {
   }
 
   handleKeyDown(event) {
-    // No Alt key combinations are handled.
-    // Meta key combinations are aliased to the Ctrl commands to
-    // support things like Cmd-Z on MacOS.
-    if(event.altKey)
-      return;
     const key = this._keyname_from_event(event);
-    // Pass through Alt+3, etc. to avoid interfering with browser tab
-    // switching shortcuts.  Ctrl+digit is still allowed.
-    if(event.metaKey && /^\d$/.test(event.key))
-      return;
-    if(['Meta', 'Shift', 'Alt', 'Control', 'Ctrl+Control', 'Ctrl+Meta'
-       ].includes(key))
-      return;  // ignore isolated modifier key presses
+    if(!key) return;  // ignore the keystroke
     let app_state = this.state.app_state;
     let [was_handled, new_app_state] = this.state
         .input_context.handle_key(app_state, key);
@@ -277,16 +266,41 @@ class App extends React.Component {
     }
   }
 
+  // Return null if the key event is to be ignored (like isolated Shift
+  // or Ctrl presses).  Otherwise, the returned keyname is to be used directly
+  // to look up commands in the Keymap.
+  // NOTE: If Shift+Ctrl are both used, the combination will be
+  // 'Ctrl+Shift+A', not 'Shift+Ctrl+A'.
   _keyname_from_event(event) {
     let key = event.key;
+    // No Alt key combinations are handled (they don't work well cross-browser).
+    // Meta key combinations are aliased to the Ctrl commands to support things
+    // like Cmd-Z on MacOS.
+    if(event.altKey)
+      return null;
+    // Pass through Alt+3, etc. to avoid interfering with browser tab
+    // switching shortcuts.  Ctrl+[digit] is still allowed.
+    if(event.metaKey && /^\d$/.test(key))
+      return null;
+    // Ignore isolated modifier keypresses.
+    if(['Meta', 'Shift', 'Alt', 'Control', 'Ctrl+Control', 'Ctrl+Meta'
+       ].includes(key))
+      return null;
+    // Shifted keys: we want Shift+ArrowLeft, etc. but not Shift+U
+    // or Shift+$.  We also want to be able to handle Ctrl+Shift+[digit],
+    // but for some reason some Ctrl+Shift digits are inconsistent:
+    // we get Ctrl+Shift+@ for 2, but Ctrl+Shift+3 for 3, etc.
+    // If using these combos in the future, need to account for this
+    // (e.g. UK keyboards may have the pound sign, etc).
     if(event.shiftKey &&
-       (key.startsWith('Arrow') || key === 'Enter' || key === 'Backspace'))
+       (key.startsWith('Arrow') ||
+        ///^d$/.test(key) ||
+        // For now, explicitly test for the key we want as Shift+Home etc.
+        ['Enter', 'Backspace', 'PageUp', 'PageDown', 'Home', 'End'
+        ].includes(key)))
       key = 'Shift+' + key;
     if(event.ctrlKey || event.metaKey)
       key = 'Ctrl+' + key;
-    // NOTE: none of the Alt stuff works on Firefox for some reason.  Chromium seems ok.
-    // if(event.metaKey || event.altKey || event.getModifierState('Alt') || event.getModifierState('Meta'))
-    //     key = 'Alt+' + key;
     return key;
   }
 

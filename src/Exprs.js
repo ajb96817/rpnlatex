@@ -266,9 +266,8 @@ class Expr {
   _find_placeholder_expr_path(expr_path) {
     let found_expr_path = null;
     for(const [index, subexpr] of this.subexpressions().entries())
-      if(found_expr_path === null)
-        found_expr_path = subexpr._find_placeholder_expr_path(
-          expr_path.descend(index));
+      found_expr_path ||= subexpr._find_placeholder_expr_path(
+        expr_path.descend(index));
     return found_expr_path;
   }
 
