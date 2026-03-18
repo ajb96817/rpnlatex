@@ -112,6 +112,7 @@ function expr_to_variable_name(expr, ignore_superscript = false,
   }
   // Remove (ignore) roman font if present.
   // Other fonts like sans-serif are considered unconvertable.
+  // TODO: fraktur('x') => 'frak_x' etc.
   if(expr.is_font_expr() && expr.typeface === 'roman')
     expr = expr.expr;
   // Check for expressions with a subscript.  Subscripted expressions
@@ -253,7 +254,6 @@ class PyodideInterface {
     if(!this.start_pyodide_worker_if_needed())
       return this.error('Pyodide not available');
     const command_code = this.generate_command_code(sympy_item.command);
-    console.log(command_code);
     const message = {
       command: 'sympy_command',
       command_id: sympy_item.status.command_id,
@@ -420,7 +420,7 @@ class SymPyAssignment extends SymPyNode {
 }
 
 // f(x,y,z) - Call a built-in SymPy function.
-// Used for Python tuples too (x,y,z).
+// Used for Python tuples too (x,y,z) (function_name='').
 class SymPyFunctionCall extends SymPyNode {
   constructor(function_name, args) {
     super();
@@ -1013,7 +1013,7 @@ class IntegralAnalyzer extends Analyzer {
 
   analyze_integral_sign(expr) {
     // Look for either a "raw" \int, etc. command, or a SubscriptSuperscriptExpr
-    // with an \int command as the base.  In this case, the subscript and superscript
+    // with an \int command as the base.  In that case, the subscript and superscript
     // are assumed to be the integral limits.
     let lower_limit = null, upper_limit = null;
     if(expr.is_subscriptsuperscript_expr()) {
@@ -1361,6 +1361,7 @@ class CommandAnalyzer extends Analyzer {
       ['sech^2', 'cosh', -2], ['csch^2', 'sinh', -2], ['coth^2', 'tanh', -2]
     ].find(pair => command_name === pair[0]);
     if(match && nargs === 1) {
+      // TODO
       alert('sin^2 etc not yet implemented');
     }
     // Zero-argument commands like \alpha are converted to their corresponding
@@ -1400,6 +1401,8 @@ class InfixAnalyzer extends Analyzer {
     const operand_exprs = infix_expr.operand_exprs;
     this.node_stack = [this.emitter.emit_expr(operand_exprs[0])];
     this.operator_stack = [];  // stores operator info structures
+    // Infix parseoid: convert initial node/operator stack to final SymPyNode.
+    // Assumes left-associativity for everything.
     for(const [i, operator_info] of operator_infos.entries()) {
       while(this.operator_stack.length > 0 &&
             this.operator_stack.at(-1).prec >= operator_info.prec)
@@ -1436,7 +1439,7 @@ class InfixAnalyzer extends Analyzer {
   }
 
   // { fn: binary sympy function to apply
-  //   prec: higher numbers bind tighter }
+  //   prec: precedence, higher numbers bind tighter }
   infix_op_info(op_name) {
     // NOTE: Mul/Add/etc are "native" SymPy operators (classes);
     // divide/subtract are created by the initialization
@@ -1532,6 +1535,7 @@ class FunctionCallAnalyzer extends Analyzer {
 //   \sum_{m<=i<=n} summand (< or <= can be used)
 // The 'summand' is taken as one or more 'term expressions', which are combined
 // with implicit multiplication.
+// \prod is handled the same as \sum.
 // These become SymPy summation(...) or product(...) calls.
 class SumOrProductAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
@@ -1542,7 +1546,7 @@ class SumOrProductAnalyzer extends Analyzer {
     if(operator_info.error_message)
       return this.failure(operator_info.error_message, index);
     index++;
-    // Get "argument" to the sum/product operator.
+    // Get the "argument" to the sum/product operator.
     let summand_exprs = [];
     while(index < stop_index &&
           exprs[index].is_term_expr(index === start_index+1)) {

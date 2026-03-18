@@ -296,7 +296,7 @@ class App extends React.Component {
        (key.startsWith('Arrow') ||
         ///^d$/.test(key) ||
         // For now, explicitly test for the key we want as Shift+Home etc.
-        ['Enter', 'Backspace', 'PageUp', 'PageDown', 'Home', 'End'
+        ['Enter', ' ', 'Backspace', 'PageUp', 'PageDown', 'Home', 'End'
         ].includes(key)))
       key = 'Shift+' + key;
     if(event.ctrlKey || event.metaKey)

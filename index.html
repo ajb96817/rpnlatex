@@ -101,8 +101,13 @@
         </li>
         <li>
           <span class="k">&nbsp;</span> <em>(space)</em>
-          Concatenate the top two stack items.  This can also be used to create longer
-          integers from individual digits.
+          Concatenate the top two stack items.  This can be used to &quot;implicitly&quot;
+          multiply terms together (as in <code>xy</code>), and to create longer integers
+          from individual digits (<code>1\enspace 2 \Rightarrow 12</code>).
+        </li>
+        <li>
+          <span class="k">Shift Space</span>
+          Concatenate the top three stack items.  Same as <span class="k">&nbsp;</span><span class="k">&nbsp;</span>.
         </li>
         <li>
           <span class="k">^</span> or <span class="k">`</span> <em>(backtick)</em>
@@ -2568,56 +2573,53 @@
         </li>
         <li>
           <span class="k">s</span>
-          Set the percentage of the window width (or height) that the stack panel will occupy.
+          Set the percentage of the window width (or height) that the <strong>s</strong>tack panel will occupy.
           The percentage is given by the prefix argument:
           <span class="k">$</span><span class="k">0</span><span class="k">s</span> to <span class="k">$</span><span class="k">9</span><span class="k">s</span> for 0% to 90%, or <span class="k">$</span><span class="k">*</span><span class="k">s</span> for 100%.  Default is 50%.
         </li>
         <li>
           <span class="k">+</span> or <span class="k">z</span>
-          Increase the text zoom factor in steps of 5%.  A prefix argument can
-          be used to jump up multiple steps at once.  A prefix argument of
+          Increase the overall display scaling (<strong>z</strong>oom) factor in steps of 5%.
+          A prefix argument can be used to jump up multiple steps at once.  A prefix argument of
           <span class="k">*</span> or <span class="k">0</span>
           resets the zoom factor back to the default.
         </li>
         <li>
           <span class="k">-</span> or <span class="k">Z</span>
-          Decrease the text zoom factor.
+          Decrease the display zoom factor.
         </li>
         <li>
-          <span class="k">m</span>
-          Change the alignment of math expressions in the stack area.
+          <span class="k">f</span>
+          Enter <strong>f</strong>ullscreen mode if your browser supports it.
+          <span class="k">F</span> exits fullscreen.
+        </li>
+        <li>
+          <span class="k">a</span>
+          Change the <strong>a</strong>lignment of math expressions in the stack area.
           Cycles between left-aligned (the default), centered, and right-aligned.
         </li>
         <li>
-          <span class="k">M</span>
-          Like <span class="k">m</span> but for the document area instead.
+          <span class="k">A</span>
+          Like <span class="k">a</span> but for the document area instead.
         </li>
         <li>
           <span class="k">i</span>
-          Toggle between full-size math display (the default) and compact inline math display modes.
+          Toggle between full-size math display (the default) and compact <strong>i</strong>nline math display modes.
           With inline display mode, equations are always aligned to the left,
-          regardless of the setting chosen by <span class="k">$</span><span class="k">m</span>
-          and <span class="k">$</span><span class="k">M</span>.  Long equations will wrap around to
+          regardless of the setting chosen by <span class="k">$</span><span class="k">a</span>
+          and <span class="k">$</span><span class="k">A</span>.  Long equations will wrap around to
           multiple lines in inline display mode, while full-size mode requires the use of the
           <span class="k">/</span><span class="k">,</span> equation splitting command to insert line breaks.
         </li>
         <li>
-          <span class="k">f</span>
-          Enter fullscreen mode if your browser supports it.
-          <span class="k">F</span> exits fullscreen.
-        </li>
-        <li>
-          <span class="k">H</span>
-          Toggle whether or not to hide the mouse cursor.
-        </li>
-        <li>
           <span class="k">I</span>
-          Toggle whether or not the prefix key mode indicator in the upper-right corner of the stack
-          is visible.
+          Toggle whether or not the mode <strong>i</strong>ndicator
+          in the upper-right corner of the stack is visible when a
+          prefix key has been pressed.
         </li>
         <li>
           <span class="k">V</span>
-          Toggle inverse video or "dark" mode (by inverting all colors).
+          Toggle in<strong>v</strong>erse video or "dark" mode (by inverting all colors).
         </li>
         <li>
           <span class="k">E</span>
@@ -2626,16 +2628,20 @@
         </li>
         <li>
           <span class="k">S</span>
-          Toggle sepia color filter.
+          Toggle <strong>s</strong>epia color filter.
           <strong>NOTE:</strong> inverse video, E-ink, and sepia modes are all
           mutually exclusive.
         </li>
         <li>
-          <span class="k">r</span>
-          Reset all the configuration settings to their initial defaults.
+          <span class="k">M</span>
+          Toggle whether or not to hide the <strong>m</strong>ouse cursor.
         </li>
         <li>
           <span class="k">R</span>
+          Reset all the configuration settings to their initial defaults.
+        </li>
+        <li>
+          <span class="k">!</span>
           Force a page reload (restarting the app).
         </li>
         <li>

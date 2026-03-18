@@ -1142,11 +1142,11 @@ class InputContext {
   // TODO: maybe have an option to disable this behavior
   // NOTE: This only applies to "small" hats; commands like \widehat don't
   // get this treatment.
-  do_apply_hat(stack, hat_op) {
+  do_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
-    return new_stack.push_expr(this._do_apply_hat(expr, hat_op));
+    return new_stack.push_expr(this._do_hat(expr, hat_op));
   }
-  _do_apply_hat(expr, hat_op) {
+  _do_hat(expr, hat_op) {
     if(expr.is_text_expr_with('i') || expr.is_text_expr_with('j'))
       return new CommandExpr(
         hat_op,
@@ -1155,15 +1155,15 @@ class InputContext {
     else if(expr.is_subscriptsuperscript_expr())
       return expr.replace_subexpression(
         0 /* expr.base_expr */,
-        this._do_apply_hat(expr.base_expr, hat_op));
+        this._do_hat(expr.base_expr, hat_op));
     else if(expr.is_function_call_expr())
       return new FunctionCallExpr(
-        this._do_apply_hat(expr.fn_expr, hat_op),
+        this._do_hat(expr.fn_expr, hat_op),
         expr.args_expr);
     else if(expr.is_font_expr() && expr.typeface === 'normal')
       return expr.replace_subexpression(
         0 /* expr.expr */,
-        this._do_apply_hat(expr.expr /* NOTE: not expr.base_expr */, hat_op));
+        this._do_hat(expr.expr /* NOTE: not expr.base_expr */, hat_op));
     else
       return new CommandExpr(hat_op, [expr]);
   }
@@ -1597,7 +1597,7 @@ class InputContext {
   //   'operatorname' - Similar to 'roman_text' but use \operatorname instead of \mathrm
   //   'latex' - ExprItem with arbitrary 0-argument latex command
   //   'latex_unary' - ExprItem with 1-argument (from stack) latex command
-  //   'latex_infix' - 
+  //   'latex_infix' - InfixExpr with 0-argument latex command and 2 arguments from the stack
   //   'text' - TextItem
   //   'heading' - TextItem with is_heading flag set
   //   'conjunction' - "X  iff  Y" style InfixExpr conjunction

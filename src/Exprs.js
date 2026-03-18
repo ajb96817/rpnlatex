@@ -70,7 +70,7 @@ class Expr {
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}
     // (This renders better in some cases.)
     // NOTE: applying a font after expressions are concatenated
-    // will not do this merging.  concat(A,B) => AB => bold => \bold{A}\bold{B}.
+    // will not do this merging.  bold(concat(A,B)) => \bold{A}\bold{B}.
     // This could be implemented if needed (by coalescing adjacent FontExprs
     // within a SequenceExpr).
     // TODO: Maybe only do this if the FontExprs are directly wrapping TextExprs.
@@ -463,8 +463,8 @@ class CommandExpr extends Expr {
   replace_subexpression(index, new_expr) {
     return new CommandExpr(
       this.command_name,
-      this.operand_exprs.map(
-        (operand_expr, op_index) => op_index === index ? new_expr : operand_expr),
+      this.operand_exprs.map((operand_expr, op_index) =>
+        op_index === index ? new_expr : operand_expr),
       this.options);
   }
 
@@ -873,9 +873,9 @@ class InfixExpr extends Expr {
              right_expr.operator_exprs[0].is_text_expr_with('-'))) {
       // Adding left_expr (which can be anything) to an InfixExpr where the first
       // term is negated and then combined to something else with + or -:
-      //   x + (-y + z) => x - y + z
-      //   x + (-y - z) => x - y - z
-      // (but x + (-y / z) stays as is).
+      //   x + {-y + z} => x - y + z
+      //   x + {-y - z} => x - y - z
+      // (but x + {-y / z} stays as is).
       return this.combine_infix(
         left_expr, new InfixExpr(
           [right_expr.operand_exprs[0].base_expr,
@@ -1757,6 +1757,7 @@ class DelimiterExpr extends Expr {
   // An inline division infix expression surrounded by "blank" delimiters
   // e.g.: \left. x/y \right.
   // In some cases this is treated like a \frac{x}{y} command.
+  // TODO: maybe 'x/y/z' etc. should count too
   is_flex_inline_fraction() {
     return this.left_type === '.' && this.right_type === '.' &&
       this.inner_expr.is_infix_expr() &&

@@ -58,6 +58,7 @@ const keybinding_table = {
     'Shift+Backspace': "nip",
     
     ' ': "concat",
+    'Shift+ ': "concat;concat",
     '!': "push !;concat",  // creates a PostfixExpr, see Expr.concatenate()
     '^': "superscript",
     "`": "superscript",
@@ -157,7 +158,7 @@ const keybinding_table = {
     'Ctrl+=': "increment 1",
     'Ctrl+-': "increment -1",
     "Ctrl+'": "autoparenthesize;prime",
-    "Ctrl+.": "apply_hat dot",
+    "Ctrl+.": "hat dot",
     'Ctrl+Backspace': "nip"
   },
 
@@ -309,17 +310,16 @@ const keybinding_table = {
     'ArrowRight': "config stack_side right",
     'ArrowUp': "config stack_side top",
     'ArrowDown': "config stack_side bottom",
+    'a': "config math_align stack",
+    'A': "config math_align document",
     'D': "config toggle_debug_mode",  // undocumented
     'E': "config eink_mode",
     'f': "fullscreen on",
     'F': "fullscreen off",
-    'H': "config toggle_hide_mouse_cursor",
     'i': "config toggle_inline_math",
     'I': "config toggle_mode_indicator",
-    'm': "config math_align stack",
-    'M': "config math_align document",
-    'r': "config reset_layout",
-    'R': "config reload_page",
+    'M': "config toggle_hide_mouse_cursor",
+    'R': "config reset_layout",
     's': "config stack_split",
     'S': "config sepia",
     'V': "config inverse_video",
@@ -328,6 +328,7 @@ const keybinding_table = {
     'Z': "config zoom_factor decrease",
     '-': "config zoom_factor decrease",
     '_': "config zoom_factor decrease",  // undocumented
+    '!': "config reload_page",
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
     '~': "debug",  // debugging command hook: calls do_debug()
@@ -502,7 +503,8 @@ const keybinding_table = {
     'h': "mode hyperbolic",
     'i': "mode integral",
     'I': "mode integral_with_limits",
-    //'J': "operator atop 2",  // not that useful
+    // 'j': "push i;swap;concat;push e;typeface roman;swap;superscript",  // x -> e^ix (undocumented; not sure how useful this is)
+    // 'J': "push i;swap;concat;named_function exp",  // x -> exp(ix) (undocumented)
     'k': "infix \\,\\vert\\,;parenthesize;function_call",  // f x y -> f(x|y)
     'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;function_call",  // f x y z -> f(x,y|z)
     'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
@@ -998,15 +1000,15 @@ const keybinding_table = {
     '3': "integer 3;superscript",
     '4': "integer 4;superscript",
     '8': "push \\infty;infix \\to",
-    'A': "apply_hat acute",
+    'A': "hat acute",
     'b': "typeface roman;make_bold",
     'c': "autoparenthesize;push 1;swap;infix -",
     'd': "push \\dagger;superscript",
     'D': "push \\ddagger;superscript",
     'e': "html_class emphasized emphasized2",
-    'g': "apply_hat mathring",
-    'G': "apply_hat grave",
-    'h': "apply_hat hat",
+    'g': "hat mathring",
+    'G': "hat grave",
+    'h': "hat hat",
     'H': "operator widehat",
     'i': "push -;superscript",
     'I': "push +;superscript",
@@ -1014,7 +1016,7 @@ const keybinding_table = {
     'l': "push \\parallel;subscript",
     'm': "typeface typewriter",  // [m]onospace
     'M': "prefix \\mp",
-    'n': "apply_hat bar",
+    'n': "hat bar",
     'o': "operator overline",
     'p': "push \\perp;subscript",
     'P': "prefix \\pm",
@@ -1024,19 +1026,19 @@ const keybinding_table = {
     'S': "typeface sans_serif_italic",
     't': "prefix \\to",
     'T': "prefix \\longrightarrow",
-    'u': "apply_hat breve",
+    'u': "hat breve",
     'U': "operator utilde",
-    'v': "apply_hat vec",
+    'v': "hat vec",
     'V': "operator overrightharpoon",
-    'w': "apply_hat check",
+    'w': "hat check",
     'W': "operator widecheck",
     'x': "operator boxed",
     'X': "operator sout",  // strikeout
     'Y': "operator widetilde",
     'z': "operator bcancel",
-    '.': "apply_hat dot",
+    '.': "hat dot",
     '>': "push .;concat",
-    "\"": "apply_hat ddot",
+    "\"": "hat ddot",
     ' ': "push \\,;concat",  // append thin space
     "'": "autoparenthesize;prime",
     ',': "push \\circ;superscript",  // degree marker
@@ -1046,7 +1048,7 @@ const keybinding_table = {
     '-': "autoparenthesize;negate",
     '+': "autoparenthesize;prefix +",
     '`': "push T;typeface roman;superscript",  // transpose
-    '~': "apply_hat tilde",
+    '~': "hat tilde",
     '/': "operator cancel",
     "\\": "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
     '[': "adjust_size smaller",
@@ -1202,6 +1204,7 @@ const keybinding_table = {
     'P': "sympy integrate 2",
     's': "mode sympy_simplify",
     't': "mode sympy_transform",
+    'v': "mode sympy_solve",  // TODO: find better keybinding
     'y': "sympy_series_expansion false",
     'Y': "sympy_series_expansion true"
   },
@@ -1217,6 +1220,13 @@ const keybinding_table = {
     'k': "sympy cancel 1",
     's': "sympy simplify 1",
     't': "sympy together 1"
+  },
+
+  // TODO: maybe 'sympy_ode' or 'sympy_diffeq' instead?
+  sympy_solve: {
+    'c': "sympy classify_ode 2",  // ??
+    'd': "all_on_left true;sympy dsolve 2",
+    'k': "sympy checkodesol 2"  // TODO: better keybinding
   },
 
   // [#][t] prefix: SymPy integral transforms

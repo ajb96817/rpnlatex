@@ -11,15 +11,7 @@ async function load_pyodide_if_needed() {
   self.pyodide = await loadPyodide({indexURL: '/'});
   postMessage({message: 'loading'});
   await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
-  const initcode = `
-      from sympy import *
-      def log2(x): return log(x,2)
-      def log10(x): return log(x,10)
-      def divide(x,y): return S(x)/S(y)
-      def subtract(x,y): return S(x)-S(y)
-      def negate(x): return -S(x)
-      def substitute(expr,x,y): return expr.subs(x,y)`;
-  await self.pyodide.runPythonAsync(initcode);
+  await self.pyodide.runPythonAsync(_pyodide_initcode_string);
   postMessage({message: 'ready'});
 }
 
@@ -49,9 +41,9 @@ async function run_sympy_command(command_id, code) {
   const start_time = Date.now();
   postMessage({message: 'running'});
   let result = await pyodide.runPythonAsync(code);
-  const elapsed_time = Date.now() - start_time;
   // Copy out of any PyProxy returned by the code.
   const result_js = result.toJs();
+  const elapsed_time = Date.now() - start_time;
   result = {elapsed_time: elapsed_time, ...result_js};
   /* result: {
        result_expr: {srepr: ..., latex: ...},
@@ -71,4 +63,41 @@ onmessage = async (event) => {
   enqueue_message(event.data);
   pump_message_queue();
 };
+
+
+// "Helper" Python code for interfacing with SymPy.
+// It's kept here in an inline string instead of being a separate .py file
+// for simplicity, so that we don't have to fetch it in a separate HTTP request
+// or deal with building a "wheel" for it which is what Pyodide prefers.
+const _pyodide_initcode_string = `
+
+from sympy import *
+
+# Convenience functions for Expr->SymPy conversions.
+# Basically, we try to translate everything involved with building SymPy
+# expressions into direct function calls (and literals like numbers), avoiding
+# infix operators like x+y in favor of Add(x,y), and method calls like
+# expr.subs(...) in favor of substitute(expr, ...) (defined here).
+# Things like PrefixExpr('-', x) become negate(x), etc.
+def log2(x): return log(x,2)
+def log10(x): return log(x,10)
+def divide(x,y): return S(x)/S(y)
+def subtract(x,y): return S(x)-S(y)
+def negate(x): return -S(x)
+def substitute(expr,x,y): return expr.subs(x,y)
+
+# This utility class attempts to convert SymPy result expressions back into
+# rpnlatex Expr trees.  This could be done on the Javascript side instead,
+# but because of Pyodide's object-proxy scheme it's better to do it directly
+# in Python (otherwise we wind up creating a lot of proxies as the SymPy
+# expression trees are traversed).
+#
+# The result of this "conversion" is a single string of Javascript code to
+# be eval()'d, which creates the corresponding Expr tree.  This is the Python
+# counterpart to the JS ExprToSymPy class.
+class SymPyToExpr:
+  pass
+
+`;
+
 
