@@ -171,6 +171,7 @@ const keybinding_table = {
     'Enter': "load_selected_file",
     'x': "export_selected_file",
     's': "save_file",
+    'Ctrl+s': "save_file",
     'S': "save_file_as",
     'R': "rename_selected_file",
     'ArrowUp': "select_adjacent_file -1",

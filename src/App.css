@@ -543,23 +543,27 @@ div.help p.example { margin-left: 1em; }
 div.help ul.example { list-style-type: none; }
 div.help ul.example li { text-indent: -1.2em; margin-bottom: 0.2em; }
 
-#files_panel div.current_file span.filename {
-  padding-left: 0.5em;
-  font-weight: bold;
-  font-family: monospace;
-}
 table.file_table {
-  border: 1px solid #ddd;
   border-collapse: collapse;
   margin: 0.5em 0;
+  font-family: monospace;
+  border-bottom: 1px solid #ddd;
 }
-body.eink_mode table.file_table { border: 1px solid black; }
-table.file_table th { background-color: #ddd; text-align: left; }
+table.file_table th { text-align: left; border: none; }
+table.file_table td { border-top: 1px solid #ddd; }
+table.file_table th, table.file_table td { padding: 0.25em 0.75em; text-align: left; }
 table.file_table tr.selected_file td { background-color: #ddf; }
-table.file_table td.filename { font-family: monospace; }
 table.file_table tr.current_file td.filename { font-weight: bold; }
-table.file_table th, table.file_table td { padding: 0.2em 0.5em; text-align: left; }
-#files_panel div.storage_used { margin-bottom: 0.5em; }
+table.file_table td.file_flag { padding-right: 0; }
+table.file_table tr.current_file td.file_flag::before { content: "\25B6"; }
+table.file_table td.itemcount { color: #666; }
+table.file_table td.timestamp { text-align: right; }
+#files_panel div.storage_used {
+  font-family: monospace;
+  font-style: italic;
+  margin-bottom: 1em;
+  margin-left: 1.5em;
+}
 
 #helptext { font-size: 105%; }
 #helptext_panel {

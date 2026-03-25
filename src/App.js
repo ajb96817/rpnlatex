@@ -632,20 +632,10 @@ class FileManagerPanelComponent extends React.Component {
       },
       $e('div', {className: 'files_container'},
          $e('h2', {}, 'File Manager'),
-         this.render_current_filename(),
          this.render_file_table(),
          this.render_storage_used(),
          this.render_shortcuts(),
          this.render_import_section()));
-  }
-
-  render_current_filename() {
-    const current_filename = this.props.file_manager.current_filename;
-    if(!current_filename) return null;  // shouldn't happen
-    return $e(
-      'div', {className: 'current_file'},
-      $e('label', {}, 'Current file:'),
-      $e('span', {className: 'filename'}, current_filename));
   }
 
   render_file_table() {
@@ -659,6 +649,7 @@ class FileManagerPanelComponent extends React.Component {
         $e('table', {className: 'file_table'},
            $e('thead', {},
               $e('tr', {},
+                 $e('th', {className: 'file_flag'}, ''),  // holds icon for the current filename
                  $e('th', {className: 'filename'}, 'Filename'),
                  $e('th', {className: 'filesize', colSpan: '2'}, 'Size'),
                  $e('th', {className: 'timestamp', colSpan: '2'}, 'Last Modified'))),
@@ -672,18 +663,22 @@ class FileManagerPanelComponent extends React.Component {
 
   _render_file_list_row(file_info) {
     const file_manager = this.props.file_manager;
-    let class_names = [];
-    if(file_info.filename === file_manager.selected_filename)
-      class_names.push('selected_file');
-    if(file_info.filename === file_manager.current_filename)
-      class_names.push('current_file');
+    const is_selected_file = file_info.filename === file_manager.selected_filename;
+    const is_current_file = file_info.filename === file_manager.current_filename;
     const timestamp_date = new Date(file_info.timestamp);
+    let class_names = [];
+    if(is_selected_file) class_names.push('selected_file');
+    if(is_current_file) class_names.push('current_file');
     return $e(
-      'tr', {className: class_names.join(' '), key: 'file_' + file_info.filename},
+      'tr', {
+        className: class_names.join(' '),
+        key: 'file_' + file_info.filename
+      },
+      $e('td', {className: 'file_flag'}, ''),
       $e('td', {className: 'filename'}, file_info.filename),
       $e('td', {className: 'filesize'}, this._kilobytes(file_info.filesize)),
-      $e('td', {className: 'filesize'},
-         file_info.item_count + ' object' + (file_info.item_count === 1 ? '' : 's')),
+      $e('td', {className: 'itemcount'},
+         ['(', file_info.item_count, ' item', (file_info.item_count === 1 ? '' : 's'), ')'].join('')),
       $e('td', {className: 'timestamp'}, timestamp_date.toLocaleDateString()),
       $e('td', {className: 'timestamp'}, timestamp_date.toLocaleTimeString()));
   }
@@ -695,7 +690,7 @@ class FileManagerPanelComponent extends React.Component {
   render_storage_used() {
     const file_manager = this.props.file_manager;
     let pieces = [
-      'Storage used:',
+      'Total storage used:',
       this._kilobytes(file_manager.storage_used)];
     if(file_manager.storage_quota)
       pieces.push(
@@ -727,8 +722,7 @@ class FileManagerPanelComponent extends React.Component {
       helpline(keybinding("\u2191"), keybinding("\u2193"), helptext('Select next/previous file')),
       helpline(keybinding('j'), keybinding('k'), helptext('Scroll this panel down or up')),
       helpline(keybinding('Enter'), helptext('Open selected file')),
-      helpline(keybinding('s'), helptext('Save current file'),
-               helptext(current_filename ? ('(' + current_filename + ')') : '')),
+      helpline(keybinding('s'), helptext('Save current file')),
       helpline(keybinding('S'), helptext('Save as...')),
       helpline(keybinding('R'), helptext('Rename selected file...')),
       helpline(keybinding('n'), helptext('Start a new empty file')),

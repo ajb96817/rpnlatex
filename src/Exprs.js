@@ -1587,8 +1587,10 @@ class DelimiterExpr extends Expr {
   // Special case: if expr itself is a DelimiterExpr with "blank" delimiters,
   // the blank delimiters are removed first (recursively).
   // TODO: make into instance method of Expr (parenthesize_if_not_already too)
-  static parenthesize(expr, left_type = '(', right_type = ')',
+  static parenthesize(expr, left_type = null, right_type = null,
                       if_not_already = false /* true = don't double-wrap if already parenthesized */) {
+    left_type ||= '(';
+    right_type ||= ')';
     while(expr.is_delimiter_expr() &&
           expr.left_type === '.' && expr.right_type === '.')
       expr = expr.inner_expr;

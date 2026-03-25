@@ -790,8 +790,8 @@ class InputContext {
 
   do_rename_selected_file(stack) {
     const file_manager = this.app_component.state.file_manager;
-    const old_filename = file_manager.current_filename;
-    if(!old_filename)
+    const old_filename = file_manager.selected_filename;
+    if(!old_filename)  // shouldn't happen
       return this.notify('No file selected to rename');
     const new_filename_unsanitized = window.prompt(
       ['Enter a new filename for "', old_filename, '":'].join(''));
@@ -1965,11 +1965,10 @@ class InputContext {
   }
 
   // Wrap stack top in parentheses if it's not already in delimiters.
-  // 'left_type' and 'right_type' default to '(' and ')' if not specified.
-  do_parenthesize(stack, left_type, right_type) {
+  do_parenthesize(stack, left_type = '(', right_type = ')') {
     let [new_stack, expr] = stack.pop_exprs(1);
-    const new_expr = DelimiterExpr.parenthesize_if_not_already(
-      expr, left_type, right_type);
+    const new_expr = DelimiterExpr
+          .parenthesize_if_not_already(expr, left_type, right_type);
     return new_stack.push_expr(new_expr);
   }
 

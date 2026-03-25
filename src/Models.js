@@ -825,6 +825,7 @@ class FileManager {
       for(const file_info of this._fetch_available_file_infos()) {
         if(file_info.filename === filename) {
           this.storage.removeItem(file_info.key);
+
           any_deleted = true;
         }
       }
@@ -1021,11 +1022,11 @@ class ExprPath {
 // Conversion of any floating-point values in an Expr to (approximate)
 // rational fractions or rational multiples of common numbers like sqrt(2).
 class RationalizeToExpr {
-  static rationalize_expr(expr, full_size_fraction=true) {
+  static rationalize_expr(expr, full_size_fraction = true) {
     return new this(full_size_fraction).rationalize_expr(expr);
   }
   
-  static rationalize(value, full_size_fraction=true) {
+  static rationalize(value, full_size_fraction = true) {
     return new this(full_size_fraction).value_to_expr(value);
   }
 
@@ -1043,7 +1044,7 @@ class RationalizeToExpr {
         new_expr.replace_subexpression(
           subexpression_index,
           this.rationalize_expr(subexpression)),
-      expr);
+        expr);
   }
 
   _try_rationalize_real_expr(expr) {
