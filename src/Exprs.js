@@ -17,20 +17,34 @@ class Expr {
     if(right_expr.is_prefix_expr() &&
        ['-', '+'].includes(right_expr.operator_text()))
       return InfixExpr.combine_infix(
-        left_expr, right_expr.base_expr,
-        right_expr.operator_expr);
-    // Concatenating something to a negative number literal converts
-    // into a subtraction.
-    if(right_expr.is_text_expr() && right_expr.looks_like_negative_number())
-      return InfixExpr.combine_infix(
-        left_expr, right_expr, new TextExpr('-'));
-    // Combine 123 456 => 123456 if both sides are numeric.
-    // This can lead to things like "1.2" + "3.4" => "1.23.4" but that's
-    // considered OK because the main use for this is to build numbers from
-    // individual digits.  The user should use an explicit \cdot or \times
-    // infix operator to indicate multiplication.
-    if(left_expr.is_text_expr_with_number() && right_expr.is_text_expr_with_number())
-      return new TextExpr(left_expr.text + right_expr.text);
+        left_expr, right_expr.base_expr, right_expr.operator_expr);
+    // Check for concatenating a literal number (positive or negative) to
+    // another (nonnegative) literal number.  The case with a negative literal
+    // on the right was already handled above.
+    if((left_expr.is_text_expr_with_number() ||
+        (left_expr.is_unary_minus_expr() &&
+         left_expr.base_expr.is_text_expr_with_number())) &&
+       right_expr.is_text_expr_with_number()) {
+      // Ordinary integers concatenate directly, to support building larger
+      // integers out of digits:
+      //   '123 456' => '123456'
+      //   '-123 456' => '-123456'
+      // If either number is floating-point, they are joined with a \cdot infix:
+      //   '1.2 3.4' => '1.2 \cdot 3.4'
+      //   '-2 3.4' => '-2 \cdot 3.4'
+      const is_float = expr => expr.is_text_expr() &&
+            expr.looks_like_floating_point() &&
+            !expr.looks_like_integer();
+      if(is_float(left_expr) || is_float(right_expr) ||
+         (left_expr.is_unary_minus_expr() && is_float(left_expr.base_expr)))
+        return InfixExpr.combine_infix(
+          left_expr, right_expr, new CommandExpr('cdot'));
+      else if(left_expr.is_unary_minus_expr())
+        return PrefixExpr.unary_minus(
+          new TextExpr(left_expr.base_expr.text + right_expr.text));
+      else
+        return new TextExpr(left_expr.text + right_expr.text);
+    }
     // Some types of CommandExprs (integral signs) can be combined in special ways.
     if(left_expr.is_command_expr() && right_expr.is_command_expr()) {
       const combined_command_name = CommandExpr.combine_command_pair(
@@ -351,7 +365,7 @@ const latex_named_operators = new Set([
   'arg', 'coth', 'dim', 'inf', 'liminf', 'max', 'sin', 'tanh'
 ]);
 
-// Represents a LaTeX command such as \sqrt or \frac{x}{y}.
+// Represents a LaTeX command such as \alpha or \sqrt{x} or \frac{x}{y}.
 class CommandExpr extends Expr {
   static frac(numer_expr, denom_expr) {
     return new this('frac', [numer_expr, denom_expr]);
@@ -546,7 +560,7 @@ const uppercase_greek_letters = [
 const uppercase_greek_letter_variants = [
   'varXi', 'varDelta', 'varPhi', 'varGamma', 'varLambda', 'varOmega',
   'varPi', 'varTheta', 'varSigma', 'varUpsilon', 'varTheta', 'varPsi'
-]
+];
 
 // FontExpr wraps another Expr and adds typeface/font information to it.
 // A FontExpr sets both the overall typeface (normal math, upright roman, etc)
