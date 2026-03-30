@@ -169,22 +169,20 @@ class App extends React.Component {
       pyodide_interface } = this.state;
     const stack = app_state.stack;
     let stack_panel_components = [];
-    // TODO: floating item and mode indicator could go inside StackItemsComponent instead
-    if(stack.floating_item) {
+    // TODO: floating items and mode indicator could go inside StackItemsComponent instead
+    for(const floating_item of stack.floating_items) {
       // NOTE: To handle automatic re-rendering when things like inline-math mode
       // are changed, the ItemComponent here is put into an array by itself as a
       // React component list.  When the display mode changes, the Item is cloned,
       // getting a new React key to trigger the re-render.  Outside of a component
       // list, the React key change would have no effect.
       stack_panel_components.push(
-        $e('div', {
-          className: 'floating_item',
-        }, [
+        $e('div', {className: 'floating_item'}, [
           $e(ItemComponent, {
-            item: stack.floating_item,
+            item: floating_item,
             inline_math: settings.layout.inline_math,
-            item_ref: React.createRef(),
-            key: stack.floating_item.react_key(0)
+            item_ref: React.createRef(),  // TODO: revisit
+            key: floating_item.react_key('floating')
           })]));
     }
     stack_panel_components.push(

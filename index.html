@@ -534,8 +534,12 @@
           <span class="k">w</span>
           Move the stack top into a &quot;floating&quot; spot in the upper-right corner.
           This can be used to temporarily keep an item out of the way, or to pin
-          it for quick reference.  If there is already a floating item in this spot, it is
-          put back on the stack instead.
+          it for quick reference.  If there is already a floating item there, the new item is
+          stacked up below it.  A prefix argument may be used to move multiple items at once.
+        </li>
+        <li>
+          <span class="k">W</span>
+          Pop the (lowest) floating item back onto the stack.
         </li>
         <li>
           <span class="k">f</span>
@@ -2763,9 +2767,12 @@
           &ndash; same as <span class="k">Tab</span><span class="k">v</span>
         </li>
         <li><span class="k">Ctrl&nbsp;w</span>
-          Put the stack top into a temporary &quot;floating&quot; spot, or put it back
-          on the stack again
+          Put the stack top into a temporary &quot;floating&quot; spot
           &ndash; same as <span class="k">Tab</span><span class="k">w</span>
+        </li>
+        <li><span class="k">Ctrl&nbsp;W</span>
+          Pop the lowest floating item back onto the stack
+          &ndash; same as <span class="k">Tab</span><span class="k">W</span>
         </li>
         <li><span class="k">Ctrl&nbsp;x</span>
           <code>f \Rightarrow f(x)</code>

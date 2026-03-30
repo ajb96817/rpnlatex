@@ -483,8 +483,8 @@ class AppState {
   // Total number of contained items (stack+document).
   item_count() {
     return this.stack.depth() +
-      this.document.item_count() +
-      (this.stack.floating_item ? 1 : 0);
+      this.stack.floating_item_count() +
+      this.document.item_count();
   }
 }
 
@@ -1818,11 +1818,9 @@ class SymPyItem extends Item {
 // The item stack.  This is never modified in-place; all stack operations
 // return a new Stack with the modified items, leaving the original untouched.
 class Stack {
-  // NOTE: floating_item is a temporary holding slot to keep an item off to
-  // the side, as a user convenience.
-  constructor(items, floating_item) {
-    this.items = items || [];
-    this.floating_item = floating_item;
+  constructor(items, floating_items) {
+    this.items = items ?? [];
+    this.floating_items = floating_items ?? [];
   }
 
   depth() { return this.items.length; }
@@ -1839,14 +1837,16 @@ class Stack {
 
   // Fetch item at position n (stack top = 1, next = 2, etc).
   peek(n = 1) {
-    if(!this.check(n)) this.underflow();
-    return this.items[this.items.length - n];
+    if(this.check(n))
+      return this.items[this.items.length - n];
+    else return this.underflow();
   }
 
   // Returns [new_stack, item1, item2, ...].
   pop(n = 1) {
-    if(!this.check(n)) this.underflow();
-    return this._unchecked_pop(n);
+    if(this.check(n)) 
+      return this._unchecked_pop(n);
+    else return this.underflow();
   }
 
   // Like pop(n) but all the items have to be ExprItems, and the wrapped Expr
@@ -1877,21 +1877,36 @@ class Stack {
       return [this];
     else
       return [
-        new Stack(this.items.slice(0, -n), this.floating_item)
+        new Stack(this.items.slice(0, -n), this.floating_items)
       ].concat(this.items.slice(-n));
   }
   
   push_all(items) {
     if(!items.every(item => item instanceof Item))
       throw new Error('pushing invalid item onto stack');
-    return new Stack(this.items.concat(items), this.floating_item);
+    return new Stack(this.items.concat(items), this.floating_items);
   }
   
   push_all_exprs(exprs) { return this.push_all(exprs.map(expr => new ExprItem(expr))); }
   push(item) { return this.push_all([item]); }
   push_expr(expr) { return this.push_all_exprs([expr]); }
 
-  with_floating_item(new_item) { return new Stack(this.items, new_item); }
+  // The floating items work as a limited pseudo-stack within the main stack.
+  // Only supported operations are push/pop/count (no swap, etc).
+  floating_item_count() { return this.floating_items.length; }
+  push_floating_items(items) {
+    return new Stack(this.items, this.floating_items.concat(items));
+  }
+  // Returns [new_stack, item1, ...].
+  pop_floating_items(n = 1) {
+    if(n <= 0)
+      return [this];
+    else if(this.floating_item_count() >= n)
+      return [
+        new Stack(this.items, this.floating_items.slice(0, -n))
+      ].concat(this.floating_items.slice(-n));
+    else this.underflow();
+  }
 
   // Return a new Stack with cloned copies of all the items.
   // The cloned items will have new React IDs, which will force a re-render of the items.
@@ -1900,7 +1915,7 @@ class Stack {
   clone_all_items() {
     return new Stack(
       this.items.map(item => item.clone()),
-      this.floating_item ? this.floating_item.clone() : null);
+      this.floating_items.map(item => item.clone()));
   }
 
   // Replace any pending SymPyItems with the given command_id with a different item
@@ -1908,6 +1923,7 @@ class Stack {
   // This is used when an in-progress background SciPy computation finishes (or errors).
   // Returns [new_stack, flag], where flag is true if anything was replaced (so that the
   // displayed items need to be refreshed).
+  // TODO: remove this (will be replaced by a more synchronous scheme)
   resolve_pending_item(command_id, new_item_fn) {
     let any_replaced = false;
     let new_items = [...this.items];
@@ -1917,13 +1933,15 @@ class Stack {
         any_replaced = true;
       }
     }
-    let floating_item = this.floating_item;
-    if(floating_item && floating_item.is_pending_item(command_id)) {
-      floating_item = new_item_fn(floating_item);
-      any_replaced = true;
+    let new_floating_items = [...this.floating_items];
+    for(const [i, item] of new_floating_items.entries()) {
+      if(item.is_pending_item(command_id)) {
+        new_items[i] = new_item_fn(item);
+        any_replaced = true;
+      }
     }
     return [
-      any_replaced ? new Stack(new_items, floating_item) : this,
+      any_replaced ? new Stack(new_items, new_floating_items) : this,
       any_replaced];
   }
 
@@ -2083,7 +2101,7 @@ class MsgpackEncoder {
   }
   pack_stack(stack) {
     return [
-      stack.floating_item ? this.pack_item(stack.floating_item) : null,
+      stack.floating_items.map(item => this.pack_item(item)),
       stack.items.map(item => this.pack_item(item))];
   }
   pack_document(document) {
@@ -2297,10 +2315,15 @@ class MsgpackDecoder {
       this.unpack_stack(stack_state),
       this.unpack_document(document_state));
   }
-  unpack_stack([floating_item_state, item_states]) {
+  unpack_stack([floating_item_states, item_states]) {
+    if(!Array.isArray(floating_item_states)) {
+      // Handle legacy documents where there was only one floating slot.
+      // TODO: remove this eventually
+      floating_item_states = [];
+    }
     return new Stack(
       item_states.map(item_state => this.unpack_item(item_state)),
-      floating_item_state ? this.unpack_item(floating_item_state) : null);
+      floating_item_states.map(item_state => this.unpack_item(item_state)));
   }
   unpack_document([selection_index, item_states]) {
     return new Document(

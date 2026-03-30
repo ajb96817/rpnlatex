@@ -145,7 +145,8 @@ const keybinding_table = {
     'Ctrl+t': "autoparenthesize;push t;parenthesize;function_call",  // y -> y(t)
     'Ctrl+u': "superscript",
     'Ctrl+v': "paste_from_clipboard",
-    'Ctrl+w': "swap_floating_item",
+    'Ctrl+w': "push_floating_item",
+    'Ctrl+W': "pop_floating_item",
     'Ctrl+x': "autoparenthesize;push x;parenthesize;function_call",  // f -> f(x)
     'Ctrl+y': "redo",
     'Ctrl+z': "undo",
@@ -275,7 +276,8 @@ const keybinding_table = {
     'u': "unrot",
     'v': "paste_from_clipboard",
     'V': "paste_from_prompt",
-    'w': "swap_floating_item",
+    'w': "push_floating_item",
+    'W': "pop_floating_item",
     'X': "reset_all",
     'y': "redo",
     'z': "undo",

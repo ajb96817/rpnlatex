@@ -75,10 +75,8 @@ class Expr {
     }
     // Concatenating a literal +, -, \pm, \mp to something creates the
     // corresponding PrefixExpr.
-    if(left_expr.is_text_expr_with('+') ||
-       left_expr.is_text_expr_with('-') ||
-       left_expr.is_command_expr_with(0, 'pm') ||
-       left_expr.is_command_expr_with(0, 'mp'))
+    if(left_expr.is_text_expr_with('+') || left_expr.is_text_expr_with('-') ||
+       left_expr.is_command_expr_with(0, 'pm') || left_expr.is_command_expr_with(0, 'mp'))
       return new PrefixExpr(right_expr, left_expr);
     // Adjacent FontExprs of the same type can be merged into a single
     // FontExpr instead, e.g. \bold{AB} instead of \bold{A}\bold{B}

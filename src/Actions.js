@@ -952,8 +952,8 @@ class InputContext {
   // If 'preserve' is set, items are kept on the stack after copying them
   // into the document.  Otherwise, the items are removed from the stack.
   do_pop_to_document(stack, preserve) {
-    const arg = this._get_prefix_argument(1, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
+    const item_count = this._get_prefix_argument(1, stack.depth());
+    const [new_stack, ...items] = stack.pop(item_count);
     const new_items = items.map(item => item.clone());
     const new_document = this.app_state.document.insert_items(new_items);
     this.update_document(new_document);
@@ -2407,13 +2407,19 @@ class InputContext {
     return stack.push(item);
   }
 
-  do_swap_floating_item(stack) {
-    if(stack.floating_item)
-      return stack.with_floating_item(null).push(stack.floating_item);
-    else {
-      const [new_stack, item] = stack.pop(1);
-      return new_stack.with_floating_item(item);
-    }
+  // Move items from the stack to the floating item(s) area.
+  // Item count can be specified with a prefix argument (default=1).
+  do_push_floating_item(stack) {
+    const item_count = this._get_prefix_argument(1, stack.depth());
+    const [new_stack, ...items] = stack.pop(item_count);
+    return new_stack.push_floating_items(items);
+  }
+
+  // Inverse of do_push_floating_item().
+  do_pop_floating_item(stack) {
+    const item_count = this._get_prefix_argument(1, stack.floating_item_count());
+    const [new_stack, ...items] = stack.pop_floating_items(item_count);
+    return new_stack.push_all(items);
   }
 
   // See App.recenter_document()
