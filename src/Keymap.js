@@ -7,6 +7,17 @@ class Keymap {
   }
 
   lookup_binding(mode, key, in_delegate_lookup = false) {
+    const command = this._lookup_binding(mode, key, in_delegate_lookup);
+    if(command && command.startsWith('alias ')) {
+      let [aliased_mode, aliased_key] = command.slice('6').split(' ');
+      if(!aliased_key)
+        [aliased_mode, aliased_key] = [mode, aliased_mode];  // 'alias x' without mode
+      return this.lookup_binding(aliased_mode, aliased_key, in_delegate_lookup);
+    }
+    else return command;
+  }
+
+  _lookup_binding(mode, key, in_delegate_lookup = false) {
     const mode_map = this.bindings[mode];
     if(!mode_map)
       return null;  // unknown mode; shouldn't happen
@@ -45,6 +56,8 @@ class Keymap {
 //   - [delegate]: dispatch to a different mode's keymap (like keymap inheritance)
 //   - [default]: matches any input not explicitly in the keymap; [delegate] takes
 //                precedence over this if present
+//   - alias x: treat it as if the keystroke was 'x' instead (within the current mode)
+//   - alias newmode x: treat it as keystroke 'x' within mode 'newmode'
 const keybinding_table = {
   base: {
     // Letters and numbers immediately push onto the stack
@@ -103,7 +116,7 @@ const keybinding_table = {
     '=': "mode relational",
     ')': "mode delimiters",
     ';': "mode greek",
-    ':': "mode greek",  // alias for [;] for now, but may be reassigned to something else eventually
+    ':': "alias ;",  // for now, but may be reassigned to something else eventually
     '@': "mode calligraphic",
     '&': "mode script",
     '%': "mode blackboard",
@@ -412,18 +425,18 @@ const keybinding_table = {
     'I': "infix \\,\\vert\\,;infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y|z>
     'k': "delimiters \\vert \\rangle",  // |x> Dirac ket
     'l': "mode modify_left",
-    'L': "mode modify_left",
+    'L': "alias l",
     'm': "delimiters \\lmoustache \\rmoustache",
     'n': "delimiters \\lVert \\rVert",  // [n]orm
-    'N': "delimiters \\lVert \\rVert",  // alias for n
+    'N': "alias n",
     'o': "delimiters ( ]",  // half-closed interval
     'O': "delimiters [ )",
     'r': "mode modify_right",
     'R': "mode modify_right",
     'w': "delimiters . \\vert",  // [w]here
-    'W': "delimiters . \\vert",  // alias for w
+    'W': "alias w",
     'x': "remove_delimiters",
-    'X': "remove_delimiters",
+    'X': "alias x",
     '|': "delimiters \\vert \\vert",
     '<': "delimiters \\langle \\rangle",
     '(': "delimiters ( .",
@@ -607,8 +620,8 @@ const keybinding_table = {
   // [/][-] prefix
   inverse: {
     'u': "increment -1",  // special case: [/][-][u]: decrement
-    '-': "increment -1",  // [/][-][-] alias for [u] (undocumented)
-    '1': "increment -1",  // [/][-][1] another alias for [u] (undocumented)
+    '-': "alias u",  // (undocumented)
+    '1': "alias u",  // (undocumented)
     's': "named_function sin -1",
     'S': "named_function sec -1",
     'c': "named_function cos -1",
@@ -735,20 +748,20 @@ const keybinding_table = {
     '4': "differential_form 0;integer 4;superscript;swap;concat",
     // y x -> y dx (concatenate to integral sign)
     'i': "differential_form 1;concat",
-    ' ': "differential_form 1;concat"
+    ' ': "alias i"
   },
 
   // [/][D] prefix: derivative operations, but using roman-font 'd'
   derivative_alt: {
     'd': "differential_form 1 roman",
-    'D': "differential_form 1 roman",  // alias for d (undocumented)
+    'D': "alias d",  // (undocumented)
     'f': "differential_form 2 roman",
     'F': "differential_form 3 roman",
     '2': "differential_form 0 roman;integer 2;superscript;swap;concat",
     '3': "differential_form 0 roman;integer 3;superscript;swap;concat",
     '4': "differential_form 0 roman;integer 4;superscript;swap;concat",
     'i': "differential_form 1 roman;concat",
-    ' ': "differential_form 1 roman;concat",
+    ' ': "alias i",
     'x': "differential_form 1 roman;differential_form 0 roman;swap;fraction",
     'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;fraction",
     'y': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
@@ -770,10 +783,10 @@ const keybinding_table = {
 
     // Additional aliases for dy/dx style commands (total derivatives);
     // these will be treated as synonyms for the corresponding \partial commands.
-    'x': "push \\delta;swap;concat;push \\delta;swap;fraction",
-    'X': "integer 2;superscript;push \\delta;swap;concat;push \\delta;integer 2;superscript;swap;fraction",
-    'y': "push \\delta;swap;concat;swap;push \\delta;swap;concat;swap;fraction",
-    'Y': "integer 2;superscript;push \\delta;swap;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
+    'x': "alias q",
+    'X': "alias Q",
+    'y': "alias j",
+    'Y': "alias J",
 
     // Counterparts to ordinary differential form commands.
     'd': "push \\delta;swap;concat",
@@ -781,7 +794,7 @@ const keybinding_table = {
     '3': "push \\delta;integer 3;superscript;swap;concat",
     '4': "push \\delta;integer 4;superscript;swap;concat",
     'i': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat",
-    ' ': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat"
+    ' ': "alias i"
 
     // maybe: '[delegate]': "derivative"
   },
@@ -801,7 +814,7 @@ const keybinding_table = {
     'G': "infix \\Leftarrow",
     'j': "infix \\Join",
     'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
-    '|': "infix \\,\\vert\\,",  // (alias for k)
+    '|': "alias k",
     'l': "infix \\parallel",
     'm': "operator pmod;concat",  // y (mod x)
     'M': "infix \\mp",
@@ -814,7 +827,7 @@ const keybinding_table = {
     'Q': "conjunction or",
     'r': "conjunction for",
     's': "push \\,;swap;concat false;concat false",
-    ' ': "push \\,;swap;concat false;concat false",
+    ' ': "alias s",
     'S': "infix \\circledast",
     't': "infix \\to",
     'T': "infix \\longrightarrow",
@@ -875,16 +888,16 @@ const keybinding_table = {
     'm': "infix \\mapsto",
     'M': "infix \\longmapsto",
     'n': "infix \\ne",
-    '!': "infix \\ne",
+    '!': "alias n",
     'o': "infix \\circeq",
     'p': "infix \\propto",
     'P': "infix \\simeq",
     'q': "infix =",
-    '=': "infix =",
+    '=': "alias q",
     'Q': "infix \\equiv",
     's': "infix \\subset",
     'S': "infix \\subseteq",
-    't': "infix \\to",
+    't': "alias infix t",
     'T': "infix \\longrightarrow",
     'u': "infix \\supset",
     'U': "infix \\supseteq",
@@ -894,13 +907,13 @@ const keybinding_table = {
     ':': "infix \\coloneqq",
     '~': "infix \\sim",
     '.': "infix \\doteq",
-    '+': "infix \\Longrightarrow",  // alias for [V]
+    '+': "alias V",
     '^': "infix \\triangleq",
     '?': "push ?;push =;operator overset 2;apply_infix",
     '<': "infix \\le",
+    '[': "alias <",
     '>': "infix \\ge",
-    '[': "infix \\le",
-    ']': "infix \\ge",
+    ']': "alias >",
     '{': "infix \\lll",
     '}': "infix \\ggg",
     '-': "infix \\vdash",
@@ -918,9 +931,9 @@ const keybinding_table = {
     'L': "infix \\leqslant",
     'G': "infix \\geqslant",
     '<': "infix \\preceq",
-    '[': "infix \\preceq",
+    '[': "alias <",
     '>': "infix \\succeq",
-    ']': "infix \\succeq"
+    ']': "alias >"
   },
 
   // ['] prefix: assorted standalone math symbols
@@ -1078,7 +1091,7 @@ const keybinding_table = {
     'h': "stack_arrays horizontal",
     'k': "substack",
     'm': "matrix_row matrix",
-    ' ': "matrix_row matrix",
+    ' ': "alias m",
     'p': "infix_list +;push \\cdots;push +;apply_infix",
     'r': "autoparenthesize;push Tr;swap;operator operatorname 2",
     's': "split_array",
@@ -1108,7 +1121,7 @@ const keybinding_table = {
   matrix: {
     '[digit]': "prefix_argument",
     'm': "finish_matrix matrix",
-    ' ': "finish_matrix matrix",
+    ' ': "alias m",
     'v': "finish_matrix vmatrix",
     'V': "finish_matrix Vmatrix",
     '(': "finish_matrix pmatrix",
@@ -1118,7 +1131,7 @@ const keybinding_table = {
 
   change_matrix_type: {
     'm': "change_matrix_type matrix",
-    ' ': "change_matrix_type matrix",
+    ' ': "alias m",
     'v': "change_matrix_type vmatrix",
     'V': "change_matrix_type Vmatrix",
     '(': "change_matrix_type pmatrix",
@@ -1129,13 +1142,13 @@ const keybinding_table = {
   // [~] prefix: tensor commands
   tensor: {
     '`': "add_tensor_index right upper",
-    '^': "add_tensor_index right upper",
-    'Enter': "add_tensor_index right lower",
+    '^': "alias `",
     '_': "add_tensor_index right lower",
+    'Enter': "alias _",
     'i': "add_tensor_index right both",
-    ' ': "add_tensor_index right both",
+    ' ': "alias i",
     'l': "mode tensor(left)",
-    '~': "mode tensor(left)",
+    '~': "alias l",
     'w': "swap_tensor_index_type",
     'c': "condense_tensor",
     '.': "push \\,\\cdots\\,;affix_tensor_index right",
@@ -1145,13 +1158,13 @@ const keybinding_table = {
   // [~][l] prefix: tensor commands for left-side indices
   'tensor(left)': {
     '`': "add_tensor_index left upper",
-    '^': "add_tensor_index left upper",
-    'Enter': "add_tensor_index left lower",
+    '^': "alias `",
     '_': "add_tensor_index left lower",
+    'Enter': "alias _",
     'i': "add_tensor_index left both",
-    ' ': "add_tensor_index left both",
+    ' ': "alias i",
     'l': "mode tensor",  // switch out of (left) mode
-    '~': "mode tensor",
+    '~': "alias l",
     'w': "swap_tensor_index_type",
     'c': "condense_tensor",
     '.': "push \\,\\cdots\\,;affix_tensor_index left",
@@ -1164,32 +1177,32 @@ const keybinding_table = {
   dissect: {
     '[default]': "cancel_dissect_mode",
     //'Enter': "finish_dissect_mode",
-    'Escape': "cancel_dissect_mode",
     'q': "cancel_dissect_mode",
-    'Q': "cancel_dissect_mode",
-    'Tab': "dissect_undo",
-    'Ctrl+z': "dissect_undo",
+    'Q': "alias q",
+    'Escape': "alias q",
+    // 'Tab': "dissect_undo",  // not implemented
+    // 'Ctrl+z': "alias Tab",
     '_': "dissect_descend",
     'u': "dissect_ascend",
-    'U': "dissect_ascend",
-    'ArrowUp': "dissect_ascend",
-    'ArrowDown': "dissect_descend",
-    'ArrowLeft': "dissect_move_selection left",
-    'ArrowRight': "dissect_move_selection right",
+    'U': "alias u",
     '[': "dissect_move_selection left",
-    '{': "dissect_move_selection left",
+    '{': "alias [",
     ']': "dissect_move_selection right",
-    '}': "dissect_move_selection right",
+    '}': "alias ]",
     'x': "dissect_extract_selection",
-    'X': "dissect_extract_selection",
+    'X': "alias x",
     'd': "dissect_extract_selection trim",
-    'D': "dissect_extract_selection trim",
-    'Backspace': "dissect_extract_selection trim",
-    "'": "dissect_extract_selection",
+    'D': "alias d",
+    'ArrowUp': "alias u",
+    'ArrowDown': "alias _",
+    'ArrowLeft': "alias [",
+    'ArrowRight': "alias ]",
+    'Backspace': "alias d",
+    "'": "alias x",
     'c': "dissect_copy_selection",
-    'C': "dissect_copy_selection",
+    'C': "alias c",
     't': "dissect_copy_selection trim",
-    'T': "dissect_copy_selection trim"
+    'T': "alias t"
   },
 
   // [#] prefix: SymPy - work in progress
