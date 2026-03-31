@@ -1,15 +1,68 @@
 
+// All editor keybindings are in here (in keybinding_table).  This maps each editor
+// mode to a set of keyname->command bindings.  The 'commands' are in a simple macro
+// language of one or more action strings separated by semicolons.  Each action
+// invokes one of the do_* methods of InputContext.  The actions can have extra
+// arguments which are passed as strings to these methods.
+//
+// Some special pseudo-commands are available:
+//   - [alpha], [digit], [alnum]: matches single letters/numbers/both
+//   - [delegate]: dispatch to a different mode's keymap (like keymap inheritance)
+//   - [default]: matches any input not explicitly in the keymap; [delegate] takes
+//                precedence over this if present
+//   - alias x: treat it as if the keystroke was 'x' instead (within the current mode)
+//   - alias newmode x: treat it as keystroke 'x' within mode 'newmode'
 
-// Map keystrokes to command-strings (see keybinding_table below).
+
+// Utility class for translating key inputs into editor commands.
 class Keymap {
   constructor() {
     this.bindings = keybinding_table;
   }
 
+  // Convert a Javascript KeyboardEvent into a simple keyname string.
+  // Return null if the key event is to be ignored (like isolated Shift
+  // or Ctrl presses).  Otherwise, the returned keyname is to be used directly
+  // to look up commands in the Keymap.
+  // NOTE: If Shift+Ctrl are both used, the combination will be
+  // 'Ctrl+Shift+A', not 'Shift+Ctrl+A'.
+  keyname_from_event(event) {
+    let key = event.key;
+    // No Alt key combinations are handled (they don't work well cross-browser).
+    // Meta key combinations are aliased to the Ctrl commands to support things
+    // like Cmd-Z on MacOS.
+    if(event.altKey)
+      return null;
+    // Pass through Alt+3, etc. to avoid interfering with browser tab
+    // switching shortcuts.  Ctrl+[digit] is still allowed.
+    if(event.metaKey && /^\d$/.test(key))
+      return null;
+    // Ignore isolated modifier keypresses.
+    if(['Meta', 'Shift', 'Alt', 'Control', 'Ctrl+Control', 'Ctrl+Meta'
+       ].includes(key))
+      return null;
+    // Shifted keys: we want Shift+ArrowLeft, etc. but not Shift+U
+    // or Shift+$.  We also want to be able to handle Ctrl+Shift+[digit],
+    // but for some reason some Ctrl+Shift digits are inconsistent:
+    // we get Ctrl+Shift+@ for 2, but Ctrl+Shift+3 for 3, etc.
+    // If using these combos in the future, need to account for this
+    // (e.g. UK keyboards may have the pound sign, etc).
+    if(event.shiftKey &&
+       (key.startsWith('Arrow') ||
+        ///^d$/.test(key) ||
+        // For now, explicitly test for the key we want as Shift+Home etc.
+        ['Enter', ' ', 'Backspace', 'PageUp', 'PageDown', 'Home', 'End'
+        ].includes(key)))
+      key = 'Shift+' + key;
+    if(event.ctrlKey || event.metaKey)
+      key = 'Ctrl+' + key;
+    return key;
+  }
+
   lookup_binding(mode, key, in_delegate_lookup = false) {
     const command = this._lookup_binding(mode, key, in_delegate_lookup);
     if(command && command.startsWith('alias ')) {
-      let [aliased_mode, aliased_key] = command.slice('6').split(' ');
+      let [aliased_mode, aliased_key] = command.slice(6).split(' ');
       if(!aliased_key)
         [aliased_mode, aliased_key] = [mode, aliased_mode];  // 'alias x' without mode
       return this.lookup_binding(aliased_mode, aliased_key, in_delegate_lookup);
@@ -45,19 +98,6 @@ class Keymap {
 }
 
 
-// All editor keybindings are in here.  This table maps each editor mode to a
-// set of keyname->command bindings.  The 'commands' are in a simple macro language
-// of one or more action strings separated by semicolons.  Each action invokes one
-// of the do_* methods of InputContext.  The actions can have extra arguments which
-// are passed as strings to these methods.
-//
-// Some special pseudo-commands are available:
-//   - [alpha], [digit], [alnum]: matches single letters/numbers/both
-//   - [delegate]: dispatch to a different mode's keymap (like keymap inheritance)
-//   - [default]: matches any input not explicitly in the keymap; [delegate] takes
-//                precedence over this if present
-//   - alias x: treat it as if the keystroke was 'x' instead (within the current mode)
-//   - alias newmode x: treat it as keystroke 'x' within mode 'newmode'
 const keybinding_table = {
   base: {
     // Letters and numbers immediately push onto the stack
@@ -153,7 +193,7 @@ const keybinding_table = {
     'Ctrl+p': "delimiters ( )",  // same as [(]
     //'Ctrl+q': "unrot",
     'Ctrl+r': "infix ,;parenthesize;function_call",  // -> f(x,y): same as [/][r]
-    'Ctrl+R': "infix ,;infix ,;parenthesize;function_call",  // f x y z -> f(x,y,z): same as [/][R] - undocumented
+    'Ctrl+R': "infix ,;infix ,;parenthesize;function_call",  // f x y z -> f(x,y,z): same as [/][R]
     'Ctrl+s': "save_file",
     'Ctrl+t': "autoparenthesize;push t;parenthesize;function_call",  // y -> y(t)
     'Ctrl+u': "superscript",
@@ -866,7 +906,7 @@ const keybinding_table = {
   },
 
   // [=] prefix: relational operators
-  // NOTE: some of these duplicate what is in [,], like [=][t]
+  // NOTE: some of these duplicate (alias) what is in [,], like [=][t]
   relational: {
     '2': "mode variant_relational",
     'a': "infix \\approx",
@@ -898,16 +938,16 @@ const keybinding_table = {
     's': "infix \\subset",
     'S': "infix \\subseteq",
     't': "alias infix t",
-    'T': "infix \\longrightarrow",
+    'T': "alias infix T",
     'u': "infix \\supset",
     'U': "infix \\supseteq",
-    'v': "infix \\Rightarrow",
-    'V': "infix \\Longrightarrow",
+    'v': "alias infix =",
+    'V': "alias infix +",
     ';': "infix \\coloncolon",
     ':': "infix \\coloneqq",
     '~': "infix \\sim",
     '.': "infix \\doteq",
-    '+': "alias V",
+    '+': "alias infix +",
     '^': "infix \\triangleq",
     '?': "push ?;push =;operator overset 2;apply_infix",
     '<': "infix \\le",
@@ -1059,7 +1099,7 @@ const keybinding_table = {
     "'": "autoparenthesize;prime",
     ',': "push \\circ;superscript",  // degree marker
     '*': "push *;superscript",  // conjugation
-    '^': "autoparenthesize;prefix \\star",
+    '^': "autoparenthesize;prefix \\star",  // Hodge star
     '=': "prefix \\Rightarrow",
     '-': "autoparenthesize;negate",
     '+': "autoparenthesize;prefix +",

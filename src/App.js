@@ -242,11 +242,12 @@ class App extends React.Component {
   }
 
   handleKeyDown(event) {
-    const key = this._keyname_from_event(event);
+    const input_context = this.state.input_context;
+    const key = this.state.settings.current_keymap.keyname_from_event(event);
     if(!key) return;  // ignore the keystroke
     let app_state = this.state.app_state;
-    let [was_handled, new_app_state] = this.state
-        .input_context.handle_key(app_state, key);
+    let [was_handled, new_app_state] =
+        input_context.handle_key(app_state, key);
     if(was_handled) {
       event.preventDefault();
       // TODO: event.stopPropagation();
@@ -254,52 +255,14 @@ class App extends React.Component {
       if(scratch)
         new_app_state = scratch;
       else   // undo/redo "failed"
-        this.state.input_context.error_flash_stack();
+        input_context.error_flash_stack();
       let state_updates = {app_state: new_app_state};
-      if(this.state.input_context.files_changed) {
+      if(input_context.files_changed) {
         // Re-render the file manager panel with the updated file list.
         state_updates.file_manager = this.state.file_manager;
       }
       this.setState(state_updates);
     }
-  }
-
-  // Return null if the key event is to be ignored (like isolated Shift
-  // or Ctrl presses).  Otherwise, the returned keyname is to be used directly
-  // to look up commands in the Keymap.
-  // NOTE: If Shift+Ctrl are both used, the combination will be
-  // 'Ctrl+Shift+A', not 'Shift+Ctrl+A'.
-  _keyname_from_event(event) {
-    let key = event.key;
-    // No Alt key combinations are handled (they don't work well cross-browser).
-    // Meta key combinations are aliased to the Ctrl commands to support things
-    // like Cmd-Z on MacOS.
-    if(event.altKey)
-      return null;
-    // Pass through Alt+3, etc. to avoid interfering with browser tab
-    // switching shortcuts.  Ctrl+[digit] is still allowed.
-    if(event.metaKey && /^\d$/.test(key))
-      return null;
-    // Ignore isolated modifier keypresses.
-    if(['Meta', 'Shift', 'Alt', 'Control', 'Ctrl+Control', 'Ctrl+Meta'
-       ].includes(key))
-      return null;
-    // Shifted keys: we want Shift+ArrowLeft, etc. but not Shift+U
-    // or Shift+$.  We also want to be able to handle Ctrl+Shift+[digit],
-    // but for some reason some Ctrl+Shift digits are inconsistent:
-    // we get Ctrl+Shift+@ for 2, but Ctrl+Shift+3 for 3, etc.
-    // If using these combos in the future, need to account for this
-    // (e.g. UK keyboards may have the pound sign, etc).
-    if(event.shiftKey &&
-       (key.startsWith('Arrow') ||
-        ///^d$/.test(key) ||
-        // For now, explicitly test for the key we want as Shift+Home etc.
-        ['Enter', ' ', 'Backspace', 'PageUp', 'PageDown', 'Home', 'End'
-        ].includes(key)))
-      key = 'Shift+' + key;
-    if(event.ctrlKey || event.metaKey)
-      key = 'Ctrl+' + key;
-    return key;
   }
 
   handleVisibilityChange(/*event*/) {
