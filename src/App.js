@@ -37,7 +37,7 @@ class App extends React.Component {
     let app_state = null;
     if(file_manager.check_storage_availability())
       app_state = file_manager.load_file(file_manager.current_filename);
-    app_state ||= new AppState();  // couldn't load initial file
+    app_state ??= new AppState();  // couldn't load initial file
     this.state = {
       app_state: app_state,
       settings: settings,
@@ -104,7 +104,7 @@ class App extends React.Component {
   update_page_title() {
     // Show the currently opened file in the browser's document title.
     const filename = this.state.file_manager.current_filename;
-    const new_title = '[' + (filename || 'rpnlatex') + ']';
+    const new_title = '[' + (filename ?? 'rpnlatex') + ']';
     if(new_title !== document.title)
       document.title = new_title;
   }
@@ -347,9 +347,9 @@ class IndicatorsComponent extends React.Component {
     let indicator_items = [];
     // Notification or error message (only one shown at a time,
     // errors take precedence):
-    if(notification_text || error_text) {
+    if(notification_text ?? error_text) {
       const css_class = error_text ? 'error_message' : 'notification';
-      const text = error_text || notification_text;
+      const text = error_text ?? notification_text;
       // Auto-highlight anything after the colon in the notification message.
       const colon = text.indexOf(':');
       indicator_items.push($e(
@@ -358,7 +358,8 @@ class IndicatorsComponent extends React.Component {
           key: error_text ? 'error_message' : 'notification'
         },
         $e('span', {}, colon >= 0 ? text.slice(0, colon+1) : text),
-        colon >= 0 ? $e('span', {className: 'highlighted'}, text.slice(colon+1))
+        colon >= 0
+          ? $e('span', {className: 'highlighted'}, text.slice(colon+1))
           : null));
     }
     // Input mode indicator, unless in base mode:

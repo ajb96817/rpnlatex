@@ -254,16 +254,26 @@ class Expr {
   }
 
   // Substitute anything matching 'search_expr' with 'substitution_expr'.
-  // NOTE: This can potentially create expressions that are nested internally
-  // in a way they ordinarily wouldn't be.  For example: (x+y).substitute(y, z+w)
-  // creates a nested Infix(x, +, Infix(z, +, w)), which would normally be
-  // Infix(x, +, z, +, w).  This shouldn't be a problem in practice though.
   substitute(search_expr, substitution_expr) {
     if(this.matches(search_expr))
       return substitution_expr;
     let result = this;
     for(const [index, subexpr] of this.subexpressions().entries()) {
       const new_subexpr = subexpr.substitute(search_expr, substitution_expr);
+      if(new_subexpr !== subexpr)
+        result = result.replace_subexpression(index, new_subexpr);
+    }
+    return result;
+  }
+
+  // Flatten out InfixExprs that themselves contain child InfixExprs into
+  // larger InfixExprs: x+{y-z} => x+y-z.
+  // This type of nesting is not normally created, but can happen during
+  // substitutions, e.g. (x+w).substitute(w, y-z).
+  flatten() {
+    let result = this;
+    for(const [index, subexpr] of this.subexpressions().entries()) {
+      const new_subexpr = subexpr.flatten();
       if(new_subexpr !== subexpr)
         result = result.replace_subexpression(index, new_subexpr);
     }
@@ -1109,6 +1119,41 @@ class InfixExpr extends Expr {
   // InfixExprs dissolve into their operand expressions.
   // Operators are discarded.
   dissolve() { return this.operand_exprs; }
+
+  // Overridden from base Expr.  Look for any InfixExprs that are immediate
+  // operand subexpressions of this one and merge them in.
+  flatten() {
+    let new_operand_exprs = [], new_operator_exprs = [];
+    let any_changed = false, any_merged = false;
+    for(const [index, operand_expr] of this.operand_exprs.entries()) {
+      const flattened_subexpr = operand_expr.flatten();
+      if(flattened_subexpr.is_infix_expr()) {
+        // Immediate child operand is also an InfixExpr, so merge it
+        // into the flattened result.
+        new_operand_exprs.push(...flattened_subexpr.operand_exprs);
+        new_operator_exprs.push(...flattened_subexpr.operator_exprs);
+        any_changed = any_merged = true;
+      }
+      else {
+        new_operand_exprs.push(flattened_subexpr);
+        if(flattened_subexpr !== operand_expr)
+          any_changed = true;
+      }
+      if(index < this.operator_exprs.length)
+        new_operator_exprs.push(this.operator_exprs[index]);
+    }
+    if(any_changed) {
+      // NOTE: split_at_index / linebreaks_at are discarded if any
+      // InfixExpr subexpressions have been merged in, otherwise they
+      // can be kept as-is.
+      return new InfixExpr(
+        new_operand_exprs, new_operator_exprs,
+        any_merged ? null : this.split_at_index,
+        any_merged ? null : this.linebreaks_at);
+    }
+    else
+      return this;
+  }
 
   // Bold each operand, but leave the operators alone.
   as_bold() {

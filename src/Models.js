@@ -1008,7 +1008,8 @@ class ExprPath {
       const subexpr_index = this.last_index_but(i);
       expr = local_parent.replace_subexpression(subexpr_index, expr);
     }
-    return expr;
+    // NOTE: .flatten is used to avoid creating nested InfixExprs.
+    return expr.flatten();
   }
 
   // "Extract" the currently selected subexpression, replacing it with a placeholder

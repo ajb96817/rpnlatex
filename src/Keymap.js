@@ -171,49 +171,49 @@ const keybinding_table = {
     '?': "toggle_popup help",
 
     // Ctrl-based shortcuts
-    'Ctrl+0': "integer 0;subscript",
-    'Ctrl+1': "integer -1;superscript",
-    'Ctrl+2': "integer 2;superscript",
-    'Ctrl+3': "integer 3;superscript",
-    'Ctrl+4': "integer 4;superscript",
-    'Ctrl+a': "swap",
-    'Ctrl+b': "make_bold",
-    'Ctrl+c': "copy_to_clipboard",
-    'Ctrl+d': "subscript",
-    'Ctrl+e': "push e;typeface roman;swap;superscript",  // exp(x): same as [/][e]
+    'Ctrl+0': "alias decoration 0",
+    'Ctrl+1': "alias decoration 1",
+    'Ctrl+2': "alias decoration 2",
+    'Ctrl+3': "alias decoration 3",
+    'Ctrl+4': "alias decoration 4",
+    'Ctrl+a': "alias stack a",
+    'Ctrl+b': "alias base ]",
+    'Ctrl+c': "alias stack c",
+    'Ctrl+d': "alias base Enter",  // subscript
+    'Ctrl+e': "alias operator e",  // exp(x): same as [/][e]
     'Ctrl+f': "parenthesize;push f;swap;function_call",
     'Ctrl+g': "parenthesize;push g;swap;function_call",
-    'Ctrl+i': "pop_to_document",
-    'Ctrl+j': "extract_from_document",
-    'Ctrl+k': "infix \\,\\vert\\,;parenthesize;function_call",  // f(x|y): same as [/][k]
-    'Ctrl+l': "recenter_document 50",
-    'Ctrl+m': "autoparenthesize;negate",  // same as [.][-]
-    'Ctrl+n': "typeface roman",  // same as [.][r]
-    'Ctrl+o': "parenthesize;function_call",  // -> f(x): same as [/][o]
-    'Ctrl+p': "delimiters ( )",  // same as [(]
+    'Ctrl+i': "alias stack i",
+    'Ctrl+j': "alias stack j",
+    'Ctrl+k': "alias operator k",
+    'Ctrl+l': "alias stack l",
+    'Ctrl+m': "alias decoration -",
+    'Ctrl+n': "alias decoration r",
+    'Ctrl+o': "alias operator o",
+    'Ctrl+p': "alias base (",
     //'Ctrl+q': "unrot",
-    'Ctrl+r': "infix ,;parenthesize;function_call",  // -> f(x,y): same as [/][r]
-    'Ctrl+R': "infix ,;infix ,;parenthesize;function_call",  // f x y z -> f(x,y,z): same as [/][R]
-    'Ctrl+s': "save_file",
+    'Ctrl+r': "alias operator r",
+    'Ctrl+R': "alias operator R",
+    'Ctrl+s': "alias files s",
     'Ctrl+t': "autoparenthesize;push t;parenthesize;function_call",  // y -> y(t)
-    'Ctrl+u': "superscript",
-    'Ctrl+v': "paste_from_clipboard",
-    'Ctrl+w': "push_floating_item",
-    'Ctrl+W': "pop_floating_item",
+    'Ctrl+u': "alias `",
+    'Ctrl+v': "alias stack v",
+    'Ctrl+w': "alias stack w",
+    'Ctrl+W': "alias stack W",
     'Ctrl+x': "autoparenthesize;push x;parenthesize;function_call",  // f -> f(x)
-    'Ctrl+y': "redo",
-    'Ctrl+z': "undo",
-    'Ctrl+ ': "push \\,;swap;concat false;concat false",  // same as [,][ ]
-    'Ctrl+,': "infix ,",
+    'Ctrl+y': "alias stack y",
+    'Ctrl+z': "alias stack z",
+    'Ctrl+ ': "alias infix s",
+    'Ctrl+,': "alias infix ,",
     'Ctrl+/': "fraction",
-    "Ctrl+\\": "integer 1;swap;fraction",  // 1/x, same as [/][1]
-    'Ctrl+]': "typeface roman;make_bold",  // same as [.][b]
+    "Ctrl+\\": "alias operator 1",
+    'Ctrl+]': "alias decoration b",
     'Ctrl++': "increment 1",  // NOTE: Ctrl++ not currently inputtable, but Ctrl+= works
     'Ctrl+=': "increment 1",
     'Ctrl+-': "increment -1",
-    "Ctrl+'": "autoparenthesize;prime",
-    "Ctrl+.": "hat dot",
-    'Ctrl+Backspace': "nip"
+    "Ctrl+'": "alias decoration '",
+    "Ctrl+.": "alias decoration .",
+    'Ctrl+Backspace': "alias stack n"
   },
 
   // File Manager mode
@@ -225,7 +225,7 @@ const keybinding_table = {
     'Enter': "load_selected_file",
     'x': "export_selected_file",
     's': "save_file",
-    'Ctrl+s': "save_file",
+    'Ctrl+s': "alias s",
     'S': "save_file_as",
     'R': "rename_selected_file",
     'ArrowUp': "select_adjacent_file -1",
@@ -239,23 +239,23 @@ const keybinding_table = {
   help: {
     // Exit/dock user guide
     'q': "toggle_popup help",
-    'Q': "toggle_popup help",
-    'Escape': "toggle_popup help",
+    'Q': "alias q",
+    'Escape': "alias q",
     '?': "config dock_helptext on",
 
     // Scrolling
     'ArrowDown': 'scroll helptext_panel vertical 25',
     'ArrowUp': 'scroll helptext_panel vertical -25',
-    'j': 'scroll helptext_panel vertical 25',
-    'k': 'scroll helptext_panel vertical -25',
+    'j': 'alias ArrowDown',
+    'k': 'alias ArrowUp',
     'ArrowLeft': 'cancel',  // 'cancel' here means don't hide the help text
     'ArrowRight': 'cancel',
     'PageDown': 'scroll helptext_panel vertical 95',
-    ' ': 'scroll helptext_panel vertical 95',
     'PageUp': 'scroll helptext_panel vertical -95',
-    'Ctrl+ ': 'scroll helptext_panel vertical -95',  // Ctrl+Space
-    'J': 'scroll helptext_panel vertical 95',
-    'K': 'scroll helptext_panel vertical -95',
+    ' ': 'alias PageDown',
+    'Ctrl+ ': 'alias PageUp',
+    'J': 'alias PageDown',
+    'K': 'alias PageUp',
     'Home': 'scroll helptext_panel vertical top',
     'End': 'scroll helptext_panel vertical bottom',
 
@@ -287,21 +287,21 @@ const keybinding_table = {
     '=': "scroll_to help_relational",
     '/': "scroll_to help_operators",
     'd': "scroll_to help_derivatives",
-    'D': "scroll_to help_derivatives",
-    'v': "scroll_to help_derivatives",
+    'D': "alias d",
+    'v': "alias v",
     'i': "scroll_to help_integrals",
-    'I': "scroll_to help_integrals",
+    'I': "alias i",
     'f': "scroll_to help_named_operators",
     ')': "scroll_to help_delimiters",
-    '(': "scroll_to help_delimiters",
-    '[': "scroll_to help_delimiters",
-    '{': "scroll_to help_delimiters",
+    '(': "alias )",
+    '[': "alias )",
+    '{': "alias )",
     '|': "scroll_to help_arrays",
     '~': "scroll_to help_tensors",
     '_': "scroll_to help_dissect",
     '#': "scroll_to help_sympy",
-    ';': "scroll_to help_greek",
     ':': "scroll_to help_greek",
+    ';': "alias :",
     '$': "scroll_to help_configuration",
     'c': "scroll_to help_control_keys",
     'x': "scroll_to help_examples"
@@ -334,8 +334,8 @@ const keybinding_table = {
     'X': "reset_all",
     'y': "redo",
     'z': "undo",
-    'Enter': "dup",
     'Tab': "dup",
+    'Enter': "alias Tab",
     'Shift+Enter': "edit_item",
     'Backspace': "pop",
     'Shift+Backspace': "nip",
@@ -380,10 +380,10 @@ const keybinding_table = {
     'S': "config sepia",
     'V': "config inverse_video",
     'z': "config zoom_factor increase",
-    '+': "config zoom_factor increase",
+    '+': "alias z",
     'Z': "config zoom_factor decrease",
-    '-': "config zoom_factor decrease",
-    '_': "config zoom_factor decrease",  // undocumented
+    '-': "alias Z",
+    '_': "alias Z",  // undocumented
     '!': "config reload_page",
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
@@ -394,9 +394,9 @@ const keybinding_table = {
   // Delegate (shared) keymap for the 5 text_entry modes' editor commands.
   _editor_commands: {
     'Escape': "cancel_text_entry",
-    'Ctrl+z': "cancel_text_entry",
+    'Ctrl+z': "alias Escape",
     'Backspace': "text_entry_backspace backspace",
-    'Shift+Backspace': "text_entry_backspace backspace",
+    'Shift+Backspace': "alias Backspace",
     'Delete': "text_entry_backspace delete",
     'ArrowLeft': "text_entry_move_cursor left",
     'ArrowRight': "text_entry_move_cursor right",
@@ -404,13 +404,13 @@ const keybinding_table = {
     'End': "text_entry_move_cursor end",
 
     // NOTE: Ctrl editor commands here are undocumented
-    'Ctrl+a': "text_entry_move_cursor begin",
-    'Ctrl+ArrowLeft': "text_entry_move_cursor begin",
-    'Ctrl+d': "text_entry_backspace delete",
-    'Ctrl+e': "text_entry_move_cursor end",
-    'Ctrl+ArrowRight': "text_entry_move_cursor end",
-    'Ctrl+f': "text_entry_move_cursor right",
-    'Ctrl+b': "text_entry_move_cursor left",
+    'Ctrl+a': "alias Home",
+    'Ctrl+ArrowLeft': "alias Home",
+    'Ctrl+d': "alias Delete",
+    'Ctrl+e': "alias End",
+    'Ctrl+ArrowRight': "alias End",
+    'Ctrl+f': "alias ArrowRight",
+    'Ctrl+b': "alias ArrowLeft",
     '[default]': "append_text_entry"
   },
 
