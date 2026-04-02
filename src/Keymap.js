@@ -1107,10 +1107,12 @@ const keybinding_table = {
     '~': "hat tilde",
     '/': "operator cancel",
     "\\": "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
-    '[': "adjust_size smaller",
-    ']': "adjust_size larger",
+    '(': "adjust_size smaller",
+    ')': "adjust_size larger",
     '{': "operator overbrace",
     '}': "operator underbrace",
+    '[': "operator overbracket",
+    ']': "operator underbracket",
     '!': "parenthesize_argument;prefix \\neg",
     '_': "operator underline",
     'Tab': "push \\quad;swap;concat false"
