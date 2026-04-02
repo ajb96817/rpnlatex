@@ -754,7 +754,14 @@ class InputContext {
     else {
       this.change_selected_filename(filename);
       this.notify('Saved: ' + filename);
-      this.perform_undo_or_redo = 'clear';
+      // TODO: May or may not want to clear the undo stack after saving.
+      // For now it's not cleared.  Corner case is: (1) save file (now dirty flag
+      // is clear); (2) do some actions (dirty flag set); (3) save file again
+      // (dirty flag clear); (4) undo actions back to state (1) where dirty flag
+      // was clear.  Now the dirty flag is clear even though the current state is
+      // different from the last-saved state at (3).
+      // This also applies to save-as, new-file and (maybe) rename.
+      //this.perform_undo_or_redo = 'clear';
       this.file_saved_or_loaded = true;
     }
     return stack;
@@ -782,7 +789,7 @@ class InputContext {
       this.settings.last_opened_filename = new_filename;
       file_manager.save_settings(this.settings);
       this.change_selected_filename(new_filename);
-      this.perform_undo_or_redo = 'clear';
+      //this.perform_undo_or_redo = 'clear';
       this.file_saved_or_loaded = true;
     }
     return stack;
@@ -813,7 +820,7 @@ class InputContext {
       file_manager.save_settings(this.settings);
     }
     this.notify(['Renamed: ', old_filename, ' -> ', new_filename].join(''));
-    this.perform_undo_or_redo = 'clear';
+    //this.perform_undo_or_redo = 'clear';
     this.file_saved_or_loaded = true;
     return stack;
   }
@@ -1417,6 +1424,8 @@ class InputContext {
   do_substitute(stack) {
     const [new_stack, expr, search_expr, substitution_expr] = stack.pop_exprs(3);
     const result_expr = expr.substitute(search_expr, substitution_expr);
+    // NOTE: flatten() is to flatten out InfixExprs when substituting one
+    // infix expression into another (so we don't get a nested x+{y-z}).
     return new_stack.push_expr(result_expr.flatten());
   }
 

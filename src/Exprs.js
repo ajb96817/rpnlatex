@@ -257,27 +257,26 @@ class Expr {
   substitute(search_expr, substitution_expr) {
     if(this.matches(search_expr))
       return substitution_expr;
-    let result = this;
-    for(const [index, subexpr] of this.subexpressions().entries()) {
-      const new_subexpr = subexpr.substitute(search_expr, substitution_expr);
-      if(new_subexpr !== subexpr)
-        result = result.replace_subexpression(index, new_subexpr);
-    }
-    return result;
+    return this.subexpressions().entries().reduce(
+      (result_expr, [index, subexpr]) => {
+        const new_subexpr = subexpr.substitute(search_expr, substitution_expr);
+        if(new_subexpr !== subexpr)
+          return result_expr.replace_subexpression(index, new_subexpr);
+        else return result_expr;
+      }, this);
   }
 
   // Flatten out InfixExprs that themselves contain child InfixExprs into
-  // larger InfixExprs: x+{y-z} => x+y-z.
-  // This type of nesting is not normally created, but can happen during
-  // substitutions, e.g. (x+w).substitute(w, y-z).
+  // larger InfixExprs: x+{y-z} => x+y-z.  We generally want to avoid directly
+  // nesting infix expressions like this (although it's still allowed).
   flatten() {
-    let result = this;
-    for(const [index, subexpr] of this.subexpressions().entries()) {
-      const new_subexpr = subexpr.flatten();
-      if(new_subexpr !== subexpr)
-        result = result.replace_subexpression(index, new_subexpr);
-    }
-    return result;
+    return this.subexpressions().entries().reduce(
+      (result_expr, [index, subexpr]) => {
+        const new_subexpr = subexpr.flatten();
+        if(new_subexpr !== subexpr)
+          return result_expr.replace_subexpression(index, new_subexpr);
+        else return result_expr;
+      }, this);
   }
 
   // Return an ExprPath to the first PlaceholderExpr within this Expr-tree,
