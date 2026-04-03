@@ -192,7 +192,7 @@ class Expr {
 
   // Determine if this expression is a 'term'; that is, something that
   // can be implicitly (by concatenation) or explicitly multiplied by
-  // something without affecting the "visual" precedence grouping.
+  // something else without affecting the "visual" precedence grouping.
   // For example, 'x', 'sin(x)', \frac{x}{y} are terms while 'x+y' is
   // not because 2 * x+y -> 2*(x+y).  So parentheses had to be added
   // around 'x+y', changing the precedence grouping.
@@ -257,7 +257,7 @@ class Expr {
   substitute(search_expr, substitution_expr) {
     if(this.matches(search_expr))
       return substitution_expr;
-    return this.subexpressions().entries().reduce(
+    else return this.subexpressions().entries().reduce(
       (result_expr, [index, subexpr]) => {
         const new_subexpr = subexpr.substitute(search_expr, substitution_expr);
         if(new_subexpr !== subexpr)
@@ -266,7 +266,7 @@ class Expr {
       }, this);
   }
 
-  // Flatten out InfixExprs that themselves contain child InfixExprs into
+  // Flatten out InfixExprs that themselves contain (direct) child InfixExprs into
   // larger InfixExprs: x+{y-z} => x+y-z.  We generally want to avoid directly
   // nesting infix expressions like this (although it's still allowed).
   flatten() {
@@ -592,7 +592,7 @@ class FontExpr extends Expr {
     this.expr = expr;
     this.typeface = typeface;
     this.is_bold = !!is_bold;
-    this.size_adjustment = size_adjustment || 0;
+    this.size_adjustment = size_adjustment ?? 0;
   }
 
   // Wrap an expression in FontExpr if it's not already.
@@ -764,10 +764,8 @@ class FontExpr extends Expr {
     // "Variant" uppercase Greek letters don't work as
     // \boldsymbol{\varPhi}.  Need to use \pmb for these too.
     // \boldsymbol{\Phi}, etc. work though.
-    if(this.expr.is_command_expr_with(0) &&
-       uppercase_greek_letter_variants.includes(this.expr.command_name))
-      return true;
-    return false;
+    return this.expr.is_command_expr_with(0) &&
+      uppercase_greek_letter_variants.includes(this.expr.command_name);
   }
 
   // TODO: bold fraktur font support?  KaTeX is supposed to support this,
@@ -818,8 +816,8 @@ class InfixExpr extends Expr {
     super();
     this.operand_exprs = operand_exprs;
     this.operator_exprs = operator_exprs;
-    this.split_at_index = split_at_index || 0;
-    this.linebreaks_at = linebreaks_at || [];
+    this.split_at_index = split_at_index ?? 0;
+    this.linebreaks_at = linebreaks_at ?? [];
   }
 
   // Combine two existing expressions into an InfixExpr, joined by
@@ -828,7 +826,7 @@ class InfixExpr extends Expr {
   // Autoparenthesization is not applied here.
   static combine_infix(left_expr, right_expr, op_expr, check_special_cases = true) {
     if(check_special_cases) {
-      // We want x + -y => x - y.
+      // We want x + -y => x - y
       if(op_expr.is_text_expr_with('+'))
          return this.add_exprs(left_expr, right_expr);
     }
@@ -1647,8 +1645,7 @@ class DelimiterExpr extends Expr {
                       if_not_already = false /* true = don't double-wrap if already parenthesized */) {
     left_type ||= '(';
     right_type ||= ')';
-    while(expr.is_delimiter_expr() &&
-          expr.left_type === '.' && expr.right_type === '.')
+    while(expr.is_delimiter_expr() && expr.is_blank_delimiters())
       expr = expr.inner_expr;
     // Normally, parenthesizing (x) gives ((x)).
     // The if_not_already flag inhibits this behavior to avoid
@@ -1694,8 +1691,7 @@ class DelimiterExpr extends Expr {
       ].includes(expr.expr_type()) ||
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
-      (expr.is_delimiter_expr() &&
-       expr.left_type === '.' && expr.right_type === '.' &&
+      (expr.is_delimiter_expr() && expr.is_blank_delimiters() &&
        expr.inner_expr.is_infix_expr()) ||
       // \frac{x}{y}
       expr.is_command_expr_with(2, 'frac') ||
@@ -1734,8 +1730,7 @@ class DelimiterExpr extends Expr {
       (expr.is_sequence_expr() && expr.exprs[0].is_prefix_expr()) ||
       // Any infix expression inside "blank" delimiters
       // (e.g. \left. x+y+z \right.)
-      (expr.is_delimiter_expr() &&
-       expr.left_type === '.' && expr.right_type === '.' &&
+      (expr.is_delimiter_expr() && expr.is_blank_delimiters() &&
        expr.inner_expr.is_infix_expr()) ||
       // \frac{x}{y}
       expr.is_command_expr_with(2, 'frac') ||
@@ -1761,7 +1756,7 @@ class DelimiterExpr extends Expr {
   // If either delimiter is 'blank', delegate to the inner_expr.
   // "Full" parentheses, etc., are always considered terms.
   is_term_expr(is_leftmost = false) {
-    if(this.left_type === '.' || this.right_type === '.')
+    if(this.is_blank_delimiters())
       return this.inner_expr.is_term_expr(is_leftmost);
     else
       return true;
@@ -1812,12 +1807,22 @@ class DelimiterExpr extends Expr {
       new_expr, this.fixed_size);
   }
 
+  // Blank/invisible delimiters as created by [)][.] can be used for some
+  // special purposes, such as creating flex-mode 'x/y' inline fractions.
+  // Eventually, should probably try eliminate this hack and always decay
+  // ". ." delimiters into their wrapped expression.
+  // Blank delimiters can also be created via do_modify_delimiter() so make
+  // sure to check for that case if these are to be eliminated.
+  is_blank_delimiters() {
+    return this.left_type === '.' && this.right_type === '.';
+  }
+
   // An inline division infix expression surrounded by "blank" delimiters
   // e.g.: \left. x/y \right.
   // In some cases this is treated like a \frac{x}{y} command.
   // TODO: maybe 'x/y/z' etc. should count too
   is_flex_inline_fraction() {
-    return this.left_type === '.' && this.right_type === '.' &&
+    return this.is_blank_delimiters() &&
       this.inner_expr.is_infix_expr() &&
       this.inner_expr.operand_count() === 1 &&
       this.inner_expr.operator_text_at(0) === '/';

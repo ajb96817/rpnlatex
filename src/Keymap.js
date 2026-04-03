@@ -205,7 +205,7 @@ const keybinding_table = {
     'Ctrl+z': "alias stack z",
     'Ctrl+ ': "alias infix s",
     'Ctrl+,': "alias infix ,",
-    'Ctrl+/': "fraction",
+    'Ctrl+/': "alias operator a",
     "Ctrl+\\": "alias operator 1",
     'Ctrl+]': "alias decoration b",
     'Ctrl++': "increment 1",  // NOTE: Ctrl++ not currently inputtable, but Ctrl+= works
@@ -472,7 +472,7 @@ const keybinding_table = {
     'o': "delimiters ( ]",  // half-closed interval
     'O': "delimiters [ )",
     'r': "mode modify_right",
-    'R': "mode modify_right",
+    'R': "alias r",
     'w': "delimiters . \\vert",  // [w]here
     'W': "alias w",
     'x': "remove_delimiters",
@@ -486,7 +486,7 @@ const keybinding_table = {
     '{': "delimiters \\{ .",
     '}': "delimiters . \\}",
     '.': "delimiters . .",
-    ' ': "delimiters . ."
+    ' ': "alias ."
   },
 
   // [)][l] prefix: change left delimiter type

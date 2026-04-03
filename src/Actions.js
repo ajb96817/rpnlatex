@@ -1383,14 +1383,13 @@ class InputContext {
   do_negate(stack) {
     const [new_stack, expr] = stack.pop_exprs(1);
     if(expr.is_prefix_expr()) {
-      if(expr.is_unary_minus())
+      if(expr.is_unary_minus())  // -x => x
         return new_stack.push_expr(expr.base_expr);
-      if(expr.operator_text() === 'pm')
+      else if(expr.operator_text() === 'pm')
         return new_stack.push_expr(new PrefixExpr(expr.base_expr, new CommandExpr('mp')));
-      if(expr.operator_text() === 'mp')
+      else if(expr.operator_text() === 'mp')
         return new_stack.push_expr(new PrefixExpr(expr.base_expr, new CommandExpr('pm')));
-      // Also convert +x => -x
-      if(expr.operator_text() === '+')
+      else if(expr.operator_text() === '+')  // +x => -x
         return new_stack.push_expr(PrefixExpr.unary_minus(expr.base_expr));
     }
     return this.do_prefix(stack, '-');
@@ -1484,8 +1483,7 @@ class InputContext {
           relation_index = i;
           relational_op_expr = operator_expr;
         }
-        else
-          more_than_one_relational_op = true;
+        else more_than_one_relational_op = true;
       }
     }
     if(more_than_one_relational_op || relation_index === null)
@@ -1778,9 +1776,8 @@ class InputContext {
         if(s === '')
           is_editable = false;
         else {
-          s ||= expr.as_editable_string();
-          if(s)
-            this.do_start_text_entry(new_stack, 'math_entry', s);
+          s ??= expr.as_editable_string();
+          if(s) this.do_start_text_entry(new_stack, 'math_entry', s);
           else is_editable = false;
         }
       }
@@ -1874,8 +1871,9 @@ class InputContext {
 
   // Move the selection left or right within its parent Expr.
   do_dissect_move_selection(stack, direction) {
-    return this._do_dissect_operation(stack, expr_path =>
-      expr_path.move(direction));
+    return this._do_dissect_operation(
+      stack,
+      expr_path => expr_path.move(direction));
   }
 
   // Replace the stack top with an "extracted" version where the selected
@@ -1962,8 +1960,7 @@ class InputContext {
     // Special case: if the stack top is already a DelimiterExpr with "blank" delimiters
     // we can just rebuild a new DelimiterExpr with the specified delimiters instead,
     // without wrapping it in another DelimiterExpr.
-    if(inner_expr.is_delimiter_expr() &&
-       inner_expr.left_type === '.' && inner_expr.right_type === '.')
+    if(inner_expr.is_delimiter_expr() && inner_expr.is_blank_delimiters())
       return new_stack.push_expr(new DelimiterExpr(
         left, right, inner_expr.inner_expr));
     else {
