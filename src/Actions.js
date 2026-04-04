@@ -1566,6 +1566,11 @@ class InputContext {
         // when entering as '\' as the first character.
         return this.do_start_text_entry(stack, 'latex_entry', '');
       }
+      else if(this.text_entry.mode === 'math_entry' &&
+              key === "%" && this.text_entry.is_empty()) {
+        // math_entry -> chemical formula entry (mhchem).
+        return this.do_start_text_entry(stack, 'chemical_entry', '');
+      }
       this.text_entry.insert(key);
     }
     return stack;
@@ -1611,6 +1616,8 @@ class InputContext {
   //   'bold_conjunction' - same but the "iff" is bolded
   //   'tag' - set the tag_string of the stack top
   //   'tag_with_parentheses' - same as 'tag' but automatically surround with parentheses
+  //   'mhchem_formula' - \ce{...} chemical formula
+  //   'mhchem_unit' - \pu{...} physical unit expression
   do_finish_text_entry(stack, textstyle) {
     if(!this.text_entry)
       return stack;  // shouldn't happen
@@ -1711,6 +1718,12 @@ class InputContext {
           ['(', trimmed_text, ')'].join('') : trimmed_text);
       this._cancel_text_entry(new_stack);
       return new_stack.push(new_item);
+    }
+    else if(textstyle === 'mhchem_formula' ||
+            textstyle === 'mhchem_unit') {
+      new_expr = new CommandExpr(
+        textstyle === 'mhchem_unit' ? 'pu' : 'ce',
+        [new TextExpr(trimmed_text)]);
     }
     else {
       try {

@@ -440,6 +440,15 @@ const keybinding_table = {
     '[delegate]': "_editor_commands"
   },
 
+  // [\][%] prefix: mhchem entry (chemical formula or physical unit)
+  chemical_entry: {
+    'Enter': "finish_text_entry mhchem_formula",
+    'Shift+Enter': "finish_text_entry mhchem_unit",
+    'Delete': "text_entry_backspace delete math_entry",
+    'Backspace': "text_entry_backspace backspace math_entry",
+    '[delegate]': "_editor_commands"
+  },
+
   // [,]['] prefix: custom conjunction
   conjunction_entry: {
     'Enter': "finish_text_entry conjunction",

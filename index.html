@@ -184,6 +184,11 @@
           <span class="k">\</span><span class="k">\</span>
           Directly input LaTeX commands with <a href="#help_latex_entry">LaTeX entry</a> mode.
         </li>
+        <li>
+          <span class="k">\</span><span class="k">%</span>
+          Enter chemical and physical unit formulas with
+          <a href="#help_chemical_entry">chemical entry</a> mode.
+        </li>
         <li><span class="k">&quot;</span> Create a text object with <a href="#help_text_entry">text entry</a> mode.</li>
         <li><span class="k">Tab</span> <a href="#help_stack">Stack manipulation</a> and other utilities.</li>
         <li><span class="k">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#help_symbols">math symbols</a>.</li>
@@ -341,6 +346,20 @@
         will combine two expressions from the stack into an <a href="#help_infix"><em>infix expression</em></a> using the LaTeX
         command as the operator:
         <code>x\enspace y\enspace \mathtt{\backslash\backslash}\texttt{amalg,} \Rightarrow x\amalg y</code>
+      </p>
+
+      <h2 id="help_chemical_entry">
+        <span class="k">\</span><span class="k">%</span> Chemical Formula Entry
+      </h2>
+      <p>
+        This mode lets you input chemical formulas like
+        <code>\ce{H2O}</code> using the <a href="https://mhchem.github.io/MathJax-mhchem/">mhchem</a>
+        library.  Please see the documentation there for details.
+      </p>
+      <p>
+        Finishing your entry with <span class="k">Shift&nbsp;Enter</span> instead of
+        <span class="k">Enter</span> creates <em>physical unit</em> expressions
+        like <code>\pu{10 kJ/mol}</code> instead of chemical formulas.
       </p>
 
       <h2 id="help_text_entry">

@@ -15,6 +15,8 @@ import {
   PyodideInterface
 } from './SymPy';
 
+import './mhchem.js';  // KaTeX extension for chemical formulas
+
 
 const $e = React.createElement;
 

@@ -474,12 +474,19 @@ div.stack_items div.text_entry span.cursor_character.error_character { color: wh
 div.stack_items div.math_entry_mode { background-color: #eee; }
 div.stack_items div.text_entry_mode { background-color: #eef; }
 div.stack_items div.latex_entry_mode { background-color: #ded; }
+div.stack_items div.chemical_entry_mode { background-color: #efd; }
 div.stack_items div.conjunction_entry_mode { background-color: #fec; }
 div.stack_items div.tag_entry_mode { background-color: #e8ffe8; }
 
 div.stack_items div.latex_entry_mode::before {
   /* show an initial backslash at the beginning when in latex entry mode */
   content: "\\";
+  font-weight: bold;
+}
+div.stack_items div.chemical_entry_mode::before {
+  /* show an initial backslash at the beginning when in latex entry mode */
+  content: "chem: ";
+  color: #280;
   font-weight: bold;
 }
 div.stack_items div.conjunction_entry_mode::before {
