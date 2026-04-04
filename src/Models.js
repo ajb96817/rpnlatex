@@ -2213,7 +2213,7 @@ class MsgpackEncoder {
   pack_command_expr(expr) {
     return [
       2, expr.command_name,
-      expr.operand_exprs.length > 0 ?
+      expr.operand_count() > 0 ?
         expr.operand_exprs.map(
           operand_expr => this.pack_expr(operand_expr)) : null,
       expr.options];

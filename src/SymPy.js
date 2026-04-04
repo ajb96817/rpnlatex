@@ -1609,7 +1609,7 @@ class SumOrProductAnalyzer extends Analyzer {
   analyze_index_expr(expr) {
     if(!expr.is_infix_expr())
       return null;
-    const operand_count = expr.operand_exprs.length;
+    const operand_count = expr.operand_count();
     let variable_expr = null, lower_limit_expr = null, upper_limit_expr = null;
     const infty_expr = new CommandExpr('infty');
     if(operand_count === 2) {

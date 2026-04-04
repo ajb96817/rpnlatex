@@ -62,6 +62,7 @@ class Keymap {
   lookup_binding(mode, key, in_delegate_lookup = false) {
     const command = this._lookup_binding(mode, key, in_delegate_lookup);
     if(command && command.startsWith('alias ')) {
+      // Corner case: "alias semicolon" doesn't work.
       let [aliased_mode, aliased_key] = command.slice(6).split(' ');
       if(!aliased_key)
         [aliased_mode, aliased_key] = [mode, aliased_mode];  // 'alias x' without mode

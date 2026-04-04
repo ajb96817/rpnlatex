@@ -838,7 +838,7 @@ class InfixExpr extends Expr {
       new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
       new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
       new_linebreaks_at = new_linebreaks_at.concat(left_expr.linebreaks_at);
-      linebreaks_midpoint = 2*left_expr.operand_exprs.length;
+      linebreaks_midpoint = 2*left_expr.operand_count();
     }
     else {
       new_operand_exprs.push(left_expr);
@@ -924,6 +924,9 @@ class InfixExpr extends Expr {
   // InfixExprs are never considered terms, even x \cdot y.
   is_term_expr(is_leftmost = false) { return false; }
 
+  operator_count() { return this.operator_exprs.length; }
+  operand_count() { return this.operand_exprs.length; }
+
   // If the given infix operator is a simple command like '+' or '\cap',
   // return the command name (without the initial \ if it has one).
   // If it's anything more complex, return null.
@@ -988,7 +991,7 @@ class InfixExpr extends Expr {
     // Last operand.
     emitter.expr(
       this.operand_exprs.at(-1),
-      2*this.operator_exprs.length);
+      2*this.operator_count());
   }
   _convert_to_flex_delimiter(expr) {
     let new_text = null;
@@ -1029,6 +1032,48 @@ class InfixExpr extends Expr {
         expr_index*2 + 1 === index ? new_expr : operator_expr),
       this.split_at_index,
       this.linebreaks_at);
+  }
+
+  // Overridden from Expr superclass for a special case with InfixExprs:
+  // (x+y+z).substitute(y+z, w) should yield x+w.  This method checks
+  // for this case, allowing for "partial matching" within an InfixExpr.
+  // NOTE: Normally, .flatten() will be called after this .substitute(),
+  // so cases like (x+y).substitute(y, z+w) will result in a flattened
+  // x+z+w instead of a nested InfixExpr.
+  substitute(search_expr, substitution_expr) {
+    if(!search_expr.is_infix_expr())
+      return super.substitute(search_expr, substitution_expr);
+    for(let i = 0; i <= this.operand_count() - search_expr.operand_count(); i++) {
+      if(this._check_partial_match(search_expr, i)) {
+        // Splice substitution_expr into this InfixExpr;
+        // split_at_index/linebreaks_at are discarded.
+        return new InfixExpr(
+          // operands
+          [...this.operand_exprs.slice(0, i),
+           substitution_expr,
+           ...this.operand_exprs.slice(i+search_expr.operand_count())],
+          // operators
+          [...this.operator_exprs.slice(0, i),
+           ...this.operator_exprs.slice(i+search_expr.operator_count())]);
+      }
+    }
+    return this;
+  }
+
+  // Helper method to check whether infix_expr matches this expression
+  // starting at the given operand index.  For example:
+  // (a+b+c+d+e)._check_partial_match(c+d, 2) would be true.
+  _check_partial_match(infix_expr, operand_index) {
+    // Check operands and operators each separately.
+    for(let i = 0; i < infix_expr.operand_count(); i++)
+      if(!(operand_index + i < this.operand_count() &&
+           this.operand_exprs[operand_index+i].matches(infix_expr.operand_exprs[i])))
+        return false;
+    for(let i = 0; i < infix_expr.operator_count(); i++)
+      if(!(operand_index + i < this.operator_count() &&
+           this.operator_exprs[operand_index+i].matches(infix_expr.operator_exprs[i])))
+        return false;
+    return true;
   }
 
   has_linebreak_at(index) {
@@ -1078,7 +1123,7 @@ class InfixExpr extends Expr {
   // in InfixExpr.
   extract_side_at(operator_index, side) {
     if(side === 'right') {
-      if(operator_index === this.operator_exprs.length-1)
+      if(operator_index === this.operator_count()-1)
         return this.operand_exprs[operator_index+1];  // rightmost operand
       else
         return new InfixExpr(
@@ -1136,7 +1181,7 @@ class InfixExpr extends Expr {
         if(flattened_subexpr !== operand_expr)
           any_changed = true;
       }
-      if(index < this.operator_exprs.length)
+      if(index < this.operator_count())
         new_operator_exprs.push(this.operator_exprs[index]);
     }
     if(any_changed) {
@@ -1179,7 +1224,7 @@ class InfixExpr extends Expr {
             (last_operator_expr.is_text_expr_with('-') ? -1 : +1);
       if(!isNaN(value)) {
         const new_value = value + amount;
-        if(new_value === 0 && this.operator_exprs.length === 1) {
+        if(new_value === 0 && this.operator_count() === 1) {
           // x-1 (binary infix expression) is turning into x.
           // The result is simply 'x' (probably not another InfixExpr).
           return this.operand_exprs[0];
@@ -1187,7 +1232,7 @@ class InfixExpr extends Expr {
         // Strip the rightmost operator and operand (x+y-1 => x+y).
         // Preserve split_at_index / linebreaks_at if possible.
         const new_operator_count =
-              this.operator_exprs.length - (new_value === 0 ? 1 : 0);
+              this.operator_count - (new_value === 0 ? 1 : 0);
         let new_expr = new InfixExpr(
           this.operand_exprs.slice(0, -1),
           this.operator_exprs.slice(0, -1),
