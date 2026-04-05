@@ -120,7 +120,6 @@ const keybinding_table = {
     '>': "infix >",
     '+': "infix +",
     '-': "autoparenthesize;infix -",
-    '*': "autoparenthesize 2;infix \\cdot",
     ']': "make_bold",
     '[': "delimiters [ ]",
     '(': "delimiters ( )",
@@ -162,6 +161,7 @@ const keybinding_table = {
     '&': "mode script",
     '%': "mode blackboard",
     '/': "mode operator",
+    '*': "mode coefficient",
     "\\": "start_text_entry math_entry",
     "\"": "start_text_entry text_entry",
     '|': "mode array",
@@ -255,10 +255,13 @@ const keybinding_table = {
     'PageUp': 'scroll helptext_panel vertical -95',
     ' ': 'alias PageDown',
     'Ctrl+ ': 'alias PageUp',
+    'Shift+ ': 'alias PageUp',
     'J': 'alias PageDown',
     'K': 'alias PageUp',
     'Home': 'scroll helptext_panel vertical top',
     'End': 'scroll helptext_panel vertical bottom',
+    '<': 'alias Home',  // undocumented
+    '>': 'alias End',  // undocumented
 
     // Independent zoom factor for User Guide
     '+': "config helptext_zoom_factor increase",
@@ -277,6 +280,7 @@ const keybinding_table = {
     '&': "scroll_to help_insert_script",
     '%': "scroll_to help_insert_blackboard",
     '@': "scroll_to help_insert_calligraphic",
+    '*': "scroll_to help_coefficient",
     "\\": "scroll_to help_math_entry",
     "\"": "scroll_to help_text_entry",
     'Backspace': "scroll_to help_prefix_keys",
@@ -847,6 +851,24 @@ const keybinding_table = {
     ' ': "alias i"
 
     // maybe: '[delegate]': "derivative"
+  },
+
+  // [*] prefix: premultiply by a coefficient
+  coefficient: {
+    '-': "mode negative_coefficient",
+    '[digit]': "push_last_keypress;swap;concat",
+    'i': "push i;swap;concat",
+    'p': "push \\pi;swap;concat",
+    'P': "integer 2;push \\pi;concat;swap;concat",
+  },
+
+  // [*][-] prefix
+  negative_coefficient: {
+    '-': "mode coefficient",
+    '[digit]': "push_last_keypress;negate;swap;concat",
+    'i': "push i;negate;swap;concat",
+    'p': "push \\pi;negate;swap;concat",
+    'P': "integer -2;push \\pi;concat;swap;concat"
   },
 
   // [,] prefix: combine two objects with an infix operation

@@ -95,9 +95,8 @@
         </li>
         <li>
           <span class="k">+</span> <span class="k">-</span>
-          <span class="k">&lt;</span> <span class="k">&gt;</span> <span class="k">*</span>
-          Join two expressions with the corresponding operator between them
-          (<code>x\cdot y</code> in the case of <span class="k">*</span>).
+          <span class="k">&lt;</span> <span class="k">&gt;</span>
+          Join two expressions with the corresponding operator between them.
         </li>
         <li>
           <span class="k">&nbsp;</span> <em>(space)</em>
@@ -179,7 +178,15 @@
         prefix first.
       </p>
       <ul class="keybindings">
-        <li><span class="k">\</span> Input a longer character string or formula with <a href="#help_math_entry">math entry</a> mode.</li>
+        <li>
+          <span class="k">*</span>
+          Multiply a term by a small numerical value with <a href="#help_coefficient">coefficient</a> mode.
+        </li>
+        <li>
+          <span class="k">\</span>
+          Input a longer character string or formula with
+          <a href="#help_math_entry">math entry</a> mode.
+        </li>
         <li>
           <span class="k">\</span><span class="k">\</span>
           Directly input LaTeX commands with <a href="#help_latex_entry">LaTeX entry</a> mode.
@@ -234,6 +241,28 @@
           <span class="k">Ctrl</span>
           Some <a href="#help_control_keys">Control key</a> shortcuts are also available.
         </li>
+      </ul>
+
+      <h2 id="help_coefficient">
+        <span class="k">*</span> Coefficient Mode
+      </h2>
+      <p>
+        The <span class="k">*</span> prefix can be used to quickly attach a single-digit
+        numerical coefficient to an expression on the stack.  For example,
+        <span class="k">*</span><span class="k">3</span> gives <code>x \Rightarrow 3x</code>.
+        This gives the same result as entering the digit normally and then concatenating
+        with <span class="k">&nbsp;</span> <em>(space)</em>.
+      </p>
+      <p>
+        A minus sign may be entered before the digit:
+        <span class="k">*</span><span class="k">-</span><span class="k">3</span>
+        gives <code>x \Rightarrow -3x</code>.  Also, the following non-digit coefficients
+        are available:
+      </p>
+      <ul class="keybindings">
+        <li><span class="k">i</span> <code>x \Rightarrow ix</code></li>
+        <li><span class="k">p</span> <code>x \Rightarrow \pi x</code></li>
+        <li><span class="k">P</span> <code>x \Rightarrow 2\pi x</code></li>
       </ul>
 
       <h2 id="help_math_entry">
@@ -360,6 +389,13 @@
         Finishing your entry with <span class="k">Shift&nbsp;Enter</span> instead of
         <span class="k">Enter</span> creates <em>physical unit</em> expressions
         like <code>\pu{10 kJ/mol}</code> instead of chemical formulas.
+      </p>
+      <p>
+        <strong>NOTE:</strong> For longer chemical formulas, you can paste the input
+        directly from the system clipboard using <span class="k">Tab</span><span class="k">V</span>
+        (without entering the <span class="k">\</span><span class="k">%</span> mode).
+        Just surround the formula in a <kbd>\ce{...}</kbd> LaTeX command, as in
+        <kbd>\ce{H2O}</kbd>.
       </p>
 
       <h2 id="help_text_entry">

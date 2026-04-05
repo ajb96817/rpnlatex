@@ -1514,7 +1514,8 @@ class FunctionCallExpr extends Expr {
         argument_expr = inner_args_expr.operand_exprs[i+1];
       }
       else argument_expr = InfixExpr.combine_infix(
-        argument_expr, inner_args_expr.operand_exprs[i+1],
+        argument_expr,
+        inner_args_expr.operand_exprs[i+1],
         operator_expr);
     }
     argument_exprs.push(argument_expr);
