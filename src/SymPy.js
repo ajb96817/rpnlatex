@@ -479,7 +479,7 @@ class ExprToSymPy {
     this.subexpression_count = 0;  // serial number for expr_1,2,3 in generated code
   }
 
-  // TODO: fix this
+  // TODO: fix this (highlight offending_expr)
   error(message, offending_expr = null) {
     throw new Error(message);
   }
@@ -990,19 +990,17 @@ class IntegralAnalyzer extends Analyzer {
     const dx_exprs = this.analyze_differential_form(numer_expr);
     if(dx_exprs.length > 0)
       all_dx_exprs.push(...dx_exprs);
-    else {
+    else for(const expr of numer_expr.is_sequence_expr() ?
+                   numer_expr.exprs : [numer_expr]) {
       // Check individual top-level pieces of the numerator and
       // build the (possible) new numerator.
-      for(const expr of
-          numer_expr.is_sequence_expr() ? numer_expr.exprs : [numer_expr]) {
-        const dx_exprs = this.analyze_differential_form(expr);
-        if(dx_exprs.length > 0)
-          all_dx_exprs.push(...dx_exprs);
-        else if(expr.is_whitespace())
-          ;  // ignore whitespace
-        else
-          new_numer_exprs.push(expr);
-      }
+      const dx_exprs = this.analyze_differential_form(expr);
+      if(dx_exprs.length > 0)
+        all_dx_exprs.push(...dx_exprs);
+      else if(expr.is_whitespace())
+        ;  // ignore whitespace
+      else
+        new_numer_exprs.push(expr);
     }
     if(new_numer_exprs.length === 0)
       new_numer_exprs.push(TextExpr.integer(1));
@@ -1488,6 +1486,7 @@ class FunctionCallAnalyzer extends Analyzer {
   }
 
   // f'(x), f''(x)
+  // TODO: allow (x^2+1)', etc.
   analyze_lagrange_derivative(expr) {
     if(!expr.is_function_call_expr()) return null;
     const fn_expr = expr.fn_expr;
@@ -1619,8 +1618,7 @@ class SumOrProductAnalyzer extends Analyzer {
         lower_limit_expr = expr.operand_exprs[1];
         break;
       case '>': case 'gt':
-        lower_limit_expr = Infix.add_exprs(
-          expr.operand_exprs[1], TextExpr.integer(1));
+        lower_limit_expr = expr.operand_exprs[1].increment(1);
         upper_limit_expr = infty_expr;
         break;
       case '>=': case 'ge':
@@ -1632,62 +1630,55 @@ class SumOrProductAnalyzer extends Analyzer {
       }
     }
     else if(operand_count === 3) {
-      lower_limit_expr = expr.operand_exprs[0];
-      variable_expr = expr.operand_exprs[1];
-      upper_limit_expr = expr.operand_exprs[2];
+      [lower_limit_expr, variable_expr, upper_limit_expr] =
+        expr.operand_exprs;
       switch(expr.operator_text_at(0)) {
-      case '<=': case 'le':
-        break;
+      case '<=': case 'le': break;
       case '<': case 'lt':
-        lower_limit_expr = Infix.add_exprs(
-          lower_limit_expr, TextExpr.integer(1));
+        lower_limit_expr = lower_limit_expr.increment(1);
         break;
-      default:
-        return null;
+      default: return null;
       }
       switch(expr.operator_text_at(1)) {
-      case '<=': case 'le':
-        break;
+      case '<=': case 'le': break;
       case '<': case 'lt':
-        lower_limit_expr = Infix.add_exprs(
-          lower_limit_expr, TextExpr.integer(-1));
+        lower_limit_expr = lower_limit_expr.increment(-1);
         break;
-      default:
-        return null;
+      default: return null;
       }
     }
     else
       return null;
     // Index variable must translate to a valid variable name in SymPy.
     if(!expr_to_variable_name(variable_expr))
-      return null;
+      return null;  // TODO: maybe return error instead
     return {variable_expr, lower_limit_expr, upper_limit_expr};
   }
 }
 
 
 const analyzer_table = {
+  // CommandExprs try these analyzers with themselves as the
+  // expression list (as if they were single-element SequenceExprs).
+  // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
+  // handler gets to it.
   command: [
-    // CommandExprs try these analyzers with themselves as the
-    // expression list (as if they were single-element SequenceExprs).
-    // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
-    // handler gets to it.
     DerivativeAnalyzer,
     CommandAnalyzer
   ],
   infix: [InfixAnalyzer],
   function_call: [FunctionCallAnalyzer],
+  // SequenceExprs use these; most "complicated" patterns occur
+  // within sequences.
   sequence: [
-    // SequenceExprs use these; most "complicated" patterns occur
-    // within sequences.
     IntegralAnalyzer,
     DerivativeAnalyzer,
     SumOrProductAnalyzer,
-    // CommandAnalyzer needs to come after DerivativeAnalyzer so that
-    // the latter has a chance to examine \frac{dy}{dx}, \sum ..., etc.
+    // CommandAnalyzer needs to come after the others so that they have
+    // a chance to examine \frac{dy}{dx}, \sum ..., etc.
     CommandAnalyzer,
-    // Sequences that don't have any other special interpretation
-    // are generally treated as implicit multiplications
+    // Sequences of adjacent "terms" that don't have any other special
+    // interpretation are generally treated as implicit multiplications
     // (such as 3 x \sin{x}).
     ImplicitProductAnalyzer
   ]

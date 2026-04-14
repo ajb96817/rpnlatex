@@ -336,6 +336,7 @@ const keybinding_table = {
     'V': "paste_from_prompt",
     'w': "push_floating_item",
     'W': "pop_floating_item",
+    //    'x': "reset_stack",  // TODO (maybe)
     'X': "reset_all",
     'y': "redo",
     'z': "undo",
@@ -1254,8 +1255,7 @@ const keybinding_table = {
     'q': "cancel_dissect_mode",
     'Q': "alias q",
     'Escape': "alias q",
-    // 'Tab': "dissect_undo",  // not implemented
-    // 'Ctrl+z': "alias Tab",
+    'Ctrl+z': "alias q",  // NOTE: should have a do_dissect_undo()
     '_': "dissect_descend",
     'u': "dissect_ascend",
     'U': "alias u",
