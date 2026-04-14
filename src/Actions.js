@@ -979,11 +979,15 @@ class InputContext {
     return stack.push_all(new_items);
   }
 
-  // Clear stack and document.
-  do_reset_all(/*stack*/) {
-    this.notify("Stack and document cleared");
-    this.update_document(new Document());
-    return new Stack();
+  // Clear stack and/or document, according to 'which'.
+  do_clear(stack, which = 'all') {
+    this.notify(
+      (which === 'all' ? 'Stack and document' :
+       which === 'stack' ? 'Stack' : 'Document') + ' cleared');
+    if(which === 'all' || which === 'document')
+      this.update_document(new Document());
+    return (which === 'all' || which === 'stack') ?
+      new Stack() : stack;
   }
 
   // Put something on the stack.  If 'text' starts with \, it becomes

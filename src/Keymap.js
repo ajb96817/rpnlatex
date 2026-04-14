@@ -336,8 +336,8 @@ const keybinding_table = {
     'V': "paste_from_prompt",
     'w': "push_floating_item",
     'W': "pop_floating_item",
-    //    'x': "reset_stack",  // TODO (maybe)
-    'X': "reset_all",
+    'x': "clear stack",
+    'X': "clear all",
     'y': "redo",
     'z': "undo",
     'Tab': "dup",

@@ -1906,7 +1906,8 @@ class Stack {
       return [
         new Stack(this.items, this.floating_items.slice(0, -n))
       ].concat(this.floating_items.slice(-n));
-    else this.underflow();
+    else
+      return this.underflow();
   }
 
   // Return a new Stack with cloned copies of all the items.
