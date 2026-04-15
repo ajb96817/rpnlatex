@@ -789,6 +789,8 @@ const keybinding_table = {
     'n': "autoparenthesize;push \\Delta;swap;concat",  // i[n]crement (?)
     // x -> dx
     'd': "differential_form 1",
+    // x y -> dx/y
+    '/': "swap;differential_form 1;swap;fraction",
     // x -> \partial x
     'p': "push \\partial;swap;concat",
     // y x -> \partial_x y
@@ -810,6 +812,7 @@ const keybinding_table = {
   derivative_alt: {
     'd': "differential_form 1 roman",
     'D': "alias d",  // (undocumented)
+    '/': "swap;differential_form 1 roman;swap;fraction",
     'f': "differential_form 2 roman",
     'F': "differential_form 3 roman",
     '2': "differential_form 0 roman;integer 2;superscript;swap;concat",
@@ -845,6 +848,7 @@ const keybinding_table = {
 
     // Counterparts to ordinary differential form commands.
     'd': "push \\delta;swap;concat",
+    '/': "swap;push \\delta;swap;concat;swap;fraction",
     '2': "push \\delta;integer 2;superscript;swap;concat",
     '3': "push \\delta;integer 3;superscript;swap;concat",
     '4': "push \\delta;integer 4;superscript;swap;concat",
@@ -1286,34 +1290,38 @@ const keybinding_table = {
     '=': "sympy N 1 evalf",  // numeric eval
     '/': "sympy nsimplify 1",  // convert float to "fraction"
     '|': "sympy substitute 3",
+    // 'a': "sympy_assumptions",  // TODO
     'd': "sympy diff 1 differentiate",
     'D': "sympy diff 2 differentiate",
-    'i': "sympy solveset 1 solve",  // [i]solate
-    'I': "sympy solveset 2 solve",
-    'p': "sympy integrate 1",  // [p]rimitive
-    'P': "sympy integrate 2",
-    's': "mode sympy_simplify",
+    'f': "sympy factor 1",
+    'm': "mode sympy_manipulate",
+    'q': "mode sympy_diffeq",
+    's': "sympy simplify 1",
     't': "mode sympy_transform",
-    'v': "mode sympy_solve",  // TODO: find better keybinding
+    'v': "sympy solveset 1 solve",  // sol[v]e
+    'V': "sympy solveset 2 solve",
+    'x': "sympy expand 1",
     'y': "sympy_series_expansion false",
     'Y': "sympy_series_expansion true"
   },
 
-  // [#][s] prefix: SymPy "simplification" commands; these change or rearrange
+  // [#][m] prefix: SymPy "manipulation" commands; these change or rearrange
   // the expression without changing the mathematical meaning.
-  sympy_simplify: {
+  sympy_manipulate: {
     'a': "sympy apart 1",
-    'e': "sympy expand 1",
-    'f': "sympy factor 1",
-    'l': "sympy logcombine 1",
-    'L': "sympy expand_log 1",
+    'b': "sympy expand_power_base 1",  // TODO: doesn't seem to work right on e.g. (xy)^a
+    'c': "sympy collect 2",
+    'f': "sympy expand_func 1",  // TODO: doesn't work for Gamma(x+3)
+    'g': "sympy expand_trig 1",
     'k': "sympy cancel 1",
-    's': "sympy simplify 1",
+    'l': "sympy expand_log 1",
+    'L': "sympy logcombine 1",  // TODO: same problem as expand_power_base
+    'p': "sympy expand_power_exp 1",
     't': "sympy together 1"
   },
 
-  // TODO: maybe 'sympy_ode' or 'sympy_diffeq' instead?
-  sympy_solve: {
+  // [#][q] prefix
+  sympy_diffeq: {
     'c': "sympy classify_ode 2",  // ??
     'd': "all_on_left true;sympy dsolve 2",
     'k': "sympy checkodesol 2"  // TODO: better keybinding

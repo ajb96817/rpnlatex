@@ -2411,8 +2411,8 @@ class InputContext {
     code = code.trim();
     let limit = 6;
     while(limit-- > 0) {
-      if(code.startsWith("$")) code = code.slice(1);
-      if(code.endsWith("$")) code = code.slice(0, code.length-1);
+      if(code.startsWith('$')) code = code.slice(1);
+      if(code.endsWith('$')) code = code.slice(0, code.length-1);
     }
     code = code.trim();  // to handle for example: "  $$  xyz  $$  "
     if(code.length === 0)

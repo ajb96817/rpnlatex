@@ -1237,7 +1237,8 @@ class InfixExpr extends Expr {
           this.operand_exprs.slice(0, -1),
           this.operator_exprs.slice(0, -1),
           this.split_at_index < new_operator_count ? this.split_at_index : 0,
-          this.linebreaks_at.filter(linebreak_at => linebreak_at < 2*new_operator_count));
+          this.linebreaks_at.filter(
+            linebreak_at => linebreak_at < 2*new_operator_count));
         if(new_value !== 0)
           new_expr = InfixExpr.add_exprs(
             new_expr, TextExpr.integer(new_value));

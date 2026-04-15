@@ -1625,9 +1625,13 @@
             <td><span class="k">F</span> <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code></td>
           </tr>
           <tr>
-            <td colspan="2">
+            <td>
               <span class="k">i</span> or <span class="k">&nbsp;</span>
               <code>x\enspace y \Rightarrow x\,dy</code>
+            </td>
+            <td>
+              <span class="k">/</span>
+              <code>x\enspace y \Rightarrow \displaystyle{\frac{dx}{y}}</code>
             </td>
           </tr>
       </tbody></table>
@@ -2375,8 +2379,10 @@
         will be initialized, so it may take a few seconds to get a result.  After that, operations
         should run at full speed.  These operations may potentially be time-consuming, so they
         are run in a background thread and results are displayed as they become available.
+
+        <!--
         Long-running computations may be cancelled via <span class="k">#</span><span class="k">x</span>
-        as long as (for technical reasons) the proper <a href="#">security measures</a> have been taken.
+        as long as (for technical reasons) the proper <a href="#">security measures</a> have been taken. -->
       </p>
       <p>
         Performing these symbolic operations comes with some caveats:
@@ -2410,61 +2416,40 @@
         the <a href="https://docs.sympy.org/">SymPy documentation</a>
         for full details.
       </p>
-      <p><strong>Symbolic Actions:</strong></p>
+
+      <h3>Expression Evaluation:</h3>
+      <p>
+        <span class="k">#</span><span class="k">#</span>
+        performs general <em>expression evaluation</em> through SymPy.
+        Arithmetic expressions such as <code>1+2 \Rightarrow 3</code>
+        and <code>\sqrt{16} \Rightarrow 4</code> will be evaluated, default simplifications
+        performed (such as combining like terms) and also a variety of math notation
+        will be interpreted:
+      </p>
+      <ul>
+        <li>Indefinite integrals: <code>\int x^2\,dx \Rightarrow x^3/3</code></li>
+        <li>Definite integrals: <code>\int_0^{\pi/3} \tan{x}\,dx \Rightarrow \ln{2}</code></li>
+        <li>Differentiation: <code>\frac{d}{dx} \sin{\omega x} \Rightarrow \omega\cos{\omega x}</code></li>
+        <li>Summation: <code>\sum_{k\ge1}\frac{1}{k^2} \Rightarrow \pi^2/6</code></li>
+        <li>Products: <code>\prod^2_{k=0}(x+k) \Rightarrow x(x+1)(x+2)</code></li>
+        <li>Limits: <code>\lim_{x\to 0} \frac{\sin x}{x} \Rightarrow 1</code>
+          <em>(not yet implemented)</em>
+        </li>
+        <!-- integral transforms, etc -->
+      </ul>
+
+      <h3>Common Symbolic Actions</h3>
       <ul class="keybindings">
         <li>
-          <span class="k">s</span>
-          <code>x\Rightarrow \mathtt{simplify(x)}</code>
+          <span class="k">=</span>
+          Try to numerically evaluate an expression:
+          <code>2\pi \Rightarrow \mathtt{evalf(2*pi)} \Rightarrow 6.28318530717959</code>
         </li>
         <li>
-          <span class="k">e</span>
-          <code>x\Rightarrow \mathtt{expand(x)}</code>:
-          <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
-        </li>
-        <li>
-          <span class="k">f</span>
-          <code>x\Rightarrow \mathtt{factor(x)}</code>:
-          <code>x^2-2x+1 \Rightarrow (x-1)^2</code>
-        </li>
-        <li>
-          <span class="k">k</span>
-          <code>x\Rightarrow \mathtt{cancel(x)}</code>
-        </li>
-        <li>
-          <span class="k">a</span>
-          <code>x\Rightarrow \mathtt{apart(x)}</code>
-        </li>
-        <li>
-          <span class="k">A</span>
-          <code>x\Rightarrow \mathtt{together(x)}</code>
-        </li>
-        <li>
-          <span class="k">l</span>
-          <code>x\Rightarrow \mathtt{logcombine(x)}</code>
-        </li>
-        <li>
-          <span class="k">L</span>
-          <code>x\Rightarrow \mathtt{expand\_log(x)}</code>
-        </li>
-        <li>
-          <span class="k">i</span>
-          <code>f\Rightarrow \mathtt{solve(f)}</code>
-          <em>(<strong>i</strong>solate variable)</em>
-        </li>
-        <li>
-          <span class="k">I</span>
-          <code>f\enspace x\Rightarrow \mathtt{solve(f,x)}</code>
-          <em>(variable specified explicitly)</em>
-        </li>
-        <li>
-          <span class="k">p</span>
-          <code>f\Rightarrow \mathtt{integrate(f)}</code>
-          <em>(<strong>p</strong>rimitive)</em>
-        </li>
-        <li>
-          <span class="k">P</span>
-          <code>f\enspace x\Rightarrow \mathtt{integrate(f,x)}</code>
-          <em>(integration variable specified)</em>
+          <span class="k">/</span>
+          Try to convert a floating-point value back into a rational value
+          (possibly with a factor of certain values like <code>\sqrt{3}</code>):
+          <code>6.28318530717959 \Rightarrow \mathtt{nsimplify(6.283\dots)} \Rightarrow 2\pi</code>
         </li>
         <li>
           <span class="k">d</span>
@@ -2476,31 +2461,118 @@
           <code>f\enspace x\Rightarrow \mathtt{diff(f,x)}</code>
           <em>(differentiation variable specified)</em>
         </li>
-      </ul>
-
-      <p><strong>Expression Evaluation:</strong></p>
-      <p>
-        <span class="k">#</span><span class="k">#</span>
-        performs general <em>expression evaluation</em>.
-        Arithmetic expressions such as <code>1+2 \Rightarrow 3</code>
-        and <code>\sqrt{16} \Rightarrow 4</code> will be evaluated, default simplifications
-        performed (such as combining like terms) and also a variety of math notation
-        will be interpreted:
-      </p>
-      <ul>
-        <li>Indefinite integrals: <code>\int x^2\,dx \Rightarrow x^3/3</code></li>
-        <li>Definite integrals: <code>\int_0^{\pi/3} \tan{x}\,dx \Rightarrow \ln{2}</code></li>
-        <li>Differentiation: <code>\frac{d}{dx} \sin{\omega x} \Rightarrow \omega\cos{\omega x}</code></li>
-        <li>Summation:</li>
-        <li>Products:</li>
-        <li>Limits:</li>
-        <li>Integral transforms:
-          <!-- <ul>
-            <li>Laplace:</li>
-          </ul> -->
+        <li>
+          <span class="k">f</span>
+          <code>x\Rightarrow \mathtt{factor(x)}</code>:
+          <code>x^2-2x+1 \Rightarrow (x-1)^2</code>
+        </li>
+        <li>
+          <span class="k">s</span>
+          <code>x\Rightarrow \mathtt{simplify(x)}</code>
+        </li>
+        <li>
+          <span class="k">v</span>
+          <code>x \Rightarrow \mathtt{solve(x)}</code>:
+          Try to solve for the variable in an expression:
+          <code>x^2 = 3 \Rightarrow \left\{- \sqrt{3}, \sqrt{3}\right\}</code>
+        </li>
+        <li>
+          <span class="k">V</span>
+          Like <span class="k">v</span>, but the variable to be solved for
+          is given explicitly:
+          <code>x^2=c \enspace c \Rightarrow
+            \left\{- \sqrt{c}, \sqrt{c}\right\}</code>
+        </li>
+        <li>
+          <span class="k">x</span>
+          <code>x\Rightarrow \mathtt{expand(x)}</code>:
+          <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
+        </li>
+        <li>
+          <span class="k">y</span>
+          Expand an expression in Taylor series, about <code>x=0</code>
+          and to order 6:
+          <code>\sin x \Rightarrow
+            x - \frac{x^{3}}{6} + \frac{x^{5}}{120} + O\left(x^{6}\right)
+          </code>
+        </li>
+        <li>
+          <span class="k">Y</span>
+          Like <span class="k">y</span>, but the variable to use for the series
+          expansion is given explicitly.  The variable can be given in the form
+          <code>x=123</code>, defaulting to zero if only <code>x</code> is specified.
+          A prefix argument can be used to override the default order of 6.
+          <code>
+            x^2\enspace x=1 \Rightarrow
+            2 x + \left(x - 1\right)^{2} - 1
+          </code>
         </li>
       </ul>
 
+      <h3>Expression Manipulation</h3>
+      <p>
+        The <span class="k">#</span><span class="k">m</span> <em>(<strong>m</strong>anipulate)</em>
+        subprefix gives access to less-commonly used symbolic manipulation
+        commands:
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="k">a</span>
+          <code>x\Rightarrow \mathtt{apart(x)}</code>
+        </li>
+        <li>
+          <span class="k">b</span>
+          <code>x\Rightarrow \mathtt{expand\_power\_base(x)}</code>
+        </li>
+        <li>
+          <span class="k">c</span>
+          <code>y\enspace x\Rightarrow \mathtt{collect(y, x)}</code>
+        </li>
+        <li>
+          <span class="k">f</span>
+          <code>x\Rightarrow \mathtt{expand\_func(x)}</code>
+        </li>
+        <li>
+          <span class="k">g</span>
+          <code>x\Rightarrow \mathtt{expand\_trig(x)}</code>
+        </li>
+        <li>
+          <span class="k">k</span>
+          <code>x\Rightarrow \mathtt{cancel(x)}</code>
+        </li>
+        <li>
+          <span class="k">l</span>
+          <code>x\Rightarrow \mathtt{expand\_log(x)}</code>
+        </li>
+        <li>
+          <span class="k">L</span>
+          <code>x\Rightarrow \mathtt{logcombine(x)}</code>
+        </li>
+        <li>
+          <span class="k">p</span>
+          <code>x\Rightarrow \mathtt{expand\_power\_exp(x)}</code>
+        </li>
+        <li>
+          <span class="k">t</span>
+          <code>x\Rightarrow \mathtt{together(x)}</code>
+        </li>
+      </ul>
+
+<!--  <h3>Differential Equations</h3>  -->      
+
+<!--      <h3>Integral Transforms</h3>
+      <p>
+        The <span class="k">#</span><span class="k">t</span> <em>(<strong>t</strong>ransform)</em>
+        subprefix covers various integral transforms:
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="k">c</span>
+          <code>
+
+            -->
+
+      
       <!-- <p><strong>Matrix Operations:</strong></p>
       <p>
       </p> -->
