@@ -1238,11 +1238,11 @@
           <tr>
             <td>
               <span class="k">l</span>
-              <code>x \Rightarrow \lim\limits_x</code>
+              <code>x \Rightarrow \displaystyle{\lim_x}</code>
             </td>
             <td>
               <span class="k">L</span>
-              <code>x\enspace y \Rightarrow \lim\limits_{x\to y}</code>
+              <code>x\enspace y \Rightarrow \displaystyle{\lim_{x\to y}}</code>
             </td>
           </tr>
           <tr>
@@ -1310,7 +1310,7 @@
       </ul>
       <p>
         Using <span class="k">-</span> or <span class="k">h</span> or
-        <span class="k">2</span> before the other trigonometric commands
+        <span class="k">2</span> right before these trigonometric commands
         gives inverse, hyperbolic, and squared forms of the functions, respectively:
       </p>
       <ul class="keybindings">
@@ -1344,11 +1344,15 @@
       </ul>
       <p>
         <strong>NOTE:</strong>
-        These commands should be used instead of simply concatenating the function name to
-        its (parenthesized) argument(s) with <span class="k">&nbsp;</span>.
-        The spacing is tighter to match normal function notation.
+        These function application commands should be used instead of simply concatenating
+        the function name to its (parenthesized) argument(s) with <span class="k">&nbsp;</span>.
+        This will cause it to be treated as a &quot;function call&quot; internally so that
+        the spacing is tighter to match normal function notation.
         Compare: <code>f{\left(x\right)}</code> vs. <code>f\left(x\right)</code>.
-        Other function call types can be created by first building an argument list such as
+        Also, some operations such as adding a prime with
+        <span class="k">.</span><span class="k">&#39;</span> will then yield
+        <code>f'{\left(x\right)}</code> vs. <code>(f\left(x\right))'</code> otherwise.
+        Other function call types can be created by first building an argument list like
         <code>x,y\,|\,z,w</code> and then applying to <code>f</code> with
         <span class="k">/</span><span class="k">o</span>.
       </p>
@@ -1461,6 +1465,12 @@
           on the stack in row-major order.
         </li>
         <li>
+          <span class="k">&lt;</span> or <span class="k">&gt;</span>
+          Extract the left or right side of an infix or relational expression.
+          The split will be based on the operator most recently used to create the infix
+          expression.  For fractions, the numerator or denominator is extracted.
+        </li>
+        <li>
           <span class="k">|</span> <code>x\enspace y \Rightarrow \left.x\right\vert_{y}</code>
           &nbsp;&nbsp;&quot;Where&quot; notation, for example:
           <code>\left.\frac{1}{\sqrt{1-x^2}}\right\vert_{x=1/2}</code>
@@ -1473,12 +1483,6 @@
         <li>
           <span class="k">Enter</span> <code>x\enspace y\enspace z \Rightarrow x_y^z</code>
           (shortcut for adding a subscript and superscript at once)
-        </li>
-        <li>
-          <span class="k">&lt;</span> or <span class="k">&gt;</span>
-          Extract the left or right side of an infix or relational expression.
-          The split will be based on the operator most recently used to create the infix
-          expression.  For fractions, the numerator or denominator is extracted.
         </li>
         <li>
           <span class="k">!</span>
@@ -2417,7 +2421,7 @@
         for full details.
       </p>
 
-      <h3>Expression Evaluation:</h3>
+      <p><strong>Expression Evaluation:</strong></p>
       <p>
         <span class="k">#</span><span class="k">#</span>
         performs general <em>expression evaluation</em> through SymPy.
@@ -2432,13 +2436,11 @@
         <li>Differentiation: <code>\frac{d}{dx} \sin{\omega x} \Rightarrow \omega\cos{\omega x}</code></li>
         <li>Summation: <code>\sum_{k\ge1}\frac{1}{k^2} \Rightarrow \pi^2/6</code></li>
         <li>Products: <code>\prod^2_{k=0}(x+k) \Rightarrow x(x+1)(x+2)</code></li>
-        <li>Limits: <code>\lim_{x\to 0} \frac{\sin x}{x} \Rightarrow 1</code>
-          <em>(not yet implemented)</em>
-        </li>
+        <li>Limits: <code>\lim_{x\to 0} \frac{\sin x}{x} \Rightarrow 1</code></li>
         <!-- integral transforms, etc -->
       </ul>
 
-      <h3>Common Symbolic Actions</h3>
+      <p><strong>Common Symbolic Actions:</strong></p>
       <ul class="keybindings">
         <li>
           <span class="k">=</span>
@@ -2448,7 +2450,7 @@
         <li>
           <span class="k">/</span>
           Try to convert a floating-point value back into a rational value
-          (possibly with a factor of certain values like <code>\sqrt{3}</code>):
+          (possibly up to a factor of certain values like <code>\sqrt{3}</code>):
           <code>6.28318530717959 \Rightarrow \mathtt{nsimplify(6.283\dots)} \Rightarrow 2\pi</code>
         </li>
         <li>
@@ -2509,7 +2511,7 @@
         </li>
       </ul>
 
-      <h3>Expression Manipulation</h3>
+      <p><strong>Expression Manipulation:</strong></p>
       <p>
         The <span class="k">#</span><span class="k">m</span> <em>(<strong>m</strong>anipulate)</em>
         subprefix gives access to less-commonly used symbolic manipulation

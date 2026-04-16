@@ -578,8 +578,8 @@ const keybinding_table = {
     // 'J': "push i;swap;concat;named_function exp",  // x -> exp(ix) (undocumented)
     'k': "infix \\,\\vert\\,;parenthesize;function_call",  // f x y -> f(x|y)
     'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;function_call",  // f x y z -> f(x,y|z)
-    'l': "push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{x}
-    'L': "infix \\to;push \\limits;swap;subscript;push \\lim;swap;concat",  // lim_{y \to x}
+    'l': "push \\lim;swap;subscript",  // lim_{x}
+    'L': "infix \\to;push \\lim;swap;subscript",  // lim_{y \to x}
     'm': "parenthesize_argument;push Im;swap;operator operatorname 2",  // Im(x)
     'M': "parenthesize_argument;push Re;swap;operator operatorname 2",  // Re(x)
     'n': "named_function ln",

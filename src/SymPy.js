@@ -508,6 +508,13 @@ class ExprToSymPy {
     return new SymPyConstant(value.toString());
   }
 
+  // TODO: Should do proper string escaping, but this is only used in
+  // some special cases to pass constant strings like '+'.
+  string(value) {
+    const quoted = ["'", value, "'"].join('');
+    return new SymPyConstant(quoted, true /* raw */);
+  }
+
   srepr(srepr_string) {
     return this.add_assignment(
       new SymPySRepr(srepr_string));
@@ -1548,10 +1555,8 @@ class SumOrProductAnalyzer extends Analyzer {
     // Get the "argument" to the sum/product operator.
     let summand_exprs = [];
     while(index < stop_index &&
-          exprs[index].is_term_expr(index === start_index+1)) {
-      summand_exprs.push(exprs[index]);
-      index++;
-    }
+          exprs[index].is_term_expr(index === start_index+1))
+      summand_exprs.push(exprs[index++]);
     if(summand_exprs.length === 0)
       return this.failure(
         'No valid expression to right of ' + operator_info.operator_type,
@@ -1657,6 +1662,111 @@ class SumOrProductAnalyzer extends Analyzer {
 }
 
 
+// Handle limit notation.  The expression(s) after the \lim command
+// must be a sequence of "terms" in the same sense as used for \sum and
+// related commands.
+//   \lim_{x\to 0} term
+//   \lim_{x\to \infty} term
+//   \lim_{x\to 0^{+}} term  (limit from the right; {-} for left)
+//   \lim_{x\to 0+} term (alternate notation for directional limits)
+// NOTE: In LaTeX one way to express limits is: \lim\limits_{x=0}...
+// but that case is not handled here (it could be).  Instead, we make
+// sure to only create it with the {x=0} part directly as a subscript of \lim.
+class LimitAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    let index = start_index;
+    const limit_info = this.analyze_limit(exprs[index]);
+    if(!limit_info)
+      return this.no_match();
+    // TODO: check for "malformed" \lim expressions and return failure
+    index++;
+    // Collect the terms after the \lim command.
+    // TODO: Same logic as in SumOrProductAnalyzer; refactor.
+    let term_exprs = [];
+    while(index < stop_index &&
+          exprs[index].is_term_expr(index === start_index+1))
+      term_exprs.push(exprs[index++]);
+    if(term_exprs.length === 0)
+      return this.failure(
+        'No valid expression to right of lim', index);
+    const command_node = this.build_limit_command(
+      term_exprs, limit_info.variable_expr,
+      limit_info.limit_value_expr, limit_info.direction);
+    return this.success(command_node, index);
+  }
+
+  build_limit_command(term_exprs, variable_expr,
+                      limit_value_expr, direction) {
+    const term_nodes = term_exprs.
+          map(term_expr => this.emitter.emit_expr(term_expr));
+    const limit_expr_node = term_nodes.length > 1 ?
+          this.emitter.fncall('Mul', term_nodes) :
+          term_nodes[0];
+    return this.emitter.fncall(
+      'limit', [
+        limit_expr_node,
+        this.emitter.emit_expr(variable_expr),
+        this.emitter.emit_expr(limit_value_expr),
+        this.emitter.string(direction)]);
+  }
+
+  // Check for \lim_{...} and extract the variable, limit value,
+  // and optional limit direction (+ or -).
+  analyze_limit(expr) {
+    // Must have \lim_{...} with no superscript on the \lim.
+    if(!(expr.is_subscriptsuperscript_expr() &&
+         expr.subscript_expr && !expr.superscript_expr &&
+         expr.base_expr.is_command_expr_with(0, 'lim')))
+      return null;
+    const limit_expr = expr.subscript_expr;
+    // Limit "spec" must be a binary infix expression with \to as
+    // the operator, i.e. x \to 0.
+    // TODO: This prevents things like x->y+1 (which is a 3-operand
+    // InfixExpr).  May want to handle this case.
+    if(!(limit_expr.is_infix_expr() && limit_expr.operand_count() === 2))
+      return null;
+    const [variable_expr, to_expr, val_expr] = [
+      limit_expr.operand_exprs[0],
+      limit_expr.operator_exprs[0],
+      limit_expr.operand_exprs[1]];
+    if(!to_expr.is_command_expr_with(0, 'to'))
+      return null;  // TODO: could allow other arrow types here
+    const variable_name = expr_to_variable_name(variable_expr);
+    if(!variable_name)
+      return null;  // limit variable must be expressible to SymPy
+    let [limit_value_expr, direction] =
+        this.analyze_limit_value(val_expr);
+    return {
+      variable_expr, variable_name,
+      limit_value_expr, direction
+    };
+  }
+
+  // Look at the '0+' part in x->0+.  We can have:
+  //   - normal expression
+  //   - value^{+ or -}
+  //   - PostfixExpr(value, + or -)
+  // TODO: also allow [val, '+' or '-'] concatenated sequence
+  analyze_limit_value(expr) {
+    let limit_value_expr = expr, direction = '+';
+    if(expr.is_subscriptsuperscript_expr() &&
+       expr.superscript_expr && !expr.subscript_expr &&
+       ['+', '-'].some(dir_string =>
+         expr.superscript_expr.is_text_expr_with(dir_string))) {
+      limit_value_expr = val_expr.base_expr;
+      direction = val_expr.superscript_expr.is_text_expr_with('+') ? '+' : '-';
+    }
+    else if(expr.is_postfix_expr() &&
+            ['+', '-'].some(dir_string =>
+              expr.operator_expr.is_text_expr_with(dir_string))) {
+      limit_value_expr = val_expr.base_expr;
+      direction = val_expr.operator_expr.is_text_expr_with('+') ? '+' : '-';
+    }
+    return [limit_value_expr, direction];
+  }
+}
+
+
 const analyzer_table = {
   // CommandExprs try these analyzers with themselves as the
   // expression list (as if they were single-element SequenceExprs).
@@ -1674,6 +1784,7 @@ const analyzer_table = {
     IntegralAnalyzer,
     DerivativeAnalyzer,
     SumOrProductAnalyzer,
+    LimitAnalyzer,
     // CommandAnalyzer needs to come after the others so that they have
     // a chance to examine \frac{dy}{dx}, \sum ..., etc.
     CommandAnalyzer,
