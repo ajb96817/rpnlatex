@@ -1295,6 +1295,8 @@ const keybinding_table = {
     'D': "sympy diff 2 differentiate",
     'f': "sympy factor 1",
     'm': "mode sympy_manipulate",
+    'p': "sympy integrate 1",
+    'P': "sympy integrate 2",
     'q': "mode sympy_diffeq",
     's': "sympy simplify 1",
     't': "mode sympy_transform",
