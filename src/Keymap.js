@@ -1322,11 +1322,18 @@ const keybinding_table = {
     't': "sympy together 1"
   },
 
-  // [#][q] prefix
+  // [#][q] prefix: differential equation commands
   sympy_diffeq: {
-    'c': "sympy classify_ode 2",  // ??
-    'd': "all_on_left true;sympy dsolve 2",
-    'k': "sympy checkodesol 2"  // TODO: better keybinding
+    'c': "sympy classify_ode 1",
+    'C': "sympy classify_ode 2",
+    'z': "sympy classify_pde 1",  // TODO: better keybinding
+    'Z': "sympy classify_pde 2",
+    'k': "sympy checkodesol 2",  // TODO: better keybinding
+    'K': "sympy checkodesol 3",  // TODO: also checkpdesol
+    'p': "sympy pdsolve 1",
+    'P': "sympy pdsolve 2",
+    's': "all_on_left true;sympy dsolve 1",
+    'S': "all_on_left true;sympy dsolve 2"
   },
 
   // [#][t] prefix: SymPy integral transforms
