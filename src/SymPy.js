@@ -42,7 +42,8 @@ const allowed_unary_sympy_functions = new Set([
   'asin', 'acos', 'atan', 'asec', 'acsc', 'acot',
   'asinh', 'acohs', 'atanh', 'asech', 'acsch', 'acoth',
 
-  'det', 'trace', 're', 'im', 'log', 'log2', 'log10'
+  'det', 'trace', 're', 'im',
+  'exp', 'log', 'log2', 'log10'
 ]);
 
 // Maps between LaTeX commands and SymPy relation "classes".
@@ -839,10 +840,31 @@ class Analyzer {
     return this.emitter.error(error_message);
   }
 
-  multiply_all(term_nodes) {
-    if(term_nodes.length === 1)
-      return term_nodes[0];
-    else return this.emitter.fncall('Mul', term_nodes);
+  // Scan for one or more consecutive "term" expressions within 'exprs'
+  // starting at start_index.  This is something like [x, sin(x)] that
+  // can be used as an argument to things like summation or differentiation
+  // expressions.
+  // The SymPyNode representing the product of the consecutive terms is
+  // returned (null if there is no valid term at start_index), along with
+  // the updated index pointing directly after the last scanned term.
+  scan_implicit_product(exprs, start_index, stop_index) {
+    let index = start_index, term_exprs = [];
+    while(index < stop_index &&
+          exprs[index].is_term_expr(index === start_index))
+      term_exprs.push(exprs[index++]);
+    const result_node =
+          term_exprs.length === 0 ? null :
+          this.multiply_all_exprs(term_exprs);
+    return [result_node, index];
+  }
+
+  // Emit and multiply together all 'exprs', returning a SymPyNode.
+  // 'exprs' must be nonempty.
+  multiply_all_exprs(exprs) {
+    const nodes = exprs.map(expr => this.emitter.emit_expr(expr));
+    return nodes.length === 1 ?
+      nodes[0] :
+      this.emitter.fncall('Mul', nodes);
   }
 }
 
@@ -851,10 +873,10 @@ class Analyzer {
 // This is the default if no other rule matches in a SequenceExpr.
 class ImplicitProductAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
-    if(exprs[start_index].is_term_expr(start_index === 0))
-      return this.success(
-        this.emitter.emit_expr(exprs[start_index]),
-        start_index+1);
+    const [product_node, new_index] =
+          this.scan_implicit_product(exprs, start_index, stop_index);
+    if(product_node)
+      return this.success(product_node, new_index);
     else
       return this.failure(
         'Term not allowed in an implicit product',
@@ -941,14 +963,13 @@ class IntegralAnalyzer extends Analyzer {
         // Implicit '1' integrand, as in '\int dx'.
         integrand_terms.push(TextExpr.integer(1));
       }
-      // Multiply all integrand terms together.
-      const integrand_term_nodes = integrand_terms
-            .map(term_expr => this.emitter.emit_expr(term_expr));
-      const integrand_node = this.multiply_all(integrand_term_nodes);
-      // Build integrate() SymPy calls from the "inside out".
+      // NOTE: For iterated integrals, the SymPy integrate calls are built
+      // from the "inside out":
+      //   \iint xy dx dy  =>  integrate(integrate(x*y, x), y)
       const integrate_command_node =
             this.build_integrate_command(
-              integrand_node, integral_limit_exprs, dx_exprs);
+              this.multiply_all_exprs(integrand_terms),
+              integral_limit_exprs, dx_exprs);
       return this.success(integrate_command_node, stopped_at_index);
     }
     else {
@@ -1172,31 +1193,36 @@ class DerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     let index = start_index;
     const derivative_info = this
-          .analyze_derivative_operator(exprs[index++]);
+          .analyze_derivative_operator(exprs[index]);
     if(!derivative_info)
       return this.no_match();
+    index++;
     const [f_expr, differentials_info] = derivative_info;
-    // If we got a f_expr from 'df/dx', that's the expression to be
-    // differentiated.  Otherwise, we take 1 term from the rest of the
-    // sequence.  In the future, this could be expanded to multiple
-    // terms to support things like (d/dx) x \sin x.  For now it has to
-    // be parenthesized.
-    let diff_expr = null;
+    // If we got a f_expr from 'df/dx', f is the expression to be
+    // differentiated.  Otherwise, take 1 or more terms from the rest
+    // of the sequence, e.g.: (d/dx) x sin(x)
+    let diff_expr_node = null;
     if(f_expr)
-      diff_expr = f_expr;
-    else if(index < stop_index)
-      diff_expr = exprs[index++];
+      diff_expr_node = this.emitter.emit_expr(f_expr);
     else {
-      // e.g. d/dx without anything after it.
-      // This could technically be interpreted as a fraction
-      // (simplifying to 1/x) but it's much more likely to be
-      // an error.
-      return this.failure(
-        'Expected expression after differentiation operator',
-        index);
+      // Collect one or more terms after the 'd/dx'.
+      // This allows things like 'd/dx x sin(x)' which is a little
+      // ambiguous notationwise ('d/dx (x sin(x))' would be better).
+      // 'd/dx x sin(x) + x' is interpreted as '(d/dx x sin(x)) + x'.
+      [diff_expr_node, index] =
+            this.scan_implicit_product(exprs, index, stop_index);
+      if(diff_expr_node === null) {
+        // e.g. d/dx without anything after it.
+        // This could technically be interpreted as a fraction
+        // (simplifying to 1/x) but it's much more likely to be
+        // an error.
+        return this.failure(
+          'Expected expression after differentiation operator',
+          index);
+      }
     }
-    // Build the diff(diff_expr, x, y, z) call.
-    const diff_args = differentials_info.map(info => {
+    // Gather the differentiated variable(s) argument nodes.
+    const diff_arg_nodes = differentials_info.map(info => {
       const variable_node = this.emitter.emit_expr(info.variable_expr);
       if(info.degree_expr.is_text_expr_with('1'))
         return variable_node;  // diff(f, x)
@@ -1204,9 +1230,9 @@ class DerivativeAnalyzer extends Analyzer {
         return this.emitter.tuple(  // diff(f, (x, n))
           [variable_node, this.emitter.emit_expr(info.degree_expr)]);
     });
-    const diff_expr_node = this.emitter.emit_expr(diff_expr);
+    // Build the diff(diff_expr, x, y, z) call.
     const diff_command_node = this.emitter.fncall(
-      'diff', [diff_expr_node].concat(diff_args));
+      'diff', [diff_expr_node, ...diff_arg_nodes]);
     return this.success(diff_command_node, index);
   }
 
@@ -1552,24 +1578,19 @@ class SumOrProductAnalyzer extends Analyzer {
     if(operator_info.error_message)
       return this.failure(operator_info.error_message, index);
     index++;
-    // Get the "argument" to the sum/product operator.
-    let summand_exprs = [];
-    while(index < stop_index &&
-          exprs[index].is_term_expr(index === start_index+1))
-      summand_exprs.push(exprs[index++]);
-    if(summand_exprs.length === 0)
+    // Get the "argument" to the sum/product operator (one or more terms).
+    const [summand_node, new_index] =
+          this.scan_implicit_product(exprs, index, stop_index);
+    if(summand_node) {
+      const command_node = this.build_summation_command(
+        summand_node, operator_info.operator_type, operator_info.variable_expr,
+        operator_info.lower_limit_expr, operator_info.upper_limit_expr);
+      return this.success(command_node, new_index);
+    }
+    else 
       return this.failure(
         'No valid expression to right of ' + operator_info.operator_type,
         index);
-    const summand_term_nodes = summand_exprs
-          .map(term_expr => this.emitter.emit_expr(term_expr));
-    const summand_node = summand_term_nodes.length > 1 ?
-          this.emitter.fncall('Mul', summand_term_nodes) :
-          summand_term_nodes[0];
-    const command_node = this.build_summation_command(
-      summand_node, operator_info.operator_type, operator_info.variable_expr,
-      operator_info.lower_limit_expr, operator_info.upper_limit_expr);
-    return this.success(command_node, index);
   }
 
   build_summation_command(summand_node, command_name, variable_expr,
@@ -1665,13 +1686,14 @@ class SumOrProductAnalyzer extends Analyzer {
 // Handle limit notation.  The expression(s) after the \lim command
 // must be a sequence of "terms" in the same sense as used for \sum and
 // related commands.
-//   \lim_{x\to 0} term
-//   \lim_{x\to \infty} term
-//   \lim_{x\to 0^{+}} term  (limit from the right; {-} for left)
-//   \lim_{x\to 0+} term (alternate notation for directional limits)
+//   \lim_{x\to 0} terms
+//   \lim_{x\to \infty} terms
+//   \lim_{x\to 0^{+}} terms (limit from the right; {-} for left)
+//   \lim_{x\to 0+} terms (alternate notation for directional limits)
 // NOTE: In LaTeX one way to express limits is: \lim\limits_{x=0}...
 // but that case is not handled here (it could be).  Instead, we make
-// sure to only create it with the {x=0} part directly as a subscript of \lim.
+// sure to only create it with the {x=0} part directly as a subscript
+// of \lim (and not use \limits).
 class LimitAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     let index = start_index;
@@ -1680,34 +1702,20 @@ class LimitAnalyzer extends Analyzer {
       return this.no_match();
     // TODO: check for "malformed" \lim expressions and return failure
     index++;
-    // Collect the terms after the \lim command.
-    // TODO: Same logic as in SumOrProductAnalyzer; refactor.
-    let term_exprs = [];
-    while(index < stop_index &&
-          exprs[index].is_term_expr(index === start_index+1))
-      term_exprs.push(exprs[index++]);
-    if(term_exprs.length === 0)
-      return this.failure(
-        'No valid expression to right of lim', index);
-    const command_node = this.build_limit_command(
-      term_exprs, limit_info.variable_expr,
-      limit_info.limit_value_expr, limit_info.direction);
-    return this.success(command_node, index);
-  }
-
-  build_limit_command(term_exprs, variable_expr,
-                      limit_value_expr, direction) {
-    const term_nodes = term_exprs.
-          map(term_expr => this.emitter.emit_expr(term_expr));
-    const limit_expr_node = term_nodes.length > 1 ?
-          this.emitter.fncall('Mul', term_nodes) :
-          term_nodes[0];
-    return this.emitter.fncall(
-      'limit', [
-        limit_expr_node,
-        this.emitter.emit_expr(variable_expr),
-        this.emitter.emit_expr(limit_value_expr),
-        this.emitter.string(direction)]);
+    // Collect the term(s) after the \lim command.
+    const [limit_node, new_index] =
+          this.scan_implicit_product(exprs, index, stop_index);
+    if(limit_node) {
+      const command_node = this.emitter.fncall(
+        'limit', [
+          limit_node,
+          this.emitter.emit_expr(limit_info.variable_expr),
+          this.emitter.emit_expr(limit_info.limit_value_expr),
+          this.emitter.string(limit_info.direction)]);
+      return this.success(command_node, index);
+    }
+    else return this.failure(
+      'No valid expression to right of lim', index);
   }
 
   // Check for \lim_{...} and extract the variable, limit value,
