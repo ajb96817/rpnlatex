@@ -451,10 +451,13 @@ class LatexEmitter {
 
 // Overall app state, holding the stack and document.
 class AppState {
-  constructor(stack, document) {
-    this.stack = stack || this._default_stack();
+  // properties: table of generic key->string properties
+  //   (things like author, description)
+  constructor(stack, document, properties = {}) {
+    this.stack = stack ?? this._default_stack();
     this.document = document || new Document();
     this.is_dirty = false;
+    this.properties = properties ?? {};
   }
 
   _default_stack() {
@@ -476,7 +479,7 @@ class AppState {
     const [new_document, document_modified] =
           this.document.resolve_pending_item(command_id, new_item_fn);
     if(stack_modified || document_modified)
-      return [new AppState(new_stack, new_document), true];
+      return [new AppState(new_stack, new_document, this.properties), true];
     else return [this, false];
   }
   
@@ -2099,7 +2102,8 @@ class MsgpackEncoder {
       1,  // version code
       'rpnlatex',  // magic identifier
       this.pack_stack(app_state.stack),
-      this.pack_document(app_state.document)];
+      this.pack_document(app_state.document),
+      app_state.properties];
   }
   pack_stack(stack) {
     return [
@@ -2310,12 +2314,13 @@ class MsgpackDecoder {
 
   error(msg) { throw new Error(msg); }
 
-  unpack_app_state([version_code, magic, stack_state, document_state]) {
+  unpack_app_state([version_code, magic, stack_state, document_state, properties]) {
     if(version_code !== 1) this.error("Unsupported version code: " + version_code);
     if(magic !== 'rpnlatex') this.error("Invalid magic identifier");
     return new AppState(
       this.unpack_stack(stack_state),
-      this.unpack_document(document_state));
+      this.unpack_document(document_state),
+      properties);
   }
   unpack_stack([floating_item_states, item_states]) {
     if(!Array.isArray(floating_item_states)) {

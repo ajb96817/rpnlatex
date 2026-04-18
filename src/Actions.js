@@ -100,8 +100,8 @@ class InputContext {
         const new_stack = (handler_function.bind(this))(app_state.stack, ...parameters);
         let new_app_state = new AppState(
           new_stack || app_state.stack,
-          this.new_document || app_state.document
-        );
+          this.new_document || app_state.document,
+          app_state.properties);
         // Mark app state as 'dirty' (unsaved changed) if anything changed, but not if
         // suppress_undo() has been called, which indicates a minor action like changing
         // the document selection.
