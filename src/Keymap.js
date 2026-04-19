@@ -1288,6 +1288,7 @@ const keybinding_table = {
     '[digit]': "prefix_argument",
     '#': "sympy sympify 1 evaluate",
     '=': "sympy N 1 evalf",  // numeric eval
+    '@': "export_stack_item_as_sympy",
     '/': "sympy nsimplify 1",  // convert float to "fraction"
     '|': "sympy substitute 3",
     // 'a': "sympy_assumptions",  // TODO

@@ -2588,6 +2588,19 @@
       <!-- <p><strong>Matrix Operations:</strong></p>
       <p>
       </p> -->
+
+      <p><strong>SymPy Utilities:</strong></p>
+      <ul class="keybindings">
+        <li>
+          <span class="k">@</span>
+          Export an expression as Python code, copying it to the system clipboard.
+          If you then open a Python REPL and paste the generated code, you will get a Python function named
+          <kbd>build_expr()</kbd> that can be called to generate a SymPy object corresponding
+          to the exported expression.  (You need to make sure SymPy is installed in your Python environment first
+          via <kbd>pip3 install sympy</kbd>.)  This code is the same code that the editor passes to Pyodide
+          internally to implement the symbolic algebra functions here.
+        </li>
+      </ul>
           
       <h2 id="help_greek">
         <span class="k">;</span>&nbsp;<span class="k">:</span> Greek Letters

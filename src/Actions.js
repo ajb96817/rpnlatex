@@ -18,6 +18,12 @@ import {
 import {
   AlgebriteInterface, double_to_expr
 } from './CAS';
+import {
+  PyodideInterface, ExprToSymPy
+} from './SymPy';
+import {
+  pyodide_initcode_string
+} from './PyodideWorker';
 
 
 // This acts as a sort of extension to the main App component.
@@ -2510,6 +2516,20 @@ class InputContext {
       (items.length === 1 ? "" : "s"),
       " to clipboard"].join(''));
     this.suppress_undo();
+  }
+
+  // Convert stack top expr into Python/SymPy source code for generating the
+  // corresponding expr in SymPy, and copy it to the system clipboard.
+  do_export_stack_item_as_sympy(stack) {
+    const [, expr] = stack.pop_exprs(1);
+    const exported_text = [
+      pyodide_initcode_string,
+      ExprToSymPy.expr_to_code(expr, 'build_expr')
+    ].join("\n");
+    navigator.clipboard.writeText(exported_text);
+    this.notify('Copied SymPy code to clipboard');
+    this.suppress_undo();
+    return stack;
   }
 }
 

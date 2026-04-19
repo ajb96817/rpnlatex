@@ -547,7 +547,7 @@ class ExprToSymPy {
   }
 
   add_assignment(value_node) {
-    const subexpr_node = new SymPySubexpression(this.subexpression_count++);
+    const subexpr_node = new SymPySubexpression(++this.subexpression_count);
     const assignment_node = new SymPyAssignment(subexpr_node, value_node);
     this.assignment_list.push(assignment_node);
     return subexpr_node;
@@ -1811,5 +1811,5 @@ class SymPyToExpr {
 }
 
 
-export { PyodideInterface };
+export { PyodideInterface, ExprToSymPy };
 
