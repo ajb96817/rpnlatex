@@ -2569,6 +2569,58 @@
           <code>x\Rightarrow \mathtt{together(x)}</code>
         </li>
       </ul>
+      
+      <p><strong>Expression Querying:</strong></p>
+      <p>
+        The <span class="k">#</span><span class="k">?</span> subprefix
+        has commands for answering questions about various mathematical
+        properties of an expression:
+      </p>
+      <ul class="keybindings">
+        <!-- <li>
+          <span class="k">a</span>
+          <code>x\Rightarrow \mathtt{assumptions(x)}</code>
+          Get a table of SymPy &quot;assumptions&quot; about the expression <code>x</code>
+        </li> -->
+        <!-- <li>
+          <span class="k">d</span>
+          <code>x n\Rightarrow \mathtt{dominant(x, n)}</code>
+          Find the dominant term in a sum <code>x</code>, with variable <code>n</code>.
+        </li> -->
+        <li>
+          <span class="k">s</span>
+          <code>f(x) x\Rightarrow \mathtt{singularities(f(x), x)}</code>
+          Find singularities/poles of <code>f(x)</code>.
+        </li>
+        <li>
+          <span class="k">S</span>
+          <code>f(x) x\Rightarrow \mathtt{stationary\_points(f(x), x)}</code>
+          Find stationary points of <code>f(x)</code>
+          (where <code>f'(x)=0</code>).
+        </li>
+        <li>
+          <span class="k">c</span>
+          <code>f(x)\enspace x\Rightarrow \mathtt{is\?_convex(f(x), x)}</code>
+          Check convexity of <code>f(x)</code>
+        </li>
+        <li>
+          <span class="k">m</span>
+          <code>f(x)\enspace x\Rightarrow \mathtt{maximum(f(x), x)}</code>
+          Find the maximum of <code>f(x)</code> over the reals.
+        </li>
+        <li>
+          <span class="k">M</span>
+          <code>f(x)\enspace x\Rightarrow \mathtt{minimum(f(x), x)}</code>
+          Find the minimum of <code>f(x)</code> over the reals.
+        </li>
+        <li>
+          <span class="k">p</span>
+          <code>f(x)\enspace x\Rightarrow \mathtt{periodicity(f(x), x)}</code>
+          Try to find the period of <code>f(x)</code>
+          (e.g. <code>\sin x \Rightarrow 2\pi</code>).
+        </li>
+        
+      </ul>
 
 <!--  <h3>Differential Equations</h3>  -->      
 

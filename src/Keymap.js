@@ -1289,9 +1289,9 @@ const keybinding_table = {
     '#': "sympy sympify 1 evaluate",
     '=': "sympy N 1 evalf",  // numeric eval
     '@': "export_stack_item_as_sympy",
+    '?': "mode sympy_query",
     '/': "sympy nsimplify 1",  // convert float to "fraction"
     '|': "sympy substitute 3",
-    // 'a': "sympy_assumptions",  // TODO
     'd': "sympy diff 1 differentiate",
     'D': "sympy diff 2 differentiate",
     'f': "sympy factor 1",
@@ -1306,6 +1306,17 @@ const keybinding_table = {
     'x': "sympy expand 1",
     'y': "sympy_series_expansion false",
     'Y': "sympy_series_expansion true"
+  },
+
+  // [#][?] prefix: SymPy commands for querying properties of an expression
+  sympy_query: {
+    //'a': "sympy assumptions 1",  // TODO: this seems to have changed in sympy 1.15
+    //'d': "sympy dominant 2",  // TODO: need to import sympy.series.limitseq.dominant
+    'm': "sympy maximum 2",
+    'M': "sympy minimum 2",
+    'p': "sympy periodicity 2",
+    's': "sympy singularities 2",
+    'S': "sympy stationary_points 2"
   },
 
   // [#][m] prefix: SymPy "manipulation" commands; these change or rearrange
