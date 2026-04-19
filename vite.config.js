@@ -3,7 +3,6 @@ import { defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import mkcert from 'vite-plugin-mkcert';  // enable HTTPS in development mode
 import react from '@vitejs/plugin-react';
 
 const PYODIDE_EXCLUDE = [
@@ -27,7 +26,7 @@ export function viteStaticCopyPyodide() {
 
 export default defineConfig({
   optimizeDeps: { exclude: ['pyodide'] },
-  plugins: [react(), mkcert(), viteStaticCopyPyodide()],
+  plugins: [react(), viteStaticCopyPyodide()],
   base: './',
   worker: {
     format: 'es'  // needed for pyodide (instead of 'iife' default) (TODO: revisit)
@@ -36,12 +35,13 @@ export default defineConfig({
     outDir: 'build'
   },
   server: {
-    port: 3000,
-    headers: {
-      // Enable cross-origin isolation so that SharedArrayBuffer
-      // can be used to communicate with the Pyodide worker.
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'credentialless'
-    }
+    port: 3000
+    
+    // headers: {
+    //   // Enable cross-origin isolation so that SharedArrayBuffer
+    //   // can be used to communicate with the Pyodide worker.
+    //   'Cross-Origin-Opener-Policy': 'same-origin',
+    //   'Cross-Origin-Embedder-Policy': 'credentialless'
+    // }
   }
 })
