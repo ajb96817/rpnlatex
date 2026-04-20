@@ -7,9 +7,6 @@ import {
   ArrayExpr, PlaceholderExpr, SubscriptSuperscriptExpr,
   SymPyExpr
 } from './Exprs';
-import {
-  ExprItem, SymPyItem
-} from './Models';
 
 
 // Translations between internal command names and SymPy functions.
@@ -195,9 +192,37 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 }
 
 
+// Manages the current Pyodide/SymPy execution state.
+// This creates and communicates with a PyodideWorker background process
+// and handles messages to and from it.
+//
+// Asynchronous changes to the Pyodide state can be tracked by setting
+// the onStateChange callback in this interface.
+//
+// "Commands" to be sent to SymPy are packaged into a SymPyCommand object
+// (containing the Python function name, the Expr arguments to it, etc.)
+// and the last submitted/completed/errored command is kept in this.sympy_command.
+//
+// The 'state' field here can:
+//   - 'uninitialized': No PyodideWorker (web worker) created (yet).
+//   - 'loading': PyodideWorker is created, Pyodide itself has been "loaded"
+//                (with loadPyodide()), now it is importing the sympy package
+//                and doing any additional setup needed.
+//   - 'ready': Loaded and initialized, but no command currently running;
+//              this is the usual idle state.
+//   - 'running': A command has been sent to the PyodideWorker and we're waiting
+//                for a command_finished message to come in from it.
+//   - 'errored': The last command has resulted in a Python (or other) error,
+//                but the PyodideWorker is prepared to accept another command
+//                (so it's similar to 'ready' state).
 class PyodideInterface {
   constructor(app_component) {
     this.app_component = app_component;
+    this.onStateChange = null;  // callback function
+    this.worker = null;  // a PyodideWorker instance, created lazily
+    this.execution_started_at = null;  // timestamp
+    this.error_message = null;  // set if state==='error'
+    this.sympy_command = null;  // SymPyCommand being executed, or that errored
     this.change_state('uninitialized');
   }
 
@@ -218,6 +243,17 @@ class PyodideInterface {
     return this.worker;
   }
 
+  // Return true if terminated, false if nothing was done.
+  terminate_pyodide_worker() {
+    if(this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+      this.change_state('uninitialized');
+      return true;
+    }
+    else return false;
+  }
+
   post_worker_message(data) {
     if(this.worker)
       this.worker.postMessage(data);
@@ -229,7 +265,7 @@ class PyodideInterface {
     case 'ready': this.change_state('ready'); break;
     case 'running': this.change_state('running'); break;
     case 'command_finished':
-      this.command_finished(data.command_id, data.result);
+      this.command_finished(data.result);
       this.change_state('ready');
       break;
     default:
@@ -251,39 +287,35 @@ class PyodideInterface {
     return variable_name_to_expr(variable_name);
   }
 
-  start_executing(sympy_item) {
+  start_executing(sympy_command /* SymPyCommand */) {
     if(!this.start_pyodide_worker_if_needed())
       return this.error('Pyodide not available');
-    const command_code = this.generate_command_code(sympy_item.command);
-    const message = {
+    this.sympy_command = sympy_command;
+    this.execution_started_at = Date.now();
+    this.error_message = null;
+    const command_code = this.generate_command_code(sympy_command);
+    this.post_worker_message({
       command: 'sympy_command',
-      command_id: sympy_item.status.command_id,
       code: command_code
-    };
-    this.post_worker_message(message);
-    window.setTimeout(() => {
-      this.app_component.update_long_running_sympy_items()
-    }, SymPyItem.long_running_computation_threshold());
+    });
+    // TODO: only show the pyodide status thing after maybe 1/4 second elapsed
+    // window.setTimeout(() => {
+    //   // this.app_component.update_long_running_sympy_items()
+    // }, SymPyItem.long_running_computation_threshold());
   }
 
-  command_finished(command_id, result) {
-    let new_item_fn = null;
-    if(result.result === 'error')
-      new_item_fn = (sympy_item) => sympy_item.with_new_status({
-        state: 'error',
-        error_message: result.error_message,
-        errored_expr: result.errored_expr ?
-          new SymPyExpr(
-            result.errored_expr.srepr,
-            result.errored_expr.latex) : null
-      });
-    else
-      new_item_fn = (sympy_item) => new ExprItem(
-        new SymPyExpr(
-          result.result_expr.srepr,
-          result.result_expr.latex));
-    this.app_component.resolve_pending_item(
-      command_id, new_item_fn);
+  command_finished(result) {
+    if(result.result === 'error') {
+      this.error_message = result.error_message;
+      this.change_state('errored');
+    }
+    else {
+      const result_expr = new SymPyExpr(
+        result.result_expr.srepr,
+        result.result_expr.latex);
+      this.app_component.push_sympy_result_expr(result_expr);
+      this.change_state('ready');
+    }
   }
 
   generate_command_code(command) {
@@ -303,6 +335,9 @@ class PyodideInterface {
       lines.push('import time');
     lines.push(
       'def execute_command():',
+      // (fake delay for debugging)
+      // '  import time',
+      // '  time.sleep(5)',
       ...arg_exprs.map((arg_expr, arg_index) =>
         ['  arg_', arg_index.toString(),
          ' = ', builder_function_name(arg_index), '()'
@@ -360,6 +395,33 @@ class PyodideInterface {
       'execute_command_safe()',
       ''
     ].join("\n");
+  }
+}
+
+
+// Intermediate structure bundling function name and (Expr) arguments
+// that will eventually be converted to Python code and sent to the Pyodide
+// web worker.
+//
+// 'function_name': Python function to call (can include an explicit module name)
+// 'operation_label': Optional user-visible label for the function name
+//                    (e.g. we might want to display 'differentiate' instead of just 'diff')
+// 'arg_exprs': Expr instances to be passed to the Python function
+// 'extra_args': Plain strings to be passed as extra arguments to the Python function
+//               (after the arg_exprs).  Used for things like 'optname=True' keyword arguments
+//               and other non-Expr values.
+// 'transform_result_code': An optional string to apply to the final result before it's
+//                          returned back from Python (used for small conversions like turning
+//                          a one-item list into a scalar, or extracting a relevant result from a tuple).
+class SymPyCommand {
+  constructor(function_name, operation_label,
+              arg_exprs, extra_args,
+              transform_result_code) {
+    this.function_name = function_name;
+    this.operation_label = operation_label;
+    this.arg_exprs = arg_exprs;
+    this.extra_args = extra_args;
+    this.transform_result_code = transform_result_code;
   }
 }
 
@@ -1811,5 +1873,7 @@ class SymPyToExpr {
 }
 
 
-export { PyodideInterface, ExprToSymPy };
+export {
+  PyodideInterface, SymPyCommand, ExprToSymPy
+};
 

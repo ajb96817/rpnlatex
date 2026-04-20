@@ -6,8 +6,7 @@
 import {
   AppState, Document, Stack, TextEntryState,
   ExprPath, RationalizeToExpr,
-  ExprItem, TextItem, CodeItem,
-  SymPyCommand, SymPyItem
+  ExprItem, TextItem, CodeItem
 } from './Models';
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
@@ -19,7 +18,7 @@ import {
   AlgebriteInterface, double_to_expr
 } from './CAS';
 import {
-  PyodideInterface, ExprToSymPy
+  PyodideInterface, SymPyCommand, ExprToSymPy
 } from './SymPy';
 import {
   pyodide_initcode_string
@@ -342,6 +341,14 @@ class InputContext {
       transform_result_code);
   }
 
+  // Terminate the Pyodide web worker if it's running.
+  do_sympy_terminate(stack) {
+    const pyodide = this.app_component.state.pyodide_interface;
+    const terminated = pyodide.terminate_pyodide_worker();
+    this.notify(terminated ? 'Pyodide worker terminated' : 'Pyodide not running');
+    return stack;
+  }
+
   // Call SymPy series(expr, x, x0, n)
   // 'n' (the order) defaults to 6 but can be specified via prefix argument.
   // specify_variable:
@@ -380,15 +387,14 @@ class InputContext {
       x_expr /* variable; may be null */,
       x0_expr ?? TextExpr.integer(0),
       TextExpr.integer(order)];
-    const new_item = this._start_executing_sympy_item(
+    this._start_executing_sympy_commmand(
       'series', 'series',
       arg_exprs, [], null);
-    return new_stack.push(new_item);
+    return new_stack;
   }
 
   // Take SymPyExprs from the stack and start up a computation
-  // (applying a Python/SymPy function to the expressions); replace with a
-  // SymPyItem representing the computation.
+  // (applying a Python/SymPy function to the expressions).
   //
   // function_name: 'solve' (SymPy function to call)
   // operation_label: user-visible version of function_name (usually the same)
@@ -399,26 +405,19 @@ class InputContext {
                  arg_count, extra_args = [],
                  transform_result_code = null) {
     const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
-    const new_item = this._start_executing_sympy_item(
-      function_name, operation_label, arg_exprs, extra_args,
-      transform_result_code);
-    return new_stack.push(new_item);
+    this._start_executing_sympy_command(
+      function_name, operation_label,
+      arg_exprs, extra_args, transform_result_code);
+    return new_stack;
   }
 
-  _start_executing_sympy_item(function_name, operation_label,
-                              arg_exprs, extra_args, transform_result_code) {
+  _start_executing_sympy_command(function_name, operation_label,
+                                 arg_exprs, extra_args, transform_result_code) {
     const pyodide = this.app_component.state.pyodide_interface;
-    const status = {
-      state: 'running',
-      command_id: SymPyItem.next_command_id(),
-      start_time: Date.now()
-    };
     const command = new SymPyCommand(
       function_name, operation_label, arg_exprs,
       extra_args, transform_result_code);
-    const new_item = new SymPyItem(status, command);
-    pyodide.start_executing(new_item);
-    return new_item;
+    pyodide.start_executing(command);
   }
 
   // function_name:
@@ -1000,7 +999,7 @@ class InputContext {
   // a CommandExpr (a LaTeX command), otherwise it will be a plain TextExpr.
   do_push(stack, text) {
     return stack.push_expr(Expr.text_or_command(
-      text || '' /* handle 'push nothing' case */));
+      text ?? '' /* handle 'push nothing' case */));
   }
 
   do_push_last_keypress(stack) {

@@ -6,7 +6,8 @@ import './App.css';
 import React from 'react';
 import katex from 'katex';
 import {
-  AppState, ItemClipboard, UndoStack, FileManager
+  AppState, ItemClipboard, UndoStack, FileManager,
+  ExprItem
 } from './Models';
 import {
   InputContext
@@ -111,25 +112,17 @@ class App extends React.Component {
       document.title = new_title;
   }
 
-  // new_item_fn is applied to existing SymPyItems that match the given
-  // command_id.  The function should return the new Item to replace it with.
-  resolve_pending_item(command_id, new_item_fn) {
+  // A Pyodide/SymPy command has finished successfully.
+  // Push the resulting expression onto the stack.
+  // This happens "asynchronously" outside the normal action loop
+  // so it needs some special handling.
+  // TODO: maybe generalize this to push_item_asynchronously() or something
+  push_sympy_result_expr(result_expr) {
+    // TODO: make sure undo state is handled properly
     const app_state = this.state.app_state;
-    const [new_app_state, app_state_modified] =
-          app_state.resolve_pending_item(command_id, new_item_fn);
-    this.state.clipboard.resolve_pending_item(command_id, new_item_fn);
-    this.state.undo_stack.resolve_pending_item(command_id, new_item_fn);
-    if(app_state_modified)
-      this.setState({app_state: new_app_state});
-  }
-
-  // TODO: optimize, only refresh if the long-running state changed
-  // for stack/document.
-  update_long_running_sympy_items() {
-    const app_state = this.state.app_state;
+    const new_stack = app_state.stack.push_expr(result_expr);
     const new_app_state = new AppState(
-      app_state.stack.clone_all_items(),
-      app_state.document.clone_all_items());
+      new_stack, app_state.document, app_state.properties);
     this.setState({app_state: new_app_state});
   }
 
@@ -188,10 +181,6 @@ class App extends React.Component {
           })]));
     }
     stack_panel_components.push(
-      $e(PyodideStatusComponent, {
-        pyodide_interface: pyodide_interface
-      }));
-    stack_panel_components.push(
       $e(IndicatorsComponent, {
         input_context: input_context,
         input_mode: input_context.mode,
@@ -203,8 +192,9 @@ class App extends React.Component {
           input_context.error_message.offending_expr : null
       }));
     stack_panel_components.push(
-      $e(StackItemsComponent, {
+      $e(StackItemsComponent, {  // TODO: use {input_context, settings, ...} initializer
         input_context: input_context,
+        pyodide_interface: pyodide_interface,
         settings: settings,
         stack: stack
       }));
@@ -301,37 +291,87 @@ class App extends React.Component {
 }
 
 
+// Shows the "Executing..." animated indicator above the stack top (at the
+// bottom of the screen) while a Pyodide computation is running.  Also shows
+// the error results if there was a Python error.
+// TODO: show something like "[#][!] to terminate" mini-help
+// TODO: only show after a brief (0.25s?) timeout period; cf. item.is_recently_spawned()
 class PyodideStatusComponent extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {status_text: this.props.pyodide_interface.state};
-  }
-
-  render() {
-    const pyodide = this.props.pyodide_interface;
-    const status_text = this.state.status_text;
-    if(status_text === 'uninitialized')
-      return null;
-    return $e(
-      'div', {className: 'pyodide_status'},
-      $e('span', {style: {fontWeight: 'bold'}},
-         'pyodide'),
-      $e('span', {}, ' '),
-      // (pyodide && pyodide.version()) ?
-      //  $e('span', {}, 'v'+pyodide.version()) : null,
-      $e('span', {}, ' '),
-      $e('span', {}, status_text));
+    this.state = {
+      pyodide_state: this.props.pyodide_interface.state
+    };
   }
 
   componentDidMount() {
-    const on_state_change = (pyodide, new_state) => {
-      this.setState({status_text: new_state});
-    };
-    this.props.pyodide_interface.onStateChange = on_state_change.bind(this);
+    this.props.pyodide_interface.onStateChange =
+      ((pyodide, new_state) => {
+        this.setState({pyodide_state: new_state});
+      }).bind(this);
   }
 
   componentWillUnmount() {
     this.props.pyodide_interface.onStateChange = null;
+  }
+
+  is_visible() {
+    const pyodide_state = this.state.pyodide_state;
+    switch(this.state.pyodide_state) {
+    case 'uninitialized':
+      return false;
+    case 'loading':
+      // Indicate that SymPy is loading.  This is usually the most time-consuming
+      // part of initializing the Pyodide worker (can be a few seconds).
+      // TODO: If we add a config setting to preload SymPy, maybe don't show this
+      // indicator if the loading process is part of the preloading (still want to
+      // show it if the user does something like terminate Pyodide and reload, etc.)
+      return true;
+    case 'running':
+      // TODO: Normally show the indicator, but we should have something where it doesn't
+      // show it until ~100ms have elapsed, to avoid visual flicker for operations that
+      // occur very quickly (the usual case).
+      return true;
+    case 'errored':
+      // Always show the latest error until it's cleared.
+      return true;
+    default:
+      // Invalid state, shouldn't happen.
+      return true;
+    }
+  }
+
+  render() {
+    if(!this.is_visible())
+      return null;  // only show if there is something worth showing
+    const pyodide = this.props.pyodide_interface;
+    const sympy_command = pyodide.sympy_command;
+    const pyodide_state = this.state.pyodide_state;
+    const settings = this.props.settings;
+
+    // Render the argument(s) to the SymPy command as if they were still
+    // on the stack.  The arguments are always Exprs, so they get temporarily
+    // wrapped in an ExprItem for display.
+    const arg_exprs = sympy_command  ? sympy_command.arg_exprs : [];
+    const argument_item_components = arg_exprs.map(
+      (expr, index) => {
+        return $e(ItemComponent, {
+          item: new ExprItem(expr),
+          // inline_math/centered copy the logic from StackItemsComponent.
+          inline_math: settings.layout.inline_math,
+          centered: settings.layout.stack_math_alignment === 'center',
+          item_ref: React.createRef(),  // TODO: needed?
+          key: 'sympy_arg_expr_' + index.toString()
+        });
+      });
+    
+    return $e(
+      'div', {className: 'pyodide_status'},
+      $e('div', {className: 'pyodide_argument_exprs'},
+         ...argument_item_components),
+      $e('div', {className: 'status_item'},
+         $e('span', {className: 'status_item_key'}, 'Status:'),
+         $e('span', {className: 'status_item_value'}, pyodide_state)));
   }
 }
 
@@ -403,7 +443,8 @@ class IndicatorsComponent extends React.Component {
 class StackItemsComponent extends React.Component {
   render() {
     const {
-      input_context, settings, stack
+      input_context, pyodide_interface,
+      settings, stack
     } = this.props;
     const layout = settings.layout;
     let item_components = stack.items.map((item, index) => {
@@ -411,16 +452,24 @@ class StackItemsComponent extends React.Component {
       // corresponding stack item(s) that will (probably) be affected.
       const highlighted = this.should_highlight_item_index(
         stack.items.length-index);
-      return $e(
-        ItemComponent, {
-          item: item,
-          highlighted: highlighted,
-          inline_math: settings.layout.inline_math,
-          centered: settings.layout.stack_math_alignment === 'center',
-          item_ref: React.createRef(),
-          key: item.react_key(index)
-        });
+      return $e(ItemComponent, {
+        item: item,
+        highlighted: highlighted,
+        inline_math: settings.layout.inline_math,
+        centered: settings.layout.stack_math_alignment === 'center',
+        item_ref: React.createRef(),
+        key: item.react_key(index)
+      });
     });
+    // Show Pyodide execution status (or error result) below the stack top.
+    // This will be invisible if Pyodide is uninitialized or idling.
+    item_components.push(
+      $e(PyodideStatusComponent, {
+        pyodide_interface: pyodide_interface,
+        settings: settings,
+        key: 'pyodide_status'
+      }));
+    // Show minieditor if active.
     if(input_context.text_entry)
       item_components.push($e(
         TextEntryComponent, {

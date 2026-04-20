@@ -1287,6 +1287,7 @@ const keybinding_table = {
   sympy: {
     '[digit]': "prefix_argument",
     '#': "sympy sympify 1 evaluate",
+    '!': "sympy_terminate",
     '=': "sympy N 1 evalf",  // numeric eval
     '@': "export_stack_item_as_sympy",
     '?': "mode sympy_query",

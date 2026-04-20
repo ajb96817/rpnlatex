@@ -472,17 +472,6 @@ class AppState {
     return this.stack === app_state.stack && this.document === app_state.document;
   }
 
-  // See stack.resolve_pending_item().
-  resolve_pending_item(command_id, new_item_fn) {
-    const [new_stack, stack_modified] =
-          this.stack.resolve_pending_item(command_id, new_item_fn);
-    const [new_document, document_modified] =
-          this.document.resolve_pending_item(command_id, new_item_fn);
-    if(stack_modified || document_modified)
-      return [new AppState(new_stack, new_document, this.properties), true];
-    else return [this, false];
-  }
-  
   // Total number of contained items (stack+document).
   item_count() {
     return this.stack.depth() +
@@ -499,19 +488,6 @@ class ItemClipboard {
   constructor() {
     // Maps clipboard slot names (arbitrary strings) to Items.
     this.slot_to_item_map = {};
-  }
-
-  // See Stack.resolve_pending_item().
-  resolve_pending_item(command_id, new_item_fn) {
-    let any_replaced = false;
-    for(const [key, item] of Object.entries(this.slot_to_item_map)) {
-      if(item && item.is_pending_item() &&
-         item.has_command_id(command_id)) {
-        this.slot_to_item_map[key] = new_item_fn(item);
-        any_replaced = true;
-      }
-    }
-    return [this, any_replaced];
   }
 
   has_item_in_slot(slot) {
@@ -593,17 +569,6 @@ class UndoStack {
     }
     else
       return null;
-  }
-
-  resolve_pending_item(command_id, new_item_fn) {
-    let any_replaced = false;
-    for(const [i, app_state] of this.state_stack.entries()) {
-      const [new_app_state, flag] = app_state
-            .resolve_pending_item(command_id, new_item_fn);
-      this.state_stack[i] = new_app_state;
-      any_replaced ||= flag;
-    }
-    return [this, any_replaced];
   }
 }
 
@@ -1253,19 +1218,6 @@ class Item {
 
   is_expr_item() { return this.item_type() === 'expr'; }
   is_text_item() { return this.item_type() === 'text'; }
-  is_sympy_item() { return this.item_type() === 'sympy'; }
-
-  // Check if this Item contains a background computation that may
-  // resolve asynchronously in the future.  This is used for SymPy
-  // calculations; when a calculation completes the item gets replaced
-  // with an ExprItem with the result (or an error item if it fails
-  // or gets cancelled).
-  // If command_id is specified, the pending item's command_id must
-  // also match it.
-  is_pending_item(command_id = null) {
-    return this.is_sympy_item() && this.status.state === 'running' &&
-      (!command_id || this.has_command_id(command_id));
-  }
 
   // Return a new Item of the same type and contents (shallow copy) but with a new serial number.
   // This is mainly needed for React, which needs a distinct React key for each item in
@@ -1715,21 +1667,6 @@ class CodeItem extends Item {
 }
 
 
-// 'transform_result_code': optional string to apply to the final result
-// (to extract the relevant info from a result-tuple, etc.)
-class SymPyCommand {
-  constructor(function_name, operation_label,
-              arg_exprs, extra_args,
-              transform_result_code) {
-    this.function_name = function_name;
-    this.operation_label = operation_label;
-    this.arg_exprs = arg_exprs;
-    this.extra_args = extra_args;
-    this.transform_result_code = transform_result_code;
-  }
-}
-
-
 // Serial numbers for SymPyItem command_ids.
 let pyodide_command_id = 1;
 
@@ -1923,33 +1860,6 @@ class Stack {
       this.floating_items.map(item => item.clone()));
   }
 
-  // Replace any pending SymPyItems with the given command_id with a different item
-  // (new_item_fn is applied to the old item to generate the replacement item).
-  // This is used when an in-progress background SciPy computation finishes (or errors).
-  // Returns [new_stack, flag], where flag is true if anything was replaced (so that the
-  // displayed items need to be refreshed).
-  // TODO: remove this (will be replaced by a more synchronous scheme)
-  resolve_pending_item(command_id, new_item_fn) {
-    let any_replaced = false;
-    let new_items = [...this.items];
-    for(const [i, item] of new_items.entries()) {
-      if(item.is_pending_item(command_id)) {
-        new_items[i] = new_item_fn(item);
-        any_replaced = true;
-      }
-    }
-    let new_floating_items = [...this.floating_items];
-    for(const [i, item] of new_floating_items.entries()) {
-      if(item.is_pending_item(command_id)) {
-        new_items[i] = new_item_fn(item);
-        any_replaced = true;
-      }
-    }
-    return [
-      any_replaced ? new Stack(new_items, new_floating_items) : this,
-      any_replaced];
-  }
-
   underflow() { throw new Error('stack_underflow'); }
   type_error() { throw new Error('stack_type_error'); }
 }
@@ -2027,21 +1937,6 @@ class Document {
     }
   }
 
-  // See stack.resolve_pending_item().
-  resolve_pending_item(command_id, new_item_fn) {
-    let any_replaced = false;
-    let new_items = [...this.items];
-    for(const [i, item] of new_items.entries()) {
-      if(item.is_sympy_item() && item.has_command_id(command_id)) {
-        new_items[i] = new_item_fn(item);
-        any_replaced = true;
-      }
-    }
-    return [
-      any_replaced ? new Document(new_items, this.selection_index) : this,
-      any_replaced];
-  }
-  
   // See Stack.clone_all_items()
   clone_all_items() {
     return new Document(
@@ -2122,7 +2017,6 @@ class MsgpackEncoder {
     case 'expr': return this.pack_expr_item(item);
     case 'text': return this.pack_text_item(item);
     case 'code': return this.pack_code_item(item);
-    case 'sympy': return this.pack_sympy_item(item);
     default:
       throw new Error("Unknown Item type in MsgpackEncoder: " + item.item_type());
     }
@@ -2139,32 +2033,6 @@ class MsgpackEncoder {
   }
   pack_code_item(item) {
     return [3, item.language, item.source];
-  }
-  pack_sympy_item(item) {
-    const command = item.command;
-    // NOTE: Items with in-progress evaluation will be saved in 'cancelled' state
-    // (they can be re-run after loading the saved file).
-    let saved_status = {...item.status};
-    if(saved_status.state === 'running') {
-      saved_status.state = 'cancelled';
-      saved_status.stop_time = Date.now();
-    }
-    saved_status.command_id = null;
-    saved_status.errored_expr =
-      this.maybe_pack_expr(saved_status.errored_expr);
-    // The item is serialized as a hash for future flexibility if the
-    // fields need to change.
-    const saved_properties = {
-      status: saved_status,
-      function_name: command.function_name,
-      operation_label: command.operation_label,
-      arg_exprs: command.arg_exprs.map(expr => this.maybe_pack_expr(expr)),
-      extra_args: command.extra_args,
-      transform_result_code: command.transform_result_code,
-      result_expr: this.maybe_pack_expr(item.result_expr),
-      tag_string: item.tag_string
-    };
-    return [4, saved_properties];
   }
 
   // TextItemElement subclasses:
@@ -2343,7 +2211,6 @@ class MsgpackDecoder {
     case 1: return this.unpack_expr_item(item_state);
     case 2: return this.unpack_text_item(item_state);
     case 3: return this.unpack_code_item(item_state);
-    case 4: return this.unpack_sympy_item(item_state);
     default: this.error("Unknown Item typecode in MsgpackDecoder: " + type_code);
     }
   }
@@ -2376,20 +2243,6 @@ class MsgpackDecoder {
   }
   unpack_code_item([language, source]) {
     return new CodeItem(language, source);
-  }
-  unpack_sympy_item([props]) {
-    let status = {...props.status};
-    const arg_exprs = props.arg_exprs.map(
-      expr_state => this.maybe_unpack_expr(expr_state));
-    status.errored_expr = this.maybe_unpack_expr(status.errored_expr);
-    const command = new SymPyCommand(
-      props.function_name, props.operation_label,
-      arg_exprs, props.extra_args,
-      props.transform_result_code);
-    return new SymPyItem(
-      status, command,
-      this.maybe_unpack_expr(props.result_expr),
-      props.tag_string);
   }
 
   unpack_expr(array) {
@@ -2501,8 +2354,8 @@ export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
   ItemClipboard, UndoStack, FileManager,
   ExprPath, RationalizeToExpr, Item, ExprItem,
-  TextItem, CodeItem, SymPyCommand, SymPyItem,
-  Stack, Document, MsgpackEncoder, MsgpackDecoder
+  TextItem, CodeItem, Stack, Document,
+  MsgpackEncoder, MsgpackDecoder
 };
 
 

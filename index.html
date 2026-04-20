@@ -2383,10 +2383,6 @@
         will be initialized, so it may take a few seconds to get a result.  After that, operations
         should run at full speed.  These operations may potentially be time-consuming, so they
         are run in a background thread and results are displayed as they become available.
-
-        <!--
-        Long-running computations may be cancelled via <span class="k">#</span><span class="k">x</span>
-        as long as (for technical reasons) the proper <a href="#">security measures</a> have been taken. -->
       </p>
       <p>
         Performing these symbolic operations comes with some caveats:
@@ -2490,10 +2486,11 @@
         </li>
         <li>
           <span class="k">V</span>
+          <code>y\enspace x \Rightarrow \mathtt{solve(y, x)}</code>:
           Like <span class="k">v</span>, but the variable to be solved for
           is given explicitly:
-          <code>x^2=c \enspace c \Rightarrow
-            \left\{- \sqrt{c}, \sqrt{c}\right\}</code>
+          <code>x=c^2 \enspace c \Rightarrow
+            \left\{- \sqrt{x}, \sqrt{x}\right\}</code>
         </li>
         <li>
           <span class="k">x</span>

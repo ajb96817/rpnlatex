@@ -1,4 +1,9 @@
 
+// Simple background processor WebWorker for executing Python code
+// with Pyodide.  A web worker is used instead of calling Pyodide directly
+// mostly so that the user can interrupt long-running commands easily
+// (by terminating and restarting the web worker).
+
 
 import {
   loadPyodide
@@ -31,11 +36,11 @@ function enqueue_message(message) {
 async function handle_message(message) {
   if(message.command === 'sympy_command') {
     await load_pyodide_if_needed();
-    await run_sympy_command(message.command_id, message.code);
+    await run_sympy_command(message.code);
   }
 }
 
-async function run_sympy_command(command_id, code) {
+async function run_sympy_command(code) {
   const pyodide = self.pyodide;
   // TODO: post error message if pyodide not running
   const start_time = Date.now();
@@ -53,7 +58,6 @@ async function run_sympy_command(command_id, code) {
   */
   postMessage({
     message: 'command_finished',
-    command_id: command_id,
     result: result
   });
 }
