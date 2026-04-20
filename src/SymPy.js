@@ -205,6 +205,7 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 //
 // The 'state' field here can:
 //   - 'uninitialized': No PyodideWorker (web worker) created (yet).
+//   - 'initializing': PydodideWorker is being instantiated and is loading Pyodide.
 //   - 'loading': PyodideWorker is created, Pyodide itself has been "loaded"
 //                (with loadPyodide()), now it is importing the sympy package
 //                and doing any additional setup needed.
@@ -212,6 +213,10 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 //              this is the usual idle state.
 //   - 'running': A command has been sent to the PyodideWorker and we're waiting
 //                for a command_finished message to come in from it.
+//   - 'long_running': Same as 'running', but we switch into this state from 'running'
+//                     after a short time interval has passed without completion.
+//                     This is used for the (typical) case where computations finish
+//                     quickly, to reduce visual clutter/popping.
 //   - 'errored': The last command has resulted in a Python (or other) error,
 //                but the PyodideWorker is prepared to accept another command
 //                (so it's similar to 'ready' state).
@@ -261,9 +266,31 @@ class PyodideInterface {
 
   handle_worker_message(data) {
     switch(data.message) {
-    case 'loading': this.change_state('loading'); break;
-    case 'ready': this.change_state('ready'); break;
-    case 'running': this.change_state('running'); break;
+    case 'initializing':
+      this.change_state('initializing');
+      break;
+    case 'loading':
+      this.change_state('loading');
+      break;
+    case 'ready':
+      this.change_state('ready');
+      break;
+    case 'running':
+      this.execution_started_at = Date.now();
+      // Show indicator only after enough time has passed because most
+      // operations will probably complete quickly.  Note that the window
+      // timeout interval is set a little longer than this; this is to ensure
+      // that the elapsed time has exceeded the threshold once the timeout has
+      // fired (if it were exactly the same time there might be a rare race
+      // condition).
+      window.setTimeout(() => {
+        this.check_for_long_running_commands();
+      }, 20+this.long_running_threshold_milliseconds());
+      this.change_state('running');
+      break;
+    case 'long_running':
+      this.change_state('long_running');
+      break;
     case 'command_finished':
       this.command_finished(data.result);
       this.change_state('ready');
@@ -279,13 +306,19 @@ class PyodideInterface {
       this.onStateChange(this, new_state);
   }
 
-  expr_to_variable_name(expr) {
-    return expr_to_variable_name(expr);
+  long_running_threshold_milliseconds() { return 100.0; }
+ 
+  check_for_long_running_commands() {
+    if(this.state === 'running') {
+      const elapsed_ms = Date.now() - this.execution_started_at;
+      if(elapsed_ms >= this.long_running_threshold_milliseconds())
+        this.change_state('long_running');
+    }
   }
 
-  variable_name_to_expr(variable_name) {
-    return variable_name_to_expr(variable_name);
-  }
+  // Export these for use by external callers.
+  expr_to_variable_name(expr) { return expr_to_variable_name(expr); }
+  variable_name_to_expr(variable_name) { return variable_name_to_expr(variable_name); }
 
   start_executing(sympy_command /* SymPyCommand */) {
     if(!this.start_pyodide_worker_if_needed())
@@ -298,10 +331,6 @@ class PyodideInterface {
       command: 'sympy_command',
       code: command_code
     });
-    // TODO: only show the pyodide status thing after maybe 1/4 second elapsed
-    // window.setTimeout(() => {
-    //   // this.app_component.update_long_running_sympy_items()
-    // }, SymPyItem.long_running_computation_threshold());
   }
 
   command_finished(result) {
@@ -316,6 +345,10 @@ class PyodideInterface {
       this.app_component.push_sympy_result_expr(result_expr);
       this.change_state('ready');
     }
+    // Clear the previous state variables, we're completely done
+    // with this command now.
+    this.sympy_command = null;
+    this.execution_started_at = null;
   }
 
   generate_command_code(command) {
@@ -331,19 +364,13 @@ class PyodideInterface {
     // Generate a function to build all the argument expressions and
     // execute the requested command.
     let lines = [];
+    lines.push('def execute_command():');
     if(insert_artificial_delay)
-      lines.push('import time');
-    lines.push(
-      'def execute_command():',
-      // (fake delay for debugging)
-      // '  import time',
-      // '  time.sleep(5)',
-      ...arg_exprs.map((arg_expr, arg_index) =>
-        ['  arg_', arg_index.toString(),
-         ' = ', builder_function_name(arg_index), '()'
-        ].join('')));
-    if(insert_artificial_delay)
-      lines.push('  time.sleep(2)');
+      lines.push('  import time', '  time.sleep(5)');
+    lines.push(...arg_exprs.map((arg_expr, arg_index) =>
+      ['  arg_', arg_index.toString(),
+       ' = ', builder_function_name(arg_index), '()'
+      ].join('')));
     const arguments_string = arg_exprs
           .map((arg_expr, arg_index) => 'arg_'+arg_index.toString())
           .concat(extra_args)
@@ -1422,6 +1449,7 @@ class CommandAnalyzer extends Analyzer {
       return this.emitter.fncall('divide', [
         this.emitter.emit_expr(args[0]),
         this.emitter.emit_expr(args[1])]);
+    // TODO: factor out all the [this.emitter.emit_expr(...)]
     if(command_name === 'sqrt' && nargs === 1) {
       if(expr.options) {
         // sqrt[3], etc.  The option is assumed to be valid (positive integer).

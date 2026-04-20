@@ -295,7 +295,6 @@ class App extends React.Component {
 // bottom of the screen) while a Pyodide computation is running.  Also shows
 // the error results if there was a Python error.
 // TODO: show something like "[#][!] to terminate" mini-help
-// TODO: only show after a brief (0.25s?) timeout period; cf. item.is_recently_spawned()
 class PyodideStatusComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -315,11 +314,12 @@ class PyodideStatusComponent extends React.Component {
     this.props.pyodide_interface.onStateChange = null;
   }
 
-  is_visible() {
+  should_show_pyodide_status() {
     const pyodide_state = this.state.pyodide_state;
     switch(this.state.pyodide_state) {
     case 'uninitialized':
       return false;
+    case 'initializing':
     case 'loading':
       // Indicate that SymPy is loading.  This is usually the most time-consuming
       // part of initializing the Pyodide worker (can be a few seconds).
@@ -327,10 +327,14 @@ class PyodideStatusComponent extends React.Component {
       // indicator if the loading process is part of the preloading (still want to
       // show it if the user does something like terminate Pyodide and reload, etc.)
       return true;
+    case 'ready':
+      return false;  // normal idling state, don't show anything
     case 'running':
-      // TODO: Normally show the indicator, but we should have something where it doesn't
-      // show it until ~100ms have elapsed, to avoid visual flicker for operations that
-      // occur very quickly (the usual case).
+      // Wait until we change into 'long_running' state from 'running' before
+      // showing the indicator, to avoid visual flicker for operations that
+      // occur quickly.
+      return false;
+    case 'long_running':
       return true;
     case 'errored':
       // Always show the latest error until it's cleared.
@@ -342,8 +346,6 @@ class PyodideStatusComponent extends React.Component {
   }
 
   render() {
-    if(!this.is_visible())
-      return null;  // only show if there is something worth showing
     const pyodide = this.props.pyodide_interface;
     const sympy_command = pyodide.sympy_command;
     const pyodide_state = this.state.pyodide_state;
@@ -352,7 +354,7 @@ class PyodideStatusComponent extends React.Component {
     // Render the argument(s) to the SymPy command as if they were still
     // on the stack.  The arguments are always Exprs, so they get temporarily
     // wrapped in an ExprItem for display.
-    const arg_exprs = sympy_command  ? sympy_command.arg_exprs : [];
+    const arg_exprs = sympy_command ? sympy_command.arg_exprs : [];
     const argument_item_components = arg_exprs.map(
       (expr, index) => {
         return $e(ItemComponent, {
@@ -364,14 +366,49 @@ class PyodideStatusComponent extends React.Component {
           key: 'sympy_arg_expr_' + index.toString()
         });
       });
-    
+
+    let status_line_component = null;
+    if(this.should_show_pyodide_status()) {
+      let msg = null, label = null;
+      switch(pyodide_state) {
+      case 'initializing':
+      case 'loading':
+        msg = $e(
+          'span', {className: 'message'},
+          pyodide_state === 'initializing' ?
+            'Pyodide initializing...' : 'SymPy loading...');
+        break;
+      case 'long_running':
+        msg = $e('span', {className: 'message'}, 'Running: ');
+        label = $e(
+          'span', {className: 'operation_label'},
+          sympy_command.operation_label || sympy_command.function_name);
+        break;
+      default:
+        msg = $e('span', {className: 'message'}, '??? (bad pyodide state)');
+        break;
+      }
+      status_line_component = $e(
+        'div', {className: 'status_line'},
+        $e('span', {className: 'spinner'}),
+        msg, label);
+    }
+
+    // Show error message block only in errored state.
+    let error_component = null;
+    if(this.pyodide_state === 'errored') {
+      error_component = $e('div', {}, 'Borked');
+    }
+
     return $e(
       'div', {className: 'pyodide_status'},
-      $e('div', {className: 'pyodide_argument_exprs'},
-         ...argument_item_components),
-      $e('div', {className: 'status_item'},
-         $e('span', {className: 'status_item_key'}, 'Status:'),
-         $e('span', {className: 'status_item_value'}, pyodide_state)));
+      ...argument_item_components,
+      status_line_component,
+      error_component);
+
+      // $e('div', {className: 'status_item'},
+      //    $e('span', {className: 'status_item_key'}, 'Status:'),
+      //    $e('span', {className: 'status_item_value'}, pyodide_state)));
   }
 }
 
@@ -840,42 +877,10 @@ class ItemComponent extends React.Component {
       else return $e(
         'div', {className: 'item', ref: item_ref},
         'Unknown code language: ' + item.language);
-    case 'sympy':
-      return this._render_sympy_item(item, item_ref, className, tag_element);
     default:
       return $e(
         'div', {className: 'item', ref: item_ref},
         'Unknown item type: ' + item.item_type());
-    }
-  }
-
-  _render_sympy_item(item, item_ref, className, tag_element) {
-    this.katex_ref = React.createRef();  // KaTeX rendering target node
-    if(item.status.state === 'error') {
-      const error_lines = item.status.error_message
-            .split("\n")
-            .map(line => $e('div', {className: 'error_line'}, line));
-      return $e(
-        'div', {className: className + 'item sympy_item', ref: item_ref},
-        $e('div', {className: 'sympy_error'},
-           $e('div', {className: 'sympy_error_info'},
-              $e('span', {}, 'SymPy error running:')),
-           $e('div', {className: 'sympy_errored_expr', ref: this.katex_ref}, ''),
-           $e('div', {className: 'sympy_error_message'},
-              ...error_lines)));
-    }
-    else if(item.status.state === 'running') {
-      const operation_label_element = item.is_recently_spawned() ? null :
-            $e('div', {className: 'sympy_command_info'},
-               $e('span', {className: 'spinner'}, ''),
-               $e('span', {className: 'sympy_status'}, item.status.state),
-               $e('span', {}, ' '),
-               $e('span', {className: 'sympy_operation_label'}, item.command.operation_label));
-      return $e(
-        'div', {className: 'item sympy_item', ref: item_ref},
-        tag_element,
-        $e('div', {className: className + 'latex_fragment', ref: this.katex_ref}, ''),
-        operation_label_element);
     }
   }
 
@@ -901,13 +906,6 @@ class ItemComponent extends React.Component {
         katex_target_node,
         false,
         false);
-    }
-    else if(item.is_sympy_item()) {
-      this._render_with_katex(
-        item.to_latex(false),
-        katex_target_node,
-        !this.props.inline_math,
-        false /* !centered */);
     }
   }
 

@@ -90,24 +90,79 @@ body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
 body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
 body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
 
-#stack_panel div.pyodide_status {
-  /* position: relative; */
-  /* left: 0; */
-  /* top: 0; */
-  background-color: #ccf;
-  padding: 0.25em 1em;
-  font-family: monospace;
-  /* z-index: 1; */
+/* The pyodide_status div contains details about the current Pyodide state
+   and/or the SymPy computation currently running if any.  When Pyodide is
+   idle, it's empty and nothing is shown.
 
-  border: 2px solid #ccc;
-  width: 30em;
+   While waiting on a SymPy computation to finish, this div shows the argument
+   expressions as if they were still on the stack (but styled differently)
+   along with the function name being executed, a status spinner, etc.
+*/
+div.pyodide_status {}
+div.pyodide_status div.status_line {
+  margin-left: 2em;
+  padding-bottom: 0.25em;
+  font-family: monospace;
+  font-style: italic;
+  color: #669;
 }
-#stack_panel div.pyodide_status div.status_item {
+
+div.pyodide_status div.expr_item div.latex_fragment {
+  animation: pyodide_arg_pulsate 0.75s infinite;
 }
-#stack_panel div.pyodide_status div.status_item span.status_item_key {
+
+@keyframes pyodide_arg_pulsate {
+  from { border-left-color: #bbf; }
+  to { border-left-color: #55c; }
+}
+
+
+div.pyodide_status div.status_line span.operation_label {
   font-weight: bold;
-  padding-right: 1em;
 }
+div.pyodide_status div.status_line span.spinner {
+  width: 1em;
+  height: 1em;
+  margin-bottom: -0.2em;
+  margin-right: 0.75em;
+  border: 0.15em solid #669;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: spinner_rotation 0.75s ease-in-out infinite;
+}
+@keyframes spinner_rotation {
+  0% { transform: rotate(0turn); }
+  100% { transform: rotate(1turn); }
+}
+
+
+/* div.sympy_item div.sympy_error { */
+/*   padding-left: 0.5em; */
+/* } */
+/* div.sympy_item div.sympy_error_info { */
+/*   padding: 0; */
+/*   color: #600; */
+/*   font-weight: bold; */
+/* } */
+/* div.sympy_item div.sympy_error_message { */
+/*   padding: 0.25em 0.5em; */
+/*   font-size: 90%; */
+/*   font-weight: bolder; */
+/*   color: #400; */
+/*   border-top: 1px solid #f88; */
+/*   border-bottom: 1px solid #f88; */
+/*   margin-bottom: 0.5em; */
+/*   background-color: #fee; */
+/*   font-family: monospace; */
+/*   overflow-wrap: break-word; */
+/* } */
+/* div.sympy_item div.sympy_error_message div.error_line { */
+/*   padding: 0.2em 0; */
+/* } */
+
 
 /* These elements float on the top-right of the stack panel: */
 #stack_panel div.indicator_item, #stack_panel div.floating_item {
@@ -267,12 +322,12 @@ div.latex_fragment {
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
-div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #5ca; }
-div.sympy_item div.sympy_error { border-left: var(--itemtype-bar-width) solid #833; }
-div.sympy_item div.sympy_errored_expr {
-  font-size: 90%;
-  margin-left: 1em;
-}
+/* div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #5ca; } */
+/* div.sympy_item div.sympy_error { border-left: var(--itemtype-bar-width) solid #833; } */
+/* div.sympy_item div.sympy_errored_expr { */
+/*   font-size: 90%; */
+/*   margin-left: 1em; */
+/* } */
 
 /* Highlight the stack item(s) that are the "target" for a stack (Tab)
    or array (|) command with an active prefix argument. */
@@ -280,7 +335,7 @@ div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
 div.separator_item.highlighted { border-left-color: #66d; }
 div.latex_source_item.highlighted { border-left-color: #484; }
-div.sympy_item.highlighted { border-left-color: #96c; }
+/* div.sympy_item.highlighted { border-left-color: #96c; } */
 div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833; }
 
 /* Override item type indicator bar if it contains a KaTeX error. */
@@ -363,55 +418,6 @@ div.floating_item div.separator_item hr { width: 4em; }
 @keyframes dissect_blink {
   0% { color: #c33; }
   50% { color: #40a; }
-}
-
-div.sympy_item div.sympy_command_info {
-  margin-left: 2em;
-  padding-bottom: 0.25em;
-  font-family: monospace;
-  font-style: italic;
-  color: #669;
-}
-div.sympy_item span.sympy_operation_label { font-weight: bold; }
-div.sympy_item span.spinner {
-  width: 1em;
-  height: 1em;
-  margin-bottom: -0.2em;
-  margin-right: 0.75em;
-  border: 0.15em solid #669;
-  border-left-color: transparent;
-  border-right-color: transparent;
-  border-radius: 50%;
-  display: inline-block;
-  box-sizing: border-box;
-  animation: spinner_rotation 0.75s ease-in-out infinite;
-}
-@keyframes spinner_rotation {
-  0% { transform: rotate(0turn); }
-  100% { transform: rotate(1turn); }
-}
-div.sympy_item div.sympy_error {
-  padding-left: 0.5em;
-}
-div.sympy_item div.sympy_error_info {
-  padding: 0;
-  color: #600;
-  font-weight: bold;
-}
-div.sympy_item div.sympy_error_message {
-  padding: 0.25em 0.5em;
-  font-size: 90%;
-  font-weight: bolder;
-  color: #400;
-  border-top: 1px solid #f88;
-  border-bottom: 1px solid #f88;
-  margin-bottom: 0.5em;
-  background-color: #fee;
-  font-family: monospace;
-  overflow-wrap: break-word;
-}
-div.sympy_item div.sympy_error_message div.error_line {
-  padding: 0.2em 0;
 }
 
 

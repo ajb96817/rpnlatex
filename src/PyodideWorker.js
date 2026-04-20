@@ -13,6 +13,7 @@ import {
 async function load_pyodide_if_needed() {
   if(self.pyodide) return;
   // TODO: error handling
+  postMessage({message: 'initializing'});
   self.pyodide = await loadPyodide({indexURL: '/'});
   postMessage({message: 'loading'});
   await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
