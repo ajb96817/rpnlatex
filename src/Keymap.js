@@ -1305,8 +1305,9 @@ const keybinding_table = {
     'v': "sympy solveset 1 solve",  // sol[v]e
     'V': "sympy solveset 2 solve",
     'x': "sympy expand 1",
-    'y': "sympy_series_expansion false",
-    'Y': "sympy_series_expansion true"
+    // series commands temporarily disabled; action is broken
+    // 'y': "sympy_series_expansion false",
+    // 'Y': "sympy_series_expansion true"
   },
 
   // [#][?] prefix: SymPy commands for querying properties of an expression

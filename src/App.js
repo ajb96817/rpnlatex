@@ -126,6 +126,19 @@ class App extends React.Component {
     this.setState({app_state: new_app_state});
   }
 
+  // See InputContext.constructor comment about input lock/unlock.
+  lock_input() {
+    this.state.input_context.lock_input();
+  }
+  
+  unlock_input() {
+    const new_app_state = this.state.input_context
+          .unlock_input(this.state.app_state);
+    if(new_app_state !== this.state.app_state)
+      this.setState({app_state: new_app_state});
+  }
+
+
   // Recenter the document panel scroll position to center on the selected item.
   // screen_percentage:
   //   - 0: try to scroll so that the top of the selection is flush
@@ -314,7 +327,71 @@ class PyodideStatusComponent extends React.Component {
     this.props.pyodide_interface.onStateChange = null;
   }
 
-  should_show_pyodide_status() {
+  render() {
+    const pyodide_state = this.state.pyodide_state;
+    const sympy_command = this.props.pyodide_interface.sympy_command;
+    return $e(
+      'div', {className: 'pyodide_status'},
+      this.render_arguments_block(sympy_command, this.props.settings),
+      this.render_status_line(pyodide_state, sympy_command),
+      this.render_error_block(pyodide_state, sympy_command));
+  }
+
+  // Render the argument(s) to the SymPy command as if they were still
+  // on the stack.  The arguments are always Exprs, so they get temporarily
+  // wrapped in an ExprItem for display.
+  render_arguments_block(sympy_command, settings) {
+    const arg_exprs = sympy_command ? sympy_command.arg_exprs : [];
+    if(arg_exprs.length === 0)
+      return null;
+    const item_components = arg_exprs.map(
+      (expr, index) => {
+        return $e(ItemComponent, {
+          item: new ExprItem(expr),
+          // inline_math/centered copy the logic from StackItemsComponent.
+          inline_math: settings.layout.inline_math,
+          centered: settings.layout.stack_math_alignment === 'center',
+          item_ref: React.createRef(),  // TODO: needed?
+          key: 'sympy_arg_expr_' + index.toString()
+        });
+      });
+    return $e(
+      'div', {className: 'sympy_args'},
+      ...item_components);
+  }
+
+  // Render Pyodide status line with a spinner if we are waiting on
+  // a command to finish or for Pyodide to initialize.
+  render_status_line(pyodide_state, sympy_command) {
+    let status_line_component = null;
+    if(!this.should_show_status_line())
+      return null;
+    let msg = null, label = null;
+    switch(pyodide_state) {
+    case 'initializing':
+    case 'loading':
+      msg = $e(
+        'span', {className: 'message'},
+        pyodide_state === 'initializing' ?
+          'Pyodide initializing...' : 'SymPy loading...');
+      break;
+    case 'long_running':
+      msg = $e('span', {className: 'message'}, 'Running: ');
+      label = $e(
+        'span', {className: 'operation_label'},
+        sympy_command.operation_label || sympy_command.function_name);
+      break;
+    default:
+      msg = $e('span', {className: 'message'}, '??? (bad pyodide state)');
+      break;
+    }
+    return $e(
+      'div', {className: 'status_line'},
+      $e('span', {className: 'spinner'}),
+      msg, label);
+  }
+
+  should_show_status_line() {
     const pyodide_state = this.state.pyodide_state;
     switch(this.state.pyodide_state) {
     case 'uninitialized':
@@ -345,70 +422,12 @@ class PyodideStatusComponent extends React.Component {
     }
   }
 
-  render() {
-    const pyodide = this.props.pyodide_interface;
-    const sympy_command = pyodide.sympy_command;
-    const pyodide_state = this.state.pyodide_state;
-    const settings = this.props.settings;
-
-    // Render the argument(s) to the SymPy command as if they were still
-    // on the stack.  The arguments are always Exprs, so they get temporarily
-    // wrapped in an ExprItem for display.
-    const arg_exprs = sympy_command ? sympy_command.arg_exprs : [];
-    const argument_item_components = arg_exprs.map(
-      (expr, index) => {
-        return $e(ItemComponent, {
-          item: new ExprItem(expr),
-          // inline_math/centered copy the logic from StackItemsComponent.
-          inline_math: settings.layout.inline_math,
-          centered: settings.layout.stack_math_alignment === 'center',
-          item_ref: React.createRef(),  // TODO: needed?
-          key: 'sympy_arg_expr_' + index.toString()
-        });
-      });
-
-    let status_line_component = null;
-    if(this.should_show_pyodide_status()) {
-      let msg = null, label = null;
-      switch(pyodide_state) {
-      case 'initializing':
-      case 'loading':
-        msg = $e(
-          'span', {className: 'message'},
-          pyodide_state === 'initializing' ?
-            'Pyodide initializing...' : 'SymPy loading...');
-        break;
-      case 'long_running':
-        msg = $e('span', {className: 'message'}, 'Running: ');
-        label = $e(
-          'span', {className: 'operation_label'},
-          sympy_command.operation_label || sympy_command.function_name);
-        break;
-      default:
-        msg = $e('span', {className: 'message'}, '??? (bad pyodide state)');
-        break;
-      }
-      status_line_component = $e(
-        'div', {className: 'status_line'},
-        $e('span', {className: 'spinner'}),
-        msg, label);
-    }
-
-    // Show error message block only in errored state.
-    let error_component = null;
-    if(this.pyodide_state === 'errored') {
-      error_component = $e('div', {}, 'Borked');
-    }
-
-    return $e(
-      'div', {className: 'pyodide_status'},
-      ...argument_item_components,
-      status_line_component,
-      error_component);
-
-      // $e('div', {className: 'status_item'},
-      //    $e('span', {className: 'status_item_key'}, 'Status:'),
-      //    $e('span', {className: 'status_item_value'}, pyodide_state)));
+  // Show error message block only in errored state.
+  // TODO
+  render_error_block(pyodide_state, sympy_command) {
+    if(this.pyodide_state !== 'errored')
+      return null;
+    return $e('div', {}, 'Borked');
   }
 }
 

@@ -106,17 +106,18 @@ div.pyodide_status div.status_line {
   font-style: italic;
   color: #669;
 }
-
+div.pyodide_status div.sympy_args {
+  box-shadow: inset 0 0 0.35em 0.1em #aaf;
+  box-sizing: border-box;
+  background-color: #eef;
+}
 div.pyodide_status div.expr_item div.latex_fragment {
   animation: pyodide_arg_pulsate 0.75s infinite;
 }
-
 @keyframes pyodide_arg_pulsate {
   from { border-left-color: #bbf; }
   to { border-left-color: #55c; }
 }
-
-
 div.pyodide_status div.status_line span.operation_label {
   font-weight: bold;
 }

@@ -35,6 +35,35 @@ class InputContext {
     this.mode = 'base';  // current keymap mode
     this._reset();
 
+    // Input locking / background commands:
+    //
+    // During a Pyodide/SymPy background computation, we need to "lock"
+    // keyboard input temporarily to avoid user commands possibly happening when
+    // they're not intended.  For example: enter 'x', start a SymPy command
+    // consuming 'x', then enter 'y' while the computation is running.  When
+    // the command completes, 'f(x)' will be pushed onto the stack so we now
+    // have 'y f(x)', while according to the user input order it should have
+    // been 'f(x) y'.
+    //
+    // For long-running computations, we have the special visible indication of
+    // the currently-running command with its arguments shown (always floating at
+    // the bottom of the stack screen) so the user "knows" the result will be
+    // pushed onto the stack once finished, but for short-running computations
+    // there is no visible indication because we want to avoid sub-100ms "flicker"
+    // for commands that finish quickly.  So during the short interval between
+    // starting a Pyodide command and switching into long-running mode, user input
+    // will be buffered up to be replayed later (after switching out of short-running
+    // mode, including for commands that result in an error).
+    //
+    // Basically, for short-running computations we want to "simulate" it
+    // being a synchronous, blocking command, while for long-running computations
+    // we want the user to continue working on other things while the computation
+    // runs in the background, with a visual indicator that this is happening and
+    // the understanding that the result will be written to the current stack top
+    // when finished.
+    this.input_locked = false;
+    this.key_buffer = [];
+
     // Current prefix argument for commands like Swap; can be one of:
     //   null - no current prefix argument
     //   >= 1 - normal prefix argument
@@ -53,10 +82,51 @@ class InputContext {
     this.text_entry = null;
   }
 
+  lock_input() {
+    this.input_locked = true;
+    this.input_locked_at = Date.now();
+    this.key_buffer = [];
+  }
+
+  is_input_locked() {
+    if(this.input_locked && (Date.now() - this.input_locked_at > 1000)) {
+      // Auto-unlock input if it's been locked too long (probably due
+      // to a glitch).  Shouldn't normally happen.  Discard any buffered
+      // keys if this happens.
+      console.log('Input locked too long, auto-unlocking');
+      this.input_locked = false;
+      this.key_buffer = [];
+    }
+    return this.input_locked;
+  }
+
+  // Replay any buffered input, returning the new AppState.
+  unlock_input(app_state) {
+    if(!this.input_locked)
+      return app_state;
+    this.input_locked = false;
+    // NOTE: Replaying the buffered keys may eventually execute
+    // something that locks input again, so stop replaying keys
+    // if this happens.  We'll eventually get another unlock_input().
+    while(!(this.key_buffer.length === 0 || this.input_locked)) {
+      const key = this.key_buffer.shift();
+      const [, new_app_state] = this.handle_key(app_state, key);
+      app_state = new_app_state;
+    }
+    return app_state;
+  }
+
   // Returns [was_handled, new_app_state].
   // NOTE: was_handled just indicates that a keybinding was found; it doesn't necessarily mean
   // that the command succeeded without error.
   handle_key(app_state, key) {
+    if(this.is_input_locked()) {
+      // Limit the max size of the key buffer.  It's only locked during short
+      // computations so we only need to keep track of a few keystrokes.
+      if(this.key_buffer.length < 20)
+        this.key_buffer.push(key);
+      return app_state;
+    }
     // If a popup panel (files/helptext) is active, always use its dedicated keymap.
     const effective_mode = this.settings.popup_mode || this.mode;
     const command = this.settings.current_keymap
@@ -316,6 +386,14 @@ class InputContext {
     return new_stack.push_expr(expr.increment(amount));
   }
 
+  /* Execute a SymPy command via Pyodide (see SymPy.js).
+     This starts the command "in the background" by passing it to the Pyodide
+     web worker.  Some time later the command will (hopefully) complete; when
+     that happens the result is asynchronously pushed onto the stack by the
+     PyodideInterface. */
+  /* For short-running commands, keystrokes are buffered up to be replayed later
+     while the command is running.  See the comment in InputContext.constructor
+     for more information on this. */
   do_sympy(stack, operation, arg_count_string, operation_label = null) {
     const arg_count = parseInt(arg_count_string);
     const extra_args = [];
@@ -349,7 +427,8 @@ class InputContext {
     return stack;
   }
 
-  // Call SymPy series(expr, x, x0, n)
+  // Calling SymPy series(expr, x, x0, n); convert expressions on the stack
+  // to the standard 4 arguments series() expects.
   // 'n' (the order) defaults to 6 but can be specified via prefix argument.
   // specify_variable:
   //   'false': only expr is taken from the stack; x is inferred by SymPy
@@ -357,6 +436,42 @@ class InputContext {
   //   'true': expr and a variable specification are taken from the stack;
   //           the specification can be 'x' or 'x=123'.  In the 'x' case,
   //           x0 is set to 0.
+  do_sympy_convert_series_arguments(stack, specify_variable) {
+    const pyodide = this.app_component.state.pyodide_interface;
+    let new_stack = null, expr = null, variable_spec_expr = null;
+    let x_expr = null, x0_expr = null;
+    if(specify_variable === 'false')
+      [new_stack, expr] = stack.pop_exprs(1);
+    else
+      [new_stack, expr, variable_spec_expr] = stack.pop_exprs(2);
+    if(variable_spec_expr) {
+      if(variable_spec_expr.is_infix_expr()) {
+        // Check for x=x0
+        if(variable_spec_expr.operator_text() !== '=')
+          return this.report_error('Expected x=x0 expression', variable_spec_expr);
+        [x_expr, x0_expr] = ['left', 'right'].map(side =>
+          variable_spec_expr.extract_side_at(
+            variable_spec_expr.split_at_index, side));
+      }
+      else {
+        // Check for 'x' (variable name).
+        x_expr = variable_spec_expr;
+      }
+      if(!pyodide.expr_to_variable_name(x_expr))
+        return this.report_error('Invalid variable name', x_expr);
+    }
+    const order = this._get_prefix_argument(6, 6);
+    // "Construct" new stack with arguments for the SymPy series() command.
+    const arg_exprs = [
+      expr,
+      x_expr /* variable; may be null */,
+      x0_expr ?? TextExpr.integer(0),
+      TextExpr.integer(order)];
+    return new_stack.push_all_exprs(arg_exprs);
+  }
+
+  // TODO: This is broken when x_expr is null.
+  // Keep either this or do_sympy_convert_series_arguments().
   do_sympy_series_expansion(stack, specify_variable) {
     const pyodide = this.app_component.state.pyodide_interface;
     let new_stack = null, expr = null, variable_spec_expr = null;
@@ -382,14 +497,14 @@ class InputContext {
         return this.report_error('Invalid variable name', x_expr);
     }
     const order = this._get_prefix_argument(6, 6);
-    const arg_exprs = [
+    // "Construct" new stack with arguments for the SymPy series() command.
+    const series_arg_exprs = [
       expr,
-      x_expr /* variable; may be null */,
+      x_expr, /* variable; may be null */,
       x0_expr ?? TextExpr.integer(0),
       TextExpr.integer(order)];
-    this._start_executing_sympy_commmand(
-      'series', 'series',
-      arg_exprs, [], null);
+    this._start_executing_sympy_command(
+      'series', 'series', series_arg_exprs, [], null);
     return new_stack;
   }
 

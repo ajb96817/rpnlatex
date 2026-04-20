@@ -203,7 +203,7 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 // (containing the Python function name, the Expr arguments to it, etc.)
 // and the last submitted/completed/errored command is kept in this.sympy_command.
 //
-// The 'state' field here can:
+// The 'state' field here can be:
 //   - 'uninitialized': No PyodideWorker (web worker) created (yet).
 //   - 'initializing': PydodideWorker is being instantiated and is loading Pyodide.
 //   - 'loading': PyodideWorker is created, Pyodide itself has been "loaded"
@@ -251,6 +251,7 @@ class PyodideInterface {
   // Return true if terminated, false if nothing was done.
   terminate_pyodide_worker() {
     if(this.worker) {
+      this.unlock_input();
       this.worker.terminate();
       this.worker = null;
       this.change_state('uninitialized');
@@ -266,30 +267,24 @@ class PyodideInterface {
 
   handle_worker_message(data) {
     switch(data.message) {
-    case 'initializing':
-      this.change_state('initializing');
-      break;
-    case 'loading':
-      this.change_state('loading');
-      break;
-    case 'ready':
-      this.change_state('ready');
-      break;
+    case 'initializing': this.change_state('initializing'); break;
+    case 'loading': this.change_state('loading'); break;
+    case 'ready': this.change_state('ready'); break;
     case 'running':
       this.execution_started_at = Date.now();
       // Show indicator only after enough time has passed because most
-      // operations will probably complete quickly.  Note that the window
-      // timeout interval is set a little longer than this; this is to ensure
-      // that the elapsed time has exceeded the threshold once the timeout has
-      // fired (if it were exactly the same time there might be a rare race
-      // condition).
+      // operations will probably complete quickly.  Note that the window.timeout
+      // interval is set a little longer than this; this is to ensure that the
+      // elapsed time has exceeded the threshold once the timeout has fired
+      // (the timeout only gets fired once, so if it's too "early" it might not
+      // see the long computation time).
       window.setTimeout(() => {
         this.check_for_long_running_commands();
-      }, 20+this.long_running_threshold_milliseconds());
+      }, 10.0 + this.long_running_threshold_milliseconds());
+      // Lock input until the computation finishes or we turn into the
+      // 'long_running' state (or the Pyodide worker is terminated).
+      this.app_component.lock_input();
       this.change_state('running');
-      break;
-    case 'long_running':
-      this.change_state('long_running');
       break;
     case 'command_finished':
       this.command_finished(data.result);
@@ -309,10 +304,10 @@ class PyodideInterface {
   long_running_threshold_milliseconds() { return 100.0; }
  
   check_for_long_running_commands() {
-    if(this.state === 'running') {
-      const elapsed_ms = Date.now() - this.execution_started_at;
-      if(elapsed_ms >= this.long_running_threshold_milliseconds())
-        this.change_state('long_running');
+    if(this.state === 'running' &&
+       Date.now() - this.execution_started_at >= this.long_running_threshold_milliseconds()) {
+      this.app_component.unlock_input();
+      this.change_state('long_running');
     }
   }
 
@@ -334,6 +329,7 @@ class PyodideInterface {
   }
 
   command_finished(result) {
+    this.app_component.unlock_input();
     if(result.result === 'error') {
       this.error_message = result.error_message;
       this.change_state('errored');
