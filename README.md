@@ -1,32 +1,38 @@
 # rpnlatex - RPN style LaTeX editor and scratchpad
 
-  * **Current release version**: `1.4.1` - ([live build](https://ajb96817.github.io/rpnlatex/)) - ([alternative site](https://andrewbrault.com/rpnlatex/))
-  * **Development version**: `1.4.2` - ([live build](https://andrewbrault.com/rpnlatex_dev/)) - ([source code](https://github.com/ajb96817/rpnlatex))
+  * **Current release version**: `1.5.0` - ([live build](https://ajb96817.github.io/rpnlatex/)) - ([alternative site](https://andrewbrault.com/rpnlatex/))
+  * **Development version**: `1.5.1` - ([live build](https://andrewbrault.com/rpnlatex_dev/)) - ([source code](https://github.com/ajb96817/rpnlatex))
 
-This is a browser-based editor meant for quickly entering and manipulating equations.
-It can be used as a scratchpad for solving math problems, as an alternative to pen and
-paper.  It has some limited document-preparation capabilities but for a full mathematical
-word processor you should use something like LyX instead.
+This is a browser-based math editor meant for quickly entering and manipulating
+formulas using a Reverse Polish Notation (RPN) input system inspired by HP calculators.
+Math formulas are rendered symbolically as you edit as print-quality LaTeX.  This editor
+works as an efficient alternative to pen and paper for solving math problems interactively,
+and can also create structured documents with mixed text and math.
 
-Equations are entered using a Reverse Polish Notation (RPN) input system inspired by
-HP calculators.  Please see the built-in user manual, available by typing '?', for more information.
+This editor is open source and cross-platform with a simple and flexible interface suited
+for both mobile and desktop.  It operates entirely from the keyboard; no mouse actions or
+menu items to select.  It generates LaTeX-compatible code but does not require knowledge
+of LaTeX.  Almost everything normally found in mathematical books and papers can be quickly
+typeset using its stack-based input system.
 
-Note that this is not a web service, but a standalone webapp that is downloaded (cached) in your
-browser and runs completely on your local hardware.  There is no server-side storage of documents, etc.
+Additionally, symbolic algebra and calculus operations are available within the editor
+to help with interactively solving problems or exercises.  The powerful
+[SymPy](https://www.sympy.org/) symbolic mathematics package is available and
+operates directly on formulas you enter to simplify expressions, solve integrals,
+derivatives, and more.  [Pyodide](https://pyodide.org/) is used to run a full Python
+environment locally in your browser (via WebAssembly) to power the SymPy package.
 
-## Features
+This editor can be efficient and convenient, but there is a learning curve,
+and it takes practice to learn the keyboard commands and how to best work with
+the stack-based input system.  There is a comprehensive built-in user manual,
+available by typing '?' upon startup.
 
-  * Open source and cross-platform, with a simple and flexible interface suited for mobile or desktop.
-  * Print-quality, instantaneous rendering of math formulas as you edit.
-  * Operates entirely from the keyboard; no mouse actions or menu items to select.
-  * Generates LaTeX-compatible code but does not require knowledge of LaTeX.
-  * Almost everything normally found in mathematical books and papers can be quickly typeset with the built-in keybindings.
-  * Build up formulas piece by piece in an intuitive way using a stack-based method.
-  * Symbolic algebra and calculus operations and numerical facilities are provided.
-  * Math formulas can be intermixed with normal text, with font styles, section headers, etc., and arranged into a document structure.
-  * Documents can be kept in local browser storage, or saved to files.
-  * Comprehensive user manual included.
-  * Source code is easily modifiable if you want to add your own custom features.
+Note that this is not a web service, but a standalone webapp that is downloaded
+(cached) in your browser and runs completely on your local hardware.
+There is no server-side storage of documents, etc.
+
+The [source code](https://github.com/ajb96817) is freely available and easily
+modifiable if you want to add your own custom features.
 
 ## Quick start
 
