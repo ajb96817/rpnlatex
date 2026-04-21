@@ -226,8 +226,8 @@ class PyodideInterface {
     this.onStateChange = null;  // callback function
     this.worker = null;  // a PyodideWorker instance, created lazily
     this.execution_started_at = null;  // timestamp
-    this.error_message = null;  // set if state==='error'
     this.sympy_command = null;  // SymPyCommand being executed, or that errored
+    this.error_details = null;  // set to a details structure if there is an error to be shown
     this.change_state('uninitialized');
   }
 
@@ -254,7 +254,7 @@ class PyodideInterface {
       this.worker.terminate();
       this.worker = null;
       this.execution_started_at = null;
-      this.error_message = null;
+      this.clear_error();
       this.sympy_command = null;
       this.change_state('uninitialized');
       this.app_component.unlock_input();
@@ -291,7 +291,6 @@ class PyodideInterface {
       break;
     case 'command_finished':
       this.command_finished(data.result);
-      this.change_state('ready');
       break;
     default:
       break;
@@ -323,7 +322,7 @@ class PyodideInterface {
       return this.error('Pyodide not available');
     this.sympy_command = sympy_command;
     this.execution_started_at = Date.now();
-    this.error_message = null;
+    this.clear_error();
     const command_code = this.generate_command_code(sympy_command);
     this.post_worker_message({
       command: 'sympy_command',
@@ -332,20 +331,26 @@ class PyodideInterface {
   }
 
   command_finished(result) {
-    this.sympy_command = null;
-    this.execution_started_at = null;
-    this.app_component.unlock_input();
     if(result.result === 'error') {
-      this.error_message = result.error_message;
-      this.change_state('errored');
+      this.error_details = {
+        command: this.sympy_command,
+        message: result.error_message
+      };
     }
     else {
       const result_expr = new SymPyExpr(
         result.result_expr.srepr,
         result.result_expr.latex);
       this.app_component.push_sympy_result_expr(result_expr);
-      this.change_state('ready');
     }
+    this.execution_started_at = null;
+    this.app_component.unlock_input();
+    this.sympy_command = null;
+    this.change_state('ready');
+  }
+
+  clear_error() {
+    this.error_details = null;
   }
 
   generate_command_code(command) {
@@ -376,46 +381,33 @@ class PyodideInterface {
       '  result = ', function_name,
       '(', arguments_string, ')'].join(''));
     if(transform_result_code)
-      lines.push(['  result = ' + transform_result_code])
+      lines.push(['  result = ', transform_result_code].join(''))
     // Convert the result expression into srepr/latex format
     // and return a dict structure.
-    lines.push(`  return {
-      'result': 'success',
-      'result_expr': {
-        'srepr': srepr(result),
-        'latex': latex(result)
-      } }`, '');
-    const execute_command_code = lines.join("\n")
+    lines.push(`
+  return {
+    'result': 'success',
+    'result_expr': {
+      'srepr': srepr(result),
+      'latex': latex(result)
+    } }
+`);
     // Build an exception-handling wrapper around execute_command();
     // this will return an error-result structure if needed.
-    lines = [`def execute_command_safe():
+    lines.push(`
+def execute_command_safe():
   try:
     return execute_command()
   except Exception as ex:
-    result_obj = {
+    return {
       'result': 'error',
       'error_message': str(ex)
-    }`];
-    if(arg_exprs.length > 0) {
-      // "Blame" the error on the first argument expression if there is one.
-      // This rebuilds the SymPy argument expr using the previously-created
-      // builder function.  Could re-use the already-built expr, but passing
-      // to the exception handler is awkward.
-      lines.push(
-        ['    errored_expr = ', builder_function_name(0), '()'
-        ].join(''),
-        "    result_obj['errored_expr'] = {",
-        "      'srepr': srepr(errored_expr),",
-        "      'latex': latex(errored_expr)",
-        "    }");
     }
-    lines.push('    return result_obj', '');
-    // Assemble everything together.
-    const execute_command_safe_code = lines.join("\n");
+`);
+    const execute_command_code = lines.join("\n")
     return [
       ...builder_function_codes,
       execute_command_code,
-      execute_command_safe_code,
       'execute_command_safe()',
       ''
     ].join("\n");

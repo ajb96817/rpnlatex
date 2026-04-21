@@ -29,8 +29,9 @@ class App extends React.Component {
     this.document_panel_ref = React.createRef();
     this.file_manager_panel_ref = React.createRef();
     this.helptext_panel_ref = React.createRef();
-    let file_manager = new FileManager();
-    let settings = file_manager.load_settings();
+    const file_manager = new FileManager();
+    const pyodide_interface = new PyodideInterface(this);
+    const settings = file_manager.load_settings();
     // Start without any popups or docked helptext even if it was saved like that.
     settings.popup_mode = null;
     settings.dock_helptext = false;
@@ -45,10 +46,10 @@ class App extends React.Component {
       app_state: app_state,
       settings: settings,
       file_manager: file_manager,
-      input_context: new InputContext(this, settings),
+      input_context: new InputContext(this, pyodide_interface, settings),
       undo_stack: new UndoStack(),
       clipboard: new ItemClipboard(),
-      pyodide_interface: new PyodideInterface(this)
+      pyodide_interface: pyodide_interface
     };
     this.state.undo_stack.clear(this.state.app_state);
     this.update_page_title();
@@ -330,11 +331,12 @@ class PyodideStatusComponent extends React.Component {
   render() {
     const pyodide_state = this.state.pyodide_state;
     const sympy_command = this.props.pyodide_interface.sympy_command;
+    const error_details = this.props.pyodide_interface.error_details;
     return $e(
       'div', {className: 'pyodide_status'},
       this.render_arguments_block(pyodide_state, sympy_command, this.props.settings),
       this.render_status_line(pyodide_state, sympy_command),
-      this.render_error_block(pyodide_state, sympy_command));
+      this.render_error_block(pyodide_state, error_details));
   }
 
   // Render the argument(s) to the SymPy command as if they were still
@@ -420,20 +422,40 @@ class PyodideStatusComponent extends React.Component {
     case 'long_running':
       return true;
     case 'errored':
-      // Always show the latest error until it's cleared.
-      return true;
+      return false;
     default:
       // Invalid state, shouldn't happen.
       return true;
     }
   }
 
-  // Show error message block only in errored state.
-  // TODO
-  render_error_block(pyodide_state, sympy_command) {
-    if(this.pyodide_state !== 'errored')
+  render_error_block(pyodide_state, error_details) {
+    if(!error_details)
       return null;
-    return $e('div', {}, 'Borked');
+    const [error_message, errored_command] =
+          [error_details.message, error_details.command];
+    const operation_name =
+          errored_command.operation_label ?? errored_command.function_name;
+    let errored_expr_component = null;
+    const errored_expr = errored_command.arg_exprs[0];
+    if(errored_expr) {  // zero-argument command (there aren't any currently)
+      errored_expr_component = $e(ItemComponent, {
+        item: new ExprItem(errored_expr),
+        inline_math: true,
+        centered: false,
+        item_ref: React.createRef(),  // TODO: needed?
+        key: 'errored_expr'
+      });
+    }
+    return $e(
+      'div', {className: 'sympy_error'},
+      $e('div', {className: 'error_summary'},
+         'SymPy error running ',
+         $e('span', {className: 'errored_operation_name'}, operation_name),
+         ':'),
+      errored_expr_component,
+      $e('div', {className: 'error_message'},
+         error_message));
   }
 }
 

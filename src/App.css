@@ -139,32 +139,40 @@ div.pyodide_status div.status_line span.spinner {
   0% { transform: rotate(0turn); }
   100% { transform: rotate(1turn); }
 }
-
-
-/* div.sympy_item div.sympy_error { */
-/*   padding-left: 0.5em; */
-/* } */
-/* div.sympy_item div.sympy_error_info { */
-/*   padding: 0; */
-/*   color: #600; */
-/*   font-weight: bold; */
-/* } */
-/* div.sympy_item div.sympy_error_message { */
-/*   padding: 0.25em 0.5em; */
-/*   font-size: 90%; */
-/*   font-weight: bolder; */
-/*   color: #400; */
-/*   border-top: 1px solid #f88; */
-/*   border-bottom: 1px solid #f88; */
-/*   margin-bottom: 0.5em; */
-/*   background-color: #fee; */
-/*   font-family: monospace; */
-/*   overflow-wrap: break-word; */
-/* } */
-/* div.sympy_item div.sympy_error_message div.error_line { */
-/*   padding: 0.2em 0; */
-/* } */
-
+div.sympy_error {
+  background-color: #fdd;
+  padding: 0.5em 1em;
+  padding-bottom: 0.25em;
+  box-shadow: inset 0 0 0.25em 0 #a99;
+  font-family: monospace;
+}
+div.sympy_error div.error_summary {
+  color: #048;
+  float: left;
+  width: auto;
+}
+div.sympy_error div.error_summary span.errored_operation_name {
+  font-weight: bold;
+}
+/* The first argument to the errored SymPy command is shown inline in the error block. */
+div.sympy_error div.item {
+  clear: left;
+  padding-top: 0.5em;
+}
+div.sympy_error div.item div.latex_fragment {
+  /* Hide item type indicator for the inline expression. */
+  border-left-width: 0;
+}
+div.sympy_error div.error_message {
+  clear: left;
+  color: #400;
+  font-style: italic;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  overflow-wrap: break-word;
+  max-height: 10em;
+  overflow: scroll;
+}
 
 /* These elements float on the top-right of the stack panel: */
 #stack_panel div.indicator_item, #stack_panel div.floating_item {
