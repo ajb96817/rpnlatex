@@ -48,8 +48,11 @@ async function run_sympy_command(code) {
   const start_time = Date.now();
   postMessage({message: 'running'});
   let result = await pyodide.runPythonAsync(code);
-  // Copy out of any PyProxy returned by the code.
-  const result_js = result.toJs();
+  // Convert the Python result object to JS.
+  // create_pyproxies:false is used to fully convert the result object
+  // and its fields to JS (it's shallow anyways), so that we don't have
+  // to worry about PyProxy objects.
+  const result_js = result.toJs({create_pyproxies: false});
   const elapsed_time = Date.now() - start_time;
   result = {elapsed_time: elapsed_time, ...result_js};
   /* result: {

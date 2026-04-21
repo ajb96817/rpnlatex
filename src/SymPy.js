@@ -332,6 +332,8 @@ class PyodideInterface {
   }
 
   command_finished(result) {
+    this.sympy_command = null;
+    this.execution_started_at = null;
     this.app_component.unlock_input();
     if(result.result === 'error') {
       this.error_message = result.error_message;
@@ -344,10 +346,6 @@ class PyodideInterface {
       this.app_component.push_sympy_result_expr(result_expr);
       this.change_state('ready');
     }
-    // Clear the previous state variables, we're completely done
-    // with this command now.
-    this.sympy_command = null;
-    this.execution_started_at = null;
   }
 
   generate_command_code(command) {

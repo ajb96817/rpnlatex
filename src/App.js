@@ -332,7 +332,7 @@ class PyodideStatusComponent extends React.Component {
     const sympy_command = this.props.pyodide_interface.sympy_command;
     return $e(
       'div', {className: 'pyodide_status'},
-      this.render_arguments_block(sympy_command, this.props.settings),
+      this.render_arguments_block(pyodide_state, sympy_command, this.props.settings),
       this.render_status_line(pyodide_state, sympy_command),
       this.render_error_block(pyodide_state, sympy_command));
   }
@@ -340,7 +340,7 @@ class PyodideStatusComponent extends React.Component {
   // Render the argument(s) to the SymPy command as if they were still
   // on the stack.  The arguments are always Exprs, so they get temporarily
   // wrapped in an ExprItem for display.
-  render_arguments_block(sympy_command, settings) {
+  render_arguments_block(pyodide_state, sympy_command, settings) {
     const arg_exprs = sympy_command ? sympy_command.arg_exprs : [];
     if(arg_exprs.length === 0)
       return null;
@@ -355,8 +355,14 @@ class PyodideStatusComponent extends React.Component {
           key: 'sympy_arg_expr_' + index.toString()
         });
       });
+    // 'sympy_args_running' CSS class is used to highlight the arguments,
+    // but for short-running computations 'sympy_args' is used instead to
+    // skip the highlighting and have them just look like ordinary items
+    // on the stack.
+    const css_class = ['ready', 'running'].includes(pyodide_state)
+          ? 'sympy_args' : 'sympy_args_running';
     return $e(
-      'div', {className: 'sympy_args'},
+      'div', {className: css_class},
       ...item_components);
   }
 
