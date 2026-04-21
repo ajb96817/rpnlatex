@@ -901,7 +901,7 @@
           </tr>
           <tr>
             <td><span class="k">&nbsp;</span> <code>x\,</code> <em>(append space)</em></td>
-            <td><span class="k">&#39;</span> <code>x^\prime</code></td>
+            <td><span class="k">&#39;</span> <code>x^\prime</code> <em>(prime)</em></td>
             <td><span class="k">,</span> <code>x^\circ</code> <em>(degrees)</em></td>
           </tr>
           <tr>
@@ -2194,28 +2194,24 @@
       <ul class="keybindings">
         <li>
           <span class="k">,</span>
-          <code>x_1,x_2,x_n</code>
-        </li>
-        <li>
-          <span class="k">.</span>
-          <code>x_1,x_2,\dots,x_n</code>
-        </li>
-        <li>
-          <span class="k">e</span>
-          <code>x_1,x_2,x_n,\dots</code>
+          <code>x_1,x_2,x_N,\dots</code>
           <em>(<strong>e</strong>llipsis)</em>
         </li>
         <li>
+          <span class="k">.</span>
+          <code>x_1,x_2,\dots,x_N</code>
+        </li>
+        <li>
           <span class="k">;</span>
-          <code>x_1;\,x_2;\,x_n</code>
+          <code>x_1;x_2;x_N</code>
         </li>
         <li>
           <span class="k">+</span>
-          <code>x_1 + x_2 + \cdots + x_n</code>
+          <code>x_1 + x_2 + \cdots + x_N</code>
         </li>
         <li>
           <span class="k">p</span>
-          <code>x_1 + x_2 + x_n + \cdots</code>
+          <code>x_1 + x_2 + x_N + \cdots</code>
           <em>(<strong>p</strong>lus)</em>
         </li>
       </ul>
@@ -2452,8 +2448,8 @@
       <ul>
         <li>Indefinite integrals: <code>\int x^2\,dx \Rightarrow x^3/3</code></li>
         <li>Definite integrals: <code>\int_0^{\pi/3} \tan{x}\,dx \Rightarrow \ln{2}</code></li>
-        <li>Differentiation: <code>\frac{d}{dx} \sin{\omega x} \Rightarrow \omega\cos{\omega x}</code></li>
-        <li>Summation: <code>\sum_{k\ge1}\frac{1}{k^2} \Rightarrow \pi^2/6</code></li>
+        <li>Derivatives: <code>\frac{d}{dx} \sin{\omega x} \Rightarrow \omega\cos{\omega x}</code></li>
+        <li>Summations: <code>\sum_{k\ge1}\frac{1}{k^2} \Rightarrow \pi^2/6</code></li>
         <li>Products: <code>\prod^2_{k=0}(x+k) \Rightarrow x(x+1)(x+2)</code></li>
         <li>Limits: <code>\lim_{x\to 0} \frac{\sin x}{x} \Rightarrow 1</code></li>
         <!-- integral transforms, etc -->
