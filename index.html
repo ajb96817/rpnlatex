@@ -264,6 +264,23 @@
         <li><span class="k">p</span> <code>x \Rightarrow \pi x</code></li>
         <li><span class="k">P</span> <code>x \Rightarrow 2\pi x</code></li>
       </ul>
+      <p>
+        Coefficient mode can also be used to divide by a digit rather than multiply.
+        To do this, enter <span class="k">/</span> before the digit:
+        <span class="k">*</span><span class="k">/</span><span class="k">5</span>
+        <code>x\Rightarrow \displaystyle{\frac{x}{5}}</code>.
+        This can also be freely mixed with <span class="k">-</span>, as in:
+        <span class="k">*</span><span class="k">-</span><span class="k">/</span><span class="k">i</span>
+        <code>x\Rightarrow \displaystyle{-\frac{x}{i}}</code>
+      </p>
+      <p>
+        &quot;Inline&quot; fractions can be obtained using
+        <span class="k">\</span> instead of <span class="k">/</span>, for example:
+        <span class="k">*</span><span class="k">\</span><span class="k">p</span>
+        <code>x\Rightarrow x/\pi</code> or
+        <span class="k">*</span><span class="k">\</span><span class="k">-</span><span class="k">3</span>
+        <code>x\Rightarrow -x/3</code>.
+      </p>
 
       <h2 id="help_math_entry">
         <span class="k">\</span> Math Entry
@@ -1625,7 +1642,11 @@
             <td><span class="k">4</span> <code>x \Rightarrow d^4 x</code></td>
           </tr>
           <tr>
-            <td><span class="k">f</span> <code>x\enspace y \Rightarrow dx \wedge dy</code></td>
+            <td>
+              <span class="k">f</span>
+              <code>x\enspace y \Rightarrow dx \wedge dy</code>
+              (<strong>f</strong>orm)
+            </td>
             <td><span class="k">F</span> <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code></td>
           </tr>
           <tr>
@@ -2354,8 +2375,8 @@
           expression is left unmodified).
         </li>
         <li>
-          <span class="k">t</span> or <span class="k">T</span>
-          <strong>Trim</strong> down to the currently selected subexpression.
+          <span class="k">k</span> or <span class="k">K</span>
+          <strong>Keep</strong> the currently selected subexpression.
           Same as <span class="k">x</span>, but only the selected subexpression is left
           on the stack.
         </li>
@@ -3204,7 +3225,7 @@
           <code>\Rightarrow \frac{1}{\sqrt{{\left(2\pi\right)}^n\det{\boldsymbol{\Sigma}}}}</code>
         </li>
         <li>
-          <span class="k">'</span><span class="k">2</span><span class="k">.</span><span class="k">-</span><span class="k">x</span><span class="k">]</span><span class="k">;</span><span class="k">m</span><span class="k">]</span><span class="k">-</span><span class="k">;</span><span class="k">S</span><span class="k">]</span><span class="k">'</span><span class="k">1</span><span class="k">`</span><span class="k">Tab</span><span class="k">o</span><span class="k">&nbsp;</span><span class="k">,</span><span class="k">`</span><span class="k">&nbsp;</span>
+          <span class="k">'</span><span class="k">2</span><span class="k">.</span><span class="k">-</span><span class="k">x</span><span class="k">;</span><span class="k">m</span><span class="k">-</span><span class="k">]</span><span class="k">;</span><span class="k">S</span><span class="k">]</span><span class="k">'</span><span class="k">1</span><span class="k">`</span><span class="k">Tab</span><span class="k">o</span><span class="k">&nbsp;</span><span class="k">,</span><span class="k">`</span><span class="k">&nbsp;</span>
           <code>\Rightarrow -\frac{1}{2}{\left(\boldsymbol{x}-\boldsymbol{\mu}\right)}^{\mathrm{T}}{\boldsymbol{\Sigma}}^{-1}\left(\boldsymbol{x}-\boldsymbol{\mu}\right)</code>
         </li>
         <li>

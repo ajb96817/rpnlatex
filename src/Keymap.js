@@ -859,21 +859,71 @@ const keybinding_table = {
   },
 
   // [*] prefix: premultiply by a coefficient
+  // (These aren't really that useful, may be removed at some point.)
   coefficient: {
+    '/': "mode fraction_coefficient",
+    "\\": "mode infix_fraction_coefficient",
     '-': "mode negative_coefficient",
+    '*': "push *",  // undocumented (literal *)
     '[digit]': "push_last_keypress;swap;concat",
     'i': "push i;swap;concat",
     'p': "push \\pi;swap;concat",
-    'P': "integer 2;push \\pi;concat;swap;concat",
+    'P': "integer 2;push \\pi;concat;swap;concat"
   },
-
-  // [*][-] prefix
+  // [*][-] prefix: premultiply by -n
   negative_coefficient: {
+    '/': "mode negative_fraction_coefficient",
+    "\\": "mode negative_infix_fraction_coefficient",
     '-': "mode coefficient",
+    '*': "mode coefficient",  // ??
     '[digit]': "push_last_keypress;negate;swap;concat",
     'i': "push i;negate;swap;concat",
     'p': "push \\pi;negate;swap;concat",
     'P': "integer -2;push \\pi;concat;swap;concat"
+  },
+  // [*][/] prefix (x => x/5, etc.)
+  fraction_coefficient: {
+    '/': "mode coefficient",
+    "\\": "mode infix_fraction_coefficient",
+    '-': "mode negative_fraction_coefficient",
+    '*': "mode coefficient",
+    '[digit]': "push_last_keypress;fraction",
+    'i': "push i;fraction",
+    'p': "push \\pi;fraction",
+    'P': "integer 2;push \\pi;concat;fraction"
+  },
+  // [*][-][/] or [*][/][-] prefix (x => -x/5, etc.)
+  negative_fraction_coefficient: {
+    '/': "mode negative_coefficient",
+    "\\": "mode negative_infix_fraction_coefficient",
+    '-': "mode fraction_coefficient",
+    '*': "mode negative_coefficient",
+    '[digit]': "push_last_keypress;fraction;negate",
+    'i': "push i;fraction;negate",
+    'p': "push \\pi;fraction;negate",
+    'P': "integer 2;push \\pi;concat;fraction;negate"
+  },
+  // [*][\] prefix: (x => x/5, inline (infix) fraction)
+  infix_fraction_coefficient: {
+    '/': "mode fraction_coefficient",
+    "\\": "mode fraction_coefficient",
+    '-': "mode negative_infix_fraction_coefficient",
+    '*': "mode coefficient",
+    '[digit]': "autoparenthesize;push_last_keypress;infix /",
+    'i': "autoparenthesize;push i;infix /",
+    'p': "autoparenthesize;push \\pi;infix /",
+    'P': "autoparenthesize;integer 2;push \\pi;concat;infix /"
+  },
+  // [*][-][\] or [*][\][-] prefix: (x => -x/5, inline)
+  negative_infix_fraction_coefficient: {
+    '/': "mode negative_fraction_coefficient",
+    "\\": "mode negative_fraction_coefficient",
+    '-': "mode infix_fraction_coefficient",
+    '*': "mode negative_coefficient",
+    '[digit]': "autoparenthesize;push_last_keypress;infix /;negate",
+    'i': "autoparenthesize;push i;infix /;negate",
+    'p': "autoparenthesize;push \\pi;infix /;negate",
+    'P': "autoparenthesize;integer 2;push \\pi;concat;infix /;negate"
   },
 
   // [,] prefix: combine two objects with an infix operation
@@ -1279,8 +1329,8 @@ const keybinding_table = {
     "'": "alias x",
     'c': "dissect_copy_selection",
     'C': "alias c",
-    't': "dissect_copy_selection trim",
-    'T': "alias t"
+    'k': "dissect_copy_selection trim",
+    'K': "alias k"
   },
 
   // [#] prefix: SymPy - work in progress
