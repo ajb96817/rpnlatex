@@ -2,7 +2,8 @@
 // Simple background processor WebWorker for executing Python code
 // with Pyodide.  A web worker is used instead of calling Pyodide directly
 // mostly so that the user can interrupt long-running commands easily
-// (by terminating and restarting the web worker).
+// (by terminating and restarting the web worker), and keep using the
+// editor while long-running tasks are executing.
 
 
 import {
@@ -22,7 +23,7 @@ async function load_pyodide_if_needed() {
 }
 
 async function pump_message_queue() {
-  const queue = self.message_queue || [];
+  const queue = self.message_queue ?? [];
   while(queue.length > 0) {
     const message = queue.pop(0);
     await handle_message(message);
@@ -30,7 +31,7 @@ async function pump_message_queue() {
 }
 
 function enqueue_message(message) {
-  self.message_queue ||= [];
+  self.message_queue ??= [];
   self.message_queue.push(message);
 }
 

@@ -251,10 +251,13 @@ class PyodideInterface {
   // Return true if terminated, false if nothing was done.
   terminate_pyodide_worker() {
     if(this.worker) {
-      this.unlock_input();
       this.worker.terminate();
       this.worker = null;
+      this.execution_started_at = null;
+      this.error_message = null;
+      this.sympy_command = null;
       this.change_state('uninitialized');
+      this.app_component.unlock_input();
       return true;
     }
     else return false;
@@ -438,8 +441,7 @@ class PyodideInterface {
 //                          a one-item list into a scalar, or extracting a relevant result from a tuple).
 class SymPyCommand {
   constructor(function_name, operation_label,
-              arg_exprs, extra_args,
-              transform_result_code) {
+              arg_exprs, extra_args, transform_result_code) {
     this.function_name = function_name;
     this.operation_label = operation_label;
     this.arg_exprs = arg_exprs;
@@ -517,8 +519,9 @@ class SymPyFunctionCall extends SymPyNode {
     const args_string = this.args
           .map(arg_node => arg_node.to_py_string())
           .join(', ');
-    return [this.function_name, '(', args_string, ')']
-      .join('');
+    return [
+      this.function_name, '(', args_string, ')'
+    ].join('');
   }
 }
 
@@ -533,8 +536,9 @@ class SymPyFunctionObjectCall extends SymPyNode {
     const args_string = this.args
           .map(arg_node => arg_node.to_py_string())
           .join(', ');
-    return ["Function('", this.name, "')(", args_string, ')'
-           ].join('');
+    return [
+      "Function('", this.name, "')(", args_string, ')'
+    ].join('');
   }
 }
 
@@ -551,6 +555,8 @@ class SymPySRepr extends SymPyNode {
 
 
 // This handles the overall conversion of Expr trees to SymPy code.
+// Nested expressions are converted into a list of Python assignment
+// statements, generally one per Expr "node", SSA-style.
 class ExprToSymPy {
   // Given an Expr tree, try to build a string of Python code
   // that will create the corresponding SymPy expression.
@@ -565,14 +571,14 @@ class ExprToSymPy {
     this.subexpression_count = 0;  // serial number for expr_1,2,3 in generated code
   }
 
-  // TODO: fix this (highlight offending_expr)
+  // TODO: fix this (highlight offending_expr; also it should be offending_expr_path)
   error(message, offending_expr = null) {
     throw new Error(message);
   }
 
   // NOTE: expr can be null here; will be converted to None.
   expr_to_code(expr, builder_function_name) {
-    const return_node = expr ? this.emit_expr(expr) : new SymPySRepr('None');
+    const return_node = expr ? this.emit_expr(expr) : this.raw('None');
     return this.generate_code(builder_function_name, return_node);
   }
 
@@ -597,17 +603,21 @@ class ExprToSymPy {
   // TODO: Should do proper string escaping, but this is only used in
   // some special cases to pass constant strings like '+'.
   string(value) {
-    const quoted = ["'", value, "'"].join('');
-    return new SymPyConstant(quoted, true /* raw */);
+    return this.raw(["'", value, "'"].join(''));
   }
 
+  // This will be emitted as-is to Python.
+  raw(string) {
+    return new SymPyConstant(string, true);
+  }
+
+  // Construct (sub)expression from an existing SymPy srepr string.
   srepr(srepr_string) {
-    return this.add_assignment(
-      new SymPySRepr(srepr_string));
+    return this.add_assignment(new SymPySRepr(srepr_string));
   }
 
   // Call a SymPy function.
-  fncall(function_name, args = []) {
+  fncall(function_name /* string */, args = []) {
     return this.add_assignment(
       new SymPyFunctionCall(function_name, args));
   }
@@ -625,16 +635,16 @@ class ExprToSymPy {
 
   // Python (x,y,z) tuple - treated as a function call with empty function name.
   tuple(args = []) {
-    if(args.length === 1)  // special case (x,) Python syntax
-      return this.fncall('', args.concat([new SymPyConstant('', true)]));
-    else
-      return this.fncall('', args);
+    return this.fncall(
+      '', args.length === 1
+        ? [...args, this.raw('')]  // special case (x,) Python syntax
+        : args);
   }
 
   add_assignment(value_node) {
     const subexpr_node = new SymPySubexpression(++this.subexpression_count);
-    const assignment_node = new SymPyAssignment(subexpr_node, value_node);
-    this.assignment_list.push(assignment_node);
+    this.assignment_list.push(
+      new SymPyAssignment(subexpr_node, value_node));
     return subexpr_node;
   }
 

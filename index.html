@@ -2383,6 +2383,8 @@
         will be initialized, so it may take a few seconds to get a result.  After that, operations
         should run at full speed.  These operations may potentially be time-consuming, so they
         are run in a background thread and results are displayed as they become available.
+        (Long-running computations can be terminated using <span class="k">#</span><span class="k">!</span>,
+        described below.)
       </p>
       <p>
         Performing these symbolic operations comes with some caveats:
@@ -2597,7 +2599,7 @@
         </li>
         <li>
           <span class="k">c</span>
-          <code>f(x)\enspace x\Rightarrow \mathtt{is\?_convex(f(x), x)}</code>
+          <code>f(x)\enspace x\Rightarrow \mathtt{is\_convex(f(x), x)}</code>
           Check convexity of <code>f(x)</code>
         </li>
         <li>
@@ -2640,6 +2642,14 @@
 
       <p><strong>SymPy Utilities:</strong></p>
       <ul class="keybindings">
+        <li>
+          <span class="k">!</span>
+          Stop the currently-running SymPy command, if there is one.
+          This can be used to abort operations that are taking too long.
+          This command terminates the underlying Pyodide environment; it will
+          be automatically restarted the next time you use one of these symbolic
+          operations, but there may be a small delay while it starts up.
+        </li>
         <li>
           <span class="k">@</span>
           Export an expression as Python code, copying it to the system clipboard.

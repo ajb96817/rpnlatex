@@ -125,7 +125,10 @@ class InputContext {
       // computations so we only need to keep track of a few keystrokes.
       if(this.key_buffer.length < 20)
         this.key_buffer.push(key);
-      return app_state;
+      return [
+        false,  /* prevents it from updating state/undo-stack, etc. */
+        app_state
+      ];
     }
     // If a popup panel (files/helptext) is active, always use its dedicated keymap.
     const effective_mode = this.settings.popup_mode || this.mode;
