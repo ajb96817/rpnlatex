@@ -217,9 +217,6 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 //                     after a short time interval has passed without completion.
 //                     This is used for the (typical) case where computations finish
 //                     quickly, to reduce visual clutter/popping.
-//   - 'errored': The last command has resulted in a Python (or other) error,
-//                but the PyodideWorker is prepared to accept another command
-//                (so it's similar to 'ready' state).
 class PyodideInterface {
   constructor(app_component) {
     this.app_component = app_component;
@@ -323,6 +320,8 @@ class PyodideInterface {
     this.sympy_command = sympy_command;
     this.execution_started_at = Date.now();
     this.clear_error();
+    // TODO: catch errors, turn it into an error_details
+    // (need error_details.is_parsing_error=true or something)
     const command_code = this.generate_command_code(sympy_command);
     this.post_worker_message({
       command: 'sympy_command',
@@ -753,6 +752,12 @@ class ExprToSymPy {
   }
 
   emit_subscriptsuperscript_expr(expr) {
+    const result = this.try_analyzers(
+      analyzer_table.subscriptsuperscript, [expr]);
+    if(result)
+      return result;
+
+    // TODO: move this into SubscriptSuperscriptAnalyzer
     const [base_expr, subscript_expr, superscript_expr] =
           [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
     // Check for for "where" expressions of the form: f|_{x=y}.
@@ -1274,7 +1279,7 @@ class IntegralAnalyzer extends Analyzer {
 // operator are the same for integrands in integral expressions:
 // a sequence of implicit multiplications is allowed (like x^2 y), but
 // lower-precedence things like x+y must be explicitly parenthesized.
-class DerivativeAnalyzer extends Analyzer {
+class LeibnizDerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     let index = start_index;
     const derivative_info = this
@@ -1407,6 +1412,128 @@ class DerivativeAnalyzer extends Analyzer {
             (expr.is_font_expr() && expr.typeface === 'roman' &&
              expr.expr.is_text_expr_with('d')) ||
             expr.is_command_expr_with(0, 'partial'));
+  }
+}
+
+
+// Recognize Lagrange derivative (prime) notation.
+// The variable is always assumed to be 'x' unless explicitly specified
+// as in f'(z).  In that case, the variable has to be a simple variable
+// name, not a more complex expression.  f'(2z), f'(z^2) still use 'x' as
+// the variable.
+//
+// Cases recognized:
+//   - (x^2+c)' => diff(x^2+c, x)  (always use 'x' variable)
+//   - y' => diff(y(x), x)  (simple variables like 'y' get converted to FunctionCallExprs)
+//   - y^2' => diff(y^2, x)  (anything more complex than a plain 'y' doesn't get turned into a function call)
+//   - y_n' => diff(y_n, x)  (n in the subscript slot and \prime in the superscript)
+//   - (x^2+c)'' => diff(x^2+c, (x, 2))
+//   - f'(z) => diff(f(z), z)  (use 'z' if it's a simple variable name)
+//   - f'(x, y) => not allowed, has to be a single argument
+//   - f'(x^2+c) => diff(f(x^2+c), x)  (uses 'x' if the f(...) argument is not a simple variable)
+//   - f^{(n)}(z) => diff(f(z), (z, n))  ("power" has to be parenthesized)
+//   - f''(z)' => diff(f(z), (z, 3))  (edge case, primes add together)
+class LagrangeDerivativeAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    const expr = exprs[start_index];
+    const result = this.analyze_primed_expr(expr);
+    if(result) {
+      const {
+        base_expr, derivative_order_expr, dependent_var_expr
+      } = result;
+      const dependent_var_node =
+            this.emitter.emit_expr(dependent_var_expr);
+      const diff_command_node = this.emitter.fncall(
+        'diff', [
+          this.emitter.emit_expr(base_expr),
+          derivative_order_expr.is_text_expr_with('1') ?
+            dependent_var_node :  // diff(..., x)
+            this.emitter.tuple([  // diff(..., (x, n))
+              dependent_var_node,
+              this.emitter.emit_expr(derivative_order_expr)])]);
+      return this.success(diff_command_node, start_index+1);
+    }
+    else return this.no_match();
+  }
+
+  analyze_primed_expr(expr) {
+    let derivative_order = 0, derivative_order_expr = null;
+    let dependent_var_expr = new TextExpr('x');
+    // Check for expr' (not a function call like f'(x)).
+    if(expr.is_subscriptsuperscript_expr() &&
+       expr.count_primes() > 0) {
+      derivative_order += expr.count_primes();
+      // Remove primes; base_expr may still be a SubscriptSuperscriptExpr
+      // in cases like y_n^\prime
+      expr = expr.with_superscript(null);
+      // Check for y^\prime where y is a simple variable.
+      // These get autoconverted to y(x).
+      if(expr_to_variable_name(expr))
+        expr = new FunctionCallExpr(
+          expr, new DelimiterExpr('(', ')', dependent_var_expr));
+    }
+    // Check for f'(...) or f^{(n)}(...) (must be single argument).
+    if(expr.is_function_call_expr() &&
+       expr.fn_expr.is_subscriptsuperscript_expr()) {
+      if(expr.argument_count() !== 1)  // f'(x,y) etc.
+        return this.error('Derivative must be a one-argument function');
+      const argument_expr = expr.extract_argument_exprs()[0];
+      // Argument must be a simple variable name; use it as the
+      // dependent variable instead of the default 'x'.
+      if(!expr_to_variable_name(argument_expr))
+        return this.error('Derivative argument must be a simple variable');
+      dependent_var_expr = argument_expr;
+      // Check for f^{(n)}(...)
+      const superscript_expr = expr.fn_expr.superscript_expr;
+      if(superscript_expr.is_delimiter_expr() &&
+         superscript_expr.left_type === '(' && superscript_expr.right_type === ')') {
+        // Remove the ^{(n)}
+        expr = new FunctionCallExpr(
+          expr.fn_expr.with_superscript(null), expr.args_expr);
+        derivative_order_expr = superscript_expr.inner_expr;
+      }
+      else if(expr.fn_expr.count_primes() > 0) {
+        // f'(...), or could be a plain f(...)
+        derivative_order += expr.fn_expr.count_primes();
+        // Remove primes: f''(x) => f(x)
+        expr = new FunctionCallExpr(
+          expr.fn_expr.with_superscript(null), expr.args_expr);
+      }
+      else // things like f^a(z) are left alone, but we keep the z variable
+        ;
+    }
+    if(derivative_order_expr) {
+      if(derivative_order > 0) {
+        // Corner case of f^{(n)}''(z)
+        // This is treated as diff(f(z), (z, n+2)).
+        derivative_order_expr = derivative_order_expr
+          .increment(derivative_order);
+      }
+    }
+    else if(derivative_order === 0)
+      return null;  // no valid prime notation found
+    else
+      derivative_order_expr = TextExpr.integer(derivative_order);
+    return {
+      base_expr: expr,
+      derivative_order_expr: derivative_order_expr,
+      dependent_var_expr: dependent_var_expr
+    };
+  }
+}
+
+
+// Recognize Newton derivative notation: \dot{y}
+// The variable is always assumed to be 't', similar to LagrangeDerivativeAnalyzer,
+// unless explicitly given in a FunctionCallExpr as in \dot{y}(x).
+//
+// Cases recognized:
+//   - \dot{x} => diff(x(t), t)  (always use 't' variable)
+//   - \ddot{x} => diff(x(t), (t, 2))
+//   - \dot{y}(z) => diff(y(z), z)  (use 'z' if it's an FunctionCallExpr with a simple variable)
+class NewtonDerivativeAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    return this.no_match();
   }
 }
 
@@ -1595,42 +1722,12 @@ class FunctionCallAnalyzer extends Analyzer {
 
   analyze_function_call_expr(expr) {
     return this.analyze_sympy_function_call(expr) ||
-      this.analyze_lagrange_derivative(expr) ||
       this.analyze_generic_function_call(expr);
   }
 
   // Calling a built-in SymPy function (normally would be a CommandExpr).
   analyze_sympy_function_call(expr) {
     return null;
-  }
-
-  // f'(x), f''(x)
-  // TODO: allow (x^2+1)', etc.
-  analyze_lagrange_derivative(expr) {
-    if(!expr.is_function_call_expr()) return null;
-    const fn_expr = expr.fn_expr;
-    if(!fn_expr.is_subscriptsuperscript_expr()) return null;
-    const prime_count = fn_expr.count_primes();
-    if(prime_count === 0) return null;
-    const fn_name = expr_to_variable_name(fn_expr.base_expr);
-    if(!fn_name) return null;  // 'f' can't be a "complex" expression
-    if(this.arg_exprs.length !== 1) {
-      // f(x,y), etc. disallowed
-      return this.error('Derivative must be a one-argument function');
-    }
-    const variable_expr = this.arg_exprs[0];
-    if(!expr_to_variable_name(variable_expr)) {
-      // f'(x^2), etc.
-      return this.error('Derivative argument must be a simple variable');
-    }
-    const fn_call_node = this.emitter
-          .function_object_call(fn_name, this.arg_nodes);
-    const diff_command_node = this.emitter.fncall(
-      'diff', [
-        fn_call_node,
-        this.arg_nodes[0],
-        this.emitter.number(prime_count)]);
-    return diff_command_node;
   }
 
   // f(x) -> Function('f')(Symbol('x'))
@@ -1867,16 +1964,25 @@ const analyzer_table = {
   // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
   // handler gets to it.
   command: [
-    DerivativeAnalyzer,
+    LeibnizDerivativeAnalyzer,  // dy/dx
+    NewtonDerivativeAnalyzer,  // \dot{y}
     CommandAnalyzer
   ],
   infix: [InfixAnalyzer],
-  function_call: [FunctionCallAnalyzer],
+  function_call: [
+    LagrangeDerivativeAnalyzer,  // f'(x)
+    FunctionCallAnalyzer
+  ],
+  subscriptsuperscript: [
+    // y' or (x+3)'
+    LagrangeDerivativeAnalyzer
+    // , SubscriptSuperscriptAnalyzer (TODO)
+  ],
   // SequenceExprs use these; most "complicated" patterns occur
   // within sequences.
   sequence: [
     IntegralAnalyzer,
-    DerivativeAnalyzer,
+    LeibnizDerivativeAnalyzer,
     SumOrProductAnalyzer,
     LimitAnalyzer,
     // CommandAnalyzer needs to come after the others so that they have
