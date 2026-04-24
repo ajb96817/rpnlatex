@@ -739,7 +739,8 @@ class FontExpr extends Expr {
 
   dissolve() { return [this.expr]; }
 
-  // Overridden from Expr class.
+  // Overridden from Expr class (apply the hat inside if this is just
+  // something like a font size adjustment or a bold).
   with_hat(hat_op) {
     if(this.typeface === 'normal')
       return this.replace_subexpression(
@@ -1776,8 +1777,8 @@ class DelimiterExpr extends Expr {
   // TODO: make into instance method of Expr (parenthesize_if_not_already too)
   static parenthesize(expr, left_type = null, right_type = null,
                       if_not_already = false /* true = don't double-wrap if already parenthesized */) {
-    left_type ||= '(';
-    right_type ||= ')';
+    left_type ??= '(';
+    right_type ??= ')';
     while(expr.is_delimiter_expr() && expr.is_blank_delimiters())
       expr = expr.inner_expr;
     // Normally, parenthesizing (x) gives ((x)).

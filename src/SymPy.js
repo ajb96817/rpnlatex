@@ -1530,17 +1530,17 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
     const result = this.analyze_primed_expr(expr);
     if(result) {
       const {
-        base_expr, derivative_order_expr, dependent_var_expr
+        base_expr, derivative_order_expr, independent_var_expr
       } = result;
-      const dependent_var_node =
-            this.emitter.emit_expr(dependent_var_expr);
+      const independent_var_node =
+            this.emitter.emit_expr(independent_var_expr);
       const diff_command_node = this.emitter.fncall(
         'diff', [
           this.emitter.emit_expr(base_expr),
           derivative_order_expr.is_text_expr_with('1') ?
-            dependent_var_node :  // diff(..., x)
+            independent_var_node :  // diff(..., x)
             this.emitter.tuple([  // diff(..., (x, n))
-              dependent_var_node,
+              independent_var_node,
               this.emitter.emit_expr(derivative_order_expr)])]);
       return this.success(diff_command_node, start_index+1);
     }
@@ -1549,7 +1549,7 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
 
   analyze_primed_expr(expr) {
     let derivative_order = 0, derivative_order_expr = null;
-    let dependent_var_expr = new TextExpr('x');
+    let independent_var_expr = new TextExpr('x');
     // Check for expr' (not a function call like f'(x)).
     if(expr.is_subscriptsuperscript_expr() &&
        expr.count_primes() > 0) {
@@ -1561,7 +1561,7 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
       // These get autoconverted to y(x).
       if(expr_to_variable_name(expr))
         expr = new FunctionCallExpr(
-          expr, new DelimiterExpr('(', ')', dependent_var_expr));
+          expr, new DelimiterExpr('(', ')', independent_var_expr));
     }
     // Check for f'(...) or f^{(n)}(...) (must be single argument).
     if(expr.is_function_call_expr() &&
@@ -1570,10 +1570,10 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
         return this.error('Derivative must be a one-argument function');
       const argument_expr = expr.extract_argument_exprs()[0];
       // Argument must be a simple variable name; use it as the
-      // dependent variable instead of the default 'x'.
+      // independent variable instead of the default 'x'.
       if(!expr_to_variable_name(argument_expr))
-        return this.error('Derivative argument must be a simple variable');
-      dependent_var_expr = argument_expr;
+        return this.error('Derivative independent variable must be a simple variable');
+      independent_var_expr = argument_expr;
       // Check for f^{(n)}(...)
       const superscript_expr = expr.fn_expr.superscript_expr;
       if(superscript_expr.is_delimiter_expr() &&
@@ -1597,8 +1597,8 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
       if(derivative_order > 0) {
         // Corner case of f^{(n)}''(z)
         // This is treated as diff(f(z), (z, n+2)).
-        derivative_order_expr = derivative_order_expr
-          .increment(derivative_order);
+        derivative_order_expr =
+          derivative_order_expr.increment(derivative_order);
       }
     }
     else if(derivative_order === 0)
@@ -1608,7 +1608,7 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
     return {
       base_expr: expr,
       derivative_order_expr: derivative_order_expr,
-      dependent_var_expr: dependent_var_expr
+      independent_var_expr: independent_var_expr
     };
   }
 }
@@ -1618,13 +1618,82 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
 // The variable is always assumed to be 't', similar to LagrangeDerivativeAnalyzer,
 // unless explicitly given in a FunctionCallExpr as in \dot{y}(x).
 //
+// The expression to be analyzed may be either a CommandExpr or
+// a FunctionCallExpr (for \dot{y} and \dot{y}(x) respectively).
+//
 // Cases recognized:
 //   - \dot{x} => diff(x(t), t)  (always use 't' variable)
 //   - \ddot{x} => diff(x(t), (t, 2))
 //   - \dot{y}(z) => diff(y(z), z)  (use 'z' if it's an FunctionCallExpr with a simple variable)
 class NewtonDerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
+    const expr = exprs[start_index];
+    const result =
+          this.analyze_function_notation(expr) ||
+          this.analyze_implicit_notation(expr);
+    if(result) {
+      // The \dot{...} command(s) must wrap only a simple variable
+      // name; \dot{y^2} isn't allowed, it has to be: \dot{y}^2.
+      if(!expr_to_variable_name(result.dependent_var_expr))
+        return this.failure(
+          'Dependent variable in dot notation must be a simple variable name',
+          start_index);
+      // We have 'y' and 't' in \ddot{y}(t); construct the function call expr
+      // so it can be differentiated with diff().
+      const function_call_expr = new FunctionCallExpr(
+        result.dependent_var_expr,
+        DelimiterExpr.parenthesize(result.independent_var_expr));
+      const independent_var_node =
+            this.emitter.emit_expr(result.independent_var_expr);
+      const diff_command_node = this.emitter.fncall(
+        'diff', [
+          this.emitter.emit_expr(function_call_expr),
+          result.derivative_order === 1 ?
+            independent_var_node :
+            this.emitter.tuple([
+              independent_var_node,
+              this.emitter.number(result.derivative_order)])]);
+      return this.success(diff_command_node, start_index+1);
+    }
     return this.no_match();
+  }
+
+  // Check for function-call form with explicitly-named independent
+  // variable: \dot{y}(x).  The independent variable follows the same
+  // rules as in LagrangeDerivativeAnalyzer.
+  analyze_function_notation(expr) {
+    if(expr.is_function_call_expr()) {
+      const [base_expr, dot_count] = this.analyze_dots(expr.fn_expr);
+      // TODO: this duplicates logic in analyze_primed_expr()
+      if(expr.argument_count() !== 1)  // \dot{y(x,t)} not allowed
+        return this.error('Only one argument allowed in dotted derivative notation');
+      const argument_expr = expr.extract_argument_exprs()[0];
+      if(!expr_to_variable_name(argument_expr))
+        return this.error('Independent variable in dot notation must be a simple variable name');
+      if(dot_count > 0) {
+        return {
+          dependent_var_expr: base_expr,
+          independent_var_expr: argument_expr,
+          derivative_order: dot_count
+        };
+      }
+    }
+    return null;
+  }
+
+  // Check for "implicit" dot notation (\ddot{y} by itself without
+  // being a FunctionCall) with a default 't' independent variable:
+  // \ddot{y} => \ddot{y}(t)
+  analyze_implicit_notation(expr) {
+    const [base_expr, dot_count] = this.analyze_dots(expr);
+    if(dot_count > 0) {
+      return {
+        dependent_var_expr: base_expr,
+        independent_var_expr: new TextExpr('t'),
+        derivative_order: dot_count
+      };
+    }
+    return null;
   }
 
   // Returns [expr_without_dots, dot_count].
@@ -2080,6 +2149,7 @@ const analyzer_table = {
   infix: [InfixAnalyzer],
   function_call: [
     LagrangeDerivativeAnalyzer,  // f'(x)
+    NewtonDerivativeAnalyzer,  // \dot{y}(x)
     FunctionCallAnalyzer
   ],
   subscriptsuperscript: [
