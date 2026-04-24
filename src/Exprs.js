@@ -46,7 +46,7 @@ class Expr {
         return new TextExpr(left_expr.text + right_expr.text);
     }
     // Some types of CommandExprs (integral signs) can be combined in special ways.
-    if(left_expr.is_command_expr() && right_expr.is_command_expr()) {
+    if(left_expr.is_command_expr_with(0) && right_expr.is_command_expr_with(0)) {
       const combined_command_name = CommandExpr.combine_command_pair(
         left_expr.command_name, right_expr.command_name);
       // NOTE: no_parenthesize inhibits this.  Otherwise there would be no way to
@@ -353,7 +353,39 @@ class Expr {
     return this.with_superscript(new CommandExpr('prime'), autoparenthesize);
   }
 
-  // x -> x+1, x-1, etc.
+  // Apply a 'hat' command like \hat{x} or \overline{x}.
+  // Normally, this just wraps the expression in a 1-argument CommandExpr,
+  // but for hats we handle some special cases:
+  // - If the object the hat is being added to is a literal 'i' or 'j',
+  //   it's first converted into a \imath or \jmath to remove the dot
+  //   before applying the hat.
+  // - Adding a hat to a subscripted/superscripted expression instead applies
+  //   it to the base expression, for better horizontal positioning:
+  //   x^2 => \hat{x}^2, not \hat{x^2}.
+  // - If the 'base' expression itself is also subscripted/superscripted, this rule
+  //   is applied recursively: j^2^3 => \jmath^2^3 (but (j^2)^3 is left alone).
+  // - If the 'base' expression is a function call, the hat is applied to the
+  //   function name instead of the whole f(x) expression:
+  //   f(x) => \hat{f}(x), not \hat{f(x)}.
+  // - FontExprs are also examined recursively, but only if they're normal math
+  //   typeface (no roman font, etc).  They can still be bolded and/or resized.
+  //     \bold{j}   => \bold{\hat{\jmath}}
+  //     \bold{j^2} => \bold{\hat{\jmath}^2}
+  //     \bold{j}^2 => \bold{\hat{\jmath}}^2
+  //     \mathrm{j} => \hat{\mathrm{j}}
+  // - The "dot" commands combine to form more dots.  We can have up to
+  //   4 with \ddddots{x}.  Only one and two dots are directly available with
+  //   keybindings [.][.] and [.]["] but this will combine them to get more.
+  // TODO: Maybe have an option to disable this behavior, it might not
+  //       be wanted 100% of the time.
+  // NOTE: This only applies to "small" hats; commands like \widehat don't
+  //       get this treatment.
+  with_hat(hat_op /* string */) {
+    // NOTE: Subclasses override this to implement the above rules.
+    return new CommandExpr(hat_op, [this]);
+  }
+
+  // x => x+1, x-1, etc.
   // InfixExpr overrides this to convert e.g. x+1 => x+2 or x-1 => x.
   increment(amount) {
     if(amount === 0)
@@ -379,6 +411,7 @@ class CommandExpr extends Expr {
   }
   
   // Try to combine integral signs together; \int + \int => \iint, etc.
+  // TODO: rename -> combine_integral_signs()
   static combine_command_pair(left_command, right_command) {
     if(left_command === 'int' && right_command === 'int') return 'iint';
     if(left_command === 'iint' && right_command === 'int') return 'iiint';
@@ -497,6 +530,29 @@ class CommandExpr extends Expr {
       return this.operand_exprs[0].text;
     else
       return null;
+  }
+
+  // Overridden from Expr class to combine \dot{x} "hats".
+  // We can have up to 4 dots; after that they're just stacked
+  // up like any other hat.
+  // Edge case: combining \ddot with \dddot is 5 dots total
+  // which arguably should be a \ddddot stacked with \dot.
+  with_hat(hat_op) {
+    const hat_info = [['dot', 1], ['ddot', 2], ['dddot', 3], ['ddddot', 4]];
+    const _count_dots = (c) => {
+      const match = hat_info.find(pair => pair[0] === c);
+      return match ? match[1] : 0;
+    };
+    if(this.operand_count() === 1) {
+      const this_dots = _count_dots(this.command_name),
+            new_dots = _count_dots(hat_op);
+      if(this_dots > 0 && new_dots > 0) {
+        const match = hat_info.find(pair => pair[1] === this_dots + new_dots);
+        if(match)
+          return new CommandExpr(match[0], this.operand_exprs);
+      }
+    }
+    return super.with_hat(hat_op);
   }
 
   is_integral_sign() {
@@ -682,6 +738,16 @@ class FontExpr extends Expr {
   }
 
   dissolve() { return [this.expr]; }
+
+  // Overridden from Expr class.
+  with_hat(hat_op) {
+    if(this.typeface === 'normal')
+      return this.replace_subexpression(
+        0 /* this.expr */,
+        this.expr.with_hat(hat_op));
+    else
+      return super.with_hat(hat_op);
+  }
 
   // If this FontExpr is a "no-op", remove it by returning the wrapped expression directly.
   unwrap_if_possible() {
@@ -1494,6 +1560,14 @@ class FunctionCallExpr extends Expr {
     return new FunctionCallExpr(this.fn_expr.as_bold(), bold_args_expr);
   }
 
+  // Overridden from Expr class.
+  // f{(x)} => \hat{f}{(x)}
+  with_hat(hat_op) {
+    return new FunctionCallExpr(
+      this.fn_expr.with_hat(hat_op),
+      this.args_expr);
+  }
+
   // Return an array of individual function arguments.
   // Something like f(x+y,z-w) returns [x+y, z-w].
   // TODO: maybe consider ';' as an argument separator as well as ','.
@@ -1576,6 +1650,18 @@ class TextExpr extends Expr {
 
   as_editable_string() {
     return LatexEmitter.latex_unescape(this.text);
+  }
+
+  // Overridden from Expr class to remove dots from i/j.
+  with_hat(hat_op) {
+    const replacement =
+          this.text === 'i' ? 'imath' :
+          this.text === 'j' ? 'jmath' :
+          null;
+    if(replacement)
+      return new CommandExpr(replacement).with_hat(hat_op);
+    else
+      return super.with_hat(hat_op);
   }
 
   as_logical_negation() {
@@ -2016,6 +2102,14 @@ class SubscriptSuperscriptExpr extends Expr {
       return this.with_superscript(null).with_superscript(
         new SequenceExpr(
           new Array(prime_count-1).fill(new CommandExpr('prime'))));
+  }
+
+  // Overridden from Expr class.
+  // x^2 => \hat{x}^2
+  with_hat(hat_op) {
+    return this.replace_subexpression(
+      0 /* this.base_expr */,
+      this.base_expr.with_hat(hat_op));
   }
 
   // Overridden from Expr superclass.

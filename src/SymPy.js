@@ -1626,6 +1626,24 @@ class NewtonDerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     return this.no_match();
   }
+
+  // Returns [expr_without_dots, dot_count].
+  // (This "unwraps" the dot command(s): \ddot{x} => [x, 2].)
+  // This also handles nested dot commands, so for example
+  // \dddots{\ddots{x}} => [x, 5].
+  analyze_dots(expr) {
+    // TODO: this is duplicated in CommandExpr.with_hat()
+    const hat_info = [['dot', 1], ['ddot', 2], ['dddot', 3], ['ddddot', 4]];
+    if(expr.is_command_expr_with(1)) {
+      const match = hat_info.find(pair => pair[0] === expr.command_name);
+      if(match) {
+        const [inner_expr, inner_count] =
+              this.analyze_dots(expr.operand_exprs[0]);
+        return [inner_expr, inner_count + match[1]];
+      }
+    }
+    return [expr, 0];
+  }
 }
 
 

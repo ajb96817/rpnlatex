@@ -1260,50 +1260,11 @@ class InputContext {
     return new_stack.push_expr(form_expr);
   }
 
-  // Similar to do_operator, except:
-  //   - If the object the hat is being added to is a literal 'i' or 'j',
-  //     it's first converted into a \imath or \jmath to remove the dot
-  //     before applying the hat.
-  //   - Adding a hat to a subscripted/superscripted expression instead applies
-  //     it to the base expression, for better horizontal positioning.
-  //   - If the 'base' expression itself is also subscripted/superscripted, this rule
-  //     is applied recursively: j^2^3 -> \jmath^2^3 (but (j^2)^3 is left alone).
-  //   - If the 'base' expression is a function call, the hat is applied to the
-  //     function name instead of the whole f(x) expression:
-  //     f(x) -> \hat{f}(x), not \hat{f(x)}.
-  //   - FontExprs are also examined recursively, but only if they're normal math
-  //     typeface (no roman font, etc).  They can still be bolded and/or resized.
-  //       \bold{j}   => \bold{\hat{\jmath}}
-  //       \bold{j^2} => \bold{\hat{\jmath}^2}
-  //       \bold{j}^2 => \bold{\hat{\jmath}}^2
-  //       \mathrm{j} => \hat{\mathrm{j}}
-  // TODO: maybe have an option to disable this behavior
-  // NOTE: This only applies to "small" hats; commands like \widehat don't
-  // get this treatment.
+  // Similar to do_operator, but implements some "hat special cases".
+  // See the comment in Expr.with_hat().
   do_hat(stack, hat_op) {
     let [new_stack, expr] = stack.pop_exprs(1);
-    return new_stack.push_expr(this._do_hat(expr, hat_op));
-  }
-  _do_hat(expr, hat_op) {
-    if(expr.is_text_expr_with('i') || expr.is_text_expr_with('j'))
-      return new CommandExpr(
-        hat_op,
-        [new CommandExpr(
-          expr.is_text_expr_with('i') ? 'imath' : 'jmath')]);
-    else if(expr.is_subscriptsuperscript_expr())
-      return expr.replace_subexpression(
-        0 /* expr.base_expr */,
-        this._do_hat(expr.base_expr, hat_op));
-    else if(expr.is_function_call_expr())
-      return new FunctionCallExpr(
-        this._do_hat(expr.fn_expr, hat_op),
-        expr.args_expr);
-    else if(expr.is_font_expr() && expr.typeface === 'normal')
-      return expr.replace_subexpression(
-        0 /* expr.expr */,
-        this._do_hat(expr.expr /* NOTE: not expr.base_expr */, hat_op));
-    else
-      return new CommandExpr(hat_op, [expr]);
+    return new_stack.push_expr(expr.with_hat(hat_op));
   }
 
   // Wrap expr in \htmlClass{...}
