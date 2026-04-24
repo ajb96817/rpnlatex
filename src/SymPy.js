@@ -30,7 +30,9 @@ const sympy_function_translations = [
   ['ln', 'log'],
   ['log_2', 'log2'],
   ['lg', 'log2'],
-  ['log_{10}', 'log10']  // not yet implemented in the editor
+  ['log_{10}', 'log10'],  // not yet implemented in the editor
+  ['overline', 'conjugate'],
+  ['bar', 'conjugate']
 ];
 
 const allowed_unary_sympy_functions = new Set([
@@ -40,7 +42,8 @@ const allowed_unary_sympy_functions = new Set([
   'asinh', 'acohs', 'atanh', 'asech', 'acsch', 'acoth',
 
   'det', 'trace', 're', 'im',
-  'exp', 'log', 'log2', 'log10'
+  'exp', 'log', 'log2', 'log10',
+  'conjugate'
 ]);
 
 // Maps between LaTeX commands and SymPy relation "classes".
@@ -327,12 +330,15 @@ class PyodideInterface {
       // how errors from the actual Python execution are shown.
       command_code = this.generate_command_code(sympy_command);
     } catch(e) {
-      this.error_details = {
-        command: sympy_command,
-        message: e.message,
-        error_type: 'expr_conversion'
-      };
-      return;
+      if(e instanceof ExprToSymPyError) {
+        this.error_details = {
+          command: sympy_command,
+          message: e.message,
+          error_type: 'expr_conversion'
+        };
+        return;
+      }
+      else throw e;  // pass through "normal" JS errors
     }
     this.post_worker_message({
       command: 'sympy_command',
@@ -567,6 +573,13 @@ class SymPySRepr extends SymPyNode {
 }
 
 
+class ExprToSymPyError extends Error {
+  constructor(message, options) {
+    super(message, options);
+  }
+}
+
+
 // This handles the overall conversion of Expr trees to SymPy code.
 // Nested expressions are converted into a list of Python assignment
 // statements, generally one per Expr "node", SSA-style.
@@ -586,7 +599,7 @@ class ExprToSymPy {
 
   // TODO: fix this (highlight offending_expr; also it should be offending_expr_path)
   error(message, offending_expr = null) {
-    throw new Error(message);
+    throw new ExprToSymPyError(message);
   }
 
   // NOTE: expr can be null here; will be converted to None.
@@ -780,67 +793,7 @@ class ExprToSymPy {
       analyzer_table.subscriptsuperscript, [expr]);
     if(result)
       return result;
-
-    // TODO: move this into SubscriptSuperscriptAnalyzer
-    const [base_expr, subscript_expr, superscript_expr] =
-          [expr.base_expr, expr.subscript_expr, expr.superscript_expr];
-    // Check for for "where" expressions of the form: f|_{x=y}.
-    if(base_expr.is_delimiter_expr() &&
-       base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
-       subscript_expr && subscript_expr.is_infix_expr() &&
-       subscript_expr.operator_text_at(0) === '=') {
-      if(superscript_expr)
-        return this.error('Cannot use superscript here', expr);
-      const lhs = subscript_expr.operand_exprs[0];
-      const rhs = subscript_expr.extract_side_at(0, 'right');
-      alert("where syntax not yet implemented");
-    }
-    // Check for subscripted variable names (x_1).
-    // A possible superscript becomes the exponent.
-    if(subscript_expr) {
-      const variable_name = expr_to_variable_name(expr, true /* ignore_superscript */);
-      if(!variable_name)
-        return this.error('Invalid variable subscript', expr);
-      if(superscript_expr)
-        return this.fncall('Pow', [
-          this.symbol(variable_name),
-          this.emit_expr(superscript_expr)]);
-      else
-        return this.symbol(variable_name);
-    }
-    // Anything else with a subscript isn't allowed.
-    if(subscript_expr)
-      return this.error('Cannot use subscript here', expr);
-    // Check for matrix_expr^{\textrm{T}} (transpose).
-    // Perform the transpose internally rather than calling
-    // transpose(A) with SymPy.
-    if(superscript_expr &&
-       base_expr.is_matrix_expr() &&
-       (superscript_expr.is_text_expr_with('T') ||
-        (superscript_expr.is_font_expr() && superscript_expr.typeface === 'roman' &&
-         superscript_expr.expr.is_text_expr_with('T')))) {
-      return this.emit_expr(base_expr.transposed());
-    }
-    // Check for e^x (both roman and normal 'e').
-    if(superscript_expr &&
-       (base_expr.is_text_expr_with('e') ||
-        (base_expr.is_font_expr() && base_expr.typeface === 'roman' &&
-         base_expr.expr.is_text_expr_with('e'))))
-      return this.fncall('exp', [this.emit_expr(superscript_expr)]);
-    // Check for x^{\circ} (degrees notation).  Becomes x*pi/180.
-    // if(superscript_expr &&
-    //    superscript_expr.is_command_expr_with(0, 'circ'))
-    //   return new AlgebriteCall('multiply', [
-    //     this.expr_to_node(base_expr),
-    //     new AlgebriteVariable('pi'),
-    //     new AlgebriteCall('reciprocal', [new AlgebriteNumber('180')])]);
-    // x^y with no subscript on x.
-    if(superscript_expr)
-      return this.fncall('Pow', [
-        this.emit_expr(base_expr),
-        this.emit_expr(superscript_expr)]);
-    // Shouldn't get here.
-    return this.emit_expr(base_expr);
+    else this.error('Invalid subscripted expression');
   }
 
   // SymPyExpr already has the 'srepr' direct representation available; use that.
@@ -995,6 +948,120 @@ class ImplicitProductAnalyzer extends Analyzer {
       return this.failure(
         'Term not allowed in an implicit product',
         start_index);
+  }
+}
+
+
+// Handles:
+//   - "where" notation: f(x)_{x=3}
+//   - x^T, x^\dagger, other "transpose-like" operators
+//   - e^x: exp(x)
+//   - (x+1)^2: ordinary powers
+class SubscriptSuperscriptAnalyzer extends Analyzer {
+  analyze(exprs, start_index, stop_index) {
+    const expr = exprs[start_index];
+    const index = start_index+1;
+    if(!expr.is_subscriptsuperscript_expr())
+      return this.no_match();  // shouldn't happen
+    let {base_expr, subscript_expr, superscript_expr} = expr;
+    // First check things that might depend on the subscript.
+    let node =
+      this.analyze_where(base_expr, subscript_expr, superscript_expr) ||
+      this.analyze_exp(base_expr, subscript_expr, superscript_expr);
+    if(node)
+      return this.success(node, index);
+    // At this point, any subscript must be something like 'f_a': a simple
+    // variable name with simple subscript that translates into a valid SymPy
+    // symbol.  Other notations involving subscripts have already been handled
+    // (e.g. 'where' syntax) or are handled by other analyzers (such as the
+    // lower limit of sums or integrals).
+    let base_expr_node = null;
+    if(subscript_expr) {
+      const variable_name = expr_to_variable_name(
+        expr, true /* ignore_superscript */);
+      if(variable_name)
+        base_expr_node = this.emitter.symbol(variable_name);
+      else
+        return this.failure('Invalid variable subscript', start_index);
+    }
+    else  // something like (x+1)^2  (superscript but no subscript)
+      base_expr_node = this.emitter.emit_expr(base_expr);
+    // Now we are working with 'base_expr_node' and 'superscript_expr' only.
+    node =
+      this.analyze_transposelike(base_expr_node, superscript_expr) ||
+      this.analyze_power(base_expr_node, superscript_expr);
+    if(node)
+      return this.success(node, index);
+    return this.no_match();  // shouldn't actually get here
+  }
+
+  // Check for for "where" expressions of the form: f|_{x=y}.
+  // TODO: allow superscript for upper-minus-lower
+  analyze_where(base_expr, subscript_expr, superscript_expr) {
+    if(base_expr.is_delimiter_expr() &&
+       base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
+       subscript_expr && subscript_expr.is_infix_expr() &&
+       subscript_expr.operator_text_at(0) === '=') {
+      if(superscript_expr)  // TODO
+        return this.error('Cannot use superscript here', expr);
+      const lhs = subscript_expr.operand_exprs[0];
+      const rhs = subscript_expr.extract_side_at(0, 'right');
+      return this.emitter.fncall('substitute', [
+        this.emitter.emit_expr(base_expr.inner_expr),
+        this.emitter.emit_expr(lhs),
+        this.emitter.emit_expr(rhs)]);
+    }
+    else
+      return null;
+  }
+
+  // e^x (both roman and normal 'e').
+  analyze_exp(base_expr, subscript_expr, superscript_expr) {
+    if(superscript_expr &&
+       !subscript_expr && // can't have a subscripted 'e'
+       (base_expr.is_text_expr_with('e') ||
+        (base_expr.is_font_expr() && base_expr.typeface === 'roman' &&
+         base_expr.expr.is_text_expr_with('e'))))
+      return this.emitter.fncall('exp', [
+        this.emitter.emit_expr(superscript_expr)]);
+    else
+      return null;
+  }
+
+  // x^T: transpose
+  // x^{*}: conjugate
+  // x^\dagger: conjugate transpose (hermitian conjugate)
+  // x^\circ: degrees notation
+  analyze_transposelike(base_expr_node, superscript_expr) {
+    if(!superscript_expr)
+      return null;
+    // Check for normal or roman 'T' for transpose.
+    if(superscript_expr.is_text_expr_with('T') ||
+       (superscript_expr.is_font_expr() && superscript_expr.typeface === 'roman' &&
+        superscript_expr.expr.is_text_expr_with('T')))
+      return this.emitter.fncall('transpose', [base_expr_node]);
+    if(superscript_expr.is_text_expr_with('*'))
+      return this.emitter.fncall('conjugate', [base_expr_node]);
+    if(superscript_expr.is_command_expr_with(0, 'dagger'))
+      return this.emitter.fncall('conjugate', [
+        this.emitter.fncall('transpose', [base_expr_node])]);
+    if(superscript_expr.is_command_expr_with(0, 'circ'))
+      return this.emitter.fncall('multiply', [
+        base_expr_node,
+        this.emitter.fncall('divide', [
+          this.emitter.symbol('pi'),
+          this.emitter.number(180)])]);
+    return null;    
+  }
+
+  // "Default" (x+1)^2 type expression.
+  analyze_power(base_expr_node, superscript_expr) {
+    if(superscript_expr)
+      return this.emitter.fncall('Pow', [
+        base_expr_node,
+        this.emitter.emit_expr(superscript_expr)]);
+    else
+      return null;
   }
 }
 
@@ -1998,9 +2065,8 @@ const analyzer_table = {
     FunctionCallAnalyzer
   ],
   subscriptsuperscript: [
-    // y' or (x+3)'
-    LagrangeDerivativeAnalyzer
-    // , SubscriptSuperscriptAnalyzer (TODO)
+    LagrangeDerivativeAnalyzer,  // y' or (x+3)'
+    SubscriptSuperscriptAnalyzer
   ],
   // SequenceExprs use these; most "complicated" patterns occur
   // within sequences.

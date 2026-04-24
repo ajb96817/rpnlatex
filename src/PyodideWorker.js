@@ -92,6 +92,7 @@ from sympy import *
 
 def log2(x): return log(x,2)
 def log10(x): return log(x,10)
+def multiply(x,y): return S(x)*S(y)
 def divide(x,y): return S(x)/S(y)
 def subtract(x,y): return S(x)-S(y)
 def negate(x): return -S(x)
