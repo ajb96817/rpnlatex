@@ -243,7 +243,7 @@ class InputContext {
     // the stack area.  Cleared after every keypress.
     this.notification_text = null;
     this.error_message = null;
-    this.pyodide_interface.clear();
+    this.pyodide_interface.clear_if_errored();
     // Special indicator to help control the undo stack:
     //   null - save state to undo stack after this action as normal
     //   'undo' - request an undo

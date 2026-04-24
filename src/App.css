@@ -113,12 +113,14 @@ div.pyodide_status div.sympy_args_running {
   background-color: #eef;
 }
 div.pyodide_status div.sympy_args_running div.expr_item div.latex_fragment {
-  animation: pyodide_arg_pulsate 0.75s infinite;
+  /* TODO: revisit the styling of this, not sure what would work best */
+  /* animation: pyodide_arg_pulsate 0.75s infinite; */
+  border-left-style: dashed;
 }
-@keyframes pyodide_arg_pulsate {
-  from { border-left-color: #bbf; }
-  to { border-left-color: #55c; }
-}
+/* @keyframes pyodide_arg_pulsate { */
+/*   from { border-left-color: #bbf; } */
+/*   to { border-left-color: #55c; } */
+/* } */
 div.pyodide_status div.status_line span.operation_label {
   font-weight: bold;
 }

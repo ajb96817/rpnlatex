@@ -376,6 +376,8 @@ class PyodideStatusComponent extends React.Component {
     let status_line_component = null;
     if(!this.should_show_status_line())
       return null;
+    if(!sympy_command)
+      return null;  // TODO: revisit, shouldn't need this check
     let msg = null, label = null;
     switch(pyodide_state) {
     case 'initializing':

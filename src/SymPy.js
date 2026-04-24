@@ -366,6 +366,16 @@ class PyodideInterface {
     this.sympy_command = null;
   }
 
+  // TODO: Revisit; this is a little awkward.
+  // We want to clear the visible error message and reset the
+  // sympy_command once the user types any key.  But if a command
+  // is in-progress, we want to let it keep running.  So here we
+  // only "reset" if there is an actual error being displayed.
+  clear_if_errored() {
+    if(this.error_details)
+      this.clear();
+  }
+
   generate_command_code(command) {
     const { function_name, operation_label,
             arg_exprs, extra_args,
