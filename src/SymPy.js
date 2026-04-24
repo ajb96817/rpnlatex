@@ -251,7 +251,7 @@ class PyodideInterface {
       this.worker.terminate();
       this.worker = null;
       this.execution_started_at = null;
-      this.clear_error();
+      this.error_details = null;
       this.sympy_command = null;
       this.change_state('uninitialized');
       this.app_component.unlock_input();
@@ -319,10 +319,21 @@ class PyodideInterface {
       return this.error('Pyodide not available');
     this.sympy_command = sympy_command;
     this.execution_started_at = Date.now();
-    this.clear_error();
-    // TODO: catch errors, turn it into an error_details
-    // (need error_details.is_parsing_error=true or something)
-    const command_code = this.generate_command_code(sympy_command);
+    this.error_details = null;
+    let command_code = null;
+    try {
+      // Errors during the Expr->Python code conversion process
+      // will be displayed in the SymPy error block, similar to
+      // how errors from the actual Python execution are shown.
+      command_code = this.generate_command_code(sympy_command);
+    } catch(e) {
+      this.error_details = {
+        command: sympy_command,
+        message: e.message,
+        error_type: 'expr_conversion'
+      };
+      return;
+    }
     this.post_worker_message({
       command: 'sympy_command',
       code: command_code
@@ -333,7 +344,8 @@ class PyodideInterface {
     if(result.result === 'error') {
       this.error_details = {
         command: this.sympy_command,
-        message: result.error_message
+        message: result.error_message,
+        error_type: 'sympy_execution'
       };
     }
     else {
@@ -348,8 +360,10 @@ class PyodideInterface {
     this.change_state('ready');
   }
 
-  clear_error() {
+  clear() {
+    this.execution_started_at = null;
     this.error_details = null;
+    this.sympy_command = null;
   }
 
   generate_command_code(command) {

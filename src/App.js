@@ -334,7 +334,9 @@ class PyodideStatusComponent extends React.Component {
     const error_details = this.props.pyodide_interface.error_details;
     return $e(
       'div', {className: 'pyodide_status'},
-      this.render_arguments_block(pyodide_state, sympy_command, this.props.settings),
+      // If there's an error, don't render the "fake stack" arguments.
+      error_details ? null :
+        this.render_arguments_block(pyodide_state, sympy_command, this.props.settings),
       this.render_status_line(pyodide_state, sympy_command),
       this.render_error_block(pyodide_state, error_details));
   }
@@ -433,12 +435,12 @@ class PyodideStatusComponent extends React.Component {
     if(!error_details)
       return null;
     const [error_message, errored_command] =
-          [error_details.message, error_details.command];
+          [error_details.message, error_details.command]
     const operation_name =
           errored_command.operation_label ?? errored_command.function_name;
     let errored_expr_component = null;
     const errored_expr = errored_command.arg_exprs[0];
-    if(errored_expr) {  // zero-argument command (there aren't any currently)
+    if(errored_expr) {
       errored_expr_component = $e(ItemComponent, {
         item: new ExprItem(errored_expr),
         inline_math: true,
@@ -447,15 +449,25 @@ class PyodideStatusComponent extends React.Component {
         key: 'errored_expr'
       });
     }
+    else // zero-argument command (there aren't any currently)
+      ;
+    const error_type_message = {
+      'sympy_execution': 'SymPy error running',
+      'expr_conversion': 'Expression syntax error'
+    }[error_details.error_type] ?? 'Error running';
     return $e(
       'div', {className: 'sympy_error'},
       $e('div', {className: 'error_summary'},
-         'SymPy error running ',
-         $e('span', {className: 'errored_operation_name'}, operation_name),
+         error_type_message,
+         // Don't show the operation name if the error is from
+         // Expr->Python conversion (since the error is because of
+         // the expression itself, not the function execution).
+         (error_details.error_type === 'expr_conversion' ?
+          null : $e('span', {className: 'errored_operation_name'},
+                    ' ' + operation_name)),
          ':'),
       errored_expr_component,
-      $e('div', {className: 'error_message'},
-         error_message));
+      $e('div', {className: 'error_message'}, error_message));
   }
 }
 

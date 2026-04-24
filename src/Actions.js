@@ -243,7 +243,7 @@ class InputContext {
     // the stack area.  Cleared after every keypress.
     this.notification_text = null;
     this.error_message = null;
-    this.pyodide_interface.clear_error();
+    this.pyodide_interface.clear();
     // Special indicator to help control the undo stack:
     //   null - save state to undo stack after this action as normal
     //   'undo' - request an undo
@@ -532,6 +532,7 @@ class InputContext {
     return new_stack;
   }
 
+  // TODO: remove this method
   _start_executing_sympy_command(function_name, operation_label,
                                  arg_exprs, extra_args, transform_result_code) {
     const pyodide = this.app_component.state.pyodide_interface;
