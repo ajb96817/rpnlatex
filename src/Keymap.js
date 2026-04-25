@@ -576,22 +576,22 @@ const keybinding_table = {
     'I': "mode integral_with_limits",
     // 'j': "push i;swap;concat;push e;typeface roman;swap;superscript",  // x -> e^ix (undocumented; not sure how useful this is)
     // 'J': "push i;swap;concat;named_function exp",  // x -> exp(ix) (undocumented)
-    'k': "infix \\,\\vert\\,;parenthesize;function_call",  // f x y -> f(x|y)
-    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;parenthesize;function_call",  // f x y z -> f(x,y|z)
+    'k': "infix \\,\\vert\\,;autoparenthesize 2;parenthesize;function_call",  // f x y -> f(x|y)
+    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;autoparenthesize 2;parenthesize;function_call",  // f x y z -> f(x,y|z)
     'l': "push \\lim;swap;subscript",  // lim_{x}
     'L': "infix \\to;push \\lim;swap;subscript",  // lim_{y \to x}
     'm': "parenthesize_argument;push Im;swap;operator operatorname 2",  // Im(x)
     'M': "parenthesize_argument;push Re;swap;operator operatorname 2",  // Re(x)
     'n': "named_function ln",
     'N': "named_function log",
-    'o': "parenthesize;function_call",  // f x -> f(x)  "[o]f"
+    'o': "autoparenthesize 2;parenthesize;function_call",  // f x -> f(x)  "[o]f"
     'O': "swap;operator overset 2",
     'p': "parenthesize;push P;typeface blackboard;swap;function_call",  // P(X) (probability)
     'P': "infix \\,\\vert\\,;parenthesize;push P;typeface blackboard;swap;function_call",  // P(y|x)
     'q': "operator sqrt",
     'Q': "operator sqrt[3]",
-    'r': "infix ,;parenthesize;function_call",  // f x y -> f(x,y)
-    'R': "infix ,;infix ,;parenthesize;function_call",  // f x y z -> f(x,y,z)
+    'r': "infix ,;autoparenthesize 2;parenthesize;function_call",  // f x y -> f(x,y)
+    'R': "infix ,;infix ,;autoparenthesize 2;parenthesize;function_call",  // f x y z -> f(x,y,z)
     's': "named_function sin",
     'S': "named_function sec",
     't': "named_function tan",
@@ -610,8 +610,8 @@ const keybinding_table = {
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "fraction",
-    '[': "parenthesize [ ];function_call",  // f x -> f[x]
-    ']': "parenthesize \\{ \\};function_call",  // f x -> f{x}
+    '[': "swap;autoparenthesize;swap;parenthesize [ ];function_call",  // f x -> f[x]
+    ']': "swap;autoparenthesize;swap;parenthesize \\{ \\};function_call",  // f x -> f{x}
     '{': "swap;operator overbrace;swap;superscript",
     '}': "swap;operator underbrace;swap;subscript",
     '<': "extract_side left",

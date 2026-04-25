@@ -577,24 +577,40 @@ class SymPySRepr extends SymPyNode {
 }
 
 // Represents a "possibly-dependent variable".
-// See the comment in ExprToSymPy.constructor for details.
+// If reverse_lookup=true, this.name should a dependent variable name
+// for a function/derivative, and this outputs a "function call" with
+// the associated independent variable as the argument.  This is used
+// to convert e.g. y => y(x) for implicit derivative notation, so we
+// can write things like y'' + y = 0 without writing out the y''(x).
+// When using this, the caller must make sure the dependent/independent
+// variable pair is actually registered using record_variable_dependency().
 class SymPyVariable extends SymPyNode {
-  constructor(name) {
+  constructor(name, reverse_lookup = false) {
     super();
     this.name = name;
+    this.reverse_lookup = reverse_lookup;
   }
   is_variable_node() { return true; }
   to_py_string(emitter) {
     // If we have a variable dependency recorded for this variable,
     // use it to make a function call, otherwise use the "plain"
     // variable symbol.
+    // TODO: don't repeat all the "Function".join stuff
     const independent_var_name =
           emitter.lookup_independent_variable_for(this.name);
     if(independent_var_name) {
-      // Function('f')(Symbol('x'))
-      return [
-        "Function('", this.name, "')(Symbol('", independent_var_name, "'))"
-      ].join('');
+      if(this.reverse_lookup)
+        return ["Symbol('", independent_var_name, "')"].join('')
+      else {
+        // Function('f')(Symbol('x'))
+        return [
+          "Function('", this.name, "')(Symbol('", independent_var_name, "'))"
+        ].join('');
+      }
+    }
+    else if(this.reverse_lookup) {
+      // Shouldn't happen.
+      emitter.error('Independent variable not found');
     }
     else  // Symbol('x'), same as SymPySymbol
       return ["Symbol('", this.name, "')"].join('');
@@ -667,9 +683,9 @@ class ExprToSymPy {
   }
 
   // Like symbol(), but allows variable dependencies to be made explicit
-  // during code generation; see comment in constructor().
-  variable(variable_name) {
-    return new SymPyVariable(variable_name);
+  // during code generation; see SymPyVariable.
+  variable(variable_name, reverse_lookup = false) {
+    return new SymPyVariable(variable_name, reverse_lookup);
   }
 
   number(value) {
@@ -1630,6 +1646,8 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
 //
 // Cases recognized:
 //   - (x^2+c)' => diff(x^2+c, x)  (always use 'x' variable)
+//   - (x + t)'(t) => diff(x+t, t)  (a FunctionCallExpr, 't' is the independent variable,
+//                                   and the "function name" is the (x+t) subexpression)
 //   - y' => diff(y(x), x)  (simple variables like 'y' get converted to FunctionCallExprs)
 //   - y^2' => diff(y^2, x)  (anything more complex than a plain 'y' doesn't get turned into a function call)
 //   - y_n' => diff(y_n, x)  (n in the subscript slot and \prime in the superscript)
@@ -1641,100 +1659,88 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
 //   - f''(z)' => diff(f(z), (z, 3))  (edge case, primes add together)
 class LagrangeDerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
-    const expr = exprs[start_index];
-    const result = this.analyze_primed_expr(expr);
-    if(result) {
-      const {
-        base_expr, derivative_order_expr, independent_var_expr
-      } = result;
-      const independent_var_node =
-            this.emitter.emit_expr(independent_var_expr);
-      const diff_command_node = this.emitter.fncall(
-        'diff', [
-          this.emitter.emit_expr(base_expr),
-          derivative_order_expr.is_text_expr_with('1') ?
-            independent_var_node :  // diff(..., x)
-            this.emitter.tuple([  // diff(..., (x, n))
-              independent_var_node,
-              this.emitter.emit_expr(derivative_order_expr)])]);
-      return this.success(diff_command_node, start_index+1);
+    let expr = exprs[start_index];
+    expr = this.analyze_independent_variable(expr);
+    expr = this.analyze_primed_expr(expr);
+    if(!this.derivative_order_expr)
+      return this.no_match();  // no prime notation found; just an ordinary expr
+    if(this.invalid_explicit_var)
+      return this.failure(
+        'Derivative variable must be a simple single variable',
+        start_index);
+    let independent_var_node = null;
+    if(this.has_explicit_independent_var || !this.dependent_var_name)
+      independent_var_node = this.emitter.symbol(this.independent_var_name);
+    else if(this.dependent_var_name) {
+      // Hack - this turns implicit y' into y'(x)
+      independent_var_node = this.emitter.variable(
+        this.dependent_var_name,
+        true /* reverse_lookup */);
     }
-    else
-      return this.no_match();
+    const diff_command_node = this.emitter.fncall(
+      'diff', [
+        this.emitter.emit_expr(expr),
+        this.derivative_order_expr.is_text_expr_with('1') ?
+          independent_var_node :  // diff(..., x)
+          this.emitter.tuple([  // diff(..., (x, n))
+            independent_var_node,
+            this.emitter.emit_expr(this.derivative_order_expr)])]);
+    return this.success(diff_command_node, start_index+1);
   }
 
+  // Look for the x part of f'(x).  Otherwise, if it's something like
+  // y' by itself, assume a default independent variable of x.  An explicit
+  // y(z) or y''(z), etc., elsewhere in the expression can override this
+  // assumption at code generation time.  This is handled through the
+  // variable_dependencies table, see SymPyExpr for details.
+  // This method returns the base expression after stripping any (x)
+  // part of f'(x).
+  analyze_independent_variable(expr) {
+    this.independent_var_name = 'x';
+    this.has_explicit_independent_var = false;
+    this.invalid_explicit_var = false;
+    if(!expr.is_function_call_expr())
+      return expr;  // could be something like y'' or (x^2+1)'
+    const argument_exprs = expr.extract_argument_exprs();
+    if(argument_exprs.length === 1) {
+      const var_name = expr_to_variable_name(argument_exprs[0]);
+      if(var_name) {
+        this.independent_var_name = var_name;
+        this.has_explicit_independent_var = true;
+      }
+      else this.invalid_explicit_var = true;  // f(x^2)
+    }
+    else this.invalid_explicit_var = true;  // f(x,y)
+    return expr.fn_expr;  // fn(x) => fn
+  }
+
+  // Returns the expression to be differentiated.
   analyze_primed_expr(expr) {
-    let derivative_order = 0, derivative_order_expr = null;
-    let independent_var_expr = new TextExpr('x');
-    // Check for expr' (not a function call like f'(x)).
-    if(expr.is_subscriptsuperscript_expr() &&
-       expr.count_primes() > 0) {
-      derivative_order += expr.count_primes();
-      // Remove primes; base_expr may still be a SubscriptSuperscriptExpr
-      // in cases like y_n^\prime
-      expr = expr.with_superscript(null);
-      // Check for y^\prime where y is a simple variable and record
-      // it with an assumed 'x' independent var (y'(x)).
-      const dependent_var_name = expr_to_variable_name(expr);
-      if(dependent_var_name)
-        this.emitter.record_variable_dependency(
-          dependent_var_name,
-          expr_to_variable_name(independent_var_expr),
-          'assumed');
-    }
-    // Check for f'(...) or f^{(n)}(...) (must be single argument).
-    if(expr.is_function_call_expr() &&
-       expr.fn_expr.is_subscriptsuperscript_expr()) {
-      const argument_exprs = expr.extract_argument_exprs();
-      if(argument_exprs.length !== 1)  // f'(x,y) etc.
-        return this.error('Derivative must be a one-argument function');
-      independent_var_expr = argument_exprs[0];
-      // Argument must be a simple variable name; use it as the
-      // independent variable instead of the default 'x'.
-      const independent_var_name = expr_to_variable_name(independent_var_expr);
-      if(!independent_var_name)
-        return this.error('Derivative independent variable must be a simple variable');
-      // Check for f^{(n)}(...)
-      const superscript_expr = expr.fn_expr.superscript_expr;
-      if(superscript_expr.is_delimiter_expr() &&
-         superscript_expr.left_type === '(' &&
-         superscript_expr.right_type === ')') {
-        // Remove the ^{(n)}
-        expr = new FunctionCallExpr(
-          expr.fn_expr.with_superscript(null), expr.args_expr);
-        derivative_order_expr = superscript_expr.inner_expr;
-      }
-      else if(expr.fn_expr.count_primes() > 0) {
-        // f'(...), or could be a plain f(...)
-        derivative_order += expr.fn_expr.count_primes();
-        // Remove primes: f''(x) => f(x)
-        expr = new FunctionCallExpr(
-          expr.fn_expr.with_superscript(null), expr.args_expr);
-      }
-      // Record this f(x) explicit dependency.
-      const dependent_var_name = expr_to_variable_name(expr.fn_expr);
-      if(!dependent_var_name)  // disallow things like (f^2)'(x)
-        return this.error('Derivative dependent variable must be a simple variable');
-      this.emitter.record_variable_dependency(
-        dependent_var_name, independent_var_name, 'explicit');
-    }
-    if(derivative_order_expr) {
-      if(derivative_order > 0) {
-        // Corner case of f^{(n)}''(z)
-        // This is treated as diff(f(z), (z, n+2)).
-        derivative_order_expr =
-          derivative_order_expr.increment(derivative_order);
-      }
-    }
-    else if(derivative_order === 0)
-      return null;  // no valid prime notation found
+    this.derivative_order_expr = null;
+    this.dependent_var_name = null;
+    // Check for y'' or f^{(n)} forms.  f^{(n)} acts like n \primes,
+    // but only if there was an explicit independent variable, as in f^{(n)}(x).
+    if(expr.is_subscriptsuperscript_expr() && expr.count_primes() > 0)
+      this.derivative_order_expr = TextExpr.integer(expr.count_primes());
+    else if(this.has_explicit_independent_var &&
+            expr.is_subscriptsuperscript_expr() && expr.superscript_expr &&
+            expr.superscript_expr.is_delimiter_expr() &&
+            expr.superscript_expr.left_type === '(' &&
+            expr.superscript_expr.right_type === ')')
+      this.derivative_order_expr = expr.superscript_expr.inner_expr;
     else
-      derivative_order_expr = TextExpr.integer(derivative_order);
-    return {
-      base_expr: expr,
-      derivative_order_expr: derivative_order_expr,
-      independent_var_expr: independent_var_expr
-    };
+      return expr;  // no valid prime notation found
+    expr = expr.with_superscript(null);  // remove \prime(s) or ^{(n)} notation
+    this.dependent_var_name = expr_to_variable_name(expr);
+    if(this.dependent_var_name) {
+      // Explicit dependent variable like y (rather than a general expression
+      // like (x^2+1).  Record the variable dependency.
+      this.emitter.record_variable_dependency(
+        this.dependent_var_name,
+        this.independent_var_name,
+        this.has_explicit_independent_var ? 'explicit' : 'assumed');
+    }
+    return expr;
   }
 }
 
