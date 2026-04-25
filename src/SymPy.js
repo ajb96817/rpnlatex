@@ -472,7 +472,10 @@ class SymPyCommand {
 
 // Helper tree node classes for converting Exprs to SymPy expression
 // builder functions.
-class SymPyNode {}
+class SymPyNode {
+  constructor() {}
+  is_variable_node() { return false; }
+}
 
 // Numbers, etc.
 class SymPyConstant extends SymPyNode {
@@ -481,7 +484,7 @@ class SymPyConstant extends SymPyNode {
     this.value_string = value_string;
     this.raw = raw;
   }
-  to_py_string() {
+  to_py_string(emitter) {
     if(this.raw)
       return this.value_string;
     else
@@ -495,7 +498,7 @@ class SymPySymbol extends SymPyNode {
     super();
     this.name = name;
   }
-  to_py_string() {
+  to_py_string(emitter) {
     return ["Symbol('", this.name, "')"].join('');
   }
 }
@@ -506,22 +509,23 @@ class SymPySubexpression extends SymPyNode {
     super();
     this.expr_number = expr_number;
   }
-  to_py_string() {
+  to_py_string(emitter) {
     return 'expr_' + this.expr_number.toString();
   }
 }
 
 // Function-call-and-assignment; becomes: expr_2 = Add(expr_1, 10)
+// TODO: Merge this with SymPySubexpression, probably don't need both classes.
 class SymPyAssignment extends SymPyNode {
   constructor(subexpression_node, value_node) {
     super();
     this.subexpression_node = subexpression_node;
     this.value_node = value_node;
   }
-  to_py_string() {
+  to_py_string(emitter) {
     return [
-      this.subexpression_node.to_py_string(),
-      this.value_node.to_py_string()
+      this.subexpression_node.to_py_string(emitter),
+      this.value_node.to_py_string(emitter)
     ].join(' = ');
   }
 }
@@ -534,9 +538,9 @@ class SymPyFunctionCall extends SymPyNode {
     this.function_name = function_name;
     this.args = args;
   }
-  to_py_string() {
+  to_py_string(emitter) {
     const args_string = this.args
-          .map(arg_node => arg_node.to_py_string())
+          .map(arg_node => arg_node.to_py_string(emitter))
           .join(', ');
     return [
       this.function_name, '(', args_string, ')'
@@ -551,9 +555,9 @@ class SymPyFunctionObjectCall extends SymPyNode {
     this.name = name;
     this.args = args;
   }
-  to_py_string() {
+  to_py_string(emitter) {
     const args_string = this.args
-          .map(arg_node => arg_node.to_py_string())
+          .map(arg_node => arg_node.to_py_string(emitter))
           .join(', ');
     return [
       "Function('", this.name, "')(", args_string, ')'
@@ -567,8 +571,33 @@ class SymPySRepr extends SymPyNode {
     super();
     this.srepr_string = srepr_string;
   }
-  to_py_string() {
+  to_py_string(emitter) {
     return this.srepr_string;
+  }
+}
+
+// Represents a "possibly-dependent variable".
+// See the comment in ExprToSymPy.constructor for details.
+class SymPyVariable extends SymPyNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+  is_variable_node() { return true; }
+  to_py_string(emitter) {
+    // If we have a variable dependency recorded for this variable,
+    // use it to make a function call, otherwise use the "plain"
+    // variable symbol.
+    const independent_var_name =
+          emitter.lookup_independent_variable_for(this.name);
+    if(independent_var_name) {
+      // Function('f')(Symbol('x'))
+      return [
+        "Function('", this.name, "')(Symbol('", independent_var_name, "'))"
+      ].join('');
+    }
+    else  // Symbol('x'), same as SymPySymbol
+      return ["Symbol('", this.name, "')"].join('');
   }
 }
 
@@ -593,8 +622,23 @@ class ExprToSymPy {
   }
   
   constructor() {
-    this.assignment_list = [];  // contains SymPyAssignments
-    this.subexpression_count = 0;  // serial number for expr_1,2,3 in generated code
+    // 'variable_dependencies': Maps dependent_var_name => independent_var_properties.
+    // When we see f(x) calls in the Expr tree the implied dependency is recorded here.
+    // These are then used during code generation to replace 'plain' references to
+    // 'f' with 'f(x)' when it makes sense.  This is mostly used for differential equations
+    // where we might have something like y'' = -2y.  The y'' gets automatically converted
+    // to y''(x) because of the "prime" notation assuming the variable 'x'.  We can then
+    // use this information to change 'y' => 'y(x)'.  Normally that wouldn't happen because
+    // 'y' is just a symbol.  Also, we might have: y'' = 2y(t).  In that case the user has
+    // specified y(t) explicitly so that allows us to convert y'' => y''(t).
+    // Note that the variable names here are plain strings as created by expr_to_variable_name().
+    this.variable_dependencies = {};
+    // Contains SymPyAssignment nodes for building expressions piece-by-piece.
+    this.assignment_list = [];
+    // Serial number for expr_1,2,3 in generated code.
+    // TODO: This numbers the SymPySubexpressions, but this could be merged into the
+    // SymPyAssignments instead of being separate.
+    this.subexpression_count = 0;
   }
 
   // TODO: fix this (highlight offending_expr; also it should be offending_expr_path)
@@ -612,14 +656,20 @@ class ExprToSymPy {
     let lines = [];
     lines.push(['def ', builder_function_name, '():'].join(''));
     for(const assignment of this.assignment_list)
-      lines.push(['  ', assignment.to_py_string()].join(''));
-    lines.push(['  return ', return_node.to_py_string()].join(''));
+      lines.push(['  ', assignment.to_py_string(this)].join(''));
+    lines.push(['  return ', return_node.to_py_string(this)].join(''));
     lines.push('');
     return lines.join("\n");
   }
 
   symbol(variable_name) {
     return new SymPySymbol(variable_name);
+  }
+
+  // Like symbol(), but allows variable dependencies to be made explicit
+  // during code generation; see comment in constructor().
+  variable(variable_name) {
+    return new SymPyVariable(variable_name);
   }
 
   number(value) {
@@ -667,6 +717,64 @@ class ExprToSymPy {
         : args);
   }
 
+  // Record a functional dependency like f(x) found while analyzing the
+  // expression.  See the constructor() comment for more details.
+  //
+  // 'dependency_type' can be:
+  //   - 'assumed': Independent variable came from an assumption based
+  //                on the notation, e.g.: y' => y'(x) and \dot{x} => \dot{x}(t)
+  //   - 'explicit': Expression contained an explicit f(x), or f'(x) or similar.
+  //
+  // Explicit dependencies override assumed ones.  However, if there are two
+  // conflicting explicit dependencies in the same expression, like y(x) and y(t),
+  // the dependency is marked as ambiguous and not used for code generation
+  // (a lone 'y' will just be left as 'y').
+  record_variable_dependency(dependent_var_name, independent_var_name, dependency_type) {
+    const props = this.variable_dependencies[dependent_var_name] ?? {
+      independent_var_name: independent_var_name,
+      dependency_type: null  // one of ['assumed', 'explicit', 'ambiguous', null]
+      // NOTE: once dependency_type is ambiguous, it's stuck like that for the whole expression
+    };
+    const old_type = props.dependency_type;
+    const var_names_match = props.independent_var_name === independent_var_name;
+    let new_type = null, new_independent_var_name = null;
+    if(dependency_type === 'explicit') {
+      if(old_type === 'explicit' && !var_names_match)
+        new_type = 'ambiguous';  // conflicting explicit dependency: y(t) vs. y(x)
+      else if(old_type === 'assumed' || old_type === null) {
+        // Explicit always overrides assumed (or absent), as in: y' + y(z) (y' assumed as y'(x))
+        new_independent_var_name = independent_var_name;
+        new_type = 'explicit';
+      }
+    }
+    else if(dependency_type === 'assumed') {
+      // Take care of any potential corner cases, like conflict between
+      // y' and \dot{y} notation assuming different things.  Shouldn't happen
+      // as things currently are though.
+      if(old_type === 'assumed' && !var_names_match)
+        new_type = 'ambiguous';
+      else if(old_type === null) {
+        // Nothing has been seen yet, so use the assumption.
+        new_type = 'assumed';
+        new_independent_var_name = independent_var_name;
+      }
+    }
+    if(new_type) props.dependency_type = new_type;
+    if(new_independent_var_name) props.independent_var_name = new_independent_var_name;
+    this.variable_dependencies[dependent_var_name] = props;
+    return props;  // return value not used
+  }
+
+  // If we have an unambiguous independent variable name recorded, return it.
+  lookup_independent_variable_for(dependent_var_name) {
+    const props = this.variable_dependencies[dependent_var_name];
+    if(props && (props.dependency_type === 'assumed' ||
+                 props.dependency_type === 'explicit'))
+      return props.independent_var_name;
+    else
+      return null;
+  }
+
   add_assignment(value_node) {
     const subexpr_node = new SymPySubexpression(++this.subexpression_count);
     this.assignment_list.push(
@@ -694,6 +802,10 @@ class ExprToSymPy {
     }
   }
 
+  emit_exprs(exprs) {
+    return exprs.map(expr => this.emit_expr(expr));
+  }
+
   emit_text_expr(expr) {
     if(expr.looks_like_number())
       return this.number(expr.text);
@@ -703,7 +815,7 @@ class ExprToSymPy {
       if(variable_name === 'i')
         return this.number('I');
       else
-        return this.symbol(variable_name);
+        return this.variable(variable_name);
     }
     else
       return this.error('Invalid variable name', expr);
@@ -714,7 +826,7 @@ class ExprToSymPy {
     // ignore the font and convert the base expression.
     const variable_name = expr_to_variable_name(expr);
     if(variable_name)
-      return this.symbol(variable_name);
+      return this.variable(variable_name);
     else 
       return this.emit_expr(expr.expr);
   }
@@ -730,16 +842,17 @@ class ExprToSymPy {
   }
 
   // Only '+' and '-' prefix operators are supported (and + is disregarded).
+  // TODO: PrefixAnalyzer
   emit_prefix_expr(prefix_expr) {
     switch(prefix_expr.operator_text()) {
-    case '-': return this.fncall(
-      'negate', [this.emit_expr(prefix_expr.base_expr)]);
+    case '-': return this.fncall('negate', [this.emit_expr(prefix_expr.base_expr)]);
     case '+': return this.emit_expr(prefix_expr.base_expr);
     default: return this.error('Invalid prefix operator', prefix_expr);
     }
   }
       
   // Single and double factorials are supported.
+  // TODO: PostfixAnalyzer
   emit_postfix_expr(postfix_expr) {
     const [base_expr, factorial_signs_count] = postfix_expr.analyze_factorial();
     if(factorial_signs_count === 1)
@@ -747,7 +860,7 @@ class ExprToSymPy {
     else if(factorial_signs_count === 2)
       return this.fncall('factorial2', [this.emit_expr(base_expr)]);
     else if(factorial_signs_count > 1)
-      return this.error('Multiple factorial not supported', postfix_expr);
+      return this.error('Multiple factorial >2 not supported', postfix_expr);
     else
       return this.error('Invalid postfix operator', postfix_expr);
   }
@@ -762,6 +875,7 @@ class ExprToSymPy {
   // Other than the basic grouping delimiters, some particular delimiter types
   // can be converted to SymPy operations (like floor/ceil).  Other delimiters,
   // like <x|, will signal an error.
+  // TODO: DelimiterAnalyzer
   emit_delimiter_expr(expr) {
     const [left, right] = [expr.left_type, expr.right_type];
     const inner_node = this.emit_expr(expr.inner_expr);
@@ -980,7 +1094,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
       const variable_name = expr_to_variable_name(
         expr, true /* ignore_superscript */);
       if(variable_name)
-        base_expr_node = this.emitter.symbol(variable_name);
+        base_expr_node = this.emitter.variable(variable_name);
       else
         return this.failure('Invalid variable subscript', start_index);
     }
@@ -996,7 +1110,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
   }
 
   // Check for for "where" expressions of the form: f|_{x=y}.
-  // TODO: allow superscript for upper-minus-lower
+  // TODO: allow superscript for upper-minus-lower intervals.
   analyze_where(base_expr, subscript_expr, superscript_expr) {
     if(base_expr.is_delimiter_expr() &&
        base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
@@ -1046,7 +1160,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
       return this.emitter.fncall('conjugate', [
         this.emitter.fncall('transpose', [base_expr_node])]);
     if(superscript_expr.is_command_expr_with(0, 'circ'))
-      return this.emitter.fncall('multiply', [
+      return this.emitter.fncall('Mul', [
         base_expr_node,
         this.emitter.fncall('divide', [
           this.emitter.symbol('pi'),
@@ -1266,7 +1380,7 @@ class IntegralAnalyzer extends Analyzer {
 
   // Look for [dx dy] <integrand> [dz dw] patterns.
   // The differentials must come either at the beginning or end of the range
-  // (or both, as an edge case: \iint dx 2xy dy).
+  // (or both, as an edge case: \iint dx 4xy dy).
   extract_integrand_and_differentials(exprs, start_index, stop_index,
                                       expected_differential_count) {
     let index = start_index;
@@ -1349,9 +1463,10 @@ class IntegralAnalyzer extends Analyzer {
 
 
 // Recognize Leibniz (d/dx) derivative notation.
-// Lagrange f'(x) and Newton \dot{y} notation are handled separately.
-// Note that with SymPy, everything is translated to the diff() function,
-// so 'd' and '\partial' are considered equivalent.
+// Lagrange f'(x) and Newton \dot{y} notation are handled separately
+// in their own Analyzer classes.  Note that with SymPy, everything
+// is translated to the diff() function so 'd' and '\partial' are
+// considered equivalent.
 // The derivative operation can have the following forms:
 // Single derivatives:
 //   - \frac{d}{dx} x^2
@@ -1544,7 +1659,8 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
               this.emitter.emit_expr(derivative_order_expr)])]);
       return this.success(diff_command_node, start_index+1);
     }
-    else return this.no_match();
+    else
+      return this.no_match();
   }
 
   analyze_primed_expr(expr) {
@@ -1557,27 +1673,32 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
       // Remove primes; base_expr may still be a SubscriptSuperscriptExpr
       // in cases like y_n^\prime
       expr = expr.with_superscript(null);
-      // Check for y^\prime where y is a simple variable.
-      // These get autoconverted to y(x).
-      if(expr_to_variable_name(expr))
-        expr = new FunctionCallExpr(
-          expr, new DelimiterExpr('(', ')', independent_var_expr));
+      // Check for y^\prime where y is a simple variable and record
+      // it with an assumed 'x' independent var (y'(x)).
+      const dependent_var_name = expr_to_variable_name(expr);
+      if(dependent_var_name)
+        this.emitter.record_variable_dependency(
+          dependent_var_name,
+          expr_to_variable_name(independent_var_expr),
+          'assumed');
     }
     // Check for f'(...) or f^{(n)}(...) (must be single argument).
     if(expr.is_function_call_expr() &&
        expr.fn_expr.is_subscriptsuperscript_expr()) {
-      if(expr.argument_count() !== 1)  // f'(x,y) etc.
+      const argument_exprs = expr.extract_argument_exprs();
+      if(argument_exprs.length !== 1)  // f'(x,y) etc.
         return this.error('Derivative must be a one-argument function');
-      const argument_expr = expr.extract_argument_exprs()[0];
+      independent_var_expr = argument_exprs[0];
       // Argument must be a simple variable name; use it as the
       // independent variable instead of the default 'x'.
-      if(!expr_to_variable_name(argument_expr))
+      const independent_var_name = expr_to_variable_name(independent_var_expr);
+      if(!independent_var_name)
         return this.error('Derivative independent variable must be a simple variable');
-      independent_var_expr = argument_expr;
       // Check for f^{(n)}(...)
       const superscript_expr = expr.fn_expr.superscript_expr;
       if(superscript_expr.is_delimiter_expr() &&
-         superscript_expr.left_type === '(' && superscript_expr.right_type === ')') {
+         superscript_expr.left_type === '(' &&
+         superscript_expr.right_type === ')') {
         // Remove the ^{(n)}
         expr = new FunctionCallExpr(
           expr.fn_expr.with_superscript(null), expr.args_expr);
@@ -1590,8 +1711,12 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
         expr = new FunctionCallExpr(
           expr.fn_expr.with_superscript(null), expr.args_expr);
       }
-      else // things like f^a(z) are left alone, but we keep the z variable
-        ;
+      // Record this f(x) explicit dependency.
+      const dependent_var_name = expr_to_variable_name(expr.fn_expr);
+      if(!dependent_var_name)  // disallow things like (f^2)'(x)
+        return this.error('Derivative dependent variable must be a simple variable');
+      this.emitter.record_variable_dependency(
+        dependent_var_name, independent_var_name, 'explicit');
     }
     if(derivative_order_expr) {
       if(derivative_order > 0) {
@@ -1640,10 +1765,13 @@ class NewtonDerivativeAnalyzer extends Analyzer {
           start_index);
       // We have 'y' and 't' in \ddot{y}(t); construct the function call expr
       // so it can be differentiated with diff().
+      // NOTE: This will also result in 'y' being associated with 't' via
+      // record_variable_dependency(), so that we can convert a "plain"
+      // (non-differentiated) y into y(t) elsewhere in the expression.
       const function_call_expr = new FunctionCallExpr(
         result.dependent_var_expr,
         DelimiterExpr.parenthesize(result.independent_var_expr));
-      const independent_var_node =
+      const independent_var_node = // skip the parens, may as well
             this.emitter.emit_expr(result.independent_var_expr);
       const diff_command_node = this.emitter.fncall(
         'diff', [
@@ -1662,23 +1790,27 @@ class NewtonDerivativeAnalyzer extends Analyzer {
   // variable: \dot{y}(x).  The independent variable follows the same
   // rules as in LagrangeDerivativeAnalyzer.
   analyze_function_notation(expr) {
-    if(expr.is_function_call_expr()) {
-      const [base_expr, dot_count] = this.analyze_dots(expr.fn_expr);
-      // TODO: this duplicates logic in analyze_primed_expr()
-      if(expr.argument_count() !== 1)  // \dot{y(x,t)} not allowed
-        return this.error('Only one argument allowed in dotted derivative notation');
-      const argument_expr = expr.extract_argument_exprs()[0];
-      if(!expr_to_variable_name(argument_expr))
-        return this.error('Independent variable in dot notation must be a simple variable name');
-      if(dot_count > 0) {
-        return {
-          dependent_var_expr: base_expr,
-          independent_var_expr: argument_expr,
-          derivative_order: dot_count
-        };
-      }
-    }
-    return null;
+    if(!expr.is_function_call_expr())
+      return null;
+    const [base_expr, dot_count] = this.analyze_dots(expr.fn_expr);
+    // TODO: this duplicates logic in analyze_primed_expr()
+    if(expr.argument_count() !== 1)  // \dot{y}(x,t) not allowed
+      return this.error('Only one argument allowed in dotted derivative notation');
+    const independent_var_expr = expr.extract_argument_exprs()[0];
+    const independent_var_name = expr_to_variable_name(independent_var_expr);
+    if(!independent_var_name)
+      return this.error('Independent variable in dot notation must be a simple variable name');
+    if(dot_count === 0)
+      return null;
+    const dependent_var_name = expr_to_variable_name(base_expr);
+    if(dependent_var_name)
+      this.emitter.record_variable_dependency(
+        dependent_var_name, independent_var_name, 'explicit');
+    return {
+      dependent_var_expr: base_expr,
+      independent_var_expr: independent_var_expr,
+      derivative_order: dot_count
+    };
   }
 
   // Check for "implicit" dot notation (\ddot{y} by itself without
@@ -1686,14 +1818,18 @@ class NewtonDerivativeAnalyzer extends Analyzer {
   // \ddot{y} => \ddot{y}(t)
   analyze_implicit_notation(expr) {
     const [base_expr, dot_count] = this.analyze_dots(expr);
-    if(dot_count > 0) {
-      return {
-        dependent_var_expr: base_expr,
-        independent_var_expr: new TextExpr('t'),
-        derivative_order: dot_count
-      };
-    }
-    return null;
+    if(dot_count === 0)
+      return null;
+    const dependent_var_name = expr_to_variable_name(base_expr);
+    const independent_var_name = 't';
+    if(dependent_var_name)
+      this.emitter.record_variable_dependency(
+        dependent_var_name, independent_var_name, 'assumed');
+    return {
+      dependent_var_expr: base_expr,
+      independent_var_expr: new TextExpr(independent_var_name),
+      derivative_order: dot_count
+    };
   }
 
   // Returns [expr_without_dots, dot_count].
@@ -1864,20 +2000,26 @@ class InfixAnalyzer extends Analyzer {
   //   prec: precedence, higher numbers bind tighter }
   infix_op_info(op_name) {
     // NOTE: Mul/Add/etc are "native" SymPy operators (classes);
-    // divide/subtract are created by the initialization
-    // in load_pyodide_if_needed().
+    // divide/subtract are created by the initialization in
+    // load_pyodide_if_needed().
     switch(op_name) {
     case '*': return {fn: 'Mul', prec: 3};
-    case 'cdot': case 'cross': return {fn: 'Mul', prec: 3};
-    case '/': return {fn: 'divide', prec: 3};
+    case 'cdot':
+    case 'cross': return {fn: 'Mul', prec: 3};
+    case '/':  return {fn: 'divide', prec: 3};
     case '+': return {fn: 'Add', prec: 2};
     case '-': return {fn: 'subtract', prec: 2};
     case '=': return {fn: 'Eq', prec: 1};
-    case 'ne': case 'neq': return {fn: 'Ne', prec: 1};
-    case '<': case 'lt': return {fn: 'Lt', prec: 1};
-    case '>': case 'gt': return {fn: 'Gt', prec: 1};
-    case '<=': case 'le': return {fn: 'Le', prec: 1};
-    case '>=': case 'ge': return {fn: 'Ge', prec: 1};
+    case 'ne':
+    case 'neq': return {fn: 'Ne', prec: 1};
+    case '<':
+    case 'lt': return {fn: 'Lt', prec: 1};
+    case '>':
+    case 'gt': return {fn: 'Gt', prec: 1};
+    case '<=':
+    case 'le': return {fn: 'Le', prec: 1};
+    case '>=':
+    case 'ge': return {fn: 'Ge', prec: 1};
     default: return null;
     }
   }
@@ -1887,35 +2029,41 @@ class InfixAnalyzer extends Analyzer {
 class FunctionCallAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     const expr = exprs[start_index];
-    this.arg_exprs = expr.extract_argument_exprs();
-    if(this.arg_exprs.length === 0)
+    if(!expr.is_function_call_expr())
+      return this.failure('Unexpected function call');  // shouldn't happen
+    const arg_exprs = expr.extract_argument_exprs();
+    if(arg_exprs.length === 0)
       return this.failure('Zero-argument function calls not allowed', start_index);
-    this.arg_nodes = this.arg_exprs.map(
-      arg_expr => this.emitter.emit_expr(arg_expr));
-    const result_node = this.analyze_function_call_expr(expr);
+    const arg_nodes = this.emitter.emit_exprs(arg_exprs);
+    const result_node =
+          this.analyze_sympy_function_call(expr, arg_nodes) ||
+          this.analyze_generic_function_call(expr, arg_nodes);
     if(result_node)
       return this.success(result_node, start_index+1);
-    else return this.failure('Invalid function call', start_index);
-  }
-
-  analyze_function_call_expr(expr) {
-    return this.analyze_sympy_function_call(expr) ||
-      this.analyze_generic_function_call(expr);
+    else
+      return this.failure('Invalid function call', start_index);
   }
 
   // Calling a built-in SymPy function (normally would be a CommandExpr).
-  analyze_sympy_function_call(expr) {
+  // TODO: revisit
+  analyze_sympy_function_call(expr, arg_nodes) {
     return null;
   }
 
   // f(x) -> Function('f')(Symbol('x'))
   // NOTE: 'f' needs to be a valid variable name, even though
   // FunctionCallExpr allows any expression in the function-name slot.
-  analyze_generic_function_call(expr) {
-    if(!expr.is_function_call_expr()) return null;
+  analyze_generic_function_call(expr, arg_nodes) {
     const fn_name = expr_to_variable_name(expr.fn_expr);
-    if(!fn_name) return null;
-    return this.emitter.function_object_call(fn_name, this.arg_nodes);
+    if(!fn_name)
+      return null;
+    // If we have y(x) where x is a simple variable name, keep track of
+    // that variable dependency so we can replace 'y' => 'y(x)' elsewhere
+    // when appropriate.
+    if(arg_nodes.length === 1 && arg_nodes[0].is_variable_node())
+      this.emitter.record_variable_dependency(
+        fn_name, arg_nodes[0].name, 'explicit');
+    return this.emitter.function_object_call(fn_name, arg_nodes);
   }
 }
 
