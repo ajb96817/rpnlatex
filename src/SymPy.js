@@ -577,12 +577,15 @@ class SymPySRepr extends SymPyNode {
 }
 
 // Represents a "possibly-dependent variable".
-// If reverse_lookup=true, this.name should a dependent variable name
-// for a function/derivative, and this outputs a "function call" with
-// the associated independent variable as the argument.  This is used
-// to convert e.g. y => y(x) for implicit derivative notation, so we
-// can write things like y'' + y = 0 without writing out the y''(x).
-// When using this, the caller must make sure the dependent/independent
+// If there is a recorded independent variable associated with this
+// variable name, output a "function call" with the independent
+// variable as an argument.  This is used to convert e.g. y => y(x)
+// for implicit derivative notation, so we can write things like
+// y'' + y = 0 without writing out the y''(x).
+// 
+// If reverse_lookup=true is set, only the independent variable is
+// output.  This is used for the variable argument to a diff() call.
+// When using this mode, the caller must make sure the dependent/independent
 // variable pair is actually registered using record_variable_dependency().
 class SymPyVariable extends SymPyNode {
   constructor(name, reverse_lookup = false) {
@@ -592,28 +595,29 @@ class SymPyVariable extends SymPyNode {
   }
   is_variable_node() { return true; }
   to_py_string(emitter) {
-    // If we have a variable dependency recorded for this variable,
-    // use it to make a function call, otherwise use the "plain"
-    // variable symbol.
-    // TODO: don't repeat all the "Function".join stuff
-    const independent_var_name =
+    const [independent_var_name, is_ambiguous] =
           emitter.lookup_independent_variable_for(this.name);
-    if(independent_var_name) {
-      if(this.reverse_lookup)
+    if(is_ambiguous)
+      emitter.error('Ambiguous independent variable');
+    if(this.reverse_lookup) {
+      if(independent_var_name)
         return ["Symbol('", independent_var_name, "')"].join('')
-      else {
+      else  // shouldn't happen
+        emitter.error('Independent variable not found');
+    }
+    else {
+      // If we have a variable dependency recorded for this variable,
+      // use it to make a function call, otherwise use the "plain"
+      // variable symbol.
+      if(independent_var_name) {
         // Function('f')(Symbol('x'))
         return [
           "Function('", this.name, "')(Symbol('", independent_var_name, "'))"
         ].join('');
       }
+      else
+        return ["Symbol('", this.name, "')"].join('')
     }
-    else if(this.reverse_lookup) {
-      // Shouldn't happen.
-      emitter.error('Independent variable not found');
-    }
-    else  // Symbol('x'), same as SymPySymbol
-      return ["Symbol('", this.name, "')"].join('');
   }
 }
 
@@ -781,14 +785,19 @@ class ExprToSymPy {
     return props;  // return value not used
   }
 
-  // If we have an unambiguous independent variable name recorded, return it.
+  // Look up independent variable associated with this name recorded.
+  // Returns [independent_var_name, is_ambiguous].
+  // independent_var_name will be null if it hasn't been recorded.
+  // The ambiguous flag gets set if we have e.g. f(x) and f(y) in
+  // the same expression.
   lookup_independent_variable_for(dependent_var_name) {
     const props = this.variable_dependencies[dependent_var_name];
-    if(props && (props.dependency_type === 'assumed' ||
-                 props.dependency_type === 'explicit'))
-      return props.independent_var_name;
+    if(props)
+      return [
+        props.independent_var_name, 
+        props.dependency_type === 'ambiguous'];
     else
-      return null;
+      return [null, false];
   }
 
   add_assignment(value_node) {
@@ -1483,12 +1492,13 @@ class IntegralAnalyzer extends Analyzer {
 // in their own Analyzer classes.  Note that with SymPy, everything
 // is translated to the diff() function so 'd' and '\partial' are
 // considered equivalent.
+//
 // The derivative operation can have the following forms:
 // Single derivatives:
 //   - \frac{d}{dx} x^2
 //   - \frac{d}{dx} x \sin x
 //   - \frac{d}{dx} (x + \sin x)
-//   - \frac{d x^2}{dx}
+//   - \frac{d x^2}{dx}  (=> diff(x^2, x))
 // Higher-order derivatives:
 //   - \frac{d^2}{dx^2} x^3
 //   - \frac{d^2 x^3}{dx^2}
@@ -1496,11 +1506,19 @@ class IntegralAnalyzer extends Analyzer {
 //   - \frac{d^2}{dx dy} x^2 y
 //   - \frac{d^2}{dx dy} (x^2 + y^2)
 //   - \frac{\partial^2}{\partial x \partial y} (x^2 y)
-//   - \frac{d^2}{dx^2 dy} (x^2 + y^2)
-// Note that the rules for what can be to the right of the derivative
-// operator are the same for integrands in integral expressions:
+//   - \frac{d^3}{dx^2 dy} (x^2 + y^2)
+//
+// The rules for what can be to the right of a d/dx-style derivative
+// operator are the same for summands in a \sum expression:
 // a sequence of implicit multiplications is allowed (like x^2 y), but
 // lower-precedence things like x+y must be explicitly parenthesized.
+//
+// A form like dy/dx binds y->x as a dependent/independent variable pair,
+// so that a plain 'y' elsewhere in the expression gets interpreted as
+// y(x) automatically (to make writing differential equations easier).
+//
+// NOTE: This kind of derivative can be part of a SequenceExpr
+// (in the case d/dx (...terms)), or a \frac CommandExpr on its own (dy/dx).
 class LeibnizDerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     let index = start_index;
@@ -1509,13 +1527,29 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
     if(!derivative_info)
       return this.no_match();
     index++;
-    const [f_expr, differentials_info] = derivative_info;
+    const [
+      error_message, f_expr, derivative_vars_info
+    ] = derivative_info;
+    if(error_message)
+      return this.failure(error_message, start_index);
     // If we got a f_expr from 'df/dx', f is the expression to be
     // differentiated.  Otherwise, take 1 or more terms from the rest
     // of the sequence, e.g.: (d/dx) x sin(x)
     let diff_expr_node = null;
-    if(f_expr)
+    if(f_expr) {
+      // If f_expr is a simple variable name, it's considered a dependent
+      // variable of the differentiation variable (the x from dx); record
+      // that here (not done for mixed derivatives).
+      if(derivative_vars_info.length === 1) {
+        const f_var_name = expr_to_variable_name(f_expr);
+        if(f_var_name)
+          this.emitter.record_variable_dependency(
+            f_var_name,
+            derivative_vars_info[0][0],  // var_name field for dx in denominator
+            'explicit');
+      }
       diff_expr_node = this.emitter.emit_expr(f_expr);
+    }
     else {
       // Collect one or more terms after the 'd/dx'.
       // This allows things like 'd/dx x sin(x)' which is a little
@@ -1534,13 +1568,13 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
       }
     }
     // Gather the differentiated variable(s) argument nodes.
-    const diff_arg_nodes = differentials_info.map(info => {
-      const variable_node = this.emitter.emit_expr(info.variable_expr);
-      if(info.degree_expr.is_text_expr_with('1'))
+    const diff_arg_nodes = derivative_vars_info.map(([variable_name, degree_expr]) => {
+      const variable_node = this.emitter.symbol(variable_name);
+      if(degree_expr.is_text_expr_with('1'))
         return variable_node;  // diff(f, x)
       else
         return this.emitter.tuple(  // diff(f, (x, n))
-          [variable_node, this.emitter.emit_expr(info.degree_expr)]);
+          [variable_node, this.emitter.emit_expr(degree_expr)]);
     });
     // Build the diff(diff_expr, x, y, z) call.
     const diff_command_node = this.emitter.fncall(
@@ -1548,33 +1582,58 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
     return this.success(diff_command_node, index);
   }
 
+  // "Parse" df/dx-style derivative notation.  If expr doesn't match
+  // a dy/dx form, null is returned, otherwise returns:
+  //   [error_message, f_expr, derivative_vars_info]
+  //   - 'error_message' will be null on success, otherwise the error string.
+  //   - 'f_expr' will be the 'f' part of df/dx, or null for a d/dx-style form
+  //     (and then the 'f' is expected to follow this d/dx part).
+  //   - 'derivative_vars_info' is a list of [variable_name, degree_expr] with
+  //     one entry for each denominator differential "term".
+  //
+  // Handles these general forms:
+  //   df/dx   df(x)/dx    d^2f/dx^2  d^2f/dxdy
+  //   d^2f(x,y)/dxdy      d/dx    d^2/dx^2    d^2/dxdy
+  //
+  // NOTE: The "degree" of the numerator must match the total degrees of
+  // the denominator for higher-order derivatives (d^2/dx^3 not allowed, etc.)
   analyze_derivative_operator(expr) {
     if(!expr.is_command_expr_with(2, 'frac'))
       return null;
-    const numer_info = this.analyze_d_numerator(expr.operand_exprs[0]);
-    const denom_info = this.analyze_d_denominator(expr.operand_exprs[1]);
-    if(!(numer_info && denom_info))
-      return null;  // doesn't match pattern
-    return [numer_info.f_expr, denom_info];
+    const numerator_info = this
+          .analyze_derivative_numerator(expr.operand_exprs[0]);
+    if(!numerator_info)
+      return null;
+    // TODO: numerator_degree_expr not used; should make sure it matches denominator degree(s)
+    const [f_expr, /*numerator_degree_expr*/] = numerator_info;
+    const denominator_info = this
+          .analyze_derivative_denominator(expr.operand_exprs[1]);
+    if(typeof denominator_info === 'string')  // error message
+      return [denominator_info, f_expr, null];
+    else
+      return [null, f_expr, denominator_info];
   }
 
   // Look at the "numerator" of a dy/dx expression.
   // If it doesn't match one of these patterns, null is returned.
-  // Otherwise:
-  //   d (by itself): {degree_expr: 1, f_expr: null}
-  //   df:    {degree_expr: 1, f_expr: f}
-  //   d^n:   {degree_expr: n, f_expr: null}
-  //   d^n f: {degree_expr: n, f_expr: f}
+  // Otherwise returns [f_expr, degree_expr]:
+  //   d (by itself): [null, 1]
+  //   df:            [f, 1]
+  //   d^n:           [null, n]
+  //   d^n f:         [f, n]
   // NOTE: The degree_expr isn't actually used, all that is needed is
   // the "denominator" degrees for calling SymPy diff().
-  analyze_d_numerator(numer_expr) {
+  // TODO: Should actually verify the numerator and denominator degrees match,
+  // but we can have something like 'n' as the degree so might not always
+  // be able to verify directly.
+  analyze_derivative_numerator(numerator_expr) {
     let maybe_d_expr = null, f_expr = null;
-    if(numer_expr.is_sequence_expr()) {
-      if(numer_expr.exprs.length === 2)
-        [maybe_d_expr, f_expr] = numer_expr.exprs;
+    if(numerator_expr.is_sequence_expr()) {
+      if(numerator_expr.exprs.length === 2)
+        [maybe_d_expr, f_expr] = numerator_expr.exprs;
       else return null;
     }
-    else maybe_d_expr = numer_expr;
+    else maybe_d_expr = numerator_expr;
     // Check for d, d^2, d^n.
     let degree_expr = null;
     if(this.is_d_or_partial(maybe_d_expr))
@@ -1586,46 +1645,74 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
       // NOTE: SymPy supports arbitrary expressions for the derivative
       // order via diff(expr, (x, n)).  So we can just use what's in the
       // d's exponent directly.
-      degree_expr = expr.superscript_expr;
+      degree_expr = maybe_d_expr.superscript_expr;
     }
-    if(!degree_expr)
+    if(degree_expr)
+      return [f_expr, degree_expr];
+    else
       return null;
-    return {
-      degree_expr: degree_expr,
-      f_expr: f_expr
-    };
   }
 
   // Look at the "denominator" of a dy/dx expression.
   // This always has to be one or more 'plain' differentials
-  // (not exterior dx^dy).  If not, null is returned.  Otherwise
-  // return a list of {variable_expr: x, degree_expr: n}.
+  // (not exterior dx^dy).  If not, an error string is returned.
+  // Otherwise returns a list of [variable_name, degree_expr].
+  // The "denominator differential" syntax is special in math notation:
+  // dx^2 (which is a sequence [d, x^2]) actually means (dx)^2.
+  // Exterior forms like dx^dy are not allowed in the denominator.
+  // So we "manually" break up a sequence and looks for [d, x^n] pairs.
   // NOTE: whitespace between differentials is filtered out.
-  analyze_d_denominator(denom_expr) {
-    let exprs = null;
-    if(denom_expr.is_sequence_expr() && denom_expr.is_differential_form(true))
-      exprs = [denom_expr];  // 2-element differential sequence ('d', 'x')
-    else if(denom_expr.is_sequence_expr())
-      exprs = denom_expr.exprs;  // sequence that should contain only differentials
-    else
-      exprs = [denom_expr];  // possibly a single differential expr (shouldn't happen currently)
-    const results = exprs
-          .filter(expr => !expr.is_whitespace())
-          .map(expr => {
-            if(expr.is_sequence_expr()) {  // exclude dx^dy
-              const degree_expr = expr.is_differential_form(true);
-              if(degree_expr)
-                return {degree_expr: degree_expr, variable_expr: expr.exprs[1]};
-            }
-            return null;
-          });
-    // TODO: return failures for the failed cases here
-    if(results.length === 0)
-      return null;  // nothing but whitespace
-    else if(results.some(result => result === null))
-      return null;  // something wasn't a differential
+  analyze_derivative_denominator(denom_expr) {
+    console.log(denom_expr);
+    if(!denom_expr.is_sequence_expr())
+      return null;  // has to be a sequence of at least 2.
+    const exprs = denom_expr.exprs;
+    let results = [];
+    // Alternate between expecting d or \partial, and expecting a variable x (or x^n).
+    let expecting_d = true;
+    for(const expr of exprs) {
+      if(expr.is_whitespace()) {
+        // Allow whitespace between differentials, but not between d and x
+        if(expecting_d)
+          continue;
+        else
+          return 'Invalid whitespace in dy/dx denominator';
+      }
+      if(expecting_d) {
+        if(!this.is_d_or_partial(expr))
+          return 'Expected only differentials in dy/dx denominator';
+      }
+      else {
+        const dx_results = this.analyze_denominator_differential_variable(expr);
+        if(dx_results)
+          results.push(dx_results);
+        else
+          return 'Expected differential variable in dy/dx denominator';
+      }
+      expecting_d = !expecting_d;
+    }
+    if(results.length === 0)  // nothing but whitespace
+      return 'Expected a differential variable in dy/dx denominator';
     else
       return results;
+  }
+
+  // Check for the 'x' part of dx, dx^2, etc.
+  // Returns [variable_name, degree_expr] if valid (variable_name is a plain string),
+  // or null if invalid.  The variable has to be a "simple" variable name (convertible
+  // to SymPy symbol), and can have an optional 'power' indicating the differential degree.
+  analyze_denominator_differential_variable(expr) {
+    let degree_expr = null;
+    if(expr.is_subscriptsuperscript_expr()) {
+      degree_expr = expr.superscript_expr;
+      expr = expr.with_superscript(null);  // strip the "power"
+    }
+    else degree_expr = TextExpr.integer(1);
+    const variable_name = expr_to_variable_name(expr);
+    if(variable_name)
+      return [variable_name, degree_expr];
+    else
+      return null;
   }
 
   // Check for roman or italic 'd', or \partial.
@@ -1758,65 +1845,59 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
 //   - \dot{y}(z) => diff(y(z), z)  (use 'z' if it's an FunctionCallExpr with a simple variable)
 class NewtonDerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
-    const expr = exprs[start_index];
-    const result =
-          this.analyze_function_notation(expr) ||
-          this.analyze_implicit_notation(expr);
-    if(result) {
-      // The \dot{...} command(s) must wrap only a simple variable
-      // name; \dot{y^2} isn't allowed, it has to be: \dot{y}^2.
-      if(!expr_to_variable_name(result.dependent_var_expr))
-        return this.failure(
-          'Dependent variable in dot notation must be a simple variable name',
-          start_index);
-      // We have 'y' and 't' in \ddot{y}(t); construct the function call expr
-      // so it can be differentiated with diff().
-      // NOTE: This will also result in 'y' being associated with 't' via
-      // record_variable_dependency(), so that we can convert a "plain"
-      // (non-differentiated) y into y(t) elsewhere in the expression.
-      const function_call_expr = new FunctionCallExpr(
-        result.dependent_var_expr,
-        DelimiterExpr.parenthesize(result.independent_var_expr));
-      const independent_var_node = // skip the parens, may as well
-            this.emitter.emit_expr(result.independent_var_expr);
-      const diff_command_node = this.emitter.fncall(
-        'diff', [
-          this.emitter.emit_expr(function_call_expr),
-          result.derivative_order === 1 ?
-            independent_var_node :
-            this.emitter.tuple([
-              independent_var_node,
-              this.emitter.number(result.derivative_order)])]);
-      return this.success(diff_command_node, start_index+1);
+    let expr = exprs[start_index];
+    expr = this.analyze_independent_variable(expr);
+    expr = this.analyze_implicit_notation(expr);
+    // Same logic as in LagrangeDerivative.
+    if(!expr)
+      return this.no_match();
+    if(this.invalid_explicit_var)
+      return this.failure(
+        'Derivative variable must be a simple single variable',
+        start_index);
+    if(this.invalid_dependent_var)
+      return this.failure(
+        'Dotted derivative must be a simple variable name',
+        start_index);
+    let independent_var_node = null;
+    if(this.has_explicit_independent_var || !this.dependent_var_name)
+      independent_var_node = this.emitter.symbol(this.independent_var_name);
+    else if(this.dependent_var_name) {
+      independent_var_node = this.emitter.variable(
+        this.dependent_var_name,
+        true /* reverse_lookup */);
     }
-    return this.no_match();
+    const diff_command_node = this.emitter.fncall(
+      'diff', [
+        this.emitter.emit_expr(expr),
+        this.derivative_order === 1 ?
+          independent_var_node :  // diff(..., x)
+          this.emitter.tuple([  // diff(..., (x, n))
+            independent_var_node,
+            this.emitter.number(this.derivative_order)])]);
+    return this.success(diff_command_node, start_index+1);
   }
 
-  // Check for function-call form with explicitly-named independent
-  // variable: \dot{y}(x).  The independent variable follows the same
-  // rules as in LagrangeDerivativeAnalyzer.
-  analyze_function_notation(expr) {
+  // Same logic as LagrangeDerivative.analyze_independent_variable().
+  // TODO: Make an intermediate AbstractDerivativeAnalyzer class
+  // to factor this out.
+  analyze_independent_variable(expr) {
+    this.independent_var_name = 't';
+    this.has_explicit_independent_var = false;
+    this.invalid_explicit_var = false;
     if(!expr.is_function_call_expr())
-      return null;
-    const [base_expr, dot_count] = this.analyze_dots(expr.fn_expr);
-    // TODO: this duplicates logic in analyze_primed_expr()
-    if(expr.argument_count() !== 1)  // \dot{y}(x,t) not allowed
-      return this.error('Only one argument allowed in dotted derivative notation');
-    const independent_var_expr = expr.extract_argument_exprs()[0];
-    const independent_var_name = expr_to_variable_name(independent_var_expr);
-    if(!independent_var_name)
-      return this.error('Independent variable in dot notation must be a simple variable name');
-    if(dot_count === 0)
-      return null;
-    const dependent_var_name = expr_to_variable_name(base_expr);
-    if(dependent_var_name)
-      this.emitter.record_variable_dependency(
-        dependent_var_name, independent_var_name, 'explicit');
-    return {
-      dependent_var_expr: base_expr,
-      independent_var_expr: independent_var_expr,
-      derivative_order: dot_count
-    };
+      return expr;
+    const argument_exprs = expr.extract_argument_exprs();
+    if(argument_exprs.length === 1) {
+      const var_name = expr_to_variable_name(argument_exprs[0]);
+      if(var_name) {
+        this.independent_var_name = var_name;
+        this.has_explicit_independent_var = true;
+      }
+      else this.invalid_explicit_var = true;
+    }
+    else this.invalid_explicit_var = true;
+    return expr.fn_expr;
   }
 
   // Check for "implicit" dot notation (\ddot{y} by itself without
@@ -1826,16 +1907,19 @@ class NewtonDerivativeAnalyzer extends Analyzer {
     const [base_expr, dot_count] = this.analyze_dots(expr);
     if(dot_count === 0)
       return null;
-    const dependent_var_name = expr_to_variable_name(base_expr);
-    const independent_var_name = 't';
-    if(dependent_var_name)
+    this.derivative_order = dot_count;
+    this.dependent_var_name = expr_to_variable_name(base_expr);
+    if(this.dependent_var_name) {
+      this.invalid_dependent_var = false;
       this.emitter.record_variable_dependency(
-        dependent_var_name, independent_var_name, 'assumed');
-    return {
-      dependent_var_expr: base_expr,
-      independent_var_expr: new TextExpr(independent_var_name),
-      derivative_order: dot_count
-    };
+        this.dependent_var_name,
+        this.independent_var_name,
+        this.has_explicit_independent_var ? 'explicit' : 'assumed');
+    }
+    else  // \dot{x}: x must be a simple variable
+      this.invalid_dependent_var = true;
+      
+    return base_expr;
   }
 
   // Returns [expr_without_dots, dot_count].
