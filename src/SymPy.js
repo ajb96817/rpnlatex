@@ -1980,23 +1980,26 @@ class CommandAnalyzer extends Analyzer {
     if(command_name === 'sqrt' && nargs === 1) {
       if(expr.options) {
         // sqrt[3], etc.  The option is assumed to be valid (positive integer).
-        return this.emitter.fncall('root', [this.emitter.emit_expr(args[0]), this.number(expr.options)]);
+        return this.emitter.fncall(
+          'root', [
+            this.emitter.emit_expr(args[0]),
+            this.emitter.number(expr.options)]);
       }
-      else
-        return this.emitter.fncall('sqrt', [this.emitter.emit_expr(args[0])]);
+      else return this.emitter.fncall(
+        'sqrt', this.emitter.emit_exprs(args));
     }
     // Check for unary functions like sin(x).
     // Translate 'Tr' => 'trace', etc. if needed.
     const sympy_command = translate_function_name(command_name, true);
     if(allowed_unary_sympy_functions.has(sympy_command) && nargs === 1)
-      return this.emitter.fncall(sympy_command, [this.emitter.emit_expr(args[0])]);
+      return this.emitter.fncall(sympy_command, this.emitter.emit_exprs(args));
     // Infinity is 'oo' in SymPy.
     if(command_name === 'infty' && nargs === 0)
       return this.emitter.number('oo');
     // Special case for \binom{n}{m}; this is the only two-argument
     // function used with SymPy.
     if(command_name === 'binom' && nargs === 2)
-      return this.emitter.fncall('binomial', [this.emitter.emit_expr(args[0]), this.emitter.emit_expr(args[1])]);
+      return this.emitter.fncall('binomial', this.emitter.emit_exprs(args));
     // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
     // having the command_name be a literal 'sin^2'.  This needs to be translated
     // as sin^2(x) => sin(x)^2 for SymPy.  Also, reciprocal trig functions
@@ -2399,6 +2402,7 @@ const analyzer_table = {
   sequence: [
     IntegralAnalyzer,
     LeibnizDerivativeAnalyzer,
+    NewtonDerivativeAnalyzer,
     SumOrProductAnalyzer,
     LimitAnalyzer,
     // CommandAnalyzer needs to come after the others so that they have

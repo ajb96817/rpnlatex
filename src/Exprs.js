@@ -1655,6 +1655,12 @@ class TextExpr extends Expr {
 
   // Overridden from Expr class to remove dots from i/j.
   with_hat(hat_op) {
+    // Special case: don't do the removal for \dot style hats,
+    // since dots are used for Newton derivative notation and we don't
+    // want to have 'imath' as the variable name, and also it'd just be
+    // putting the dot "back on" the i/j.
+    if(['dot', 'ddot', 'dddot', 'ddddot'].includes(hat_op))
+      return super.with_hat(hat_op);
     const replacement =
           this.text === 'i' ? 'imath' :
           this.text === 'j' ? 'jmath' :

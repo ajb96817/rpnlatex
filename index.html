@@ -2446,12 +2446,31 @@
         will be interpreted:
       </p>
       <ul>
+        <li>
+          Complex conjugation: <code>\overline{x}</code>
+          or <code>x^{*}</code>, e.g.:
+          <code>\overline{3+4i} \Rightarrow 3-4i</code>
+        </li>
+        <li>
+          Matrix transpose: <code>A^{\mathrm{T}}</code>,
+          adjoint/Hermitian: <code>A^{\dagger}</code>
+        </li>
+        <li>
+          Degrees notation: <code>x^{\circ}</code>
+          e.g. <code>{45}^{\circ} = \pi/4</code>
+        </li>
         <li>Indefinite integrals: <code>\int x^2\,dx \Rightarrow x^3/3</code></li>
         <li>Definite integrals: <code>\int_0^{\pi/3} \tan{x}\,dx \Rightarrow \ln{2}</code></li>
         <li>Derivatives: <code>\frac{d}{dx} \sin{\omega x} \Rightarrow \omega\cos{\omega x}</code></li>
         <li>Summations: <code>\sum_{k\ge1}\frac{1}{k^2} \Rightarrow \pi^2/6</code></li>
         <li>Products: <code>\prod^2_{k=0}(x+k) \Rightarrow x(x+1)(x+2)</code></li>
         <li>Limits: <code>\lim_{x\to 0} \frac{\sin x}{x} \Rightarrow 1</code></li>
+        <li>
+          Differential equations with traditional notation:
+          <code>\frac{d^2y}{dx^2}+\omega^2y=0</code>
+          or <code>y^{\prime\prime}+\omega^2y=0</code>
+          or <code>\ddot{x}+\omega^2x=0</code> can all be used
+        </li>
         <!-- integral transforms, etc -->
       </ul>
 
