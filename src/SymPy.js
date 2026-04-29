@@ -154,6 +154,7 @@ function expr_to_variable_name(expr, ignore_superscript = false,
 
 // Inverse of expr_to_variable_name; returns null if the conversion
 // is not possible.
+// TODO: probably don't need this any more
 function variable_name_to_expr(s) {
   return _variable_name_to_expr(s.split('_'), true);
 }
@@ -1121,17 +1122,16 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
       if(variable_name)
         base_expr_node = this.emitter.variable(variable_name);
       else
-        return this.failure('Invalid variable subscript', start_index);
+        return this.failure('Invalid subscripted expression', start_index);
     }
     else  // something like (x+1)^2  (superscript but no subscript)
       base_expr_node = this.emitter.emit_expr(base_expr);
     // Now we are working with 'base_expr_node' and 'superscript_expr' only.
     node =
       this.analyze_transposelike(base_expr_node, superscript_expr) ||
-      this.analyze_power(base_expr_node, superscript_expr);
-    if(node)
-      return this.success(node, index);
-    return this.no_match();  // shouldn't actually get here
+      this.analyze_power(base_expr_node, superscript_expr) ||
+      base_expr_node;  // "plain" variable like x_n
+    return this.success(node, index);
   }
 
   // Check for for "where" expressions of the form: f|_{x=y}.

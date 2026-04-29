@@ -709,7 +709,8 @@ const keybinding_table = {
     'n': "named_function lg",  // [n][N] are special cases for base-2 log
     'N': "named_function log _2",
     'h': "mode squared_hyperbolic",
-    '-': "mode inverse"
+    '-': "mode inverse",
+    'u': "increment 2"  // undocumented
   },
   // [/][2][h] or [/][h][2] prefix
   squared_hyperbolic: {
