@@ -2423,7 +2423,82 @@ class SymPyToExpr {
 }
 
 
+// Number-formatting routines:
+
+function format_double(x, max_decimal_digits = 9) {
+  // Floating-point numbers don't necessarily need to be displayed
+  // at full accuracy (after all, this is just an editor, not something
+  // for "serious" calculation).  But enough precision is needed so that
+  // things like converting \pi to a float and back (via RationalizeToExpr)
+  // still work.  For now, the heuristic is:
+  //   - max 9 digits of precision after the decimal point (or whatever
+  //     is specified by max_decimal_digits)
+  //   - trailing zeroes removed (0.75 instead of 0.750000000)
+  //   - values close to an integer are rounded (2.999999999 => 3, no decimal point)
+  if(Math.abs(Math.round(x) - x) < 1e-8)
+    return Math.round(x).toString();
+  else {
+    const s = x.toFixed(max_decimal_digits).replace(/0+$/, '');
+    // There's a chance we could wind up with something like "3.",
+    // even though that should be caught by the almost-an-integer check above.
+    return s.endsWith('.') ? s.slice(0, s.length-1) : s;
+  }
+}
+
+
+function double_to_expr(x) {
+  if(isNaN(x))
+    return FontExpr.roman_text('NaN');
+  else if(isFinite(x)) {
+    const abs_x = Math.abs(x);
+    if(abs_x < 1e-30)
+      return TextExpr.integer(0);
+    if(abs_x < 1e-8 || abs_x > 1e9)
+      return double_to_scientific_notation_expr(x);
+    else {
+      // Here, x is known to have a "reasonable" exponent so
+      // that toString() will not output scientific notation.
+      const expr = new TextExpr(format_double(abs_x));
+      if(x < 0.0)
+        return PrefixExpr.unary_minus(expr);
+      else return expr;
+    }
+  }
+  else {
+    const infty_expr = new CommandExpr('infty');
+    if(x < 0.0)
+      return PrefixExpr.unary_minus(infty_expr);
+    else return infty_expr;
+  }
+}
+
+function double_to_scientific_notation_expr(x) {
+  // Convert to "3e+4", or else "Infinity", "NaN", etc.
+  // The 9 here should match the toFixed(9) in format_double().
+  const exp_string = x.toExponential(9);  
+  // Split on e+ and e- both explicitly, in case e.g. "Infinity" happened to have an "e" in it.
+  const [pieces_positive, pieces_negative] =
+        [exp_string.split('e+'), exp_string.split('e-')];
+  const [coefficient_text, exponent_text, exponent_is_negative] =
+        pieces_positive.length === 2 ?
+        [...pieces_positive, false] : [...pieces_negative, true];
+  const coefficient_is_negative = coefficient_text.startsWith('-');
+  const coefficient_expr = coefficient_is_negative ?
+        PrefixExpr.unary_minus(new TextExpr(coefficient_text.slice(1))) :
+        new TextExpr(coefficient_text);
+  let exponent_expr = new TextExpr(exponent_text);
+  if(exponent_is_negative)
+    exponent_expr = PrefixExpr.unary_minus(exponent_expr);
+  // 3 \cdot 10^4
+  return InfixExpr.combine_infix(
+    coefficient_expr,
+    TextExpr.integer(10).with_superscript(exponent_expr),
+    new CommandExpr('cdot'));
+}
+
+
 export {
-  PyodideInterface, SymPyCommand, ExprToSymPy
+  PyodideInterface, SymPyCommand, ExprToSymPy,
+  format_double, double_to_expr
 };
 

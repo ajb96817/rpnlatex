@@ -1363,6 +1363,7 @@ const keybinding_table = {
   sympy_query: {
     //'a': "sympy assumptions 1",  // TODO: this seems to have changed in sympy 1.15
     //'d': "sympy dominant 2",  // TODO: need to import sympy.series.limitseq.dominant
+    'c': "sympy is_convex 2",
     'm': "sympy maximum 2",
     'M': "sympy minimum 2",
     'p': "sympy periodicity 2",
@@ -1413,59 +1414,6 @@ const keybinding_table = {
     'M': "sympy inverse_mellin_transform 4",
     's': "sympy sine_transform 3",
     'S': "sympy inverse_sine_transform 3"
-  },
-
-  // [#] prefix: symbolic algebra mode
-  algebrite: {
-    '#': "algebrite bothsides eval",
-    '/': "rationalize",  // not part of Algebrite
-    '=': "algebrite bothsides float",
-    '*': "algebrite default conj",
-    'A': "algebrite default arg",
-    'c': "algebrite_completesquare true",
-    'C': "algebrite_completesquare false",
-    'd': "algebrite bothsides derivative 1 1",
-    'D': "algebrite bothsides derivative 2",
-    'e': "algebrite bothsides circexp",
-    'f': "algebrite bothsides factor 1 1",
-    'F': "algebrite bothsides factor 2",
-    'i': "algebrite bothsides integral 1 1",
-    'I': "algebrite bothsides integral 2",
-    'j': "algebrite bothsides defint 3 1",
-    'J': "algebrite bothsides defint 4",
-    'm': "algebrite default sum 3 1",
-    'M': "algebrite default sum 4",
-    'o': "algebrite default product 3 1",
-    'O': "algebrite default product 4",
-    'p': "mode algebrite_polynomial",
-    'P': "algebrite bothsides polar",
-    'q': "algebrite_check",
-    'Q': "algebrite_check true",
-    'r': "algebrite bothsides rationalize",
-    'R': "algebrite bothsides rect",
-    's': "algebrite bothsides simplify",
-    't': "integer 7;integer 0;algebrite default taylor 3 1",
-    'T': "swap;algebrite default taylor 4",  // NOTE: last two arguments are swapped
-    'v': "algebrite default eigenval",
-    'V': "algebrite default eigenvec;transpose_matrix",
-    'w': "algebrite bothsides eval 2 1",
-    'W': "algebrite bothsides eval 3",
-    'x': "algebrite bothsides expand 1 1",
-    'X': "algebrite bothsides expand 2",
-    'y': "all_on_left true;algebrite default nroots 1 1",  // TODO: display the guessed variable: x=[...] (for roots() too)
-    'Y': "swap;all_on_left true;swap;algebrite default nroots 2",
-    'z': "all_on_left true;algebrite default roots 1 1",
-    'Z': "swap;all_on_left true;swap;algebrite default roots 2"
-  },
-
-  algebrite_polynomial: {
-    'p': "push x;swap;algebrite default legendre 2",
-    'P': "push x;unrot;algebrite default legendre 3",
-    'l': "push x;swap;algebrite default laguerre 2",
-    'L': "push x;unrot;algebrite default laguerre 3",
-    'h': "push x;swap;algebrite default hermite 2",
-    'j': "push x;swap;algebrite default besselj 2",
-    'y': "push x;swap;algebrite default bessely 2"
   },
 
   // [@] prefix: \mathcal letters (uppercase only)
