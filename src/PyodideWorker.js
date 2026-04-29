@@ -12,14 +12,20 @@ import {
 
 
 async function load_pyodide_if_needed() {
-  if(self.pyodide) return;
-  // TODO: error handling
+  if(self.pyodide)
+    return true;
   postMessage({message: 'initializing'});
-  self.pyodide = await loadPyodide({indexURL: '/'});
-  postMessage({message: 'loading'});
-  await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
-  await self.pyodide.runPythonAsync(pyodide_initcode_string);
+  try {
+    self.pyodide = await loadPyodide({indexURL: '/'});
+    postMessage({message: 'loading'});
+    await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
+    await self.pyodide.runPythonAsync(pyodide_initcode_string);
+  } catch(e) {
+    postMessage({message: 'init_error', error_message: e.message});
+    return false;
+  }
   postMessage({message: 'ready'});
+  return true;
 }
 
 async function pump_message_queue() {
@@ -37,14 +43,14 @@ function enqueue_message(message) {
 
 async function handle_message(message) {
   if(message.command === 'sympy_command') {
-    await load_pyodide_if_needed();
-    await run_sympy_command(message.code);
+    const is_ready = await load_pyodide_if_needed();
+    if(is_ready)
+      await run_sympy_command(message.code);
   }
 }
 
 async function run_sympy_command(code) {
-  const pyodide = self.pyodide;
-  // TODO: post error message if pyodide not running
+  const pyodide = self.pyodide;  // TODO: maybe check for null
   const start_time = Date.now();
   postMessage({message: 'running'});
   let result = await pyodide.runPythonAsync(code);

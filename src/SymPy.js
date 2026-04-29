@@ -272,6 +272,13 @@ class PyodideInterface {
   handle_worker_message(data) {
     switch(data.message) {
     case 'initializing': this.change_state('initializing'); break;
+    case 'init_error':
+      this.error_details = {
+        message: data.error_message,
+        error_type: 'pyodide_init'
+      };
+      this.change_state('uninitialized');
+      break;
     case 'loading': this.change_state('loading'); break;
     case 'ready': this.change_state('ready'); break;
     case 'running':

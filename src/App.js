@@ -439,9 +439,12 @@ class PyodideStatusComponent extends React.Component {
     const [error_message, errored_command] =
           [error_details.message, error_details.command]
     const operation_name =
-          errored_command.operation_label ?? errored_command.function_name;
+          errored_command ?
+          (errored_command.operation_label ?? errored_command.function_name) :
+          '(unknown)';
+    const errored_expr = errored_command ?
+          errored_command.arg_exprs[0] : null;
     let errored_expr_component = null;
-    const errored_expr = errored_command.arg_exprs[0];
     if(errored_expr) {
       errored_expr_component = $e(ItemComponent, {
         item: new ExprItem(errored_expr),
@@ -455,18 +458,18 @@ class PyodideStatusComponent extends React.Component {
       ;
     const error_type_message = {
       'sympy_execution': 'SymPy error running',
-      'expr_conversion': 'Expression syntax error'
+      'expr_conversion': 'Expression syntax error',
+      'pyodide_init': 'Error initializing Pyodide'
     }[error_details.error_type] ?? 'Error running';
     return $e(
       'div', {className: 'sympy_error'},
       $e('div', {className: 'error_summary'},
          error_type_message,
-         // Don't show the operation name if the error is from
-         // Expr->Python conversion (since the error is because of
-         // the expression itself, not the function execution).
-         (error_details.error_type === 'expr_conversion' ?
-          null : $e('span', {className: 'errored_operation_name'},
-                    ' ' + operation_name)),
+         // Only show the operation name if the error is from a SymPy operation
+         // (so not shown for Expr->Python conversion errors or init errors).
+         (error_details.error_type === 'sympy_execution' ?
+          $e('span', {className: 'errored_operation_name'},
+             ' ' + operation_name) : null),
          ':'),
       errored_expr_component,
       $e('div', {className: 'error_message'}, error_message));
