@@ -6,8 +6,7 @@
 import {
   AppState, Document, Stack, TextEntryState,
   ExprPath, RationalizeToExpr,
-  ExprItem, TextItem, CodeItem,
-  ExprParser
+  ExprItem, TextItem, CodeItem
 } from './Models';
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
@@ -22,10 +21,8 @@ import {
 import {
   pyodide_initcode_string
 } from './PyodideWorker';
-
-// TODO: temporary
 import {
-  ExprParser2
+  ExprParser
 } from './Parsers';
 
 
@@ -1662,8 +1659,7 @@ class InputContext {
     }
     else {
       try {
-        // new_expr = ExprParser.parse_string(text);
-        new_expr = ExprParser2.parse_string(text);
+        new_expr = ExprParser.parse_string(text);
       }
       catch(e) {
         // TODO: special ParserError exception classes,

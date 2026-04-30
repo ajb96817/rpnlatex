@@ -28,7 +28,7 @@ const expr_tokenizer_pattern_table = [
   [/\/\//y,      'fraction_bar'],  // "//"
   [/<=|>=/y,     'relation'],
   [/=|!=|<|>/y,  'relation'],  // =, !=, < etc.
-  [/[A-Za-z]+/y,       'ident'],
+  [/[A-Za-z]+/y, 'ident'],
   [/\s+/y,       'whitespace'],
   [/\@/y,        'special_constant'],  // @ = pi
   [/-/y,         'minus'],
@@ -159,7 +159,7 @@ class Parser {
   peek_for(...token_types) {
     if(this.at_end())
       return null;
-    if(token_types.includes(this.tokens[this.token_index].type))
+    else if(token_types.includes(this.tokens[this.token_index].type))
       return this.tokens[this.token_index];
     else
       return null;
@@ -185,7 +185,7 @@ class Parser {
 
 
 // Parser for infix math text entry.
-class ExprParser2 extends Parser {
+class ExprParser extends Parser {
   static parse_string(s) {
     const result = Tokenizer.tokenize_expr(s);
     if(result.success) {
@@ -204,7 +204,7 @@ class ExprParser2 extends Parser {
     const initial_minus = this.consume('minus');
     let term = this.parse_term() || this.parse_error();
     let terms = [term], operator_tokens = [];
-    let binary_token = null;
+    let binary_token;
     do {
       binary_token = this.consume(
         'plus', 'minus', 'multiply', 'divide',
@@ -246,7 +246,7 @@ class ExprParser2 extends Parser {
   _combine_expr_terms(terms, operator_tokens) {
     const operator_exprs = operator_tokens.map(
       token => this._infix_op_for_token(token));
-    const split_at_index = operator_tokens.findLast(
+    const split_at_index = operator_tokens.findLastIndex(
       token => token.type === 'relation') ?? 0;
     if(operator_exprs.length === 0)
       return terms[0];
@@ -273,7 +273,7 @@ class ExprParser2 extends Parser {
   // One or more factors, combined by implicit multiplication
   // or by concatenating into function calls like 'f (x)' -> f(x),
   // or builtins like 'sin x' -> '\sin{x}'.
-  parse_term(unary_minus = false) {
+  parse_term() {
     let factor = this.parse_factor(true) || this.parse_error();
     let factors = [factor];
     do {
@@ -289,7 +289,7 @@ class ExprParser2 extends Parser {
       [old_factors, factors] =
         [factors, this._combine_factors(factors)];
     } while(factors.length !== old_factors.length);
-    // Combine remaining factors (>1) into a SequenceExpr.
+    // Combine remaining factors (>1) into a sequence.
     if(factors.length === 1)
       return factors[0];
     else
@@ -298,7 +298,7 @@ class ExprParser2 extends Parser {
 
   _combine_factors(factors) {
     // Combine in right-to-left order to handle cases
-    // like 'sin sin x'.  This makes it right-associative.
+    // like 'sin cos x'.  This makes it right-associative.
     const new_factors = [];
     let i = factors.length-1;
     while(i >= 0) {
@@ -330,7 +330,7 @@ class ExprParser2 extends Parser {
 
   // Meant for removing the outer ()-parens (only) from numerator/denominator
   // of a full-size fraction (and from superscript powers).
-  // We want (x+1)//(x+2) => \frac{x+1}{x+2}.
+  // We want (x+1)//(x+2) => \frac{x+1}{x+2}
   _remove_outer_parenthesis(expr) {
     if(expr.is_delimiter_expr() && expr.has_types('(', ')'))
       return expr.inner_expr;
@@ -347,6 +347,8 @@ class ExprParser2 extends Parser {
       }
       else if(allow_subscript_superscript && this.consume('power')) {
         const exponent = this.parse_factor(true, false) || this.parse_error();
+        if(factor.is_text_expr_with('e'))
+          factor = FontExpr.roman(factor);  // e^x
         factor = factor.with_superscript(
           this._remove_outer_parenthesis(exponent));
       }
@@ -414,4 +416,5 @@ class ExprParser2 extends Parser {
 }
 
 
-export { ExprParser2 };  // temporary
+export { ExprParser };
+
