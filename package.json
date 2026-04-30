@@ -7,7 +7,6 @@
   "homepage": ".",
   "dependencies": {
     "@msgpack/msgpack": "^3.1.3",
-    "algebrite": "^1.4.0",
     "katex": "^0.16.45",
     "pyodide": "^0.29.3",
     "react": "19.2.4",
