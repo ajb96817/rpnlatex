@@ -2506,6 +2506,7 @@ function double_to_scientific_notation_expr(x) {
 
 export {
   PyodideInterface, SymPyCommand, ExprToSymPy,
-  format_double, double_to_expr
+  format_double, double_to_expr,
+  latex_letter_commands
 };
 

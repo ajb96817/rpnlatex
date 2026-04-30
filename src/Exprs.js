@@ -1947,6 +1947,11 @@ class DelimiterExpr extends Expr {
       new_expr, this.fixed_size);
   }
 
+  has_types(left_type, right_type) {
+    return this.left_type === left_type &&
+      this.right_type === right_type;
+  }
+
   // Blank/invisible delimiters as created by [)][.] can be used for some
   // special purposes, such as creating flex-mode 'x/y' inline fractions.
   // Eventually, should probably try eliminate this hack and always decay
@@ -1954,7 +1959,7 @@ class DelimiterExpr extends Expr {
   // Blank delimiters can also be created via do_modify_delimiter() so make
   // sure to check for that case if these are to be eliminated.
   is_blank_delimiters() {
-    return this.left_type === '.' && this.right_type === '.';
+    return this.has_types('.', '.');
   }
 
   // An inline division infix expression surrounded by "blank" delimiters

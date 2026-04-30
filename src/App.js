@@ -1,6 +1,6 @@
 
 
-import './katex.css';  // Must be imported before App.css
+import './katex.css';  // Must come before App.css
 import './App.css';
 
 import React from 'react';

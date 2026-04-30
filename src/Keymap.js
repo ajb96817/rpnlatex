@@ -651,7 +651,7 @@ const keybinding_table = {
     'n': "parenthesize;push sgn;swap;operator operatorname 2",
     'p': "named_function Pr",
     'P': "infix ,;named_function Pr",  // Pr(x,y)
-    's': "named_function sup",
+    's': "operator sup",  // TODO: "named_function sup" (?)
     'S': "operator limsup",
     't': "parenthesize_argument;push Tr;swap;operator operatorname 2",
     'v': "parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x]

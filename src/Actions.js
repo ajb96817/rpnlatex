@@ -23,6 +23,11 @@ import {
   pyodide_initcode_string
 } from './PyodideWorker';
 
+// TODO: temporary
+import {
+  ExprParser2
+} from './Parsers';
+
 
 // This acts as a sort of extension to the main App component.
 // Any method starting with do_ can be directly invoked by keybindings.
@@ -1657,7 +1662,8 @@ class InputContext {
     }
     else {
       try {
-        new_expr = ExprParser.parse_string(text);
+        // new_expr = ExprParser.parse_string(text);
+        new_expr = ExprParser2.parse_string(text);
       }
       catch(e) {
         this.report_error(e.message);
