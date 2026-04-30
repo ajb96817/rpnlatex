@@ -1666,6 +1666,8 @@ class InputContext {
         new_expr = ExprParser2.parse_string(text);
       }
       catch(e) {
+        // TODO: special ParserError exception classes,
+        // re-throw other errors.
         this.report_error(e.message);
       }
       if(!new_expr) {

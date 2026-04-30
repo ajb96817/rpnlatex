@@ -34,10 +34,12 @@ const expr_tokenizer_pattern_table = [
   [/-/y,         'minus'],
   [/\+/y,        'plus'],
   [/,/y,         'comma'],
+  [/_/y,         'subscript'],
   [/\!/y,        'factorial'],
   [/'/y,         'prime'],
   [/\*/y,        'multiply'],
   [/\//y,        'divide'],
+  [/\^/y,        'power'],
   [/\(/y,        'left_paren'],
   [/\)/y,        'right_paren'],
   [/\[/y,        'left_bracket'],
@@ -182,38 +184,13 @@ class Parser {
 }
 
 
-// Expr parser for infix math text entry.
-//
-// equation:  (x = y expression, or an expr by itself)
-//     expr
-//     expr [=, >=, etc] equation
-// expr:  (additive expression)
-//     term
-//     term [+, -, ','] expr
-// term:  (multiplicative expression)
-//     factor |
-//     factor [*, /, //] term
-//     coefficient term  (implicit product)
-// coefficient:  (something that can be the LHS of an implicit product)
-//     number
-//     '-' coefficient  (unary minus)
-//     '(' expr ')'  (delimiter types must match)
-// factor:  (primary expression)
-//     coefficient
-//     ident
-//     special_constant
-//     placeholder
-//     factor [!, ']  (factorial or prime)
-//     '-' factor  ("duplicate" of coefficient '-' rule)
-//
-// TODO: scientific notation
-
+// Parser for infix math text entry.
 class ExprParser2 extends Parser {
   static parse_string(s) {
     const result = Tokenizer.tokenize_expr(s);
     if(result.success) {
       const parser = new this(result.tokens);
-      const expr = parser.parse_equation();
+      const expr = parser.parse_expr();
       if(!expr) return null;
       // Should not have any extraneous tokens at the end.
       if(!parser.at_end()) return null;
@@ -222,104 +199,138 @@ class ExprParser2 extends Parser {
     else
       return null;  // TODO: report error
   }
-  
-  parse_equation() {
-    const lhs = this.parse_expr() || this.parse_error();
-    const relation_token = this.consume('relation');
-    if(relation_token) {
-      const rhs = this.parse_equation() || this.parse_error();
-      return InfixExpr.combine_infix(
-        lhs, rhs,
-        this._relation_to_infix_op(relation_token.text));
-    }
-    return lhs;
-  }
-
-  _relation_to_infix_op(relation) {
-    switch(relation) {
-    case '<=': return new CommandExpr('le');
-    case '>=': return new CommandExpr('ge');
-    case '!=': return new CommandExpr('ne');
-    default: return new TextExpr(relation);  // = > <
-    }
-  }
 
   parse_expr() {
-    const lhs = this.parse_term() || this.parse_error();
-    let result_expr = lhs;
-    const binary_token = this.consume('plus', 'minus', 'comma');
-    if(binary_token) {
-      const rhs = this.parse_expr() || this.parse_error();
-      return InfixExpr.combine_infix(
-        lhs, rhs,
-        Expr.text_or_command(binary_token.text));
-    }
-    return lhs;
+    const initial_minus = this.consume('minus');
+    let term = this.parse_term() || this.parse_error();
+    let terms = [term], operator_tokens = [];
+    let binary_token = null;
+    do {
+      binary_token = this.consume(
+        'plus', 'minus', 'multiply', 'divide',
+        'comma', 'relation', 'fraction_bar');
+      if(binary_token) {
+        term = this.parse_term() || this.parse_error();
+        operator_tokens.push(binary_token);
+        terms.push(term);
+      }
+    } while(binary_token);
+    [terms, operator_tokens] =
+      this._combine_fractions_in_expr(terms, operator_tokens);
+    if(initial_minus)
+      terms[0] = PrefixExpr.unary_minus(terms[0]);
+    return this._combine_expr_terms(terms, operator_tokens);
   }
 
-  parse_term() {
-    let lhs = this.parse_coefficient();
-    if(lhs) {
-      const implicit_product_term = this.parse_term();
-      if(implicit_product_term)
-        return this._combine_implicit_product(lhs, implicit_product_term);
-      else
-        ;  // keep lhs coefficient as is (as a 'factor' term)
-    }
-    else
-      lhs = this.parse_factor();
-    if(!lhs) return null;
-    const op_token = this.consume('multiply', 'divide', 'fraction_bar');
-    if(op_token) {
-      const rhs = this.parse_term() || this.parse_error();
-      if(op_token.type === 'fraction_bar') {
-        // Full-size fraction.
-        return new CommandExpr('frac', [
-          this._remove_outer_parenthesis(lhs),
-          this._remove_outer_parenthesis(rhs)]);
+  // '//' fraction bars at the "highest precedence" and all other
+  // binary operators are at the same, lower precedence.
+  _combine_fractions_in_expr(terms, operator_tokens) {
+    const new_terms = [terms[0]];
+    const new_operator_tokens = [];
+    for(const [i, operator_token] of operator_tokens.entries()) {
+      if(operator_token.type === 'fraction_bar') {
+        const numer_term = new_terms.pop();
+        const frac_term = new CommandExpr('frac', [
+          this._remove_outer_parenthesis(numer_term),
+          this._remove_outer_parenthesis(terms[i+1])]);
+        new_terms.push(frac_term);
       }
       else {
-        // Explicit multiplication converts to \cdot
-        const op_text = (op_token.type === 'multiply' ? "\\cdot" : '/');
-        return InfixExpr.combine_infix(
-          lhs, rhs, Expr.text_or_command(op_text));
+        new_operator_tokens.push(operator_tokens[i]);
+        new_terms.push(terms[i+1]);
       }
     }
-    return lhs;  // factor by itself
+    return [new_terms, new_operator_tokens];
   }
 
-  _combine_implicit_product(lhs, rhs) {
-    const cdot = Expr.text_or_command("\\cdot");
-    if(lhs.is_text_expr_with_number() &&
-       rhs.is_text_expr_with_number())
-      return InfixExpr.combine_infix(lhs, rhs, cdot);
-    else if(rhs.is_infix_expr() &&
-            rhs.operator_exprs.every(expr => rhs.operator_text(expr) === 'cdot'))
-      return InfixExpr.combine_infix(lhs, rhs, cdot);
-    else if(lhs.is_font_expr() && lhs.typeface === 'roman' &&
-            lhs.expr.is_text_expr() && latex_unary_builtins.has(lhs.expr.text))
+  _combine_expr_terms(terms, operator_tokens) {
+    const operator_exprs = operator_tokens.map(
+      token => this._infix_op_for_token(token));
+    const split_at_index = operator_tokens.findLast(
+      token => token.type === 'relation') ?? 0;
+    if(operator_exprs.length === 0)
+      return terms[0];
+    else
+      return new InfixExpr(
+        terms, operator_exprs, split_at_index);
+  }
+
+  _infix_op_for_token(token) {
+    if(token.type === 'relation') {
+      switch(token.text) {
+      case '<=': return new CommandExpr('le');
+      case '>=': return new CommandExpr('ge');
+      case '!=': return new CommandExpr('ne');
+      default: return new TextExpr(token.text);  // = > <
+      }
+    }
+    else if(token.type === 'multiply')
+      return new CommandExpr('cdot');
+    else
+      return new TextExpr(token.text);
+  }
+
+  // One or more factors, combined by implicit multiplication
+  // or by concatenating into function calls like 'f (x)' -> f(x),
+  // or builtins like 'sin x' -> '\sin{x}'.
+  parse_term(unary_minus = false) {
+    let factor = this.parse_factor(true) || this.parse_error();
+    let factors = [factor];
+    do {
+      factor = this.parse_factor(false);
+      if(factor) factors.push(factor);
+    } while(factor);
+    // Merge combinable factors until the list stops shrinking.
+    // It needs to be like this to handle cases like:
+    //   f, (x), g, (x)  =>  f(x), g(x)  => f(x)g(x)
+    //   sin, cos, x  =>  sin, \cos{x}  =>  \sin{\cos{x}}
+    let old_factors;
+    do {
+      [old_factors, factors] =
+        [factors, this._combine_factors(factors)];
+    } while(factors.length !== old_factors.length);
+    // Combine remaining factors (>1) into a SequenceExpr.
+    if(factors.length === 1)
+      return factors[0];
+    else
+      return new SequenceExpr(factors);
+  }
+
+  _combine_factors(factors) {
+    // Combine in right-to-left order to handle cases
+    // like 'sin sin x'.  This makes it right-associative.
+    const new_factors = [];
+    let i = factors.length-1;
+    while(i >= 0) {
+      if(i >= 1) {
+        const combined = this._combine_factor_pair(
+          factors[i-1], factors[i]);
+        if(combined) {
+          new_factors.push(combined);
+          i -= 2;
+          continue;
+        }
+      }
+      new_factors.push(factors[i--]);
+    }
+    new_factors.reverse();
+    return new_factors;
+  }
+
+  _combine_factor_pair(lhs, rhs) {
+    if(lhs.is_font_expr() && lhs.typeface === 'roman' &&
+       lhs.expr.is_text_expr() &&
+       latex_unary_builtins.has(lhs.expr.text))
       return new CommandExpr(lhs.expr.text, [rhs]);  // sin x, etc.
     else if(rhs.is_delimiter_expr() && !lhs.is_delimiter_expr())
       return new FunctionCallExpr(lhs, rhs);  // f(x)
-    // else if(rhs.is_sequence_expr() &&
-    //         rhs.exprs.length === 2 &&
-    //         rhs.exprs[1].is_text_expr_with_number() &&
-    //         rhs.exprs[0].is_text_expr() &&
-    //         ['e', 'E'].includes(rhs.exprs[0].text) &&
-    //         lhs.is_text_expr_with_number()) {
-    //   // Scientific notation with nonnegative exponent (e.g. prepending a number to "e4").
-    //   // Negative exponents are handled in parse_expr instead.
-    //   return InfixExpr.combine_infix(
-    //     lhs,
-    //     TextExpr.integer(10).with_superscript(rhs.exprs[1]),
-    //     new CommandExpr('cdot'));
-    // }
     else
-      return Expr.concatenate(lhs, rhs, true /* no_parenthesize */);
+      return null;
   }
 
   // Meant for removing the outer ()-parens (only) from numerator/denominator
-  // of a full-size fraction.  We want (x+1)//(x+2) => \frac{x+1}{x+2}.
+  // of a full-size fraction (and from superscript powers).
+  // We want (x+1)//(x+2) => \frac{x+1}{x+2}.
   _remove_outer_parenthesis(expr) {
     if(expr.is_delimiter_expr() && expr.has_types('(', ')'))
       return expr.inner_expr;
@@ -327,10 +338,35 @@ class ExprParser2 extends Parser {
       return expr;
   }
 
-  parse_coefficient() {
-    let token = null;
-    if((token = this.consume('number')) !== null)
-      return TextExpr.integer(token.text);
+  parse_factor(initial_factor, allow_subscript_superscript = true) {
+    let factor = this._parse_factor(initial_factor);
+    while(factor) {
+      if(allow_subscript_superscript && this.consume('subscript')) {
+        const subscript = this.parse_factor(true, false) || this.parse_error();
+        factor = factor.with_subscript(subscript);
+      }
+      else if(allow_subscript_superscript && this.consume('power')) {
+        const exponent = this.parse_factor(true, false) || this.parse_error();
+        factor = factor.with_superscript(
+          this._remove_outer_parenthesis(exponent));
+      }
+      else if(this.consume('factorial'))
+        factor = Expr.concatenate(factor, new TextExpr('!'));
+      else if(this.consume('prime'))
+        factor = factor.with_prime(true);
+      else break;
+    }
+    return factor;
+  }
+
+  // 'initial_factor': Constant numbers are only allowed as the first
+  // factor in an implicit product list: we can have '3x' but not 'x3'.
+  _parse_factor(initial_factor) {
+    let token;
+    if(initial_factor) {
+      if((token = this.consume('number')) !== null)
+        return TextExpr.integer(token.text);
+    }
     if((token = this.consume('ident')) !== null) {
       const greek_letter = this.convert_greek_letter(token.text);
       if(greek_letter)
@@ -356,39 +392,6 @@ class ExprParser2 extends Parser {
         return this.parse_error();
       return new DelimiterExpr(left, right, inner_expr);
     }
-    if((token = this.consume('minus')) !== null) {
-      const negated_expr = this.parse_coefficient();
-      if(!negated_expr)
-        return this.parse_error();
-      return PrefixExpr.unary_minus(negated_expr);
-    }
-    return null;
-  }
-
-  parse_factor() {
-    let factor = this._parse_factor();
-    while(factor) {
-      // Process one or more postfix ! or ' (prime) tokens if present.
-      if(this.consume('factorial'))
-        factor = Expr.concatenate(factor, new TextExpr('!'));
-      else if(this.consume('prime'))
-        factor = factor.with_prime(true);
-      else break;
-    }
-    return factor;
-  }
-
-  _parse_factor() {
-    let token = null;
-    if((token = this.consume('minus')) !== null) {
-      const negated_expr = this.parse_factor();
-      if(!negated_expr)
-        return this.parse_error();
-      return PrefixExpr.unary_minus(negated_expr);
-    }
-    const coefficient_expr = this.parse_coefficient();
-    if(coefficient_expr)
-      return coefficient_expr;
     return null;
   }
 

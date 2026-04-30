@@ -1884,7 +1884,7 @@ class DelimiterExpr extends Expr {
   }
 
   // Parenthesize 'expr' only if it's a low-precedence InfixExpr like 'x+y'.
-  static autoparenthesize(expr, left_type, right_type) {
+  static autoparenthesize(expr, left_type = '(', right_type = ')') {
     if(expr.is_infix_expr() && expr.needs_autoparenthesization())
       return this.parenthesize(expr, left_type, right_type);
     else
