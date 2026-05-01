@@ -2114,6 +2114,8 @@ class SubscriptSuperscriptExpr extends Expr {
   }
 
   // Remove one \prime; f'' => f', etc.
+  // TODO: Maybe have .remove_primes() or .remove_prime(N), it's
+  // used in a few places via .with_superscript(null).
   remove_prime() {
     const prime_count = this.count_primes();
     if(prime_count === 0)

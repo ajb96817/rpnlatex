@@ -225,7 +225,7 @@ class PyodideInterface {
   constructor(app_component) {
     this.app_component = app_component;
     this.onStateChange = null;  // callback function
-    this.worker = null;  // a PyodideWorker instance, created lazily
+    this.worker = null;  // a PyodideWorker.js Worker instance, created lazily
     this.execution_started_at = null;  // timestamp
     this.sympy_command = null;  // SymPyCommand being executed, or that errored
     this.error_details = null;  // set to a details structure if there is an error to be shown
@@ -237,6 +237,12 @@ class PyodideInterface {
     throw new Error(message);
   }
 
+  // Start the web worker.  Note that this doesn't actually start
+  // initializing Pyodide or loading the SymPy libraries yet.
+  // That happens on demand the first time a SymPy command message
+  // is sent to the web worker.
+  // TODO: Preload Pyodide/SymPy immediately on startup (and after
+  // it gets terminated) based on a config option.
   start_pyodide_worker_if_needed() {
     if(!this.worker && window.Worker) {
       this.worker = new Worker(
@@ -348,7 +354,7 @@ class PyodideInterface {
       }
       else throw e;  // pass through "normal" JS errors
     }
-    // NOTE: pass along the Pyodide indexURL to use based
+    // NOTE: Pass along the Pyodide indexURL to use based
     // on the app's http location pathname.  Otherwise
     // the PyodideWorker doesn't know where to load its
     // resources for (it doesn't have access to the browser
@@ -1760,6 +1766,8 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
 class LagrangeDerivativeAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     let expr = exprs[start_index];
+    if(this.check_for_dirac_delta(expr))
+      return this.no_match();  // Dirac delta "function" is handled specially
     expr = this.analyze_independent_variable(expr);
     expr = this.analyze_primed_expr(expr);
     if(!this.derivative_order_expr)
@@ -1786,6 +1794,16 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
             independent_var_node,
             this.emitter.emit_expr(this.derivative_order_expr)])]);
     return this.success(diff_command_node, start_index+1);
+  }
+
+  // Look for \delta^{\prime...}(x) and leave it alone (don't try to
+  // differentiate it here).  Instead, it gets turned into a two-argument
+  // DiracDelta() in FunctionCallAnalyzer.
+  check_for_dirac_delta(expr) {
+    return (expr.is_function_call_expr() &&
+            expr.fn_expr.is_subscriptsuperscript_expr() &&
+            expr.fn_expr.count_primes() > 0 &&
+            expr.fn_expr.with_superscript(null).is_command_expr_with(0, 'delta'));
   }
 
   // Look for the x part of f'(x).  Otherwise, if it's something like
@@ -2013,8 +2031,9 @@ class CommandAnalyzer extends Analyzer {
       const base_command_name = command_name.slice(0, -2);
       if(allowed_unary_sympy_functions.has(base_command_name) && nargs === 1)
         return this.emitter.fncall('Pow', [
-          this.emitter.fncall(base_command_name, this.emitter.emit_exprs(args)),
-          this.emitter.number('2')]);
+          this.emitter.fncall(
+            base_command_name, this.emitter.emit_exprs(args)),
+          this.emitter.number(2)]);
     }
     // Infinity is 'oo' in SymPy.
     if(command_name === 'infty' && nargs === 0)
@@ -2137,6 +2156,7 @@ class FunctionCallAnalyzer extends Analyzer {
       return this.failure('Zero-argument function calls not allowed', start_index);
     const arg_nodes = this.emitter.emit_exprs(arg_exprs);
     const result_node =
+          this.analyze_dirac_delta(expr, arg_nodes) ||
           this.analyze_sympy_function_call(expr, arg_nodes) ||
           this.analyze_generic_function_call(expr, arg_nodes);
     if(result_node)
@@ -2148,6 +2168,34 @@ class FunctionCallAnalyzer extends Analyzer {
   // Calling a built-in SymPy function (normally would be a CommandExpr).
   // TODO: revisit
   analyze_sympy_function_call(expr, arg_nodes) {
+    if(expr.fn_expr.is_command_expr_with(0, 'theta') &&
+       arg_nodes.length === 1) {
+      // Heaviside step function.
+      return this.emitter.fncall('Heaviside', arg_nodes);
+    }
+    return null;
+  }
+
+  // \delta(x) => DiracDelta(x)
+  // \delta^{\prime(x)...} => DiracDelta(x, 1)  (nth "derivative" of DD)
+  // TODO: maybe merge with analyze_sympy_function_call()
+  analyze_dirac_delta(expr, arg_nodes) {
+    if(arg_nodes.length !== 1)
+      return null;
+    let fn_expr = expr.fn_expr;
+    let prime_count = 0;
+    if(fn_expr.is_subscriptsuperscript_expr()) {
+      prime_count = fn_expr.count_primes();
+      fn_expr = fn_expr.with_superscript(null);
+    }
+    if(fn_expr.is_command_expr_with(0, 'delta')) {
+      // "Differentiated" delta distribution has a second argument
+      // to DiracDelta with the derivative order.
+      return this.emitter.fncall(
+        'DiracDelta', prime_count > 0 ?
+          [...arg_nodes, this.emitter.number(prime_count)] :
+          arg_nodes);
+    }
     return null;
   }
 

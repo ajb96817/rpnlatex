@@ -43,7 +43,8 @@ function enqueue_message(message) {
 
 async function handle_message(message) {
   if(message.command === 'sympy_command') {
-    const is_ready = await load_pyodide_if_needed(message.pyodide_index_path);
+    const index_path = message.pyodide_index_path;
+    const is_ready = await load_pyodide_if_needed(index_path);
     if(is_ready)
       await run_sympy_command(message.code);
   }
