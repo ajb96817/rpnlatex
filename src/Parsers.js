@@ -511,7 +511,7 @@ class TextItemParser extends Parser {
 
   add_inline_math(math_text) {
     // Token text will always be surrounded by '$...$'; strip it out.
-    math_text = math_text.slice(1, math_text.length-1).trim();
+    math_text = math_text.slice(1, -1).trim();
     if(math_text.length === 0)
       return;
     let math_expr = ExprParser.parse_string(math_text);

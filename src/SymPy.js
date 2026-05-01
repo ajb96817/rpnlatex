@@ -2000,6 +2000,16 @@ class CommandAnalyzer extends Analyzer {
     const sympy_command = translate_function_name(command_name, true);
     if(allowed_unary_sympy_functions.has(sympy_command) && nargs === 1)
       return this.emitter.fncall(sympy_command, this.emitter.emit_exprs(args));
+    // Check for sin^2(x) where the ^2 is "baked in" to the command name.
+    // These are always trig commands with the same name in sympy so they
+    // don't need to be "translated".
+    if(command_name.endsWith('^2')) {
+      const base_command_name = command_name.slice(0, -2);
+      if(allowed_unary_sympy_functions.has(base_command_name) && nargs === 1)
+        return this.emitter.fncall('Pow', [
+          this.emitter.fncall(base_command_name, this.emitter.emit_exprs(args)),
+          this.emitter.number('2')]);
+    }
     // Infinity is 'oo' in SymPy.
     if(command_name === 'infty' && nargs === 0)
       return this.emitter.number('oo');
@@ -2007,21 +2017,6 @@ class CommandAnalyzer extends Analyzer {
     // function used with SymPy.
     if(command_name === 'binom' && nargs === 2)
       return this.emitter.fncall('binomial', this.emitter.emit_exprs(args));
-    // Handle sin^2(x), etc.  These are currently implemented in rpnlatex by
-    // having the command_name be a literal 'sin^2'.  This needs to be translated
-    // as sin^2(x) => sin(x)^2 for SymPy.  Also, reciprocal trig functions
-    // need to be translated as csc^2(x) => sin(x)^(-2).
-    const match = [
-      // [rpnlatex, sympy_function, power]
-      ['sin^2', 'sin', 2],    ['cos^2', 'cos', 2],    ['tan^2', 'tan', 2],
-      ['sinh^2', 'sinh', 2],  ['cosh^2', 'cosh', 2],  ['tanh^2', 'tanh', 2],
-      ['sec^2', 'cos', -2],   ['csc^2', 'sin', -2],   ['cot^2', 'tan', -2],
-      ['sech^2', 'cosh', -2], ['csch^2', 'sinh', -2], ['coth^2', 'tanh', -2]
-    ].find(pair => command_name === pair[0]);
-    if(match && nargs === 1) {
-      // TODO
-      alert('sin^2 etc not yet implemented');
-    }
     // Zero-argument commands like \alpha are converted to their corresponding
     // alphanumeric variable name ('alpha').
     if(nargs === 0) {
