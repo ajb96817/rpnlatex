@@ -1,64 +1,60 @@
 
 
+// Parsers for "algebraic" math entry mode and for text item entry.
+
+
 import {
   Expr, TextExpr, CommandExpr, SequenceExpr, DelimiterExpr,
   SubscriptSuperscriptExpr, InfixExpr, PrefixExpr, PostfixExpr,
   FontExpr, PlaceholderExpr, FunctionCallExpr, ArrayExpr,
-  TensorExpr, SymPyExpr
+  TensorExpr, SymPyExpr,
+  latex_unary_named_operators
 } from './Exprs';
+import {
+  TextItem, TextItemElement, TextItemTextElement,
+  TextItemExprElement, TextItemRawElement,
+} from './Models';
 import {
   latex_letter_commands
 } from './SymPy';
 
 
 class Token {
+  // Combine adjacent tokens into the same type, creating
+  // a single longer token.
+  static coalesce_tokens_of_type(tokens, token_type) {
+    const new_tokens = [];
+    let i = 0;
+    while(i < tokens.length) {
+      if(tokens[i].type === token_type) {
+        const start_position = tokens[i].source_position;
+        const merged_texts = [];
+        while(i < tokens.length && tokens[i].type === token_type)
+          merged_texts.push(tokens[i++].text);
+        new_tokens.push(new this(
+          token_type,
+          merged_texts.join(''),
+          start_position));
+      }
+      else new_tokens.push(tokens[i++]);
+    }
+    return new_tokens;
+  }
+  
   constructor(type, text, source_position) {
     this.type = type;
     this.text = text;
     this.source_position = source_position;
   }
+
+  // toString() {
+  //   return [
+  //     '[', this.type, '@', this.source_position.toString(),
+  //     ':', this.text, ']'
+  //   ].join('');
+  // }
 }
 
-
-// Patterns are in order of precedence.
-// All regexes must have the 'sticky' flag: /abc/y
-const expr_tokenizer_pattern_table = [
-  [/\d*\.?\d+/y, 'number'],  // (potential) int or float (nonnegative)
-  [/\[\]/y,      'placeholder'],  // "[]"
-  [/\/\//y,      'fraction_bar'],  // "//"
-  [/<=|>=/y,     'relation'],
-  [/=|!=|<|>/y,  'relation'],  // =, !=, < etc.
-  [/[A-Za-z]+/y, 'ident'],
-  [/\s+/y,       'whitespace'],
-  [/\@/y,        'special_constant'],  // @ = pi
-  [/-/y,         'minus'],
-  [/\+/y,        'plus'],
-  [/,/y,         'comma'],
-  [/_/y,         'subscript'],
-  [/\!/y,        'factorial'],
-  [/'/y,         'prime'],
-  [/\*/y,        'multiply'],
-  [/\//y,        'divide'],
-  [/\^/y,        'power'],
-  [/\(/y,        'left_paren'],
-  [/\)/y,        'right_paren'],
-  [/\[/y,        'left_bracket'],
-  [/\]/y,        'right_bracket'],
-  [/\{/y,        'left_brace'],
-  [/\}/y,        'right_brace']
-];
-
-// LaTeX built-in functions that can be entered directly in
-// math-entry mode.  They have the same LaTeX command name as
-// the entered function name.
-// TODO: Still need to handle csch/sech and other exceptions (maybe erf/erfc).
-const latex_unary_builtins = new Set([
-  'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
-  'sinh', 'cosh', 'tanh' /* sech, csch */ , 'coth',
-  'exp', 'ln', 'log', 'lg',
-  'arg', 'det', 'dim', 'deg', 'hom', 'ker', 'min', 'max', 'sup'
-]);
-  
 
 class TokenizerError extends Error {
   constructor(message, position) {
@@ -71,6 +67,11 @@ class TokenizerError extends Error {
 class Tokenizer {
   static tokenize_expr(input_string) {
     const tokenizer = new this(expr_tokenizer_pattern_table);
+    return tokenizer.tokenize(input_string);
+  }
+
+  static tokenize_text_item(input_string) {
+    const tokenizer = new this(text_item_tokenizer_pattern_table);
     return tokenizer.tokenize(input_string);
   }
   
@@ -144,12 +145,6 @@ class Parser {
   constructor(tokens) {
     this.tokens = tokens;
     this.token_index = 0;
-    this.filter_whitespace();
-  }
-
-  filter_whitespace() {
-    this.tokens = this.tokens.filter(
-      token => token.type !== 'whitespace');
   }
 
   at_end() {
@@ -184,7 +179,34 @@ class Parser {
 }
 
 
-// Parser for infix math text entry.
+// Patterns are in order of precedence.
+// All regexes must have the 'sticky' flag: /abc/y
+const expr_tokenizer_pattern_table = [
+  [/\d*\.?\d+/y, 'number'],  // (potential) int or float (nonnegative)
+  [/\[\]/y,      'placeholder'],  // "[]"
+  [/\/\//y,      'fraction_bar'],  // "//"
+  [/<=|>=/y,     'relation'],
+  [/=|!=|<|>/y,  'relation'],  // =, !=, < etc.
+  [/[A-Za-z]+/y, 'ident'],
+  [/\s+/y,       'whitespace'],
+  [/\@/y,        'special_constant'],  // @ = pi
+  [/-/y,         'minus'],
+  [/\+/y,        'plus'],
+  [/,/y,         'comma'],
+  [/_/y,         'subscript'],
+  [/\!/y,        'factorial'],
+  [/'/y,         'prime'],
+  [/\*/y,        'multiply'],
+  [/\//y,        'divide'],
+  [/\^/y,        'power'],
+  [/\(/y,        'left_paren'],
+  [/\)/y,        'right_paren'],
+  [/\[/y,        'left_bracket'],
+  [/\]/y,        'right_bracket'],
+  [/\{/y,        'left_brace'],
+  [/\}/y,        'right_brace']
+];
+
 class ExprParser extends Parser {
   static parse_string(s) {
     const result = Tokenizer.tokenize_expr(s);
@@ -198,6 +220,12 @@ class ExprParser extends Parser {
     }
     else
       return null;  // TODO: report error
+  }
+
+  constructor(tokens) {
+    super(tokens);
+    this.tokens = this.tokens.filter(
+      token => token.type !== 'whitespace');
   }
 
   parse_expr() {
@@ -319,9 +347,15 @@ class ExprParser extends Parser {
 
   _combine_factor_pair(lhs, rhs) {
     if(lhs.is_font_expr() && lhs.typeface === 'roman' &&
-       lhs.expr.is_text_expr() &&
-       latex_unary_builtins.has(lhs.expr.text))
-      return new CommandExpr(lhs.expr.text, [rhs]);  // sin x, etc.
+       lhs.expr.is_text_expr()) {
+      if(latex_unary_named_operators.has(lhs.expr.text))
+        return new CommandExpr(lhs.expr.text, [rhs]);  // sin x, etc.
+      else if(lhs.expr.text === 'sqrt')
+        return new CommandExpr(lhs.expr.text, [
+          this._remove_outer_parenthesis(rhs)]);  // sqrt(x+1)
+      else
+        return null;
+    }
     else if(rhs.is_delimiter_expr() && !lhs.is_delimiter_expr())
       return new FunctionCallExpr(lhs, rhs);  // f(x)
     else
@@ -416,5 +450,103 @@ class ExprParser extends Parser {
 }
 
 
-export { ExprParser };
+const text_item_tokenizer_pattern_table = [
+  [/\*\*/y,           'bold_toggle'],
+  [/\/\//y,           'italic_toggle'],
+  [/\[\]/y,           'placeholder'],
+  [/\$[^\$]+\$/y,     'inline_math'],
+  [/[^\*\/\[\]\$]+/y, 'text'],  // "normal" text spans
+  [/[\*\/\[\]\$]/y,   'text']   // stray control codes like isolated ']'
+];
+
+// Parser for text entry mode.  The following "escape sequences" are available:
+//  - **bold text** - Converts into a bolded TextItemTextElement
+//  - //italic text// - Converts into an italic TextItemTextElement
+//  - [] - Converts into a TextItemExprElement wrapping a PlaceholderExpr
+//  - $x+y$ - Converts into TextItemExprElement with an inline math expression
+//            as parsed by ExprParser.  If the parsing fails (invalid syntax),
+//            the whole text item parsing fails.
+class TextItemParser extends Parser {
+  static parse_string(s) {
+    const result = Tokenizer.tokenize_text_item(s);
+    if(result.success) {
+      // Combine adjacent 'text' tokens together; this is needed
+      // because of how the regexes are set up.
+      // e.g. 'test ] abc' => ['test ', ']', ' abc'] tokens.
+      const tokens = Token
+            .coalesce_tokens_of_type(result.tokens, 'text');
+      const parser = new this(tokens, s);
+      return parser.parse();
+    }
+    else
+      return null;  // TODO: report error
+  }
+
+  constructor(tokens, source_string) {
+    super(tokens);
+    this.source_string = source_string;
+    this.is_bold = false;
+    this.is_italic = false;
+    this.elements = [];
+  }
+
+  parse() {
+    let token;
+    while(!this.at_end()) {
+      if(this.consume('bold_toggle'))
+        this.is_bold = !this.is_bold;
+      else if(this.consume('italic_toggle'))
+        this.is_italic = !this.is_italic;
+      else if((token = this.consume('inline_math')) !== null)
+        this.add_inline_math(token.text);
+      else if(this.consume('placeholder'))
+        this.add_placeholder();
+      else if((token = this.consume('text')) !== null)
+        this.add_text(token.text);
+      else
+        break;  // shouldn't happen
+    }
+    return this.build_text_item();
+  }
+
+  add_inline_math(math_text) {
+    // Token text will always be surrounded by '$...$'; strip it out.
+    math_text = math_text.slice(1, math_text.length-1).trim();
+    if(math_text.length === 0)
+      return;
+    let math_expr = ExprParser.parse_string(math_text);
+    if(!math_expr)  // entire TextItem parsing fails if inline math fails
+      return this.parse_error();
+    if(this.is_bold)
+      math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
+    this.elements.push(new TextItemExprElement(math_expr));
+  }
+
+  add_placeholder() {
+    let placeholder_expr = new PlaceholderExpr();
+    if(this.is_bold)
+      placeholder_expr = placeholder_expr.as_bold();
+    this.elements.push(new TextItemExprElement(placeholder_expr));
+  }
+
+  add_text(text) {
+    return this.elements.push(
+      new TextItemTextElement(
+        text, this.is_bold, this.is_italic));
+  }
+
+  build_text_item() {
+    if(this.elements.length > 0)
+      return new TextItem(
+        this.elements,
+        null /* tag */,
+        this.source_string /* source */);
+    else return null;  // could happen for '$', '$$$', etc.
+  }
+}
+
+
+export {
+  ExprParser, TextItemParser
+};
 

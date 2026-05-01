@@ -396,13 +396,23 @@ class Expr {
 }
 
 
-// Built-in LaTeX named functions/operators:
-const latex_named_operators = new Set([
-  'arccos', 'cos', 'csc', 'exp', 'ker', 'limsup', 'min', 'sinh',
-  'arcsin', 'cosh', 'deg', 'gcd', 'lg', 'ln', 'Pr', 'sup',
-  'arctan', 'cot', 'det', 'hom', 'lim', 'log', 'sec', 'tan',
-  'arg', 'coth', 'dim', 'inf', 'liminf', 'max', 'sin', 'tanh'
+// LaTeX built-in one-argument functions that can be entered
+// directly in math-entry mode.  They have the same LaTeX
+// command name as the entered function name.
+//
+// NOTE: LaTeX doesn't have everything for some reason.
+// We're missing arctanh, csch, sech, erf, erfc, etc.
+// These are "faked" using \operatorname instead.
+const latex_unary_named_operators = new Set([
+  'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
+  'sinh', 'cosh', 'tanh' /* sech, csch */ , 'coth',
+  'arcsin', 'arccos', 'arctan',
+  
+  'exp', 'ln', 'log', 'lg', 'arg', 'det',
+  'Pr', 'gcd', 'inf', 'lim', 'liminf', 'sup', 'limsup',
+  'dim', 'deg', 'hom', 'ker', 'min', 'max'
 ]);
+  
 
 // Represents a LaTeX command such as \alpha or \sqrt{x} or \frac{x}{y}.
 class CommandExpr extends Expr {
@@ -484,7 +494,7 @@ class CommandExpr extends Expr {
     if(this.command_name.indexOf('^') >= 0 ||
        this.command_name.indexOf('_') >= 0)
       return true;
-    return latex_named_operators.has(this.command_name);
+    return latex_unary_named_operators.has(this.command_name);
   }
 
   emit_latex(emitter) {
@@ -2833,5 +2843,6 @@ export {
   PrefixExpr, PostfixExpr, FunctionCallExpr,
   PlaceholderExpr, TextExpr, SequenceExpr,
   DelimiterExpr, SubscriptSuperscriptExpr,
-  ArrayExpr, TensorExpr, SymPyExpr
+  ArrayExpr, TensorExpr, SymPyExpr,
+  latex_unary_named_operators
 };

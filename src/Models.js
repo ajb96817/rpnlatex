@@ -16,6 +16,9 @@ import {
 import {
   double_to_expr
 } from './SymPy';
+import {
+  TextItemParser
+} from './Parsers';
 
 
 class Settings {
@@ -1417,108 +1420,10 @@ class TextItem extends Item {
   // cf. TextItem.is_empty()
   static separator_item() { return new TextItem([], null, '', true); }
 
-  // "Parse" a string which may or may not contain certain escape sequences:
-  //    **bold text** - Converts into a bolded TextItemTextElement
-  //    //italic text// - Converts into an italic TextItemTextElement
-  //    [] - Converts into a TextItemExprElement wrapping a PlaceholderExpr
-  //    $x+y$ - Converts into TextItemExprElement with an inline math expression
-  //            as parsed by ExprParser (limited functionality).
-  //            If the parsing fails (invalid syntax), null is returned.
-  // A TextItem with the parsed elements is returned, or null on failure.
   static parse_string(s) {
-    let tokens = this.tokenize_string(s);
-    // Add a fake $ token at the end in order to auto-close math mode (e.g. 'test $x+y').
-    tokens.push({type: 'math_mode', text: '$'});
-    let is_bold = false;
-    let is_italic = false;
-    let math_mode = false;
-    let math_pieces = null;
-    let elements = [];
-    for(let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      if(token.type === 'math_mode') {
-        if(math_mode) {
-          // Switching out of math mode ($).  All tokens that were between
-          // the two $'s are combined into the math expression to be parsed.
-          // It's done this way in case there is something like $x//y$ which
-          // would normally get confused as the italic '//' token.
-          const math_text = math_pieces.join('');
-          if(math_text.trim().length > 0) {
-            let math_expr = ExprParser.parse_string(math_text);
-            if(!math_expr)
-              return null;  // entire TextItem parsing fails if inline math exprs fail
-            if(is_bold)
-              math_expr = math_expr.as_bold();  // NOTE: italic flag ignored
-            elements.push(new TextItemExprElement(math_expr));
-          }
-        }
-        else  // switching into math mode
-          math_pieces = [];  // start accumulating text pieces inside $...$
-        math_mode = !math_mode;
-      }
-      else if(math_mode)  // inside $...$
-        math_pieces.push(token.text);
-      else switch(token.type) {
-        case 'bold':
-          is_bold = !is_bold; break;
-        case 'italic':
-          is_italic = !is_italic; break;
-        case 'placeholder':
-          elements.push(new TextItemExprElement(
-            is_bold ? (new PlaceholderExpr()).as_bold() : new PlaceholderExpr()));
-          break;
-        case 'text':
-          elements.push(new TextItemTextElement(token.text, is_bold, is_italic));
-          break;
-        default:
-          break;
-      }
-    }
-    if(elements.length > 0)
-      return new this(elements, null /* tag */, s /* source */);
-    else return null;  // could happen for '$', '$$$', etc.
+    return TextItemParser.parse_string(s);
   }
 
-  // Tokenize 's' into a token sequence usable by TextItem.parse_string().
-  static tokenize_string(s) {
-    let tokens = [];
-    let pos = 0;
-    while(pos < s.length) {
-      const ch = s[pos];
-      let token = null;
-      if(pos < s.length-1) {
-        // Check for length-2 tokens.
-        const ch2 = s[pos+1];
-        if(ch === '[' && ch2 === ']') token = {'type': 'placeholder', 'text': '[]'};
-        else if(ch === '*' && ch2 === '*') token = {'type': 'bold', 'text': '**'};
-        else if(ch === '/' && ch2 === '/') token = {'type': 'italic', 'text': '//'};
-      }
-      if(token)
-        pos += 2;
-      else {
-        // Length-1 token.
-        if(ch === '$') token = {'type': 'math_mode', 'text': '$'};
-        else token = {'type': 'text', 'text': ch};
-        pos++;
-      }
-      tokens.push(token);
-    }
-    // Coalesce sequences of single-character 'text' tokens into
-    // a single 'text' token.
-    let new_tokens = [];
-    let i = 0;
-    while(i < tokens.length) {
-      if(tokens[i].type === 'text') {
-        let chars = [];
-        while(i < tokens.length && tokens[i].type === 'text')
-          chars.push(tokens[i++].text);
-        new_tokens.push({'type': 'text', 'text': chars.join('')});
-      }
-      else new_tokens.push(tokens[i++]);
-    }
-    return new_tokens;
-  }
-  
   // item1/2 can each be TextItems or ExprItems (caller must check).
   static concatenate_items(item1, item2, separator_text) {
     if(item1.is_expr_item()) item1 = TextItem.from_expr(item1.expr);
@@ -2265,7 +2170,9 @@ export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
   ItemClipboard, UndoStack, FileManager,
   ExprPath, RationalizeToExpr, Item, ExprItem,
-  TextItem, CodeItem, Stack, Document,
+  TextItem, TextItemElement, TextItemTextElement,
+  TextItemExprElement, TextItemRawElement,
+  CodeItem, Stack, Document,
   MsgpackEncoder, MsgpackDecoder
 };
 
