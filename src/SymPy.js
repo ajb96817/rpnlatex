@@ -348,8 +348,14 @@ class PyodideInterface {
       }
       else throw e;  // pass through "normal" JS errors
     }
+    // NOTE: pass along the Pyodide indexURL to use based
+    // on the app's http location pathname.  Otherwise
+    // the PyodideWorker doesn't know where to load its
+    // resources for (it doesn't have access to the browser
+    // location).
     this.post_worker_message({
       command: 'sympy_command',
+      pyodide_index_path: window.location.pathname,
       code: command_code
     });
   }
@@ -2380,16 +2386,16 @@ class LimitAnalyzer extends Analyzer {
 
 
 const analyzer_table = {
-  // CommandExprs try these analyzers with themselves as the
-  // expression list (as if they were single-element SequenceExprs).
-  // This allows for trying 'dy/dx' before the default \frac{dy}{dx}
-  // handler gets to it.
   command: [
     LeibnizDerivativeAnalyzer,  // dy/dx
     NewtonDerivativeAnalyzer,  // \dot{y}
+    // Fallback if it's not a \frac{dy}{dx} or \dot{y} or
+    // similar command.
     CommandAnalyzer
   ],
-  infix: [InfixAnalyzer],
+  infix: [
+    InfixAnalyzer
+  ],
   function_call: [
     LagrangeDerivativeAnalyzer,  // f'(x)
     NewtonDerivativeAnalyzer,  // \dot{y}(x)

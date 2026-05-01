@@ -185,8 +185,8 @@ const expr_tokenizer_pattern_table = [
   [/\d*\.?\d+/y, 'number'],  // (potential) int or float (nonnegative)
   [/\[\]/y,      'placeholder'],  // "[]"
   [/\/\//y,      'fraction_bar'],  // "//"
-  [/<=|>=/y,     'relation'],
-  [/=|!=|<|>/y,  'relation'],  // =, !=, < etc.
+  [/<=|>=/y,     'relation'],  // check 2-char operators first
+  [/=|!=|<|>/y,  'relation'],  // 1-char operators
   [/[A-Za-z]+/y, 'ident'],
   [/\s+/y,       'whitespace'],
   [/\@/y,        'special_constant'],  // @ = pi

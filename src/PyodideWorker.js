@@ -11,12 +11,12 @@ import {
 } from 'pyodide';
 
 
-async function load_pyodide_if_needed() {
+async function load_pyodide_if_needed(index_url = '/') {
   if(self.pyodide)
     return true;
   postMessage({message: 'initializing'});
   try {
-    self.pyodide = await loadPyodide({indexURL: '/'});
+    self.pyodide = await loadPyodide({indexURL: index_url});
     postMessage({message: 'loading'});
     await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
     await self.pyodide.runPythonAsync(pyodide_initcode_string);
@@ -43,7 +43,7 @@ function enqueue_message(message) {
 
 async function handle_message(message) {
   if(message.command === 'sympy_command') {
-    const is_ready = await load_pyodide_if_needed();
+    const is_ready = await load_pyodide_if_needed(message.pyodide_index_path);
     if(is_ready)
       await run_sympy_command(message.code);
   }
