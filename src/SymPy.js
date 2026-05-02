@@ -1,4 +1,6 @@
 
+// Interface to SymPy via Pyodide.
+// This mostly handles Expr->Python conversion.
 
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
@@ -84,13 +86,11 @@ function translate_function_name(f, to_sympy) {
   return match ? match[to_sympy ? 1 : 0] : f;
 }
 
-// TODO: remove (probably)
 function is_valid_variable_name(s, allow_initial_digit) {
   const regex = allow_initial_digit ?
         /^[a-zA-Z0-9_]+$/g : /^[a-zA-Z][a-zA-Z0-9_]*$/g;
   return regex.test(s);
 }
-
 
 // If possible, convert an Expr to the corresponding SymPy
 // variable name.  Greek letters and subscripted variables are
@@ -208,14 +208,14 @@ function _variable_name_to_expr(pieces, allow_subscript) {
 // and the last submitted/completed/errored command is kept in this.sympy_command.
 //
 // The 'state' field here can be:
-//   - 'uninitialized': No PyodideWorker (web worker) created (yet).
-//   - 'initializing': PydodideWorker is being instantiated and is loading Pyodide.
-//   - 'loading': PyodideWorker is created, Pyodide itself has been "loaded"
+//   - 'uninitialized': No Pyodide worker (web worker) created (yet).
+//   - 'initializing': Pydodide worker is being instantiated and is loading Pyodide.
+//   - 'loading': Pyodide worker is created, Pyodide itself has been "loaded"
 //                (with loadPyodide()), now it is importing the sympy package
 //                and doing any additional setup needed.
 //   - 'ready': Loaded and initialized, but no command currently running;
 //              this is the usual idle state.
-//   - 'running': A command has been sent to the PyodideWorker and we're waiting
+//   - 'running': A command has been sent to the Pyodide worker and we're waiting
 //                for a command_finished message to come in from it.
 //   - 'long_running': Same as 'running', but we switch into this state from 'running'
 //                     after a short time interval has passed without completion.
@@ -279,6 +279,8 @@ class PyodideInterface {
     switch(data.message) {
     case 'initializing': this.change_state('initializing'); break;
     case 'init_error':
+      // Something went wrong with Pyodide startup.
+      // This happens if it can't load its Python packages, etc.
       this.error_details = {
         message: data.error_message,
         error_type: 'pyodide_init'
@@ -327,9 +329,8 @@ class PyodideInterface {
     }
   }
 
-  // Export these for use by external callers.
+  // For use by external callers.
   expr_to_variable_name(expr) { return expr_to_variable_name(expr); }
-  variable_name_to_expr(variable_name) { return variable_name_to_expr(variable_name); }
 
   start_executing(sympy_command /* SymPyCommand */) {
     if(!this.start_pyodide_worker_if_needed())
@@ -357,7 +358,7 @@ class PyodideInterface {
     // NOTE: Pass along the Pyodide indexURL to use based
     // on the app's http location pathname.  Otherwise
     // the PyodideWorker doesn't know where to load its
-    // resources for (it doesn't have access to the browser
+    // resources from (it doesn't have access to the browser
     // location).
     this.post_worker_message({
       command: 'sympy_command',
@@ -523,7 +524,7 @@ class SymPySymbol extends SymPyNode {
   }
 }
 
-// Named subexpression (expr_1 = ...)
+// Named subexpression: expr_1 = ...
 class SymPySubexpression extends SymPyNode {
   constructor(expr_number) {
     super();
@@ -607,6 +608,8 @@ class SymPySRepr extends SymPyNode {
 // output.  This is used for the variable argument to a diff() call.
 // When using this mode, the caller must make sure the dependent/independent
 // variable pair is actually registered using record_variable_dependency().
+//
+// TODO: Have a separate SymPyIndependentVariable for this case.
 class SymPyVariable extends SymPyNode {
   constructor(name, reverse_lookup = false) {
     super();
@@ -1267,7 +1270,7 @@ class IntegralAnalyzer extends Analyzer {
     // Multiple integral signs like \iint get multiple duplicate
     // entries in this list (this isn't very useful for definite
     // integrals though).
-    let integral_limit_exprs = [];
+    const integral_limit_exprs = [];
     while(index < stop_index) {
       const integral_info = this.analyze_integral_sign(exprs[index]);
       if(!integral_info) {
@@ -1373,7 +1376,9 @@ class IntegralAnalyzer extends Analyzer {
       new_numer_exprs.push(TextExpr.integer(1));
     const new_numer_expr = new_numer_exprs.length === 1 ?
           new_numer_exprs[0] : new SequenceExpr(new_numer_exprs);
-    return [CommandExpr.frac(new_numer_expr, denom_expr), all_dx_exprs];
+    return [
+      CommandExpr.frac(new_numer_expr, denom_expr),
+      all_dx_exprs];
   }
 
   analyze_integral_sign(expr) {
@@ -1587,14 +1592,15 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
       }
     }
     // Gather the differentiated variable(s) argument nodes.
-    const diff_arg_nodes = derivative_vars_info.map(([variable_name, degree_expr]) => {
-      const variable_node = this.emitter.symbol(variable_name);
-      if(degree_expr.is_text_expr_with('1'))
-        return variable_node;  // diff(f, x)
-      else
-        return this.emitter.tuple(  // diff(f, (x, n))
-          [variable_node, this.emitter.emit_expr(degree_expr)]);
-    });
+    const diff_arg_nodes = derivative_vars_info.map(
+      ([variable_name, degree_expr]) => {
+        const variable_node = this.emitter.symbol(variable_name);
+        if(degree_expr.is_text_expr_with('1'))
+          return variable_node;  // diff(f, x)
+        else
+          return this.emitter.tuple(  // diff(f, (x, n))
+            [variable_node, this.emitter.emit_expr(degree_expr)]);
+      });
     // Build the diff(diff_expr, x, y, z) call.
     const diff_command_node = this.emitter.fncall(
       'diff', [diff_expr_node, ...diff_arg_nodes]);
@@ -1623,7 +1629,8 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
           .analyze_derivative_numerator(expr.operand_exprs[0]);
     if(!numerator_info)
       return null;
-    // TODO: numerator_degree_expr not used; should make sure it matches denominator degree(s)
+    // TODO: numerator_degree_expr not used;
+    // should make sure it matches denominator degree(s)
     const [f_expr, /*numerator_degree_expr*/] = numerator_info;
     const denominator_info = this
           .analyze_derivative_denominator(expr.operand_exprs[1]);
@@ -1679,10 +1686,9 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
   // The "denominator differential" syntax is special in math notation:
   // dx^2 (which is a sequence [d, x^2]) actually means (dx)^2.
   // Exterior forms like dx^dy are not allowed in the denominator.
-  // So we "manually" break up a sequence and looks for [d, x^n] pairs.
+  // So we "manually" break up a sequence and look for [d, x^n] pairs.
   // NOTE: whitespace between differentials is filtered out.
   analyze_derivative_denominator(denom_expr) {
-    console.log(denom_expr);
     if(!denom_expr.is_sequence_expr())
       return null;  // has to be a sequence of at least 2.
     const exprs = denom_expr.exprs;
@@ -1702,7 +1708,8 @@ class LeibnizDerivativeAnalyzer extends Analyzer {
           return 'Expected only differentials in dy/dx denominator';
       }
       else {
-        const dx_results = this.analyze_denominator_differential_variable(expr);
+        const dx_results = this
+              .analyze_denominator_differential_variable(expr);
         if(dx_results)
           results.push(dx_results);
         else
@@ -1800,10 +1807,10 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
   // differentiate it here).  Instead, it gets turned into a two-argument
   // DiracDelta() in FunctionCallAnalyzer.
   check_for_dirac_delta(expr) {
-    return (expr.is_function_call_expr() &&
-            expr.fn_expr.is_subscriptsuperscript_expr() &&
-            expr.fn_expr.count_primes() > 0 &&
-            expr.fn_expr.with_superscript(null).is_command_expr_with(0, 'delta'));
+    return expr.is_function_call_expr() &&
+      expr.fn_expr.is_subscriptsuperscript_expr() &&
+      expr.fn_expr.count_primes() > 0 &&
+      expr.fn_expr.with_superscript(null).is_command_expr_with(0, 'delta');
   }
 
   // Look for the x part of f'(x).  Otherwise, if it's something like
@@ -1864,8 +1871,9 @@ class LagrangeDerivativeAnalyzer extends Analyzer {
 
 
 // Recognize Newton derivative notation: \dot{y}
-// The variable is always assumed to be 't', similar to LagrangeDerivativeAnalyzer,
-// unless explicitly given in a FunctionCallExpr as in \dot{y}(x).
+// The variable is always assumed to be 't', similar to
+// LagrangeDerivativeAnalyzer, unless explicitly given
+// in a FunctionCallExpr as in \dot{y}(x).
 //
 // The expression to be analyzed may be either a CommandExpr or
 // a FunctionCallExpr (for \dot{y} and \dot{y}(x) respectively).
@@ -2177,7 +2185,9 @@ class FunctionCallAnalyzer extends Analyzer {
   }
 
   // \delta(x) => DiracDelta(x)
-  // \delta^{\prime(x)...} => DiracDelta(x, 1)  (nth "derivative" of DD)
+  // \delta^{\prime}(x) => DiracDelta(x, 1)  (nth "derivative" of DD)
+  // NOTE: The default "primed function call" derivative notation has
+  // to be suppressed explicitly for \delta in LagrangeDerivativeAnalyzer.
   // TODO: maybe merge with analyze_sympy_function_call()
   analyze_dirac_delta(expr, arg_nodes) {
     if(arg_nodes.length !== 1)

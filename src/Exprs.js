@@ -1,4 +1,6 @@
 
+// Expression tree nodes.
+
 import {
   LatexEmitter, ExprPath
 } from './Models';
@@ -29,6 +31,7 @@ class Expr {
       // integers out of digits:
       //   '123 456' => '123456'
       //   '-123 456' => '-123456'
+      //   (but '123 -456' => InfixExpr(123, '-', 456))
       // If either number is floating-point, they are joined with a \cdot infix:
       //   '1.2 3.4' => '1.2 \cdot 3.4'
       //   '-2 3.4' => '-2 \cdot 3.4'
@@ -359,11 +362,11 @@ class Expr {
   // - If the object the hat is being added to is a literal 'i' or 'j',
   //   it's first converted into a \imath or \jmath to remove the dot
   //   before applying the hat.
+  // - If the 'base' expression itself is also subscripted/superscripted, this rule
+  //   is applied recursively: j^2^3 => \jmath^2^3 (but (j^2)^3 is left alone).
   // - Adding a hat to a subscripted/superscripted expression instead applies
   //   it to the base expression, for better horizontal positioning:
   //   x^2 => \hat{x}^2, not \hat{x^2}.
-  // - If the 'base' expression itself is also subscripted/superscripted, this rule
-  //   is applied recursively: j^2^3 => \jmath^2^3 (but (j^2)^3 is left alone).
   // - If the 'base' expression is a function call, the hat is applied to the
   //   function name instead of the whole f(x) expression:
   //   f(x) => \hat{f}(x), not \hat{f(x)}.
@@ -557,9 +560,11 @@ class CommandExpr extends Expr {
       const this_dots = _count_dots(this.command_name),
             new_dots = _count_dots(hat_op);
       if(this_dots > 0 && new_dots > 0) {
-        const match = hat_info.find(pair => pair[1] === this_dots + new_dots);
+        const match = hat_info.find(
+          pair => pair[1] === this_dots + new_dots);
         if(match)
-          return new CommandExpr(match[0], this.operand_exprs);
+          return new CommandExpr(
+            match[0], this.operand_exprs);
       }
     }
     return super.with_hat(hat_op);
@@ -1224,7 +1229,7 @@ class InfixExpr extends Expr {
     const negated_operator_expr =
           this.operator_exprs[this.split_at_index].as_logical_negation();
     if(negated_operator_expr) {
-      let new_operator_exprs = [...this.operator_exprs];
+      let new_operator_exprs = [...this.operator_exprs];  // shallow copy
       new_operator_exprs[this.split_at_index] = negated_operator_expr;
       return new InfixExpr(
         this.operand_exprs,
@@ -1581,7 +1586,7 @@ class FunctionCallExpr extends Expr {
 
   // Return an array of individual function arguments.
   // Something like f(x+y,z-w) returns [x+y, z-w].
-  // TODO: maybe consider ';' as an argument separator as well as ','.
+  // TODO: maybe consider ';' or '|' as argument separators as well as ','.
   extract_argument_exprs() {
     if(!this.args_expr.is_delimiter_expr())
       return [];  // shouldn't normally happen
@@ -1615,6 +1620,7 @@ class FunctionCallExpr extends Expr {
 
 
 // Represents a snippet of LaTeX source text.
+// These are generally the leaves of Expr-trees.
 class TextExpr extends Expr {
   static blank() { return new this(''); }
 
@@ -1975,7 +1981,8 @@ class DelimiterExpr extends Expr {
   // An inline division infix expression surrounded by "blank" delimiters
   // e.g.: \left. x/y \right.
   // In some cases this is treated like a \frac{x}{y} command.
-  // TODO: maybe 'x/y/z' etc. should count too
+  // TODO: maybe 'x/y/z' etc. should count too.
+  //       Or 'x \cdot y / z'.
   is_flex_inline_fraction() {
     return this.is_blank_delimiters() &&
       this.inner_expr.is_infix_expr() &&
@@ -1994,7 +2001,8 @@ class DelimiterExpr extends Expr {
 }
 
 
-// Represents a base expression with either a subscript or superscript, or both.
+// Represents a base expression with either a subscript
+// or superscript, or both.
 class SubscriptSuperscriptExpr extends Expr {
   constructor(base_expr, subscript_expr, superscript_expr) {
     super();
@@ -2067,8 +2075,8 @@ class SubscriptSuperscriptExpr extends Expr {
   }
 
   // Components are dissolved in the order: base, subscript, superscript
-  // This matches the order of [/][Enter] so a fully populated SubscriptSuperscriptExpr
-  // can be reassembled with this command.
+  // This matches the order of [/][Enter] so a fully populated
+  // SubscriptSuperscriptExpr can be reassembled with this command.
   dissolve() {
     // TODO: This order differs from this.subexpressions().
     // Probably should fix this inconsistency.
@@ -2108,7 +2116,8 @@ class SubscriptSuperscriptExpr extends Expr {
         .with_superscript(null)
         .with_superscript(
           new SequenceExpr(
-            new Array(prime_count+1).fill(new CommandExpr('prime'))));
+            new Array(prime_count+1)
+              .fill(new CommandExpr('prime'))));
     }
     else return super.with_prime(autoparenthesize);
   }
@@ -2125,7 +2134,8 @@ class SubscriptSuperscriptExpr extends Expr {
     else
       return this.with_superscript(null).with_superscript(
         new SequenceExpr(
-          new Array(prime_count-1).fill(new CommandExpr('prime'))));
+          new Array(prime_count-1)
+            .fill(new CommandExpr('prime'))));
   }
 
   // Overridden from Expr class.
@@ -2192,8 +2202,10 @@ class ArrayExpr extends Expr {
     this.row_count = row_count;
     this.column_count = column_count;
     this.element_exprs = element_exprs;
-    this.row_separators = row_separators || new Array(row_count-1).fill(null);
-    this.column_separators = column_separators || new Array(column_count-1).fill(null);
+    this.row_separators = row_separators ||
+      new Array(row_count-1).fill(null);
+    this.column_separators = column_separators ||
+      new Array(column_count-1).fill(null);
   }
 
   // Stack two ArrayExprs on top of each other.
@@ -2223,7 +2235,7 @@ class ArrayExpr extends Expr {
       expr1.column_count + expr2.column_count,
       new_element_exprs,
       expr1.row_separators,
-      expr1.column_separators.concat([null], expr2.column_separators));
+      [...expr1.column_separators, null, ...expr2.column_separators]);
   }
 
   // Split up a 1-D list of expressions into a 2-D grid of array elements
@@ -2235,10 +2247,12 @@ class ArrayExpr extends Expr {
   //   'colon_if': like 'colon', but place the word "if" before the right-hand side if there
   //               is a ':' infix.  If there is no ':' infix, the right-hand side becomes 'otherwise'.
   static split_elements(exprs, split_mode) {
-    const element_exprs = exprs.map(expr => this._split_expr(expr, split_mode));
-    // Special case: when building a \cases structure, and there are no colon-infix expressions,
-    // strip out the second column that would normally have the subexpressions to the right
-    // of the colon (so we don't get a useless column of empty TextExprs).
+    const element_exprs = exprs.map(
+      expr => this._split_expr(expr, split_mode));
+    // Special case: when building a \cases structure, and there are
+    // no colon-infix expressions, strip out the second column that
+    // would normally have the subexpressions to the right of the
+    // colon (so we don't get a useless column of empty TextExprs).
     if(split_mode === 'colon' &&
        element_exprs.every(row =>
          row.length === 2 && row[1].is_text_expr_with('')))
@@ -2329,12 +2343,13 @@ class ArrayExpr extends Expr {
     let new_row_count = this.row_count, new_column_count = this.column_count;
     let new_element_exprs;
     if(this.column_count > 1) {
-      new_element_exprs = this.element_exprs.map((row_exprs, index) => [
-        ...row_exprs.slice(0, -1),
-        (index === 0 || index === this.row_count-1) ?
-          make_cell('cdots') : TextExpr.blank(),
-        row_exprs[this.column_count-1]
-      ]);
+      new_element_exprs = this.element_exprs.map(
+        (row_exprs, index) => [
+          ...row_exprs.slice(0, -1),
+          (index === 0 || index === this.row_count-1) ?
+            make_cell('cdots') : TextExpr.blank(),
+          row_exprs[this.column_count-1]
+        ]);
       new_column_count++;
     }
     else
@@ -2349,7 +2364,8 @@ class ArrayExpr extends Expr {
       new_row_count++;
     }
     return new ArrayExpr(
-      this.array_type, new_row_count, new_column_count, new_element_exprs);
+      this.array_type, new_row_count, new_column_count,
+      new_element_exprs);
   }
 
   // Return a new ArrayExpr with rows and columns interchanged.
@@ -2360,8 +2376,8 @@ class ArrayExpr extends Expr {
       new_element_exprs.push(this.element_exprs.map(
         row_exprs => this._transpose_cell(row_exprs[i])));
     return new ArrayExpr(
-      this.array_type, this.column_count, this.row_count, new_element_exprs,
-      this.column_separators, this.row_separators);
+      this.array_type, this.column_count, this.row_count,
+      new_element_exprs, this.column_separators, this.row_separators);
   }
 
   // When transposing a matrix, we generally want to flip vertical and horizontal ellipses
@@ -2408,8 +2424,8 @@ class ArrayExpr extends Expr {
       separators[index] = type;
     }
     return new ArrayExpr(
-      this.array_type, this.row_count, this.column_count, this.element_exprs,
-      row_separators, column_separators);
+      this.array_type, this.row_count, this.column_count,
+      this.element_exprs, row_separators, column_separators);
   }
 
   emit_latex(emitter) {
@@ -2534,10 +2550,11 @@ class ArrayExpr extends Expr {
     const row = Math.floor((index - column) / this.column_count);  // floor() is not strictly needed
     const new_element_exprs = this.element_exprs.map(
       (row_exprs, row_index) => row_exprs.map(
-        (expr, col_index) => (row_index === row && col_index === column) ? new_expr : expr));
+        (expr, col_index) => (row_index === row && col_index === column) ?
+          new_expr : expr));
     return new ArrayExpr(
-      this.array_type, this.row_count, this.column_count, new_element_exprs,
-      this.row_separators, this.column_separators);
+      this.array_type, this.row_count, this.column_count,
+      new_element_exprs, this.row_separators, this.column_separators);
   }
 }
 
@@ -2684,7 +2701,7 @@ class TensorExpr extends Expr {
       // and/or superscripts will be attached to this.
       // TODO: The phantoms create "spooky" false highlights in dissect mode
       // (KaTeX quirk), need to fix it.
-      // NOTE: If the subexpressions here are themselves TensorExprs
+      // TODO: If the subexpressions here are themselves TensorExprs
       // (possibly nested inside other expr types), the phantoms can lead
       // to a 2^n exponential growth; may want to limit the depth.
       emitter.command('vphantom');
@@ -2706,6 +2723,7 @@ class TensorExpr extends Expr {
         emitter, exprs.right_lower, exprs.right_upper, subexpr_index);
     }
   }
+
   // Emit one of the four possible groups of index expressions.
   // 'index_exprs' is the list of expressions in the group (which may
   // contain nulls for empty index slots), while 'opposite_index_exprs'

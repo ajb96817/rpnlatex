@@ -1342,6 +1342,7 @@ const keybinding_table = {
     '@': "export_stack_item_as_sympy",
     '?': "mode sympy_query",
     '/': "sympy nsimplify 1",  // convert float to "fraction"
+//    "\\": "rationalize",  // non-SymPy float-to-fraction
     '|': "sympy substitute 3",
     'd': "sympy diff 1 differentiate",
     'D': "sympy diff 2 differentiate",

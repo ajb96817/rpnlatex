@@ -5,8 +5,7 @@
 
 import {
   AppState, Document, Stack, TextEntryState,
-  ExprPath, RationalizeToExpr,
-  ExprItem, TextItem, CodeItem
+  ExprPath, ExprItem, TextItem, CodeItem
 } from './Models';
 import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
@@ -535,11 +534,12 @@ class InputContext {
     pyodide.start_executing(command);
   }
 
-  do_rationalize(stack) {
-    const [new_stack, expr] = stack.pop_exprs(1);
-    const result_expr = RationalizeToExpr.rationalize_expr(expr);
-    return new_stack.push_expr(result_expr);
-  }
+  // This has been replaced with SymPy nsimplify().
+  // do_rationalize(stack) {
+  //   const [new_stack, expr] = stack.pop_exprs(1);
+  //   const result_expr = RationalizeToExpr.rationalize_expr(expr);
+  //   return new_stack.push_expr(result_expr);
+  // }
 
   do_prefix_argument() {
     const key = this.last_keypress;

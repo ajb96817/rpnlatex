@@ -1,4 +1,5 @@
 
+// Various "domain models" other than Expr-tree nodes.
 
 import {
   encode as msgpack_encode,
@@ -21,6 +22,7 @@ import {
 } from './Parsers';
 
 
+// User settings, stored in browser localStorage.
 class Settings {
   static from_json(json) {
     let s = new Settings();
@@ -587,6 +589,10 @@ class UndoStack {
 // Files are saved in localStorage with keys of the form:
 //   "filename:filesize_in_bytes:item_count:timestamp".
 // localStorage keys starting with "$" are reserved for things like Settings.
+//
+// Documents (AppStates) are serialized with msgpack, while
+// Settings uses JSON.
+
 // Generally, there should be only one localStorage key for a given filename,
 // but in case there wind up being multiples, the one with the most recent
 // timestamp is used.
@@ -796,7 +802,6 @@ class FileManager {
       for(const file_info of this._fetch_available_file_infos()) {
         if(file_info.filename === filename) {
           this.storage.removeItem(file_info.key);
-
           any_deleted = true;
         }
       }
@@ -991,214 +996,10 @@ class ExprPath {
 }
 
 
-// Conversion of any floating-point values in an Expr to (approximate)
-// rational fractions or rational multiples of common numbers like sqrt(2).
-class RationalizeToExpr {
-  static rationalize_expr(expr, full_size_fraction = true) {
-    return new this(full_size_fraction).rationalize_expr(expr);
-  }
-  
-  static rationalize(value, full_size_fraction = true) {
-    return new this(full_size_fraction).value_to_expr(value);
-  }
-
-  constructor(full_size_fraction) {
-    this.full_size_fraction = full_size_fraction;
-  }
-  
-  rationalize_expr(expr) {
-    const rationalized_expr = this._try_rationalize_real_expr(expr);
-    if(rationalized_expr)
-      return rationalized_expr;
-    // Check subexpressions recursively.
-    return expr.subexpressions()
-      .reduce((new_expr, subexpression, subexpression_index) =>
-        new_expr.replace_subexpression(
-          subexpression_index,
-          this.rationalize_expr(subexpression)),
-        expr);
-  }
-
-  _try_rationalize_real_expr(expr) {
-    let negated = false;
-    if(expr.is_unary_minus_expr()) {
-      negated = true;
-      expr = expr.base_expr;
-    }
-    if(expr.is_text_expr() && expr.looks_like_floating_point()) {
-      let value = parseFloat(expr.text);
-      if(!isNaN(value)) {
-        if(negated) value *= -1.0;
-        return this.value_to_expr(value);
-      }
-    }
-    return null;
-  }
-  
-  // Try to find a close rational approximation to a floating-point
-  // value, or up to a rational factor of some common constants
-  // like sqrt(2) or pi.  Return an Expr if successful, otherwise null.
-  value_to_expr(value) {
-    let result = null;
-    const make_sqrt = expr => new CommandExpr('sqrt', [expr]);
-    const pi_expr = new CommandExpr('pi');
-    const two_pi_expr = Expr.concatenate(this._int_to_expr(2), pi_expr);
-    // Don't try to rationalize anything too large in magnitude.
-    if(Math.abs(value) > 1e8)
-      return null;
-    // Check for very small fractional part; could be either an integer,
-    // or a float with large magnitude and thus decayed fractional precision.
-    if(Math.abs(value % 1.0) < 1e-6)
-      return this._int_to_expr(value);
-    // Try different variations on \pi
-    // NOTE: pi is a little weird because a close rational approximation 
-    // (355/113) both has small denominator and is very close to the actual
-    // value of pi.  So the epsilon value in _try_rationalize_with_factor()
-    // needs to be chosen carefully.
-    result = this._try_rationalize_with_factor(  // pi^2
-      value, Math.PI*Math.PI,
-      pi_expr.with_superscript(this._int_to_expr(2)));
-    result ||= this._try_rationalize_with_factor(  // pi
-      value, Math.PI, pi_expr, null);
-    result ||= this._try_rationalize_with_factor(  // 1/pi
-      value, 1/Math.PI, null, pi_expr);
-    result ||= this._try_rationalize_with_factor(  // sqrt(pi)
-      value, Math.sqrt(Math.PI), make_sqrt(pi_expr), null);
-    result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(pi)
-      value, 1/Math.sqrt(Math.PI), null, make_sqrt(pi_expr));
-    result ||= this._try_rationalize_with_factor(  // \sqrt(2pi)
-      value, Math.sqrt(2*Math.PI), make_sqrt(two_pi_expr), null);
-    result ||= this._try_rationalize_with_factor(  // 1 / \sqrt(2pi)
-      value, 1/Math.sqrt(2*Math.PI), null, make_sqrt(two_pi_expr));
-    // Try factors of ln(2).
-    result ||= this._try_rationalize_with_factor(
-      value, Math.log(2), new CommandExpr('ln', [this._int_to_expr(2)]), null);
-    // Try sqrt(n) in the numerator for small square-free n.
-    // No need to check denominators since, e.g. 1/sqrt(3) = sqrt(3)/3
-    for(const factor of [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19])
-      result ||= this._try_rationalize_with_factor(
-        value, Math.sqrt(factor),
-        make_sqrt(this._int_to_expr(factor)), null);
-    // Try golden ratio-like factors.
-    result ||= this._try_rationalize_with_factor(
-      value, 1+Math.sqrt(5),
-      InfixExpr.add_exprs(this._int_to_expr(1), make_sqrt(this._int_to_expr(5))),
-      null);
-    result ||= this._try_rationalize_with_factor(
-      value, Math.sqrt(5)-1,  // NOTE: keep positive sign, 1-sqrt(5) is negative
-      InfixExpr.combine_infix(
-        make_sqrt(this._int_to_expr(5)),
-        this._int_to_expr(1),
-        new TextExpr('-')),
-      null);
-    // NOTE: factors of e^n (n!=0) are rare in isolation so don't test for them here.
-    // Finally, rationalize the number itself with no factors.
-    result ||= this._try_rationalize_with_factor(value, 1.0, null, null);
-    return result;
-  }
-
-  // Helper for rationalize_to_expr().
-  // Try to pull out rational multiples of 'factor' using Farey fractions.
-  // If successful, return the factored rational expression,
-  // multiplied by 'numer_factor_expr' in the numerator or
-  // 'denom_factor_expr' in the denominator if they are given.
-  // If no rationalization close enough can be found, return null.
-  _try_rationalize_with_factor(value, factor, numer_factor_expr, denom_factor_expr) {
-    const x = value / factor;
-    const max_denom = 1000;  // maximum denominator tolerated
-    const epsilon = 0.00000001;  // maximum deviation from true value tolerated
-    const sign = Math.sign(value);
-    const x_abs = Math.abs(x);
-    const [integer_part, fractional_part] = [Math.floor(x_abs), x_abs % 1.0];
-    const [numer, denom] = this._rationalize(fractional_part, max_denom);
-    const rationalized_value = numer/denom;
-    if(Math.abs(rationalized_value - fractional_part) < epsilon) {
-      // This is a close enough rational approximation that it can be considered exact.
-      const final_numer = integer_part*denom + numer;
-      const final_denom = denom;
-      let final_expr = null;
-      if(final_denom === 1) {
-        // Integer multiple of the factor.
-        const base_expr = this._int_to_expr(final_numer*sign);
-        if(numer_factor_expr) {
-          if(final_numer === 1) {
-            if(sign < 0)
-              final_expr = PrefixExpr.unary_minus(numer_factor_expr);
-            else final_expr = numer_factor_expr;
-          }
-          else final_expr = Expr.concatenate(base_expr, numer_factor_expr);
-        }
-        else if(denom_factor_expr)
-          final_expr = CommandExpr.frac(base_expr, denom_factor_expr);
-        else
-          final_expr = base_expr;
-      }
-      else {
-        // Rational (but not integer) multiple of the factor.
-        let numer_expr = this._int_to_expr(final_numer);
-        if(numer_factor_expr) {
-          if(final_numer === 1)
-            numer_expr = numer_factor_expr;
-          else
-            numer_expr = Expr.concatenate(numer_expr, numer_factor_expr);
-        }
-        let denom_expr = this._int_to_expr(final_denom);
-        if(denom_factor_expr)
-          denom_expr = Expr.concatenate(denom_expr, denom_factor_expr);
-        const frac_expr = CommandExpr.frac(numer_expr, denom_expr);
-        if(sign < 0)
-          final_expr = PrefixExpr.unary_minus(frac_expr);
-        else final_expr = frac_expr;
-      }
-      return final_expr;
-    }
-    else
-      return null;  // not close enough to a rational multiple of factor
-  }
-
-  // Farey fraction algorithm.  Find closest rational approximation to
-  // 0 <= x <= 1, with maximum denominator max_denom.
-  // Returns [numerator, denominator].
-  _rationalize(x, max_denom) {
-    const epsilon = 1e-6;
-    let [a, b, c, d] = [0, 1, 1, 1];
-    while(b <= max_denom && d <= max_denom) {
-      const mediant = (a+c) / (b+d);
-      if(Math.abs(x - mediant) <= epsilon) {
-        if(b + d <= max_denom)
-          return [a+c, b+d];
-        else if(d > b)
-          return [c, d];
-        else
-          return [a, b];
-      }
-      else if(x > mediant)
-        [a, b] = [a+c, b+d];
-      else
-        [c, d] = [a+c, b+d];
-    }
-    if(b > max_denom)
-      return [c, d];
-    else
-      return [a, b];
-  }
-
-  // If we "know" x should be an integer (e.g. as part of a rationalized fraction),
-  // this function is used to try to show it without any decimal part.
-  // Very large values are shown in scientific notation.
-  _int_to_expr(x) {
-    if(isNaN(x))
-      return FontExpr.roman_text('NaN');
-    else if(Math.abs(x) > 1e12)
-      return double_to_expr(x);  // use scientific notation
-    else
-      return TextExpr.integer(Math.round(x));
-  }
-}
-
-
 // Serial number generator for Items; used for React collection keys.
 // Each entry in a React component list is supposed to have a unique ID.
+// NOTE: iOS seemed to have a problem having this as a class variable.
+// Test on iOS Safari if putting it back.
 let item_serial_number = 1;
 
 // Represents an entry in the stack or document.
@@ -1537,7 +1338,11 @@ class TextItem extends Item {
         if(placeholder_expr_path !== null) {
           const new_expr = placeholder_expr_path.replace_selection(substitution_expr);
           new_elements[i] = new TextItemExprElement(new_expr);
-          return new TextItem(new_elements, this.tag_string, this.source_string, this.is_heading);
+          return new TextItem(
+            new_elements,
+            this.tag_string,
+            this.source_string,
+            this.is_heading);
         }
       }
     }
@@ -1587,7 +1392,7 @@ class Stack {
   check_exprs(n) {
     if(!this.check(n)) return false;
     for(let i = 0; i < n; i++)
-      if(!this.items[this.items.length-1-i].is_expr_item())
+      if(!this.items.at(-1-i).is_expr_item())
         return false;
     return true;
   }
@@ -1595,7 +1400,7 @@ class Stack {
   // Fetch item at position n (stack top = 1, next = 2, etc).
   peek(n = 1) {
     if(this.check(n))
-      return this.items[this.items.length - n];
+      return this.items.at(-n)
     else return this.underflow();
   }
 
@@ -1643,7 +1448,6 @@ class Stack {
       throw new Error('pushing invalid item onto stack');
     return new Stack(this.items.concat(items), this.floating_items);
   }
-  
   push_all_exprs(exprs) { return this.push_all(exprs.map(expr => new ExprItem(expr))); }
   push(item) { return this.push_all([item]); }
   push_expr(expr) { return this.push_all_exprs([expr]); }
@@ -2169,8 +1973,8 @@ class MsgpackDecoder {
 export {
   Keymap, Settings, TextEntryState, LatexEmitter, AppState,
   ItemClipboard, UndoStack, FileManager,
-  ExprPath, RationalizeToExpr, Item, ExprItem,
-  TextItem, TextItemElement, TextItemTextElement,
+  ExprPath, Item, ExprItem, TextItem,
+  TextItemElement, TextItemTextElement,
   TextItemExprElement, TextItemRawElement,
   CodeItem, Stack, Document,
   MsgpackEncoder, MsgpackDecoder

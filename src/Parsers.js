@@ -12,7 +12,7 @@ import {
 } from './Exprs';
 import {
   TextItem, TextItemElement, TextItemTextElement,
-  TextItemExprElement, TextItemRawElement,
+  TextItemExprElement, TextItemRawElement
 } from './Models';
 import {
   latex_letter_commands
@@ -20,8 +20,8 @@ import {
 
 
 class Token {
-  // Combine adjacent tokens into the same type, creating
-  // a single longer token.
+  // Combine adjacent tokens of the same type, creating
+  // individual longer tokens.
   static coalesce_tokens_of_type(tokens, token_type) {
     const new_tokens = [];
     let i = 0;
@@ -168,10 +168,13 @@ class Parser {
   }
   
   next_token() {
-    if(this.at_end())
-      return this.parse_error();
+    if(this.at_end()) {
+      this.current_token = null;
+      this.parse_error();
+    }
     else
-      return this.tokens[this.token_index++];
+      this.current_token = this.tokens[this.token_index++];
+    return this.current_token;
   }
 
   // TODO: revisit; rename -> .error()
@@ -189,7 +192,6 @@ const expr_tokenizer_pattern_table = [
   [/=|!=|<|>/y,  'relation'],  // 1-char operators
   [/[A-Za-z]+/y, 'ident'],
   [/\s+/y,       'whitespace'],
-  [/\@/y,        'special_constant'],  // @ = pi
   [/-/y,         'minus'],
   [/\+/y,        'plus'],
   [/,/y,         'comma'],
@@ -398,43 +400,29 @@ class ExprParser extends Parser {
   // 'initial_factor': Constant numbers are only allowed as the first
   // factor in an implicit product list: we can have '3x' but not 'x3'.
   _parse_factor(initial_factor) {
-    let token;
-    if(initial_factor) {
-      if((token = this.consume('number')) !== null)
-        return TextExpr.integer(token.text);
-    }
-    if((token = this.consume('ident')) !== null) {
-      const greek_letter = this.convert_greek_letter(token.text);
-      if(greek_letter)
-        return greek_letter;
-      if(token.text.length === 1)
-        return new TextExpr(token.text);  // single-letter variable
+    if(initial_factor && this.consume('number'))
+      return TextExpr.integer(this.current_token.text);
+    else if(this.consume('ident')) {
+      const ident_text = this.current_token.text;
+      if(latex_letter_commands.has(ident_text))
+        return new CommandExpr(ident_text);  // Greek letters, etc.
+      else if(ident_text.length === 1)
+        return new TextExpr(ident_text);  // single-letter variable
       else  // multi-letter variable
-        return FontExpr.roman_text(token.text);
+        return FontExpr.roman_text(ident_text);
     }
-    if((token = this.consume('special_constant')) !== null) {
-      if(token.text === '@')
-        return new CommandExpr('pi');
-      else return new TextExpr('???');  // shouldn't happpen
-    }
-    if((token = this.consume('placeholder')) !== null)
+    else if(this.consume('placeholder'))
       return new PlaceholderExpr();
-    if((token = this.consume('left_paren', 'left_bracket', 'left_brace')) != null) {
+    else if(this.consume('left_paren', 'left_bracket', 'left_brace')) {
       const [closing_delim_type, left, right] =
-            this.matching_closing_delimiter_info(token.type);
+            this.matching_closing_delimiter_info(this.current_token.type);
       const inner_expr = this.parse_expr() || this.parse_error();
       const closing_token = this.consume('right_paren', 'right_bracket', 'right_brace');
       if(!(closing_token && closing_token.type === closing_delim_type))
         return this.parse_error();
-      return new DelimiterExpr(left, right, inner_expr);
+      else
+        return new DelimiterExpr(left, right, inner_expr);
     }
-    return null;
-  }
-
-  // alpha -> CommandExpr('alpha') etc.
-  convert_greek_letter(text) {
-    if(latex_letter_commands.has(text))
-      return new CommandExpr(text);
     else
       return null;
   }
@@ -491,18 +479,17 @@ class TextItemParser extends Parser {
   }
 
   parse() {
-    let token;
     while(!this.at_end()) {
       if(this.consume('bold_toggle'))
         this.is_bold = !this.is_bold;
       else if(this.consume('italic_toggle'))
         this.is_italic = !this.is_italic;
-      else if((token = this.consume('inline_math')) !== null)
+      else if(this.consume('inline_math'))
         this.add_inline_math(token.text);
       else if(this.consume('placeholder'))
         this.add_placeholder();
-      else if((token = this.consume('text')) !== null)
-        this.add_text(token.text);
+      else if(this.consume('text'))
+        this.add_text(this.current_token.text);
       else
         break;  // shouldn't happen
     }
