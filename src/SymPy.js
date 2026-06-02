@@ -45,7 +45,9 @@ const allowed_unary_sympy_functions = new Set([
 
   'det', 'trace', 're', 'im',
   'exp', 'log', 'log2', 'log10',
-  'conjugate'
+  'conjugate', 'erf', 'erfc',
+
+  // 'Ei', 'Si', 'Ci', 'Shi', 'Chi'
 ]);
 
 // Maps between LaTeX commands and SymPy relation "classes".
@@ -500,13 +502,13 @@ class SymPyNode {
 
 // Numbers, etc.
 class SymPyConstant extends SymPyNode {
-  constructor(value_string, raw = false) {
+  constructor(value_string, is_raw = false) {
     super();
     this.value_string = value_string;
-    this.raw = raw;
+    this.is_raw = is_raw;
   }
   to_py_string(emitter) {
-    if(this.raw)
+    if(this.is_raw)
       return this.value_string;
     else
       return ['S(', this.value_string, ')'].join('');
@@ -524,7 +526,7 @@ class SymPySymbol extends SymPyNode {
   }
 }
 
-// Named subexpression: expr_1 = ...
+// Named subexpression, the 'expr_1' in: expr_1 = (something)
 class SymPySubexpression extends SymPyNode {
   constructor(expr_number) {
     super();
@@ -633,7 +635,6 @@ class SymPyVariable extends SymPyNode {
       // use it to make a function call, otherwise use the "plain"
       // variable symbol.
       if(independent_var_name) {
-        // Function('f')(Symbol('x'))
         return [
           "Function('", this.name, "')(Symbol('", independent_var_name, "'))"
         ].join('');
@@ -660,7 +661,7 @@ class ExprToSymPy {
   // that will create the corresponding SymPy expression.
   // The generated code will be a Python function with the
   // supplied 'builder_function_name'.
-  static expr_to_code(expr, builder_function_name) {
+  static expr_to_code(expr, builder_function_name = 'build_expr') {
     return new this().expr_to_code(expr, builder_function_name);
   }
   
@@ -2181,6 +2182,9 @@ class FunctionCallAnalyzer extends Analyzer {
       // Heaviside step function.
       return this.emitter.fncall('Heaviside', arg_nodes);
     }
+    if(expr.fn_expr.is_command_expr_with(0, 'Gamma') &&
+       arg_nodes.length === 1)
+      return this.emitter.fncall('gamma', arg_nodes);
     return null;
   }
 

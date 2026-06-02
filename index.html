@@ -310,7 +310,7 @@
           equations and comparisons may be written using:
           <kbd>x=y, x!=y, x&lt;y, x&gt;y, x&lt;=y, x&gt;=y</kbd>.
           Full-size fractions use: <kbd>x//y</kbd>
-          <code>\Rightarrow \frac{x}{y}</code>.
+          <code>\Rightarrow \frac{x}{y}</code>
         </li>
         <li>
           Multiplication by constants may be written implicitly (like <kbd>5x</kbd>);
@@ -329,7 +329,7 @@
         </li>
         <li>
           Factorial notation: <kbd>x!</kbd> and prime (derivative) notation:
-          <kbd>x'</kbd> <code>\Rightarrow x^\prime</code>.
+          <kbd>x'</kbd> <code>\Rightarrow x^\prime</code>
         </li>
         <li>
           <a href="#help_placeholders">Placeholders</a>
@@ -347,13 +347,16 @@
         will cancel math entry mode.
       </p>
       <p>
-        <strong>NOTE:</strong>
-        The input field used here is very limited and supports only character entry along with
-        arrow keys to move around, <span class="k">Backspace</span>,
-        <span class="k">Enter</span> to finish your entry,
-        and <span class="k">Esc</span> to cancel entry.
-        It is meant for entering short snippets of text; longer items should be created as pieces
-        and assembled on the stack.
+        This math entry mode is entirely optional; all the above forms can be
+        entered using stack-based operations instead.  This mode is provided
+        as a convenience.
+      </p>
+      <p>
+        The input field used here is very limited and supports only character
+        entry along with arrow keys to move around, <span class="k">Backspace</span>,
+        <span class="k">Enter</span> to finish your entry, and <span class="k">Esc</span>
+        to cancel entry.  It is meant for entering short snippets of text; longer items
+        should be created as pieces and assembled on the stack.
       </p>
       <p>
         <strong>Plain Text Entry:</strong>
@@ -439,15 +442,13 @@
           Therefore, they are not required to follow any particular math syntax.
         </li>
         <li>
-          They are shown in a roman (non-italic) font, left-justified (regardless of configuration settings), and will wrap around to multiple lines if needed.
+          They are shown in a roman (non-italic) font, left-justified (regardless of configuration settings),
+          and will wrap around to multiple lines if needed.
         </li>
         <li>
           Inline math expressions of the kind allowed in <em>math entry</em> mode
           can be included between pairs of <kbd>$</kbd> signs
           (for example: <kbd>$x+y$</kbd>).
-        </li>
-        <li>
-          <a href="#help_placeholders">Placeholders</a> can be included by writing <kbd>[]</kbd>.
         </li>
         <li>
           Text objects can be concatenated to other text objects or to math expressions using <span class="k">&nbsp;</span>
@@ -463,6 +464,10 @@
           <span class="k">/</span><span class="k">&quot;</span> command.
         </li>
       </ul>
+      <p>
+        Note that <a href="#help_placeholders">placeholders</a> can be included by
+        in text objects by writing <kbd>[]</kbd>, the same as with math entry mode.
+      </p>
 
       <h2 id="help_edit_text">
         <span class="k">Shift&nbsp;Enter</span> Edit as Text
@@ -1597,7 +1602,7 @@
       </h2>
       <p>
         These are some shortcuts for quickly creating common types of expressions involving derivatives and differentials.
-        The main commands here use the <span class="k">/</span><span class="k">d</span> prefix; variants can
+        The commands shown here use the <span class="k">/</span><span class="k">d</span> prefix; variants can
         be obtained with <span class="k">/</span><span class="k">D</span> and
         <span class="k">/</span><span class="k">v</span> (see below).
       </p>
@@ -2204,7 +2209,6 @@
         <li>
           <span class="k">,</span>
           <code>x_1,x_2,x_N,\dots</code>
-          <em>(<strong>e</strong>llipsis)</em>
         </li>
         <li>
           <span class="k">.</span>

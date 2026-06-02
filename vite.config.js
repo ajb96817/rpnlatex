@@ -17,7 +17,8 @@ export function viteStaticCopyPyodide() {
   return viteStaticCopy({
     targets: [
       {
-        src: [join(pyodideDir, "*")].concat(PYODIDE_EXCLUDE),
+        //src: [join(pyodideDir, "*")].concat(PYODIDE_EXCLUDE),
+        src: [join(pyodideDir, "*")],
         dest: ".",
       },
     ],
@@ -36,12 +37,5 @@ export default defineConfig({
   },
   server: {
     port: 3000
-    
-    // headers: {
-    //   // Enable cross-origin isolation so that SharedArrayBuffer
-    //   // can be used to communicate with the Pyodide worker.
-    //   'Cross-Origin-Opener-Policy': 'same-origin',
-    //   'Cross-Origin-Embedder-Policy': 'credentialless'
-    // }
   }
 })
