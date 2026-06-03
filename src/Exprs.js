@@ -353,7 +353,8 @@ class Expr {
   // \primes attached to the same Expr, which should be rendered as:
   // x^{\prime\prime\prime}.
   with_prime(autoparenthesize = true) {
-    return this.with_superscript(new CommandExpr('prime'), autoparenthesize);
+    return this.with_superscript(
+      new CommandExpr('prime'), autoparenthesize);
   }
 
   // Apply a 'hat' command like \hat{x} or \overline{x}.
@@ -551,21 +552,18 @@ class CommandExpr extends Expr {
   // Edge case: combining \ddot with \dddot is 5 dots total
   // which arguably should be a \ddddot stacked with \dot.
   with_hat(hat_op) {
-    const hat_info = [['dot', 1], ['ddot', 2], ['dddot', 3], ['ddddot', 4]];
+    const dot_types = [['dot', 1], ['ddot', 2], ['dddot', 3], ['ddddot', 4]];
     const _count_dots = (c) => {
-      const match = hat_info.find(pair => pair[0] === c);
+      const match = dot_types.find(pair => pair[0] === c);
       return match ? match[1] : 0;
     };
     if(this.operand_count() === 1) {
       const this_dots = _count_dots(this.command_name),
             new_dots = _count_dots(hat_op);
-      if(this_dots > 0 && new_dots > 0) {
-        const match = hat_info.find(
-          pair => pair[1] === this_dots + new_dots);
-        if(match)
-          return new CommandExpr(
-            match[0], this.operand_exprs);
-      }
+      if(this_dots > 0 && new_dots > 0)
+        for(const [command_name, dot_count] of dot_types)
+          if(dot_count === this_dots + new_dots)
+            return new CommandExpr(command_name, this.operand_exprs);
     }
     return super.with_hat(hat_op);
   }
@@ -608,24 +606,29 @@ class CommandExpr extends Expr {
   }
 
   // 0-argument commands are left as-is (\alpha, etc).
-  // 1-argument commands dissolve into their only argument.
-  // 2-argument \frac breaks into numerator and denominator.
-  // 2-argument \overset and \underset break into their components in the proper visual order.
-  // Everything else is left as-is.
+  // 1-argument \operatorname{something} commands are left as-is
+  //   (for consistency with 0-operand commands).
+  // 1-argument commands other than \operatorname{f} dissolve into their
+  //   sole argument, discarding the command name.
+  // 2-argument \operatorname{csch}{x} commands dissolve into the second
+  //   argument only (for consistency with things like \sin{x}).
+  // 2-argument \underset dissolves into the argument expressions in reverse
+  //   order (to reflect the visual ordering).
+  // Everything else dissolves into the command's argument expressions,
+  // discarding the command name.  This includes \frac{x}{y} which breaks
+  // into numerator and denominator.
   dissolve() {
-    switch(this.operand_count()) {
-    case 1:
-      return this.operand_exprs;
-    case 2:
-      if(this.command_name === 'frac' || this.command_name === 'overset')
-        return this.operand_exprs;
-      else if(this.command_name === 'underset')
-        return [this.operand_exprs[1], this.operand_exprs[0]];
-      else
-        return [this];
-    default:
+    const nargs = this.operand_count(), c = this.command_name;
+    if(nargs === 2 && c === 'underset')
+      return [this.operand_exprs[1], this.operand_exprs[0]];
+    else if(nargs === 0)
       return [this];
-    }
+    else if(nargs === 1 && c === 'operatorname')
+      return [this];
+    else if(nargs === 2 && c === 'operatorname')
+      return [this.operand_exprs[1]];
+    else
+      return this.operand_exprs;
   }
 }
 
