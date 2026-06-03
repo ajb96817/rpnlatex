@@ -48,6 +48,8 @@ class Settings {
       'show_mode_indicator',
       'hide_mouse_cursor',
       'autoparenthesize',
+      'aux_panel_active',
+      'aux_panel_url',
       'layout'  // nested layout object
     ];
   }
@@ -68,6 +70,8 @@ class Settings {
     this.show_mode_indicator = true;
     this.hide_mouse_cursor = false;
     this.autoparenthesize = true;
+    this.aux_panel_active = false;
+    this.aux_panel_url = '#';
     this.layout = {
       zoom_factor: 0,
       helptext_zoom_factor: 0,
@@ -83,7 +87,7 @@ class Settings {
   // Hide or unhide file manager / helptext popup panels depending on
   // what is active.  If the helptext is "docked", it is positioned to
   // overlay the documents panel (with a higher z-index).
-  apply_layout_to_dom(stack_panel_elt, document_panel_elt,
+  apply_layout_to_dom(stack_panel_elt, document_panel_elt, aux_panel_elt,
                       file_manager_panel_elt, helptext_panel_elt) {
     const layout = this.layout;
     file_manager_panel_elt.style.display =
@@ -113,6 +117,13 @@ class Settings {
       layout.stack_side, layout.stack_split);
     this._apply_bounds(stack_panel_elt, stack_bounds);
     this._apply_bounds(document_panel_elt, document_bounds);
+    // Set up aux panel visibility and URL.
+    if(aux_panel_elt) {
+      aux_panel_elt.style.display = this.aux_panel_active ? 'block' : 'none';
+      this._apply_bounds(aux_panel_elt, document_bounds);
+      if(aux_panel_elt.getAttribute('src') !== this.aux_panel_url)
+        aux_panel_elt.setAttribute('src', this.aux_panel_url);
+    }
     // Set up User Guide layout.
     if(this.popup_mode === 'help') {
       helptext_panel_elt.className = 'popup panel';

@@ -2036,6 +2036,14 @@ class InputContext {
       if(scratch > 100) scratch = 100;
       layout.stack_split = scratch;
       break;
+    case 'toggle_aux_panel':
+      settings.aux_panel_active = !settings.aux_panel_active;
+      break;
+    case 'aux_panel_url':
+      scratch = window.prompt('Enter a URL:');
+      if(scratch)
+        settings.aux_panel_url = scratch;
+      break;
     case 'inverse_video':
       settings.filter = settings.filter === 'inverse_video' ? null : 'inverse_video';
       break;

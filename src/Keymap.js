@@ -385,6 +385,8 @@ const keybinding_table = {
     's': "config stack_split",
     'S': "config sepia",
     'V': "config inverse_video",
+    'x': "config toggle_aux_panel",  // undocumented
+    'X': "config aux_panel_url",  // undocumented
     'z': "config zoom_factor increase",
     '+': "alias z",
     'Z': "config zoom_factor decrease",

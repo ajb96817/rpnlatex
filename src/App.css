@@ -49,6 +49,11 @@ body.hide_mouse_cursor { cursor: none; }
   -webkit-text-size-adjust: none;
 }
 
+#aux_panel_iframe {
+  position: absolute;
+  z-index: 100;
+}
+
 div.panel {
   /* Default panel background color; should never be seen
      (each panel type should override the background color). */

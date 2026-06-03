@@ -27,6 +27,7 @@ class App extends React.Component {
     super(props);
     this.stack_panel_ref = React.createRef();
     this.document_panel_ref = React.createRef();
+    this.aux_panel_ref = React.createRef();
     this.file_manager_panel_ref = React.createRef();
     this.helptext_panel_ref = React.createRef();
     const file_manager = new FileManager();
@@ -88,6 +89,7 @@ class App extends React.Component {
     // create a solid border between stack and document in E-ink mode.
     const stack_panel = this.stack_panel_ref.current;
     const document_panel = this.document_panel_ref.current;
+    const aux_panel = this.aux_panel_ref.current;
     stack_panel.classList.remove('stack_on_bottom');
     stack_panel.classList.remove('stack_on_right');
     document_panel.classList.remove('stack_on_top');
@@ -101,6 +103,7 @@ class App extends React.Component {
     this.state.settings.apply_layout_to_dom(
       stack_panel,
       document_panel,
+      aux_panel,
       this.file_manager_panel_ref.current,
       this.helptext_panel_ref.current);
   }
@@ -230,6 +233,12 @@ class App extends React.Component {
         className: 'panel',
         ref: this.document_panel_ref
       }, document_panel_component),
+      $e('iframe', {
+        id: 'aux_panel_iframe',
+        key: 'aux_panel',
+        ref: this.aux_panel_ref,
+        src: settings.aux_panel_url ?? '#'
+      }),
       // File Manager and User Guide panels are always present, just hidden with
       // CSS if they're not currently in use.  The user guide is repositioned
       // dynamically when "docked/undocked" in the document section.
