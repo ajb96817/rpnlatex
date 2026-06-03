@@ -26,6 +26,7 @@ body {
   padding: 0;
   background-color: #bbb;
   height: 100%;
+  font-family: "Georgia", "Times New Roman", serif;
 }
 
 body.inverse_video { filter: invert(100%); }
