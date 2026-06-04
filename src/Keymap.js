@@ -395,11 +395,11 @@ const keybinding_table = {
     '!': "config reload_page",
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
-    '~': "debug",  // debugging command hook: calls do_debug()
+    '~': "debug",  // debugging command hook: calls do_debug() (undocumented)
     '$': "push \\$"  // undocumented
   },
 
-  // Delegate (shared) keymap for the 5 text_entry modes' editor commands.
+  // Delegate (shared) keymap for the text_entry modes' editor commands.
   _editor_commands: {
     'Escape': "cancel_text_entry",
     'Ctrl+z': "alias Escape",

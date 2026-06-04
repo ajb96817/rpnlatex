@@ -13,6 +13,7 @@
    Layer 2: Stack panel mode indicator, "floating" item if there is one.
    Layer 3: Item tags.
    Layer 4: Error messages/notifications (not explicitly assigned z-index though).
+            Aux panel iframe also uses layer 4.
    Layer 5: User Guide popup panel, docked helptext panel.
    Layer 6: File Manager popup panel (so that it appears above docked helptext).
 */
@@ -51,7 +52,7 @@ body.hide_mouse_cursor { cursor: none; }
 
 #aux_panel_iframe {
   position: absolute;
-  z-index: 100;
+  z-index: 4;
 }
 
 div.panel {

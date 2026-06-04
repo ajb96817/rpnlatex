@@ -71,7 +71,7 @@ class Settings {
     this.hide_mouse_cursor = false;
     this.autoparenthesize = true;
     this.aux_panel_active = false;
-    this.aux_panel_url = '#';
+    this.aux_panel_url = 'about:blank';
     this.layout = {
       zoom_factor: 0,
       helptext_zoom_factor: 0,

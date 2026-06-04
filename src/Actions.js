@@ -2040,9 +2040,11 @@ class InputContext {
       settings.aux_panel_active = !settings.aux_panel_active;
       break;
     case 'aux_panel_url':
-      scratch = window.prompt('Enter a URL:');
-      if(scratch)
+      scratch = window.prompt('Enter a URL:', settings.aux_panel_url ?? 'about:blank');
+      if(scratch) {
         settings.aux_panel_url = scratch;
+        settings.aux_panel_active = true;
+      }
       break;
     case 'inverse_video':
       settings.filter = settings.filter === 'inverse_video' ? null : 'inverse_video';
