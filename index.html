@@ -895,7 +895,7 @@
           </tr>
           <tr>
             <td><span class="k">U</span> <code>\utilde{x\dots}</code></td>
-            <td><span class="k">v</span> <code>\vec x</code> <em>(vector)</em></td>
+            <td><span class="k">v</span> <code>\vec x</code> <em>(<strong>v</strong>ector)</em></td>
             <td><span class="k">V</span> <code>\overrightharpoon{x\dots}</code></td>
           </tr>
           <tr>
@@ -1365,13 +1365,14 @@
 
       <p><strong>Function Application:</strong></p>
       <ul class="keybindings">
-        <li><span class="k">o</span> <code>f\enspace x \Rightarrow f(x)</code></li>
+        <li><span class="k">o</span> <code>f\enspace x \Rightarrow f(x)</code> <em>(&quot;<strong>o</strong>f&quot;)</em></li>
         <li><span class="k">r</span> <code>f\enspace x\enspace y \Rightarrow f(x,y)</code></li>
         <li><span class="k">R</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y,z)</code></li>
         <li><span class="k">k</span> <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code> <em>(&quot;<strong>k</strong>onditional&quot;)</em></li>
         <li><span class="k">K</span> <code>f\enspace x\enspace y\enspace z \Rightarrow f(x,y\,|\,z)</code></li>
         <li><span class="k">[</span> <code>f\enspace x \Rightarrow f[x]</code></li>
         <li><span class="k">]</span> <code>f\enspace x \Rightarrow f\{x\}</code></li>
+        <li><span class="k">0</span> <code>f\enspace x \Rightarrow f(0)</code></li>
       </ul>
       <p>
         <strong>NOTE:</strong>
@@ -1684,6 +1685,11 @@
         extra spacing to match traditional math notation:
         <code>\int x^2\,dx</code>, <code>\int dx\,x^2</code>,
         <code>\int dx</code>, <code>\int f(x,y)\,dx\wedge dy</code>.
+        <strong>NOTE:</strong> This automatic spacing also applies when writing
+        out differentials &quot;manually&quot;:
+        <span class="k">d</span><span class="k">x</span><span class="k">&nbsp;</span>
+        behaves the same as a differential created via
+        <span class="k">x</span><span class="k">/</span><span class="k">d</span><span class="k">d</span>.
       </p>
       <p>
         The <span class="k">i</span> or <span class="k">&nbsp;</span>
@@ -2859,7 +2865,7 @@
         <span class="k">$</span> Configuration
       </h2>
       <p>
-        These commands let you change global configuration settings.
+        These commands let you change the editor's configuration settings.
         The settings are saved between sessions in your browser.
       </p>
       <ul class="keybindings">

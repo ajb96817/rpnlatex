@@ -560,6 +560,7 @@ const keybinding_table = {
 
   // [/] prefix: assorted functions/operators
   operator: {
+    '0': "autoparenthesize;integer 0;parenthesize;function_call",  // f -> f(0)
     '1': "integer 1;swap;fraction",
     "\\": "integer 1;swap;fraction",
     '2': "mode squared",

@@ -66,13 +66,11 @@ class TokenizerError extends Error {
 
 class Tokenizer {
   static tokenize_expr(input_string) {
-    const tokenizer = new this(expr_tokenizer_pattern_table);
-    return tokenizer.tokenize(input_string);
+    return new this(expr_tokenizer_pattern_table).tokenize(input_string);
   }
 
   static tokenize_text_item(input_string) {
-    const tokenizer = new this(text_item_tokenizer_pattern_table);
-    return tokenizer.tokenize(input_string);
+    return new this(text_item_tokenizer_pattern_table).tokenize(input_string);
   }
   
   constructor(pattern_table) {
@@ -162,8 +160,7 @@ class Parser {
 
   consume(...token_types) {
     const token = this.peek_for(...token_types);
-    if(token)
-      this.next_token();
+    if(token) this.next_token();
     return token;
   }
   
