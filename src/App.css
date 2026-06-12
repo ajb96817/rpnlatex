@@ -254,9 +254,6 @@ div.floating_item div.tag_string {
   TODO: Maybe try to modulate/mix background colors, or do something with the alpha
         channel instead of all the duplicated animations.
 */
-/* NOTE: The following 2 rules are not strictly needed. */
-#stack_panel { animation-name: errorflash_stack_1; }
-#document_panel { animation-name: errorflash_document_1; }
 
 #stack_panel, #document_panel {
   animation-duration: 0.5s;
@@ -275,9 +272,9 @@ div.floating_item div.tag_string {
   from { background-color: #f0f0f0; } 1% { background-color: #fdd; } to { background-color: #f0f0f0; } }
 @keyframes errorflash_stack_eink_1 {
   /* E-ink mode background matches body.eink_mode #stack_panel. */
-  from { background-color: white; } 1% { background-color: #fdd; } to { background-color: white; } }
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
 @keyframes errorflash_stack_eink_2 {
-  from { background-color: white; } 1% { background-color: #fdd; } to { background-color: white; } }
+  from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
 
 /* NOTE: Document panel initial/final flash background colors happen to not vary depending
    on the sepia/e-ink theme setting.  This could change at some point. */

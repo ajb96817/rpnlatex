@@ -342,7 +342,7 @@ const keybinding_table = {
     'z': "undo",
     'Tab': "dup",
     'Enter': "alias Tab",
-    'Shift+Enter': "edit_item",
+    // 'Shift+Enter': "edit_item",
     'Backspace': "pop",
     'Shift+Backspace': "nip",
     '=': "push_separator;pop_to_document",
@@ -999,6 +999,8 @@ const keybinding_table = {
   // [=] prefix: relational operators
   // NOTE: some of these duplicate (alias) what is in [,], like [=][t]
   relational: {
+    '0': "integer 0;infix =",
+    '1': "integer 1;infix =",
     '2': "mode variant_relational",
     'a': "infix \\approx",
     'c': "infix \\cong",  // =~ [c]ongruent
