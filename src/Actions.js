@@ -2035,6 +2035,7 @@ class InputContext {
       if(scratch <= 10) scratch *= 10;
       if(scratch > 100) scratch = 100;
       layout.stack_split = scratch;
+      this.notify("Stack split set to " + scratch.toString() + "%");
       break;
     case 'toggle_aux_panel':
       settings.aux_panel_active = !settings.aux_panel_active;

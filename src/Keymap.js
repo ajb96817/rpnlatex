@@ -1343,7 +1343,7 @@ const keybinding_table = {
     '[digit]': "prefix_argument",
     '#': "sympy sympify 1 evaluate",
     '!': "sympy_terminate",
-    '=': "sympy N 1 evalf",  // numeric eval
+    '=': "sympy N 1",  // numeric eval
     '@': "export_stack_item_as_sympy",
     '?': "mode sympy_query",
     '/': "sympy nsimplify 1",  // convert float to "fraction"

@@ -2529,7 +2529,7 @@
         <li>
           <span class="k">=</span>
           Try to numerically evaluate an expression:
-          <code>2\pi \Rightarrow \mathtt{evalf(2*pi)} \Rightarrow 6.28318530717959</code>
+          <code>2\pi \Rightarrow \mathtt{N(2*pi)} \Rightarrow 6.28318530717959</code>
         </li>
         <li>
           <span class="k">/</span>
@@ -2705,8 +2705,39 @@
           Try to find the period of <code>f(x)</code>
           (e.g. <code>\sin x \Rightarrow 2\pi</code>).
         </li>
-        
       </ul>
+
+      <p><strong>Integral Transforms:</strong></p>
+      <p>
+        The <span class="k">#</span><span class="k">t</span> subprefix
+        covers SymPy integral transform commands.  These generally take
+        an expression to be transformed plus the expression's independent
+        variable, along with the new variable to be used in the transform
+        result.
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="k">f</span>
+          <code>f\enspace x\enspace k \Rightarrow \mathscr{F}\{f(x)\}[k]</code>
+          Fourier transform.
+        </li>
+        <li>
+          <span class="k">F</span>
+          <code>f\enspace k\enspace x \Rightarrow \mathscr{F}^{-1}\{f(x)\}[k]</code>
+          Inverse Fourier transform.
+        </li>
+        <li>
+          <span class="k">l</span>
+          <code>f\enspace t\enspace s \Rightarrow \mathscr{L}\{f(t)\}[s]</code>
+          Laplace transform.
+        </li>
+        <li>
+          <span class="k">L</span>
+          <code>f\enspace s\enspace t \Rightarrow \mathscr{L}^{-1}\{f(s)\}[t]</code>
+          Inverse Laplace transform.
+        </li>
+      </ul>
+      
 
 <!--  <h3>Differential Equations</h3>  -->      
 
@@ -2887,7 +2918,14 @@
           <span class="k">s</span>
           Set the percentage of the window width (or height) that the <strong>s</strong>tack panel will occupy.
           The percentage is given by the prefix argument:
-          <span class="k">$</span><span class="k">0</span><span class="k">s</span> to <span class="k">$</span><span class="k">9</span><span class="k">s</span> for 0% to 90%, or <span class="k">$</span><span class="k">*</span><span class="k">s</span> for 100%.  Default is 50%.
+          <span class="k">$</span><span class="k">0</span><span class="k">s</span> to
+          <span class="k">$</span><span class="k">9</span><span class="k">s</span> for 0% to 90%, or
+          <span class="k">$</span><span class="k">*</span><span class="k">s</span>
+          for 100% (which hides the document panel altogether).
+          <span class="k">$</span><span class="k">s</span> by itself gives the default 50/50 split.
+          You can also use, for example,
+          <span class="k">$</span><span class="k">7</span><span class="k">4</span><span class="k">s</span>
+          for 74%.
         </li>
         <li>
           <span class="k">+</span> or <span class="k">z</span>

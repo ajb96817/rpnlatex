@@ -1080,8 +1080,11 @@ class Analyzer {
   scan_implicit_product(exprs, start_index, stop_index) {
     let index = start_index, term_exprs = [];
     while(index < stop_index &&
-          exprs[index].is_term_expr(index === start_index))
-      term_exprs.push(exprs[index++]);
+          exprs[index].is_term_expr(index === start_index)) {
+      if(!exprs[index].is_whitespace())  // ignore whitespace
+        term_exprs.push(exprs[index]);
+      index++;
+    }
     const result_node =
           term_exprs.length === 0 ? null :
           this.multiply_all_exprs(term_exprs);
@@ -1120,6 +1123,7 @@ class ImplicitProductAnalyzer extends Analyzer {
 //   - x^T, x^\dagger, other "transpose-like" operators
 //   - e^x: exp(x)
 //   - (x+1)^2: ordinary powers
+// NOTE: "prime" notation like f'(x) gets handled by LagrangeDerivativeAnalyzer instead.
 class SubscriptSuperscriptAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     const expr = exprs[start_index];
@@ -2155,6 +2159,9 @@ class InfixAnalyzer extends Analyzer {
 }
 
 
+// Convert FunctionCallExprs to the corresponding SymPy Function objects along
+// with their arguments.  This also handles some special cases like Dirac delta
+// notation and step-function notation (\theta(x) => Heaviside(x)).
 class FunctionCallAnalyzer extends Analyzer {
   analyze(exprs, start_index, stop_index) {
     const expr = exprs[start_index];
@@ -2175,16 +2182,29 @@ class FunctionCallAnalyzer extends Analyzer {
   }
 
   // Calling a built-in SymPy function (normally would be a CommandExpr).
-  // TODO: revisit
   analyze_sympy_function_call(expr, arg_nodes) {
-    if(expr.fn_expr.is_command_expr_with(0, 'theta') &&
-       arg_nodes.length === 1) {
-      // Heaviside step function.
+    const fn_expr = expr.fn_expr, nargs = arg_nodes.length;
+    // Check special cases: \theta(x) step function, \Gamma(x) gamma function.
+    if(fn_expr.is_command_expr_with(0, 'theta') && nargs === 1)
       return this.emitter.fncall('Heaviside', arg_nodes);
-    }
-    if(expr.fn_expr.is_command_expr_with(0, 'Gamma') &&
-       arg_nodes.length === 1)
+    if(fn_expr.is_command_expr_with(0, 'Gamma') && nargs === 1)
       return this.emitter.fncall('gamma', arg_nodes);
+    // Check things like \mathrm{erf}(x) that may have been entered via [\]erf[Enter].
+    // Also check for \operatorname{erf}(x), created via [\]erf[Tab].
+    // This is similar logic to that used by CommandAnalyzer for calls that
+    // have been "properly" created via e.g. [/][f][e] for erf(x).
+    let fn_name = null;
+    if(fn_expr.is_font_expr() && fn_expr.typeface === 'roman' &&
+       fn_expr.expr.is_text_expr())
+      fn_name = fn_expr.expr.text;
+    else if(fn_expr.is_command_expr_with(1, 'operatorname') &&
+            fn_expr.operand_exprs[0].is_text_expr())
+      fn_name = fn_expr.operand_exprs[0].text;
+    if(fn_name) {
+      const sympy_command = translate_function_name(fn_name, true);
+      if(allowed_unary_sympy_functions.has(sympy_command) && nargs === 1)
+        return this.emitter.fncall(sympy_command, arg_nodes);
+    }
     return null;
   }
 
