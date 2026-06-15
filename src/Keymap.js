@@ -295,7 +295,6 @@ const keybinding_table = {
     'D': "alias d",
     'v': "alias v",
     'i': "scroll_to help_integrals",
-    'I': "alias i",
     'f': "scroll_to help_named_operators",
     ')': "scroll_to help_delimiters",
     '(': "alias )",
@@ -573,10 +572,8 @@ const keybinding_table = {
     'e': "push e;typeface roman;swap;superscript",  // e^x
     'E': "named_function exp",
     'f': "mode named_operator",
-    'g': "push \\int;swap;superscript;swap;subscript",
     'h': "mode hyperbolic",
     'i': "mode integral",
-    'I': "mode integral_with_limits",
     // 'j': "push i;swap;concat;push e;typeface roman;swap;superscript",  // x -> e^ix (undocumented; not sure how useful this is)
     // 'J': "push i;swap;concat;named_function exp",  // x -> exp(ix) (undocumented)
     'k': "infix \\,\\vert\\,;autoparenthesize 2;parenthesize;function_call",  // f x y -> f(x|y)
@@ -726,31 +723,27 @@ const keybinding_table = {
     '-': "mode inverse_hyperbolic"
   },
 
-  // [/][i] prefix - add limits to an existing integral sign
+  // [/][i] prefix - create integral sign with common limits
   integral: {
-    'r': "push \\infty;negate;subscript;push \\infty;superscript",  // -inf..inf : [r]eals
-    'R': "push R;typeface calligraphic;subscript",  // reals alternative notation
-    'n': "push \\infty;negate;subscript;integer 0;superscript",  // -inf..0 : [n]egative 
-    'p': "integer 0;subscript;push \\infty;superscript",  // 0..inf : [p]ositive
-    'u': "integer 0;subscript;integer 1;superscript",  // 0..1 : [u]nit
-    'U': "integer -1;subscript;integer 1;superscript",  // -1..1 : symmetric [U]nit
-    't': "integer 0;subscript;integer 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
-    'T': "push \\pi;negate;subscript;push \\pi;superscript",  // -pi..pi : symmetric [T]rigonometric
-    'P': "integer 0;subscript;push \\pi;superscript"  // 0..pi
-  },
-
-  // [/][I] prefix
-  // (same as /i, but create the integral sign too)
-  integral_with_limits: {
-    'r': "push \\int;push \\infty;negate;subscript;push \\infty;superscript",
-    'R': "push \\int;push R;typeface calligraphic;subscript",
-    'n': "push \\int;push \\infty;negate;subscript;integer 0;superscript",
-    'p': "push \\int;integer 0;subscript;push \\infty;superscript",
-    'u': "push \\int;integer 0;subscript;integer 1;superscript",
-    'U': "push \\int;integer -1;subscript;integer 1;superscript",
-    't': "push \\int;integer 0;subscript;integer 2;push \\pi;concat;superscript",
-    'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript",
-    'P': "push \\int;integer 0;subscript;push \\pi;superscript"
+    'r': "push \\int;push \\infty;negate;subscript;push \\infty;superscript",  // -inf..inf : [r]eals
+    'R': "push \\int;push R;typeface calligraphic;subscript",  // reals alternative notation
+    'n': "push \\int;push \\infty;negate;subscript;integer 0;superscript",  // -inf..0 : [n]egative 
+    'p': "push \\int;integer 0;subscript;push \\infty;superscript",  // 0..inf : [p]ositive
+    'u': "push \\int;integer 0;subscript;integer 1;superscript",  // 0..1 : [u]nit
+    'U': "push \\int;integer -1;subscript;integer 1;superscript",  // -1..1 : symmetric [U]nit
+    't': "push \\int;integer 0;subscript;integer 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
+    'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript",  // -pi..pi : symmetric [T]rigonometric
+    'P': "push \\int;integer 0;subscript;push \\pi;superscript",  // 0..pi
+    // lower upper => \int_{lower}^{upper}
+    'l': "push \\int;swap;superscript;swap;subscript",
+    // f x => \int f dx (indefinite integral)
+    'i': "differential_form 1;concat;push \\int;swap;concat",
+    // integrand variable lower upper => full definite integral
+    'd': "push \\int;swap;superscript;swap;subscript;unrot;differential_form 1;concat;concat",
+    // f x \int => \int f\,dx
+    'a': "unrot;differential_form 1;concat;concat",
+    // \int f x => \int f\,dx
+    ' ': "differential_form 1;concat;concat"
   },
 
   // [/][d] prefix: derivative operations

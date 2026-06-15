@@ -210,9 +210,8 @@
           Build different kinds of <a href="#help_derivatives">derivatives and differentials</a>.
         </li>
         <li>
-          <span class="k">/</span><span class="k">i</span>&nbsp;
-          <span class="k">/</span><span class="k">I</span>
-          Apply <a href="#help_integrals">integral limits</a>.
+          <span class="k">/</span><span class="k">i</span>
+          Build common types of <a href="#help_integrals">integral expressions</a>.
         </li>
         <li><span class="k">/</span><span class="k">f</span> Apply <a href="#help_named_operators">named operators</a>.</li>
         <li><span class="k">)</span> Enclose expressions in paired <a href="#help_delimiters">delimiters</a>.</li>
@@ -1737,16 +1736,12 @@
       </p>
 
       <h2 id="help_integrals">
-        <span class="k">/</span><span class="k">i</span>&nbsp;
-        <span class="k">/</span><span class="k">I</span>
-        Integral Limits
+        <span class="k">/</span><span class="k">i</span>
+        Integral Expressions
       </h2>
       <p>
-        These commands are for quickly applying common limits to integral signs.
-        The <span class="k">/</span><span class="k">i</span> prefix applies limits to an existing
-        integral sign (or other expression) on the stack,
-        while <span class="k">/</span><span class="k">I</span>
-        creates the integral sign and the limits in a single command.
+        These commands are shortcuts for creating integral signs with
+        common limits attached:
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -1784,6 +1779,42 @@
           <tr>
             <td><span class="k">P</span> <code>\Rightarrow \int_0^\pi</code></td>
             <td><em>zero to <code>\pi</code></em></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="k">l</span>
+              <code>a\enspace b \Rightarrow \int_{a}^{b}</code>
+            </td>
+            <td><em>with specified <strong>l</strong>imits</em></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="k">i</span>
+              <code>f\enspace x\enspace \Rightarrow \int f\, dx</code>
+            </td>
+            <td><em>build <strong>i</strong>ndefinite integral</em></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="k">d</span>
+              <code>f\enspace x\enspace a\enspace b\enspace
+                \Rightarrow \int_{a}^{b} f\, dx</code>
+            </td>
+            <td><em>build <strong>d</strong>efinite integral</em></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="k">a</span>
+              <code>f\enspace x\enspace \int_a^b\Rightarrow \int_a^b f\,dx</code>
+            </td>
+            <td><em><strong>a</strong>ttach f and dx to existing integral sign</em></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="k">&nbsp;</span>
+              <code>\int_a^b\enspace f\enspace x \Rightarrow \int_a^b f\,dx</code>
+            </td>
+            <td><em>same as above but integral sign comes first</em></td>
           </tr>
       </tbody></table>
 
