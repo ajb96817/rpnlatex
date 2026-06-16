@@ -2754,33 +2754,96 @@
       <p><strong>Integral Transforms:</strong></p>
       <p>
         The <span class="k">#</span><span class="k">t</span> subprefix
-        covers SymPy integral transform commands.  These generally take
-        an expression to be transformed plus the expression's independent
-        variable, along with the new variable to be used in the transform
-        result.
+        covers the SymPy integral transform commands.  Similarly to some of the
+        other SymPy commands, these come in lowercase and uppercase variants,
+        with lowercase assuming traditional defaults for the transformed variable names,
+        and uppercase requiring these to be specified explicitly.
       </p>
+      <p>
+        <em>Inverse transforms</em> can be obtained by entering
+        <span class="k">-</span> either before the transform command, or directly
+        after the initial <span class="k">#</span>.  For example, the inverse Fourier
+        transform is either
+        <span class="k">#</span><span class="k">t</span><span class="k">-</span><span class="k">f</span>
+        or <span class="k">#</span><span class="k">-</span><span class="k">t</span><span class="k">f</span>.
+      </p>
+      
+      <p><em>Fourier transform:</em></p>
       <ul class="keybindings">
         <li>
-          <span class="k">f</span>
-          <code>f\enspace x\enspace k \Rightarrow \mathscr{F}\{f(x)\}[k]</code>
-          Fourier transform.
+          <span class="k">F</span>
+          <code>f\enspace x\enspace k \Rightarrow \hat{f}(k) \equiv \mathscr{F}\{f(x)\}(k)</code>
         </li>
         <li>
-          <span class="k">F</span>
-          <code>f\enspace k\enspace x \Rightarrow \mathscr{F}^{-1}\{f(x)\}[k]</code>
-          Inverse Fourier transform.
+          <span class="k">f</span>
+          <code>f \Rightarrow \mathscr{F}\{f(x)\}(k)</code>
+          (assumes <code>x \mapsto k</code>)
+        </li>
+        <li>
+          <span class="k">-</span><span class="k">F</span>
+          <code>\hat{f}\enspace k\enspace x \Rightarrow f(x) \equiv \mathscr{F}^{-1}\{\hat{f}(k)\}(x)</code>
+        </li>
+        <li>
+          <span class="k">-</span><span class="k">f</span>
+          <code>\hat{f} \Rightarrow \mathscr{F}^{-1}\{\hat{f}(k)\}(x)</code>
+          (assumes <code>k \mapsto x</code>)
+        </li>
+      </ul>
+
+      <p><em>Laplace transform:</em></p>
+      <ul class="keybindings">
+        <li>
+          <span class="k">L</span>
+          <code>f\enspace t\enspace s \Rightarrow \hat{f}(s) \equiv \mathscr{L}\{f(t)\}(s)</code>
         </li>
         <li>
           <span class="k">l</span>
-          <code>f\enspace t\enspace s \Rightarrow \mathscr{L}\{f(t)\}[s]</code>
-          Laplace transform.
+          <code>f \Rightarrow \mathscr{L}\{f(t)\}(s)</code>
+          (assumes <code>x \mapsto k</code>)
         </li>
         <li>
-          <span class="k">L</span>
-          <code>f\enspace s\enspace t \Rightarrow \mathscr{L}^{-1}\{f(s)\}[t]</code>
-          Inverse Laplace transform.
+          <span class="k">-</span><span class="k">L</span>
+          <code>\hat{f}\enspace s\enspace t \Rightarrow f(t) \equiv \mathscr{L}^{-1}\{\hat{f}(s)\}(t)</code>
+        </li>
+        <li>
+          <span class="k">-</span><span class="k">l</span>
+          <code>\hat{f} \Rightarrow \mathscr{L}^{-1}\{\hat{f}(s)\}(t)</code>
+          (assumes <code>s \mapsto t</code>)
         </li>
       </ul>
+      
+      <p>
+        <em>Sine, cosine, and Mellin transforms:</em>
+        These work the same as the Fourier transform, except they use
+        <span class="k">s</span>, <span class="k">c</span>, and <span class="k">m</span> respectively,
+        instead of <span class="k">f</span>.
+        For example, <span class="k">#</span><span class="k">t</span><span class="k">-</span><span class="k">C</span>
+        is the inverse cosine transform with the default domain mapping of <code>k \mapsto x</code>.
+        For the Mellin transform, the default domain mapping is <code>x \leftrightarrow s</code>.
+      </p>
+
+      <p>
+        <em>Hankel transform:</em>
+        This transform requires the domain variables to be specified explicitly,
+        along with the order <code>\nu</code> of the transform.
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="k">H</span>
+          <code>f\enspace \nu\enspace r\enspace k \Rightarrow
+            F_\nu(k) \equiv \int_0^\infty f(r)J_\nu(kr)r\,dr
+          </code>
+          (the <code>J_\nu</code> are Bessel functions)
+        </li>
+        <li>
+          <span class="k">-</span><span class="k">H</span>
+          <code>F\enspace \nu\enspace k\enspace r \Rightarrow
+            f(r) \equiv \int_0^\infty F_\nu(k)J_\nu(kr)k\,dk
+          </code>
+        </li>
+      </ul>
+      
+      
       
 
 <!--  <h3>Differential Equations</h3>  -->      

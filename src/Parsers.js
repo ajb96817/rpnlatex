@@ -371,8 +371,8 @@ class ExprParser extends Parser {
       return expr;
   }
 
-  parse_factor(initial_factor, allow_subscript_superscript = true) {
-    let factor = this._parse_factor(initial_factor);
+  parse_factor(is_initial_factor, allow_subscript_superscript = true) {
+    let factor = this._parse_factor(is_initial_factor);
     while(factor) {
       if(allow_subscript_superscript && this.consume('subscript')) {
         const subscript = this.parse_factor(true, false) || this.parse_error();
@@ -394,10 +394,10 @@ class ExprParser extends Parser {
     return factor;
   }
 
-  // 'initial_factor': Constant numbers are only allowed as the first
+  // 'is_initial_factor': Constant numbers are only allowed as the first
   // factor in an implicit product list: we can have '3x' but not 'x3'.
-  _parse_factor(initial_factor) {
-    if(initial_factor && this.consume('number'))
+  _parse_factor(is_initial_factor) {
+    if(is_initial_factor && this.consume('number'))
       return TextExpr.integer(this.current_token.text);
     else if(this.consume('ident')) {
       const ident_text = this.current_token.text;

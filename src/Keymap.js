@@ -167,7 +167,7 @@ const keybinding_table = {
     '|': "mode array",
     '~': "mode tensor",
     '_': "start_dissect_mode",
-    '#': "mode sympy",
+    '#': "mode symbolic",
     '$': "mode config",
     '?': "toggle_popup help",
 
@@ -1399,13 +1399,14 @@ const keybinding_table = {
   },
 
   // [#] prefix: SymPy - work in progress
-  sympy: {
+  symbolic: {
     '[digit]': "prefix_argument",
+    '-': "mode inverse_symbolic",
     '#': "sympy sympify 1 evaluate",
     '!': "sympy_terminate",
     '=': "sympy N 1",  // numeric eval
     '@': "export_stack_item_as_sympy",
-    '?': "mode sympy_query",
+    '?': "mode query",
     '/': "sympy nsimplify 1",  // convert float to "fraction"
 //    "\\": "rationalize",  // non-SymPy float-to-fraction
     '|': "sympy substitute 3",
@@ -1414,10 +1415,10 @@ const keybinding_table = {
     'i': "sympy integrate 1",
     'I': "sympy integrate 2",
     'f': "sympy factor 1",
-    'm': "mode sympy_manipulate",
-    'q': "mode sympy_diffeq",
+    'm': "mode manipulate",
+    'q': "mode diffeq",
     's': "sympy simplify 1",
-    't': "mode sympy_transform",
+    't': "mode integral_transform",
     'v': "sympy solveset 1 solve",  // sol[v]e
     'V': "sympy solveset 2 solve",
     'x': "sympy expand 1",
@@ -1426,8 +1427,26 @@ const keybinding_table = {
     // 'Y': "sympy_series_expansion true"
   },
 
+  // [#][-] prefix: "inverse" symbolic mode.
+  // Undocumented, but this is here so the user can enter either, for example,
+  // [#][t][-][f] or [#][-][t][f] for an inverse Fourier transform.
+  // We take the opportunity to define some natural "inverse" symbolic
+  // operation pairs too like: factor <-> expand, integrate <-> differentiate.
+  inverse_symbolic: {
+    '-': "mode symbolic",
+    't': "mode inverse_transform",
+    'd': "alias symbolic i",  // diff <-> int
+    'D': "alias symbolic I",
+    'i': "alias symbolic d",
+    'I': "alias symbolic D",
+    'f': "alias symbolic x",  // factor <-> expand
+    'x': "alias symbolic f",
+    '=': "alias symbolic /",  // N <-> nsimplify
+    '/': "alias symbolic ="
+  },
+
   // [#][?] prefix: SymPy commands for querying properties of an expression
-  sympy_query: {
+  query: {
     //'a': "sympy assumptions 1",  // TODO: this seems to have changed in sympy 1.15
     //'d': "sympy dominant 2",  // TODO: need to import sympy.series.limitseq.dominant
     'c': "sympy is_convex 2",
@@ -1440,7 +1459,7 @@ const keybinding_table = {
 
   // [#][m] prefix: SymPy "manipulation" commands; these change or rearrange
   // the expression without changing the mathematical meaning.
-  sympy_manipulate: {
+  manipulate: {
     'a': "sympy apart 1",
     'b': "sympy expand_power_base 1",  // TODO: doesn't seem to work right on e.g. (xy)^a
     'c': "sympy collect 2",
@@ -1454,7 +1473,7 @@ const keybinding_table = {
   },
 
   // [#][q] prefix: differential equation commands
-  sympy_diffeq: {
+  diffeq: {
     'c': "sympy classify_ode 1",
     'C': "sympy classify_ode 2",
     'z': "sympy classify_pde 1",  // TODO: better keybinding
@@ -1468,19 +1487,34 @@ const keybinding_table = {
   },
 
   // [#][t] prefix: SymPy integral transforms
-  sympy_transform: {
-    'c': "sympy cosine_transform 3",
-    'C': "sympy inverse_cosine_transform 3",
-    'f': "sympy fourier_transform 3",
+  integral_transform: {
+    '-': "mode inverse_transform",
+    'F': "sympy fourier_transform 3",
+    'f': "push x;push k;sympy fourier_transform 3",
+    'C': "sympy cosine_transform 3",
+    'c': "push x;push k;sympy cosine_transform 3",
+    'S': "sympy sine_transform 3",
+    'm': "push x;push s;sympy mellin_transform 4",
+    'M': "sympy mellin_transform 4",
+    's': "push x;push k;sympy sine_transform 3",
+    'L': "sympy laplace_transform 3",
+    'l': "push t;push s;sympy laplace_transform 3",
+    'H': "sympy hankel_transform 4"
+  },
+
+  // [#][t][-] prefix: SymPy inverse integral transforms
+  inverse_transform: {
+    '-': "mode integral_transform",
     'F': "sympy inverse_fourier_transform 3",
-    'h': "sympy hankel_transform 4",
-    'H': "sympy inverse_hankel_transform 4",
-    'l': "sympy laplace_transform 3",
+    'f': "push k;push x;sympy inverse_fourier_transform 3",
+    'C': "sympy inverse_cosine_transform 3",
+    'c': "push k;push x;sympy inverse_cosine_transform 3",
+    'S': "sympy inverse_sine_transform 3",
+    'm': "push s;push x;sympy inverse_mellin_transform 4",
+    's': "push k;push x;sympy inverse_sine_transform 3",
     'L': "sympy inverse_laplace_transform 3",
-    'm': "sympy mellin_transform 3",
-    'M': "sympy inverse_mellin_transform 4",
-    's': "sympy sine_transform 3",
-    'S': "sympy inverse_sine_transform 3"
+    'l': "push s;push t;sympy inverse_laplace_transform 3",
+    'H': "sympy inverse_hankel_transform 4"
   },
 
   // [@] prefix: \mathcal letters (uppercase only)
