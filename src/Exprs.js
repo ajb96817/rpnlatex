@@ -295,6 +295,10 @@ class Expr {
     return found_expr_path;
   }
 
+  concatenate(right_expr, no_parenthesize = false) {
+    return Expr.concatenate(this, right_expr, no_parenthesize);
+  }
+
   // "Dissolve" this expression into its component parts as appropriate.
   // Returns an array of the Expr components.
   dissolve() { return [this]; }
@@ -679,7 +683,6 @@ class FontExpr extends Expr {
       return new this(expr, 'normal', false, 0);
   }
 
-  // Wrap 'expr' in a Roman typeface FontExpr.
   static roman(expr) {
     return this.wrap(expr).with_typeface('roman');
   }
@@ -2284,21 +2287,23 @@ class ArrayExpr extends Expr {
       else
         return [expr, TextExpr.blank()];
     case 'colon':
-      if(expr.is_infix_expr() && [':', 'colon'].includes(expr.operator_text()))
+      if(expr.is_infix_expr() &&
+         [':', 'colon'].includes(expr.operator_text()))
         return [
           expr.extract_side_at(expr.split_at_index, 'left'),
           expr.extract_side_at(expr.split_at_index, 'right')];
       else
         return [expr, TextExpr.blank()];
     case 'colon_if':
-      if(expr.is_infix_expr() && [':', 'colon'].includes(expr.operator_text()))
+      if(expr.is_infix_expr() &&
+         [':', 'colon'].includes(expr.operator_text()))
         return [
           expr.extract_side_at(expr.split_at_index, 'left'),
-          Expr.concatenate(
-            Expr.concatenate(
-              FontExpr.roman_text('if'),
-              new CommandExpr('enspace'), true),
-            expr.extract_side_at(expr.split_at_index, 'right'), true)];
+          FontExpr.roman_text('if')
+            .concatenate(new CommandExpr('enspace'), true)
+            .concatenate(
+              expr.extract_side_at(
+                expr.split_at_index, 'right'), true)];
       else
         return [expr, FontExpr.roman_text('otherwise')];
     default:

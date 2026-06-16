@@ -386,7 +386,7 @@ class ExprParser extends Parser {
           this._remove_outer_parenthesis(exponent));
       }
       else if(this.consume('factorial'))
-        factor = Expr.concatenate(factor, new TextExpr('!'));
+        factor = factor.concatenate(new TextExpr('!'));
       else if(this.consume('prime'))
         factor = factor.with_prime(true);
       else break;

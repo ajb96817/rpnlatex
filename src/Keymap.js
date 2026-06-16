@@ -180,10 +180,12 @@ const keybinding_table = {
     'Ctrl+a': "alias stack a",
     'Ctrl+b': "alias base ]",
     'Ctrl+c': "alias stack c",
-    'Ctrl+d': "alias base Enter",  // subscript
+    'Ctrl+d': "mode derivative",
+    'Ctrl+D': "mode derivative_alt",
     'Ctrl+e': "alias operator e",  // exp(x): same as [/][e]
     'Ctrl+f': "parenthesize;push f;swap;function_call",
     'Ctrl+g': "parenthesize;push g;swap;function_call",
+    'Ctrl+h': "mode integral",
     'Ctrl+i': "alias stack i",
     'Ctrl+j': "alias stack j",
     'Ctrl+k': "alias operator k",
@@ -743,7 +745,23 @@ const keybinding_table = {
     // f x \int => \int f\,dx
     'a': "unrot;differential_form 1;concat;concat",
     // \int f x => \int f\,dx
-    ' ': "differential_form 1;concat;concat"
+    ' ': "differential_form 1;concat;concat",
+
+    // Ctrl aliases, as in 'derivative' mode.
+    'Ctrl+r': "alias r",
+    'Ctrl+R': "alias R",
+    'Ctrl+n': "alias n",
+    'Ctrl+p': "alias p",
+    'Ctrl+u': "alias u",
+    'Ctrl+U': "alias U",
+    'Ctrl+t': "alias t",
+    'Ctrl+T': "alias T",
+    'Ctrl+P': "alias P",
+    'Ctrl+l': "alias l",
+    'Ctrl+i': "alias i",
+    'Ctrl+d': "alias d",
+    'Ctrl+a': "alias a",
+    'Ctrl+ ': "differential_form 1;concat;concat"  // can't use alias for space
   },
 
   // [/][d] prefix: derivative operations
@@ -802,7 +820,39 @@ const keybinding_table = {
     '4': "differential_form 0;integer 4;superscript;swap;concat",
     // y x -> y dx (concatenate to integral sign)
     'i': "differential_form 1;concat",
-    ' ': "alias i"
+    ' ': "alias i",
+
+    // Ctrl aliases for all the subcommands; this makes it possible to
+    // use e.g. [Ctrl+d][Ctrl+y] instead of [/][d][y].
+    'Ctrl+j': "alias j",
+    'Ctrl+J': "alias J",
+    'Ctrl+x': "alias x",
+    'Ctrl+X': "alias X",
+    'Ctrl+y': "alias y",
+    'Ctrl+Y': "alias Y",
+    'Ctrl+q': "alias q",
+    'Ctrl+Q': "alias Q",
+    'Ctrl+m': "alias m",
+    'Ctrl+M': "alias M",
+    'Ctrl+g': "alias g",
+    'Ctrl+G': "alias G",
+    'Ctrl+.': "alias .",
+    'Ctrl+>': "alias >",
+    'Ctrl+c': "alias c",
+    'Ctrl+C': "alias C",
+    'Ctrl+l': "alias l",
+    'Ctrl+n': "alias n",
+    'Ctrl+d': "alias d",
+    'Ctrl+/': "alias /",
+    'Ctrl+p': "alias p",
+    'Ctrl+P': "alias P",
+    'Ctrl+f': "alias f",
+    'Ctrl+F': "alias F",
+    'Ctrl+2': "alias 2",
+    'Ctrl+3': "alias 3",
+    'Ctrl+4': "alias 4",
+    'Ctrl+i': "alias i",
+    'Ctrl+ ': "alias i"
   },
 
   // [/][D] prefix: derivative operations, but using roman-font 'd'
@@ -821,6 +871,23 @@ const keybinding_table = {
     'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;fraction",
     'y': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
     'Y': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;fraction",
+
+    // Ctrl aliases, same as with normal 'derivative' mode.
+    'Ctrl+d': "alias d",
+    'Ctrl+D': "alias D",
+    'Ctrl+/': "alias /",
+    'Ctrl+f': "alias f",
+    'Ctrl+F': "alias F",
+    'Ctrl+2': "alias 2",
+    'Ctrl+3': "alias 3",
+    'Ctrl+4': "alias 4",
+    'Ctrl+i': "alias i",
+    'Ctrl+ ': "alias i",
+    'Ctrl+x': "alias x",
+    'Ctrl+X': "alias X",
+    'Ctrl+y': "alias y",
+    'Ctrl+Y': "alias Y",
+    
     '[delegate]': "derivative"
   },
 
