@@ -1170,26 +1170,14 @@ class InputContext {
       return stack;  // not considered an error
   }
 
-  // Combine two Text or Expr items with an infix operator.
+  // Combine expressions with an infix operator.
   // 'opname' can be either a \latex_command or a regular string like '+'
-  // The cases of Expr+Expr and Expr+Text (or Text+Text) are handled separately.
   do_infix(stack, opname) {
-    const [new_stack, left_item, right_item] = stack.pop(2);
-    if(left_item.is_expr_item() && right_item.is_expr_item()) {
-      // Expr+Expr (the usual case).
-      const new_expr = InfixExpr.combine_infix(
-        left_item.expr, right_item.expr,
-        Expr.text_or_command(opname));
-      return new_stack.push_expr(new_expr);
-    }
-    else if((left_item.is_expr_item() || left_item.is_text_item()) &&
-            (right_item.is_expr_item() || right_item.is_text_item())) {
-      // Expr+Text or Text+Expr or Text+Text.
-      const new_item = TextItem.concatenate_items(left_item, right_item, opname);
-      return new_stack.push(new_item);
-    }
-    else
-      return stack.type_error();
+    const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
+    const new_expr = InfixExpr.combine_infix(
+      left_expr, right_expr,
+      Expr.text_or_command(opname));
+    return new_stack.push_expr(new_expr);
   }
 
   // Take (left, right, operator) from the stack and create an InfixExpr.
@@ -1201,7 +1189,7 @@ class InputContext {
 
   // x y z => (x,y,z)
   // Number of items is taken from the prefix argument, defaulting to 2.
-  do_tuple(stack, left_delimiter, right_delimiter) {
+  do_tuple(stack, left_delimiter = '(', right_delimiter = ')') {
     const expr_count = this._get_prefix_argument(2, -1);
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
     const inner_expr = InfixExpr.combine_infix_all(exprs, new TextExpr(','));

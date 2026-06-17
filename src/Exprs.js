@@ -957,7 +957,7 @@ class InfixExpr extends Expr {
   static combine_infix_all(exprs, op_expr) {
     if(exprs.length === 0)
       return TextExpr.blank();
-    return exprs.reduce((infix_expr, expr) =>
+    else return exprs.reduce((infix_expr, expr) =>
       this.combine_infix(infix_expr, expr, op_expr));
   }
 

@@ -450,8 +450,9 @@
           (for example: <kbd>$x+y$</kbd>).
         </li>
         <li>
-          Text objects can be concatenated to other text objects or to math expressions using <span class="k">&nbsp;</span>
-          (space) or combined via <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operators.
+          Text objects can be concatenated to other text objects or to math expressions with
+          <span class="k">&nbsp;</span> or with <span class="k">,</span><span class="k">&nbsp;</span>
+          to get a space in between.
         </li>
         <li>
           Bold and italic words may be entered using <kbd>**bold**</kbd> and <kbd>//italic//</kbd> syntax.
@@ -1078,7 +1079,18 @@
         compare <code>x:y</code> vs. <code>x\colon y</code>.
       </p>
       <p>
-        <strong>NOTE:</strong>
+        <strong>Apply:</strong>
+        The <span class="k">,</span><span class="k">a</span>
+        command takes three expressions from the stack, combining them into an
+        infix expression.  The stack top becomes the infix operator.  For example:
+        <code>x\enspace y\enspace \circledast \Rightarrow x\circledast y</code>.
+        This can also be done directly from <a href="#help_latex_entry">LaTeX entry mode</a>
+        using <span class="k">,</span> to finish the LaTeX command name:
+        <code>x\enspace y\enspace \mathtt{\backslash\backslash}\texttt{circledast,}
+          \Rightarrow x\circledast y</code>
+      </p>
+      <p>
+        <strong>Tuples:</strong>
         The &quot;tuple-building&quot; commands
         <span class="k">{</span> <span class="k">[</span>
         <span class="k">&lt;</span> <span class="k">{</span>
@@ -1087,22 +1099,8 @@
         <span class="k">,</span><span class="k">3</span><span class="k">(</span>
         <code>x\enspace y\enspace z \Rightarrow (x,y,z)</code>.
       </p>
-      <p>
-        <strong>Apply:</strong>
-        The <span class="k">,</span><span class="k">a</span>
-        command takes three expressions from the stack, combining them into an
-        infix expression.  The stack top becomes the infix operator.  For example:
-        <code>x\enspace y\enspace \circledast \Rightarrow x\circledast y</code>
-      </p>
-      <p>
-        <strong>NOTE:</strong>
-        This can also be done directly from <a href="#help_latex_entry">LaTeX entry mode</a>
-        using <span class="k">,</span> to finish the LaTeX command name:
-        <code>x\enspace y\enspace \mathtt{\backslash\backslash}\texttt{circledast,}
-          \Rightarrow x\circledast y</code>
-      </p>
       <p id="conjunction_anchor">
-        <strong>Conjunction:</strong>
+        <strong>Conjunctions:</strong>
         The <span class="k">,</span><span class="k">&#39;</span>
         command is for combining two expressions with an English phrase between them,
         with some extra spacing.

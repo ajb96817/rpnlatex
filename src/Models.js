@@ -1219,7 +1219,12 @@ class TextItemRawElement extends TextItemElement {
 
 class TextItem extends Item {
   static from_expr(expr) {
-    return new this([new TextItemExprElement(expr)]);
+    // Treat a \, (thinspace) command expression as a text space.
+    // This allows us to concatenate text items with the usual [,][ ] command.
+    if(expr.is_command_expr_with(0, ','))
+      return new this([new TextItemTextElement(' ')]);
+    else
+      return new this([new TextItemExprElement(expr)]);
   }
 
   static from_string(string) {
@@ -1237,12 +1242,10 @@ class TextItem extends Item {
   }
 
   // item1/2 can each be TextItems or ExprItems (caller must check).
-  static concatenate_items(item1, item2, separator_text) {
+  static concatenate_items(item1, item2) {
     if(item1.is_expr_item()) item1 = TextItem.from_expr(item1.expr);
     if(item2.is_expr_item()) item2 = TextItem.from_expr(item2.expr);
-    const elements = item1.elements.concat(
-      separator_text ? [new TextItemRawElement(separator_text)] : [],
-      item2.elements);
+    const elements = item1.elements.concat(item2.elements);
     // Coalesce adjacent elements.  Rules are:
     //   - Adjacent TextElements are concatenated directly as long as their
     //     is_bold and is_italic flags match.
