@@ -1063,7 +1063,8 @@
             <td><span class="k">_</span> <code>x\_y</code></td>
           </tr>
           <tr>
-            <td colspan="3">
+            <td><span class="k">.</span> <code>x.y</code></td>
+            <td colspan="2">
               <span class="k">&#39;</span> <em>conjunction</em> (see below)
             </td>
           </tr>
@@ -2261,31 +2262,19 @@
 
       <p>
         <strong>List Building:</strong>
-        These commands build concatenated lists from individual items.
-        As before, the number of items to concatenate must be given as a prefix argument.
+        These commands join multiple individual terms into infix expressions.
+        The number of items to join defaults to 3 but this can be overridden
+        by a prefix argument.
       </p>
       <ul class="keybindings">
-        <li>
-          <span class="k">,</span>
-          <code>x_1,x_2,x_N,\dots</code>
-        </li>
-        <li>
-          <span class="k">.</span>
-          <code>x_1,x_2,\dots,x_N</code>
-        </li>
-        <li>
-          <span class="k">;</span>
-          <code>x_1;x_2;x_N</code>
-        </li>
-        <li>
-          <span class="k">+</span>
-          <code>x_1 + x_2 + \cdots + x_N</code>
-        </li>
-        <li>
-          <span class="k">p</span>
-          <code>x_1 + x_2 + x_N + \cdots</code>
-          <em>(<strong>p</strong>lus)</em>
-        </li>
+        <li><span class="k">,</span> <code>x_1,x_2,x_N</code></li>
+        <li><span class="k">.</span> <code>x_1,x_2,\dots,x_N</code></li>
+        <li><span class="k">&gt;</span> <code>x_1,x_2,x_N,\dots</code></li>
+        <li><span class="k">&lt;</span> <code>\dots,x_1,x_2,x_N</code></li>
+        <li><span class="k">;</span> <code>x_1;x_2;x_N</code></li>
+        <li><span class="k">+</span> <code>x_1 + x_2 + x_N</code></li>
+        <li><span class="k">p</span> <code>x_1 + x_2 + x_N + \cdots</code></li>
+        <li><span class="k">P</span> <code>x_1 + x_2 + \cdots + x_N</code></li>
       </ul>
 
       <p><strong>Miscellaneous:</strong></p>
@@ -2817,7 +2806,7 @@
         These work the same as the Fourier transform, except they use
         <span class="k">s</span>, <span class="k">c</span>, and <span class="k">m</span> respectively,
         instead of <span class="k">f</span>.
-        For example, <span class="k">#</span><span class="k">t</span><span class="k">-</span><span class="k">C</span>
+        For example, <span class="k">#</span><span class="k">t</span><span class="k">-</span><span class="k">c</span>
         is the inverse cosine transform with the default domain mapping of <code>k \mapsto x</code>.
         For the Mellin transform, the default domain mapping is <code>x \leftrightarrow s</code>.
       </p>

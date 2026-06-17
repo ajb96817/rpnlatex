@@ -2234,12 +2234,11 @@ class InputContext {
         element_exprs));
   }
 
-  // Take [x_1,...,x_n] from the stack (where n is the prefix argument)
+  // Take [x_1,...,x_n] from the stack (where n is the prefix argument, defaulting to 3)
   // and build an InfixExpr with the given text between each term as an infix operator.
   // 'final_operand_text' is used as the next to last operand if provided.
   do_infix_list(stack, infix_text, final_operand_text) {
-    this._require_prefix_argument(true);
-    const expr_count = this._get_prefix_argument(1, stack.depth());
+    const expr_count = this._get_prefix_argument(3, stack.depth());
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
     const infix_operator_expr = Expr.text_or_command(infix_text);
     let operand_exprs = exprs;

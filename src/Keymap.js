@@ -1034,6 +1034,7 @@ const keybinding_table = {
     '-': "infix \\ominus",
     '.': "autoparenthesize 2;infix \\cdot",
     ',': "infix ,",
+    '.': "push .;swap;concat;concat",  // NOTE: not true infix; used for e.g. 2 3 => '2.3', x y => 'x.y'
     '(': "infix ,;delimiters ( )",  // (x,y)
     '>': "infix \\cdots",
     '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
@@ -1275,41 +1276,54 @@ const keybinding_table = {
   array: {
     '[digit]': "prefix_argument",
     '*': "prefix_argument",
-    'a': "align aligned",
-    'c': "align cases",
-    'C': "align rcases",
+
+    'k': "substack",  // TODO: remove, not very useful
+
+    // Matrix manipulation:
     'E': "insert_matrix_ellipses",
-    'f': "align cases_if",
-    'F': "align rcases_if",
-    'g': "align gathered",
     'h': "stack_arrays horizontal",
-    'k': "substack",
-    'm': "matrix_row matrix",
-    ' ': "alias m",
-    'p': "infix_list +;push \\cdots;push +;apply_infix",
-    'r': "autoparenthesize;push Tr;swap;operator operatorname 2",
+    '|': "stack_arrays vertical",
+    'Enter': "alias |",
     's': "split_array",
     't': "mode change_matrix_type",
     'T': "transpose_matrix",
+    'x': "matrix",
+
+    // Alignment/case building:
+    'a': "align aligned",
+    'c': "align cases",
+    'C': "align rcases",
+    'f': "align cases_if",
+    'F': "align rcases_if",
+    'g': "align gathered",
+
+    // List building:
+    ',': "infix_list ,",  // x,y,z
+    '.': "infix_list , \\dots",  // x,y,...,z
+    '>': "infix_list ,;push \\dots;infix ,",  // x,y,z,... (Shift+[.])
+    '<': "infix_list ,;push \\dots;swap;infix ,",  // ...,x,y,z  (Shift+[,])
+    ';': "infix_list semicolon",  // x;y;z
+    '+': "infix_list +",  // x+y+z
+    'p': "infix_list +;push \\cdots;infix +",  // x+y+z+...
+    'P': "infix_list + \\cdots",  // x+y+...+z
+
+    // Matrix row building:
+    'm': "matrix_row matrix",
+    ' ': "alias m",
     'v': "matrix_row vmatrix",
     'V': "matrix_row Vmatrix",
-    'x': "matrix",
-    '|': "stack_arrays vertical",
-    ',': "infix_list ,;push \\dots;push ,;apply_infix",
-    '.': "infix_list , \\dots",
-    ';': "infix_list semicolon",
-    '+': "infix_list + \\cdots",
     '(': "matrix_row pmatrix",
     '[': "matrix_row bmatrix",
     '{': "matrix_row Bmatrix",
     '@': "matrix_row bmatrix 2;transpose_matrix",
     '#': "matrix_row bmatrix 3;transpose_matrix",
     '$': "matrix_row bmatrix 2;unrot;matrix_row bmatrix 2;swap;stack_arrays vertical",
+
+    // Array row/column separators:
     ':': "array_separator column dashed",
     '!': "array_separator column solid",
     '_': "array_separator row dashed",
-    '-': "array_separator row solid",
-    'Enter': "stack_arrays vertical"
+    '-': "array_separator row solid"
   },
 
   matrix: {
@@ -1408,10 +1422,10 @@ const keybinding_table = {
     '@': "export_stack_item_as_sympy",
     '?': "mode query",
     '/': "sympy nsimplify 1",  // convert float to "fraction"
-//    "\\": "rationalize",  // non-SymPy float-to-fraction
+    // "\\": "rationalize",  // non-SymPy float-to-fraction
     '|': "sympy substitute 3",
-    'd': "sympy diff 1 differentiate",
-    'D': "sympy diff 2 differentiate",
+    'd': "sympy diff 1",
+    'D': "sympy diff 2",
     'i': "sympy integrate 1",
     'I': "sympy integrate 2",
     'f': "sympy factor 1",
@@ -1428,10 +1442,11 @@ const keybinding_table = {
   },
 
   // [#][-] prefix: "inverse" symbolic mode.
-  // Undocumented, but this is here so the user can enter either, for example,
+  // This is here so the user can enter either, for example,
   // [#][t][-][f] or [#][-][t][f] for an inverse Fourier transform.
   // We take the opportunity to define some natural "inverse" symbolic
   // operation pairs too like: factor <-> expand, integrate <-> differentiate.
+  // (These are undocumented.)
   inverse_symbolic: {
     '-': "mode symbolic",
     't': "mode inverse_transform",
@@ -1511,6 +1526,7 @@ const keybinding_table = {
     'c': "push k;push x;sympy inverse_cosine_transform 3",
     'S': "sympy inverse_sine_transform 3",
     'm': "push s;push x;sympy inverse_mellin_transform 4",
+    'M': "sympy inverse_mellin_transform 4",
     's': "push k;push x;sympy inverse_sine_transform 3",
     'L': "sympy inverse_laplace_transform 3",
     'l': "push s;push t;sympy inverse_laplace_transform 3",
