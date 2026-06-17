@@ -992,6 +992,7 @@ const keybinding_table = {
 
   // [,] prefix: combine two objects with an infix operation
   infix: {
+    '[digit]': "prefix_argument",  // NOTE: '*' can't be used because it's also an infix operator
     'a': "apply_infix",
     'b': "infix \\bullet",
     'c': "infix \\cap",
@@ -1035,9 +1036,11 @@ const keybinding_table = {
     '.': "autoparenthesize 2;infix \\cdot",
     ',': "infix ,",
     '.': "push .;swap;concat;concat",  // NOTE: not true infix; used for e.g. 2 3 => '2.3', x y => 'x.y'
-    '(': "infix ,;delimiters ( )",  // (x,y)
+    '(': "tuple ( )",
+    '<': "tuple \\langle \\rangle",
+    '[': "tuple [ ]",
+    '{': "tuple \\{ \\}",
     '>': "infix \\cdots",
-    '<': "infix ,;delimiters \\langle \\rangle",  // <x,y>
     '*': "autoparenthesize 2;infix *",
     '^': "autoparenthesize 2;infix \\star",
     ':': "infix \\colon",
@@ -1050,11 +1053,6 @@ const keybinding_table = {
     'Tab': "infix \\quad",
     '_': "infix \\_",
     "'": "start_text_entry conjunction_entry"
-
-    //'[': "infix \\llcorner",  // right-contraction (uncommon, disabled for now)
-    //']': "infix \\lrcorner",  // left-contraction(uncommon, disabled for now)
-    //'{': "infix \\leftthreetimes",  // semidirect product
-    //'}': "infix \\rightthreetimes",
   },
 
   // [=] prefix: relational operators

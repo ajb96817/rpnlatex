@@ -1199,6 +1199,16 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
+  // x y z => (x,y,z)
+  // Number of items is taken from the prefix argument, defaulting to 2.
+  do_tuple(stack, left_delimiter, right_delimiter) {
+    const expr_count = this._get_prefix_argument(2, -1);
+    const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
+    const inner_expr = InfixExpr.combine_infix_all(exprs, new TextExpr(','));
+    const tuple_expr = new DelimiterExpr(left_delimiter, right_delimiter, inner_expr);
+    return new_stack.push_expr(tuple_expr);
+  }
+
   // Similar to do_infix but joins two expressions with an English phrase
   // with Roman font and extra spacing (\quad).
   do_conjunction(stack, phrase) {

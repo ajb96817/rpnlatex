@@ -1028,8 +1028,6 @@
           <tr>
             <td><span class="k">x</span> <code>x\times y</code></td>
             <td><span class="k">X</span> <code>x\otimes y</code></td>
-            <!-- <td><span class="k">[</span> <code>x\llcorner y</code></td>
-            <td><span class="k">]</span> <code>x\lrcorner y</code></td> -->
             <td><span class="k">=</span> <code>x\Rightarrow y</code></td>
           </tr>
           <tr>
@@ -1039,32 +1037,36 @@
           </tr>
           <tr>
             <td><span class="k">,</span> <code>x,y</code></td>
-            <td><span class="k">(</span> <code>\left(x,y\right)</code></td>
             <td><span class="k">&gt;</span> <code>x\cdots y</code></td>
-          </tr>
-          <tr>
-            <td><span class="k">&lt;</span> <code>\left\langle x,y\right\rangle</code></td>
             <td><span class="k">*</span> <code>x*y</code></td>
-            <td><span class="k">^</span> <code>x\star y</code>
           </tr>
           <tr>
+            <td><span class="k">^</span> <code>x\star y</code>
             <td><span class="k">:</span> <code>x\colon y</code> (see below)</td>
             <td><span class="k">;</span> <code>x;y</code></td>
-            <td><span class="k">`</span> <code>x^\mathrm{T} y</code></td>
           </tr>
           <tr>
+            <td><span class="k">`</span> <code>x^\mathrm{T} y</code></td>
             <td><span class="k">~</span> <code>xy^\mathrm{T}</code></td>
             <td><span class="k">/</span> <code>x/y</code></td>
-            <td><span class="k">\</span> <code>x\backslash y</code></td>
           </tr>
           <tr>
+            <td><span class="k">\</span> <code>x\backslash y</code></td>
             <td><span class="k">%</span> <code>x\div y</code></td>
             <td><span class="k">Tab</span> <code>x\quad y</code></td>
-            <td><span class="k">_</span> <code>x\_y</code></td>
           </tr>
           <tr>
+            <td><span class="k">_</span> <code>x\_y</code></td>
             <td><span class="k">.</span> <code>x.y</code></td>
-            <td colspan="2">
+            <td><span class="k">(</span> <code>\left(x,y\right)</code></td>
+          </tr>
+          <tr>
+            <td><span class="k">[</span> <code>\left[x,y\right]</code></td>
+            <td><span class="k">&lt;</span> <code>\left\langle x,y\right\rangle</code></td>
+            <td><span class="k">{</span> <code>\left\{x,y\right\}</code></td>
+          </tr>
+          <tr>
+            <td colspan="3">
               <span class="k">&#39;</span> <em>conjunction</em> (see below)
             </td>
           </tr>
@@ -1074,6 +1076,16 @@
         <span class="k">:</span><span class="k">:</span> can be used as an alternative
         to <span class="k">,</span><span class="k">:</span> to get different spacing:
         compare <code>x:y</code> vs. <code>x\colon y</code>.
+      </p>
+      <p>
+        <strong>NOTE:</strong>
+        The &quot;tuple-building&quot; commands
+        <span class="k">{</span> <span class="k">[</span>
+        <span class="k">&lt;</span> <span class="k">{</span>
+        can take an optional prefix argument to specify the number of items.
+        For example:
+        <span class="k">,</span><span class="k">3</span><span class="k">(</span>
+        <code>x\enspace y\enspace z \Rightarrow (x,y,z)</code>.
       </p>
       <p>
         <strong>Apply:</strong>
