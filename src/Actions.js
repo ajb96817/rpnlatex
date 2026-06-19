@@ -685,10 +685,14 @@ class InputContext {
     }
     else {
       const document = this.app_state.document;
-      const amount =
-            amount_string === 'top' ? -document.item_count() :
-            amount_string === 'bottom' ? document.item_count() :
-            parseInt(amount_string);
+      let amount =
+          amount_string === 'top' ? -document.item_count() :
+          amount_string === 'bottom' ? document.item_count() :
+          parseInt(amount_string);
+      // Prefix argument can override the amount in the parameter, but the sign
+      // stays the same (e.g. [Tab][5][ArrowUp] scrolls by -5).
+      if(this.prefix_argument !== null && this.prefix_argument > 0)
+        amount = Math.sign(amount) * this.prefix_argument;
       this.update_document(document.move_selection_by(amount));
       return stack;
     }

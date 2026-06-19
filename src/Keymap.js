@@ -320,15 +320,17 @@ const keybinding_table = {
     'a': "swap",
     'c': "copy_to_clipboard",
     'd': "pop",
+    'f': "toggle_popup files",
     'i': "pop_to_document",
     'I': "pop_to_document preserve",
-    'f': "toggle_popup files",
     'j': "extract_from_document",
     'J': "extract_from_document preserve",
     'k': "keep",
     'l': "recenter_document 50",
     'n': "nip",
     'o': "over",
+    'p': "change_document_selection +1",  // undocumented
+    'q': "change_document_selection -1",  // undocumented
     'r': "rot",
     's': "save_file",
     't': "tuck",
@@ -352,7 +354,10 @@ const keybinding_table = {
     '$': "extract_latex_source",
     '?': "mode user_guide_jump",
     'ArrowRight': "scroll document_panel horizontal 75",
-    'ArrowLeft': "scroll document_panel horizontal -75"
+    'ArrowLeft': "scroll document_panel horizontal -75",
+    // Having up/down aliased here allows using prefix argument to control the scroll amount.
+    'ArrowUp': "alias base ArrowUp",
+    'ArrowDown': "alias base ArrowDown"
   },
 
   // [Tab][?] prefix: jump to User Guide sections while docked
