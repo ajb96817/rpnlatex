@@ -736,12 +736,12 @@ const keybinding_table = {
     't': "push \\int;integer 0;subscript;integer 2;push \\pi;concat;superscript",  // 0..2pi : [t]rigonometric
     'T': "push \\int;push \\pi;negate;subscript;push \\pi;superscript",  // -pi..pi : symmetric [T]rigonometric
     'P': "push \\int;integer 0;subscript;push \\pi;superscript",  // 0..pi
-    // lower upper => \int_{lower}^{upper}
+    // [l]imits: lower upper => \int_{lower}^{upper}
     'l': "push \\int;swap;superscript;swap;subscript",
     // f x => \int f dx (indefinite integral)
     'i': "differential_form 1;concat;push \\int;swap;concat",
-    // integrand variable lower upper => full definite integral
-    'd': "push \\int;swap;superscript;swap;subscript;unrot;differential_form 1;concat;concat",
+    // lower upper integrand variable => full definite integral
+    'd': "differential_form 1;concat;unrot;push \\int;swap;superscript;swap;subscript;swap;concat",
     // f x \int => \int f\,dx
     'a': "unrot;differential_form 1;concat;concat",
     // \int f x => \int f\,dx

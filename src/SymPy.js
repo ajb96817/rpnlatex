@@ -1081,7 +1081,9 @@ class Analyzer {
     let index = start_index, term_exprs = [];
     while(index < stop_index &&
           exprs[index].is_term_expr(index === start_index)) {
-      if(!exprs[index].is_whitespace())  // ignore whitespace
+      if(exprs[index].is_whitespace())  // ignore whitespace
+        ;
+      else
         term_exprs.push(exprs[index]);
       index++;
     }

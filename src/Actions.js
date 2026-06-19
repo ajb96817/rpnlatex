@@ -1281,6 +1281,9 @@ class InputContext {
     if(left_item.is_expr_item() && right_item.is_expr_item())
       return new_stack.push_expr(
         left_item.expr.concatenate(right_item.expr, no_parenthesize));
+    else if((left_item.is_text_item() && left_item.is_empty()) ||
+            (right_item.is_text_item() && right_item.is_empty()))
+      return stack.type_error();  // disallow concatenating separators
     else if((left_item.is_expr_item() || left_item.is_text_item()) &&
             (right_item.is_expr_item() || right_item.is_text_item()))
       return new_stack.push(
@@ -2027,7 +2030,7 @@ class InputContext {
       //   none:    50%
       //   0..9:    0% to 90%
       //   *:       100%
-      //   11..99:  11% to 99% (undocumented)
+      //   11..99:  11% to 99%
       scratch = this._get_prefix_argument(5, 10);
       if(scratch <= 10) scratch *= 10;
       if(scratch > 100) scratch = 100;
