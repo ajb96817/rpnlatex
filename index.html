@@ -519,16 +519,13 @@
           instead of <span class="k">Tab</span><span class="k">d</span>.
         </li>
         <li>
-          <span class="k">k</span>
-          <em>(Keep)</em> Remove all but the top N items (default 1).
-        </li>
-        <li>
           <span class="k">n</span> <em>(Nip)</em>
           Delete the Nth item from the top (default 2).
           <span class="k">Shift&nbsp;Backspace</span> or
           <span class="k">Ctrl&nbsp;Backspace</span> also do this.
         </li>
         <li><span class="k">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
+        <li><span class="k">p</span><em>(Kee<strong>p</strong>)</em> Remove all but the top N items (default 1).</li>
         <li><span class="k">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
         <li><span class="k">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
         <li><span class="k">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
@@ -549,17 +546,17 @@
       </p>
       <ul class="keybindings">
         <li>
-          <span class="k">i</span>
+          <span class="k">k</span>
           Move N items (default 1) from the stack into the document at the current selection position.
         </li>
         <li>
           <span class="k">j</span>
           Move N items (default 1) from the document back onto the stack.
           If N is more than 1, items are taken from the current selection position and <em>above</em>,
-          to match what <span class="k">i</span> does.
+          to match what <span class="k">k</span> does.
         </li>
         <li>
-          <span class="k">I</span>
+          <span class="k">K</span>
           Copy N items (default 1) from the stack into the document at the current selection position
           without removing them from the stack.
         </li>
@@ -1836,7 +1833,7 @@
       <p>
         <strong>Control Key Shortcuts:</strong>
         Similarly to the <a href="#help_derivatives">derivative</a> commands,
-        these integral commands can be accessed via <span class="k">Ctrl&nbsp;h</span>,
+        these integral commands can be accessed via <span class="k">Ctrl&nbsp;i</span>,
         which is an alias for <span class="k">/</span><span class="k">i</span>.
       </p>
 
@@ -3161,22 +3158,17 @@
         <li><span class="k">Ctrl&nbsp;g</span>
           <code>x \Rightarrow g(x)</code>
         </li>
-        <li><span class="k">Ctrl&nbsp;h</span>
+        <li><span class="k">Ctrl&nbsp;i</span>
           Enter <a href="#help_integrals">integral</a> mode
           &ndash; same as <span class="k">/</span><span class="k">i</span>
         </li>
-        <li><span class="k">Ctrl&nbsp;i</span>
-          Move the stack top into the document at the current selection position
-          &ndash; same as <span class="k">Tab</span><span class="k">i</span>
-        </li>
         <li><span class="k">Ctrl&nbsp;j</span>
-          Move the current document selection back onto the stack
+          Move the current document selection onto the stack
           &ndash; same as <span class="k">Tab</span><span class="k">j</span>
         </li>
-        <li>
-          <span class="k">Ctrl&nbsp;k</span>
-          <code>f\enspace x\enspace y \Rightarrow f(x\,|\,y)</code>
-          &ndash; same as <span class="k">/</span><span class="k">k</span>
+        <li><span class="k">Ctrl&nbsp;k</span>
+          Move the stack top into the document at the current selection position
+          &ndash; same as <span class="k">Tab</span><span class="k">k</span>
         </li>
         <li><span class="k">Ctrl&nbsp;l</span>
           Recenter the document view around the current document selection

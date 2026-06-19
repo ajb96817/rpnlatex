@@ -185,10 +185,12 @@ const keybinding_table = {
     'Ctrl+e': "alias operator e",  // exp(x): same as [/][e]
     'Ctrl+f': "parenthesize;push f;swap;function_call",
     'Ctrl+g': "parenthesize;push g;swap;function_call",
-    'Ctrl+h': "mode integral",
-    'Ctrl+i': "alias stack i",
+    //'Ctrl+h' unused
+    'Ctrl+i': "mode integral",
     'Ctrl+j': "alias stack j",
-    'Ctrl+k': "alias operator k",
+    'Ctrl+J': "alias stack J",  // undocumented
+    'Ctrl+k': "alias stack k",
+    'Ctrl+K': "alias stack K",  // undocumented
     'Ctrl+l': "alias stack l",
     'Ctrl+m': "alias decoration -",
     'Ctrl+n': "alias decoration r",
@@ -321,16 +323,14 @@ const keybinding_table = {
     'c': "copy_to_clipboard",
     'd': "pop",
     'f': "toggle_popup files",
-    'i': "pop_to_document",
-    'I': "pop_to_document preserve",
     'j': "extract_from_document",
     'J': "extract_from_document preserve",
-    'k': "keep",
+    'k': "pop_to_document",
+    'K': "pop_to_document preserve",
     'l': "recenter_document 50",
     'n': "nip",
     'o': "over",
-    'p': "change_document_selection +1",  // undocumented
-    'q': "change_document_selection -1",  // undocumented
+    'p': "keep",
     'r': "rot",
     's': "save_file",
     't': "tuck",
