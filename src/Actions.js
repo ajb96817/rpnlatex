@@ -705,10 +705,12 @@ class InputContext {
     if(this.settings.dock_helptext)
       return stack;
     const document = this.app_state.document;
-    const amount =
-          amount_string === 'top' ? 1 - document.selection_index :
-          amount_string === 'bottom' ? document.item_count() - document.selection_index :
-          parseInt(amount_string);
+    let amount =
+        amount_string === 'top' ? 1 - document.selection_index :
+        amount_string === 'bottom' ? document.item_count() - document.selection_index :
+        parseInt(amount_string);
+    if(this.prefix_argument !== null && this.prefix_argument > 0)
+      amount = Math.sign(amount) * this.prefix_argument;
     const new_document = document.shift_selection_by(amount);
     if(new_document)
       return this.update_document(new_document);
@@ -1193,10 +1195,11 @@ class InputContext {
 
   // x y z => (x,y,z)
   // Number of items is taken from the prefix argument, defaulting to 2.
-  do_tuple(stack, left_delimiter = '(', right_delimiter = ')') {
+  do_tuple(stack, left_delimiter = '(', right_delimiter = ')', separator = ',') {
     const expr_count = this._get_prefix_argument(2, -1);
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-    const inner_expr = InfixExpr.combine_infix_all(exprs, new TextExpr(','));
+    const separator_expr = new TextExpr(separator);
+    const inner_expr = InfixExpr.combine_infix_all(exprs, separator_expr);
     const tuple_expr = new DelimiterExpr(left_delimiter, right_delimiter, inner_expr);
     return new_stack.push_expr(tuple_expr);
   }

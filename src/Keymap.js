@@ -355,9 +355,11 @@ const keybinding_table = {
     '?': "mode user_guide_jump",
     'ArrowRight': "scroll document_panel horizontal 75",
     'ArrowLeft': "scroll document_panel horizontal -75",
-    // Having up/down aliased here allows using prefix argument to control the scroll amount.
+    // Having up/down aliased here allows using prefix argument to control the scroll/shift amount.
     'ArrowUp': "alias base ArrowUp",
-    'ArrowDown': "alias base ArrowDown"
+    'ArrowDown': "alias base ArrowDown",
+    'Shift+ArrowUp': "alias base Shift+ArrowUp",
+    'Shift+ArrowDown': "alias base Shift+ArrowDown"
   },
 
   // [Tab][?] prefix: jump to User Guide sections while docked
@@ -484,8 +486,6 @@ const keybinding_table = {
     'f': "delimiters \\lfloor \\rfloor",
     'F': "toggle_fixed_size_delimiters",
     'g': "delimiters \\lgroup \\rgroup",
-    'i': "infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y> [i]nner product
-    'I': "infix \\,\\vert\\,;infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x|y|z>
     'k': "delimiters \\vert \\rangle",  // |x> Dirac ket
     'l': "mode modify_left",
     'L': "alias l",
@@ -1009,6 +1009,7 @@ const keybinding_table = {
     'F': "conjunction iff",
     'g': "infix \\gets",
     'G': "infix \\Leftarrow",
+    'i': "tuple \\langle \\rangle \\,\\vert\\,",
     'j': "infix \\Join",
     'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
     '|': "alias k",

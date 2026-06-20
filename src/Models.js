@@ -468,7 +468,7 @@ class LatexEmitter {
 // Overall app state, holding the stack and document.
 class AppState {
   // properties: table of generic key->string properties
-  //   (things like author, description)
+  //   (not currently used, but saved in the document file)
   constructor(stack, document, properties = {}) {
     this.stack = stack ?? this._default_stack();
     this.document = document || new Document();
