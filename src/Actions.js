@@ -1206,12 +1206,12 @@ class InputContext {
 
   // Similar to do_infix but joins two expressions with an English phrase
   // with Roman font and extra spacing (\quad).
-  do_conjunction(stack, phrase) {
+  do_conjunction(stack, phrase, space_command = 'quad') {
     const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
     const new_expr = Expr.combine_with_conjunction(
       left_expr, right_expr,
       phrase.replaceAll('_', ' '),
-      false);
+      false, space_command);
     return new_stack.push_expr(new_expr);
   }
 

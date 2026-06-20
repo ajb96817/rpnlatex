@@ -1014,7 +1014,7 @@ const keybinding_table = {
     'k': "infix \\,\\vert\\,",  // x | y  ([k]onditional)
     '|': "alias k",
     'l': "infix \\parallel",
-    'm': "operator pmod;concat",  // y (mod x)
+    'm': "conjunction mod enspace",
     'M': "infix \\mp",
     'n': "conjunction when",
     'o': "infix \\circ",

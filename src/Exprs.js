@@ -123,13 +123,14 @@ class Expr {
   // Combine two Exprs with the given conjunction phrase between them,
   // with largish spacing, for example "X  iff  Y" as in the [,][F] command.
   // is_bold will make the conjunction phrase bolded.
-  static combine_with_conjunction(left_expr, right_expr, phrase, is_bold = false) {
+  static combine_with_conjunction(left_expr, right_expr, phrase,
+                                  is_bold = false, space_command = 'quad') {
     return InfixExpr.combine_infix(
       left_expr, right_expr,
       new SequenceExpr([
-        new CommandExpr('quad'),
+        new CommandExpr(space_command),
         new CommandExpr(is_bold ? 'textbf' : 'text', [new TextExpr(phrase)]),
-        new CommandExpr('quad')]));
+        new CommandExpr(space_command)]));
   }
 
   // "Parse" a roman_text string (via Shift+Enter from [\] math entry mode).
