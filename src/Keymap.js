@@ -202,6 +202,7 @@ const keybinding_table = {
     'Ctrl+s': "alias files s",
     'Ctrl+t': "autoparenthesize;push t;parenthesize;function_call",  // y -> y(t)
     'Ctrl+u': "alias `",
+    'Ctrl+U': "alias operator Enter",  // undocumented: x_y^z
     'Ctrl+v': "alias stack v",
     'Ctrl+w': "alias stack w",
     'Ctrl+W': "alias stack W",
@@ -217,7 +218,7 @@ const keybinding_table = {
     'Ctrl+=': "increment 1",
     'Ctrl+-': "increment -1",
     "Ctrl+'": "alias decoration '",
-    "Ctrl+.": "alias decoration .",
+    'Ctrl+.': "alias decoration .",
     'Ctrl+Backspace': "alias stack n"
   },
 
@@ -887,6 +888,7 @@ const keybinding_table = {
     'Ctrl+3': "alias 3",
     'Ctrl+4': "alias 4",
     'Ctrl+i': "alias i",
+    'Ctrl+I': "alias i",  // for convenience
     'Ctrl+ ': "alias i",
     'Ctrl+x': "alias x",
     'Ctrl+X': "alias X",

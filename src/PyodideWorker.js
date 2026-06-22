@@ -31,7 +31,7 @@ async function load_pyodide_if_needed(index_url = '/') {
 async function pump_message_queue() {
   const queue = self.message_queue ?? [];
   while(queue.length > 0) {
-    const message = queue.pop(0);
+    const message = queue.pop();
     await handle_message(message);
   }
 }
@@ -51,10 +51,9 @@ async function handle_message(message) {
 }
 
 async function run_sympy_command(code) {
-  const pyodide = self.pyodide;  // TODO: maybe check for null
   const start_time = Date.now();
   postMessage({message: 'running'});
-  let result = await pyodide.runPythonAsync(code);
+  let result = await self.pyodide.runPythonAsync(code);  // TODO: may need to check for self.pyodide === null
   // Convert the Python result object to JS.
   // create_pyproxies:false is used to fully convert the result object
   // and its fields to JS (it's shallow anyways), so that we don't have

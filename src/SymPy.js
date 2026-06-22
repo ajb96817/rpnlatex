@@ -526,6 +526,28 @@ class SymPySymbol extends SymPyNode {
   }
 }
 
+// Matrix(row_count, column_count, [elt1, ...])
+class SymPyMatrix extends SymPyNode {
+  // NOTE: element_nodes is a flat list of SymPyNodes in row-major order.
+  constructor(row_count, column_count, element_nodes) {
+    super();
+    this.row_count = row_count;
+    this.column_count = column_count;
+    this.element_nodes = element_nodes;
+  }
+  to_py_string(emitter) {
+    console.log(this.element_nodes);
+    const element_strings = this.element_nodes.map(
+      element_node => element_node.to_py_string(emitter));
+    return [
+      'Matrix(',
+      this.row_count.toString(), ', ',
+      this.column_count.toString(), ', [',
+      element_strings.join(', '),
+      '])'].join('');
+  }
+}
+
 // Named subexpression, the 'expr_1' in: expr_1 = (something)
 class SymPySubexpression extends SymPyNode {
   constructor(expr_number) {
@@ -998,6 +1020,26 @@ class ExprToSymPy {
       return term_nodes[0];
     else
       return this.fncall('Mul', term_nodes);
+  }
+  
+  emit_array_expr(array_expr) {
+    if(array_expr.is_matrix())
+      return this.emit_matrix_expr(array_expr);
+    else return this.error(
+      // TODO: support cases/rcases (becoming piecewise functions),
+      // and gather(ed) should become lists of expressions (for simultaneous
+      // solving, etc).
+      'Non-matrix arrayed expressions not supported yet',
+      array_expr);
+  }
+
+  // NOTE: Matrix ArrayExprs are always emitted as Matrix(n_rows, n_cols, [elts...]),
+  // even if they are 1xN or Nx1 "vectors".
+  emit_matrix_expr(matrix_expr) {
+    return new SymPyMatrix(
+      matrix_expr.row_count, matrix_expr.column_count,
+      matrix_expr.element_exprs.flat(1)
+        .map(element_expr => this.emit_expr(element_expr)));
   }
 
   try_analyzers(analyzer_classes, exprs) {

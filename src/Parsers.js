@@ -179,14 +179,14 @@ class Parser {
 }
 
 
-// Patterns are in order of precedence.
+// Patterns are tried in order until one matches.
 // All regexes must have the 'sticky' flag: /abc/y
 const expr_tokenizer_pattern_table = [
   [/\d*\.?\d+/y, 'number'],  // (potential) int or float (nonnegative)
   [/\[\]/y,      'placeholder'],  // "[]"
   [/\/\//y,      'fraction_bar'],  // "//"
-  [/<=|>=/y,     'relation'],  // check 2-char operators first
-  [/=|!=|<|>/y,  'relation'],  // 1-char operators
+  [/<=|>=|!=/y,  'relation'],  // check 2-char operators first
+  [/=|<|>/y,     'relation'],  // 1-char operators
   [/[A-Za-z]+/y, 'ident'],
   [/\s+/y,       'whitespace'],
   [/-/y,         'minus'],
@@ -217,6 +217,10 @@ class ExprParser extends Parser {
       if(!parser.at_end()) return null;
       return expr;
     }
+    // else return {
+    //   success: false,
+    //   error_message: 'Unexpected input',
+    //   error_position: ..?
     else
       return null;  // TODO: report error
   }

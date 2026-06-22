@@ -67,7 +67,7 @@ class InputContext {
 
     // Current prefix argument for commands like Swap; can be one of:
     //   null - no current prefix argument
-    //   >= 1 - normal prefix argument
+    //   >= 0 - normal prefix argument
     //   < 0  - "all" prefix argument (apply to all available items)
     // Prefix arguments are cleared after any normal command is executed
     // or if there's an error.  "Normal" command means anything that's not
