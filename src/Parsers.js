@@ -192,6 +192,8 @@ const expr_tokenizer_pattern_table = [
   [/-/y,         'minus'],
   [/\+/y,        'plus'],
   [/,/y,         'comma'],
+  [/;/y,         'semicolon'],
+  [/:/y,         'colon'],
   [/_/y,         'subscript'],
   [/\!/y,        'factorial'],
   [/'/y,         'prime'],
@@ -239,7 +241,7 @@ class ExprParser extends Parser {
     do {
       binary_token = this.consume(
         'plus', 'minus', 'multiply', 'divide',
-        'comma', 'relation', 'fraction_bar');
+        'comma', 'semicolon', 'colon', 'relation', 'fraction_bar');
       if(binary_token) {
         term = this.parse_term() || this.parse_error();
         operator_tokens.push(binary_token);

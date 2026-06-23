@@ -2209,10 +2209,8 @@ class ArrayExpr extends Expr {
     this.row_count = row_count;
     this.column_count = column_count;
     this.element_exprs = element_exprs;
-    this.row_separators = row_separators ||
-      new Array(row_count-1).fill(null);
-    this.column_separators = column_separators ||
-      new Array(column_count-1).fill(null);
+    this.row_separators = row_separators ?? new Array(row_count-1).fill(null);
+    this.column_separators = column_separators ?? new Array(column_count-1).fill(null);
   }
 
   // Stack two ArrayExprs on top of each other.
@@ -2225,7 +2223,7 @@ class ArrayExpr extends Expr {
       expr1.row_count + expr2.row_count,
       expr1.column_count,
       expr1.element_exprs.concat(expr2.element_exprs),
-      expr1.row_separators.concat([null], expr2.row_separators),
+      [...expr1.row_separators, null, ...expr2.row_separators],
       expr1.column_separators);
   }
 

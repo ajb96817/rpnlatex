@@ -2593,7 +2593,7 @@
         <li>
           <span class="k">i</span>
           <code>f\Rightarrow \mathtt{integrate(f)}</code>
-          Indefinite <strong>i</strong>ntegral
+          <em>(indefinite <strong>i</strong>ntegral)</em>
         </li>
         <li>
           <span class="k">I</span>
@@ -2608,20 +2608,6 @@
         <li>
           <span class="k">s</span>
           <code>x\Rightarrow \mathtt{simplify(x)}</code>
-        </li>
-        <li>
-          <span class="k">v</span>
-          <code>x \Rightarrow \mathtt{solve(x)}</code>:
-          Try to solve for the variable in an expression:
-          <code>x^2 = 3 \Rightarrow \left\{- \sqrt{3}, \sqrt{3}\right\}</code>
-        </li>
-        <li>
-          <span class="k">V</span>
-          <code>y\enspace x \Rightarrow \mathtt{solve(y, x)}</code>:
-          Like <span class="k">v</span>, but the variable to be solved for
-          is given explicitly:
-          <code>x=c^2 \enspace c \Rightarrow
-            \left\{- \sqrt{x}, \sqrt{x}\right\}</code>
         </li>
         <li>
           <span class="k">x</span>
@@ -2648,6 +2634,19 @@
           </code>
         </li>
 -->        
+        <li>
+          <span class="k">z</span>
+          <code>x \Rightarrow \mathtt{solveset(x)}</code>:
+          Try to find the <strong>z</strong>eroes of an expression or equation:
+          <code>x^2 = 3 \Rightarrow \left\{- \sqrt{3}, \sqrt{3}\right\}</code>
+        </li>
+        <li>
+          <span class="k">Z</span>
+          <code>y\enspace x \Rightarrow \mathtt{solveset(y, x)}</code>:
+          Like <span class="k">z</span>, but the variable to be solved for
+          is given explicitly:
+          <code>x=c^2 \enspace c \Rightarrow \left\{- \sqrt{x}, \sqrt{x}\right\}</code>
+        </li>
       </ul>
 
       <p><strong>Expression Manipulation:</strong></p>
