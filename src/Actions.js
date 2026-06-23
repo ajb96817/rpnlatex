@@ -425,85 +425,31 @@ class InputContext {
     return stack;
   }
 
-  // Calling SymPy series(expr, x, x0, n); convert expressions on the stack
-  // to the standard 4 arguments series() expects.
-  // 'n' (the order) defaults to 6 but can be specified via prefix argument.
-  // specify_variable:
-  //   'false': only expr is taken from the stack; x is inferred by SymPy
-  //            and x0 is set to 0.
-  //   'true': expr and a variable specification are taken from the stack;
-  //           the specification can be 'x' or 'x=123'.  In the 'x' case,
-  //           x0 is set to 0.
-  do_sympy_convert_series_arguments(stack, specify_variable) {
-    const pyodide = this.app_component.state.pyodide_interface;
-    let new_stack = null, expr = null, variable_spec_expr = null;
+  // Take an expression and variable from the stack and convert it into the
+  // four arguments required for SymPy's series() command.
+  // The 'variable' expression be a plain variable like 'x' or an equation
+  // like 'x=2'; the Taylor expansion will be about this point (defaulting to 0).
+  // The order of the expansion is taken from prefix argument, defaulting to O(x^6).
+  do_sympy_convert_series_arguments(stack) {
+    const [new_stack, expr, variable_spec_expr] = stack.pop_exprs(2);
     let x_expr = null, x0_expr = null;
-    if(specify_variable === 'false')
-      [new_stack, expr] = stack.pop_exprs(1);
-    else
-      [new_stack, expr, variable_spec_expr] = stack.pop_exprs(2);
-    if(variable_spec_expr) {
-      if(variable_spec_expr.is_infix_expr()) {
-        // Check for x=x0
-        if(variable_spec_expr.operator_text() !== '=')
-          return this.report_error('Expected x=x0 expression', variable_spec_expr);
-        [x_expr, x0_expr] = ['left', 'right'].map(side =>
-          variable_spec_expr.extract_side_at(
-            variable_spec_expr.split_at_index, side));
-      }
-      else {
-        // Check for 'x' (variable name).
-        x_expr = variable_spec_expr;
-      }
-      if(!pyodide.expr_to_variable_name(x_expr))
-        return this.report_error('Invalid variable name', x_expr);
+    if(variable_spec_expr.is_infix_expr()) {
+      // Expect 'x=x0'.
+      if(variable_spec_expr.operator_text() !== '=')
+        return this.report_error('Expected x=x0 expression', variable_spec_expr);
+      [x_expr, x0_expr] = ['left', 'right'].map(side =>
+        variable_spec_expr.extract_side_at(
+          variable_spec_expr.split_at_index, side));
+    }
+    else {
+      // Plain variable name; assume x0=0.
+      x_expr = variable_spec_expr;
+      x0_expr = TextExpr.integer(0);
     }
     const order = this._get_prefix_argument(6, 6);
-    // "Construct" new stack with arguments for the SymPy series() command.
-    const arg_exprs = [
-      expr,
-      x_expr /* variable; may be null */,
-      x0_expr ?? TextExpr.integer(0),
-      TextExpr.integer(order)];
-    return new_stack.push_all_exprs(arg_exprs);
-  }
-
-  // TODO: This is broken when x_expr is null.
-  // Keep either this or do_sympy_convert_series_arguments().
-  do_sympy_series_expansion(stack, specify_variable) {
-    const pyodide = this.app_component.state.pyodide_interface;
-    let new_stack = null, expr = null, variable_spec_expr = null;
-    let x_expr = null, x0_expr = null;
-    if(specify_variable === 'false')
-      [new_stack, expr] = stack.pop_exprs(1);
-    else
-      [new_stack, expr, variable_spec_expr] = stack.pop_exprs(2);
-    if(variable_spec_expr) {
-      if(variable_spec_expr.is_infix_expr()) {
-        // Check for x=x0
-        if(variable_spec_expr.operator_text() !== '=')
-          return this.report_error('Expected x=x0 expression', variable_spec_expr);
-        [x_expr, x0_expr] = ['left', 'right'].map(side =>
-          variable_spec_expr.extract_side_at(
-            variable_spec_expr.split_at_index, side));
-      }
-      else {
-        // Check for 'x' (variable name).
-        x_expr = variable_spec_expr;
-      }
-      if(!pyodide.expr_to_variable_name(x_expr))
-        return this.report_error('Invalid variable name', x_expr);
-    }
-    const order = this._get_prefix_argument(6, 6);
-    // "Construct" new stack with arguments for the SymPy series() command.
-    const series_arg_exprs = [
-      expr,
-      x_expr, /* variable; may be null */,
-      x0_expr ?? TextExpr.integer(0),
-      TextExpr.integer(order)];
-    this._start_executing_sympy_command(
-      'series', 'series', series_arg_exprs, [], null);
-    return new_stack;
+    return new_stack.push_all_exprs([
+      expr, x_expr, x0_expr,
+      TextExpr.integer(order)]);
   }
 
   // Take SymPyExprs from the stack and start up a computation

@@ -1440,9 +1440,7 @@ const keybinding_table = {
     's': "sympy simplify 1",
     't': "mode integral_transform",
     'x': "sympy expand 1",
-    // series commands temporarily disabled; action is broken
-    // 'y': "sympy_series_expansion false",
-    // 'Y': "sympy_series_expansion true"
+    'y': "sympy_convert_series_arguments;sympy series 4",
     'z': "sympy solveset 1 solve",  // [z]eroes
     'Z': "sympy solveset 2 solve"
   },

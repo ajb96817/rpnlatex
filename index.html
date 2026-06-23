@@ -526,7 +526,7 @@
           <span class="k">Ctrl&nbsp;Backspace</span> also do this.
         </li>
         <li><span class="k">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
-        <li><span class="k">p</span><em>(Kee<strong>p</strong>)</em> Remove all but the top N items (default 1).</li>
+        <li><span class="k">p</span> <em>(Kee<strong>p</strong>)</em> Remove all but the top N items (default 1).</li>
         <li><span class="k">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
         <li><span class="k">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
         <li><span class="k">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
@@ -2614,26 +2614,15 @@
           <code>x\Rightarrow \mathtt{expand(x)}</code>:
           <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
         </li>
-<!--        <li>
-          <span class="k">y</span>
-          Expand an expression in Taylor series, about <code>x=0</code>
-          and to order 6:
-          <code>\sin x \Rightarrow
-            x - \frac{x^{3}}{6} + \frac{x^{5}}{120} + O\left(x^{6}\right)
-          </code>
-        </li>
         <li>
-          <span class="k">Y</span>
-          Like <span class="k">y</span>, but the variable to use for the series
-          expansion is given explicitly.  The variable can be given in the form
-          <code>x=123</code>, defaulting to zero if only <code>x</code> is specified.
-          A prefix argument can be used to override the default order of 6.
-          <code>
-            x^2\enspace x=1 \Rightarrow
-            2 x + \left(x - 1\right)^{2} - 1
-          </code>
+          <span class="k">y</span>
+          <code>f\enspace x \Rightarrow \mathtt{series(f, x, a=0, order=6)}</code>:
+          Expand an expression in Ta<strong>y</strong>lor series using the given variable
+          <code>x</code>, which may be of the form <code>x=a</code> to specify
+          an expansion about <code>a</code> (defaulting to <code>x=0</code>).
+          The expansion is performed up to (not including) order <code>O(x^6)</code>,
+          which may be overridden by the prefix argument.
         </li>
--->        
         <li>
           <span class="k">z</span>
           <code>x \Rightarrow \mathtt{solveset(x)}</code>:
