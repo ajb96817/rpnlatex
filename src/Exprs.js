@@ -20,6 +20,10 @@ class Expr {
        ['-', '+'].includes(right_expr.operator_text()))
       return InfixExpr.combine_infix(
         left_expr, right_expr.base_expr, right_expr.operator_expr);
+    // concat(-x, y) => -{xy}
+    if(left_expr.is_unary_minus_expr())
+      return PrefixExpr.unary_minus(
+        this.concatenate(left_expr.base_expr, right_expr));
     // Check for concatenating a literal number (positive or negative) to
     // another (nonnegative) literal number.  The case with a negative literal
     // on the right was already handled above.
