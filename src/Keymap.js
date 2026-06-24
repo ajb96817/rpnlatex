@@ -1043,7 +1043,6 @@ const keybinding_table = {
     '-': "infix \\ominus",
     '.': "autoparenthesize 2;infix \\cdot",
     ',': "infix ,",
-    '.': "push .;swap;concat;concat",  // NOTE: not true infix; used for e.g. 2 3 => '2.3', x y => 'x.y'
     '(': "tuple ( )",
     '<': "tuple \\langle \\rangle",
     '[': "tuple [ ]",

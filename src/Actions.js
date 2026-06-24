@@ -342,6 +342,8 @@ class InputContext {
 
   // Hook for [$][~] debugging command.
   do_debug(stack) {
+    const [, item] = stack.pop(1);
+    console.log(item);
     return stack;
   }
 

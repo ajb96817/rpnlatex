@@ -24,33 +24,28 @@ class Expr {
     if(left_expr.is_unary_minus_expr())
       return PrefixExpr.unary_minus(
         this.concatenate(left_expr.base_expr, right_expr));
-    // Check for concatenating a literal number (positive or negative) to
-    // another (nonnegative) literal number.  The case with a negative literal
-    // on the right was already handled above.
+    // Special case: '123 .' => '123.' (for building decimals digit-by-digit).
+    // Otherwise we get a SequenceExpr['123', '.'].  This also applies to the
+    // [.][>] command: ('3' => '3.').
+    if(right_expr.is_text_expr_with('.') &&
+       left_expr.is_text_expr() && left_expr.looks_like_integer())
+      return new TextExpr(left_expr.text + '.');
+    // Ordinary integers concatenate directly, to support building larger
+    // integers out of digits.  But concatenating with a floating-point number
+    // on the right joins with a \cdot infix:
+    //   '3 4' => '34'
+    //   '3.2 4' => 3.24'
+    //   '3 2.3' => '3 \cdot 2.3'
+    //   '3.4 2.3' => '3.4 \cdot 2.3'
     if((left_expr.is_text_expr_with_number() ||
         (left_expr.is_unary_minus_expr() &&
          left_expr.base_expr.is_text_expr_with_number())) &&
        right_expr.is_text_expr_with_number()) {
-      // Ordinary integers concatenate directly, to support building larger
-      // integers out of digits:
-      //   '123 456' => '123456'
-      //   '-123 456' => '-123456'
-      //   (but '123 -456' => InfixExpr(123, '-', 456))
-      // If either number is floating-point, they are joined with a \cdot infix:
-      //   '1.2 3.4' => '1.2 \cdot 3.4'
-      //   '-2 3.4' => '-2 \cdot 3.4'
-      const is_float = expr => expr.is_text_expr() &&
-            expr.looks_like_floating_point() &&
-            !expr.looks_like_integer();
-      if(is_float(left_expr) || is_float(right_expr) ||
-         (left_expr.is_unary_minus_expr() && is_float(left_expr.base_expr)))
+      if(right_expr.looks_like_integer())
+        return new TextExpr(left_expr.text + right_expr.text);
+      else
         return InfixExpr.combine_infix(
           left_expr, right_expr, new CommandExpr('cdot'));
-      else if(left_expr.is_unary_minus_expr())
-        return PrefixExpr.unary_minus(
-          new TextExpr(left_expr.base_expr.text + right_expr.text));
-      else
-        return new TextExpr(left_expr.text + right_expr.text);
     }
     // Some types of CommandExprs (integral signs) can be combined in special ways.
     if(left_expr.is_command_expr_with(0) && right_expr.is_command_expr_with(0)) {
@@ -1713,7 +1708,7 @@ class TextExpr extends Expr {
       return super.as_logical_negation();
   }
 
-  looks_like_number() { return /^-?\d*\.?\d+$/.test(this.text); }
+  looks_like_number() { return /^-?\d*\.?\d*$/.test(this.text); }
   looks_like_integer() { return /^-?\d+$/.test(this.text); }
   looks_like_floating_point() { return !isNaN(parseFloat(this.text)); }
   looks_like_negative_number() { return /^-\d*\.?\d+$/.test(this.text); }
