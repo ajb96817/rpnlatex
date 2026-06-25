@@ -488,7 +488,7 @@ class TextItemParser extends Parser {
       else if(this.consume('italic_toggle'))
         this.is_italic = !this.is_italic;
       else if(this.consume('inline_math'))
-        this.add_inline_math(token.text);
+        this.add_inline_math(this.current_token.text);
       else if(this.consume('placeholder'))
         this.add_placeholder();
       else if(this.consume('text'))

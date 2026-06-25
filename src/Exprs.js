@@ -96,8 +96,7 @@ class Expr {
     // except an integral sign on the left.  This includes concatenating a
     // differential form on the right side of a SequenceExpr to something else,
     // for cases like \int dx\,x^2.
-    const integral_on_left =
-          left_expr.is_integral_sign() ||
+    const integral_on_left = left_expr.is_integral_sign() ||
           (left_expr.is_sequence_expr() && left_expr.last_expr().is_integral_sign());
     const differential_form_on_left = left_expr.is_differential_form() ||
           (left_expr.is_sequence_expr() &&
