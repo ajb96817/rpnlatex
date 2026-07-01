@@ -447,7 +447,7 @@ const text_item_tokenizer_pattern_table = [
   [/\[\]/y,           'placeholder'],
   [/\$[^\$]+\$/y,     'inline_math'],
   [/[^\*\/\[\]\$]+/y, 'text'],  // "normal" text spans
-  [/[\*\/\[\]\$]/y,   'text']   // stray control codes like isolated ']'
+  [/[\*\/\[\]\$]+/y,  'text']   // stray control codes like isolated ']'
 ];
 
 // Parser for text entry mode.  The following "escape sequences" are available:
@@ -482,6 +482,7 @@ class TextItemParser extends Parser {
   }
 
   parse() {
+    // Process all tokens.
     while(!this.at_end()) {
       if(this.consume('bold_toggle'))
         this.is_bold = !this.is_bold;
@@ -496,7 +497,14 @@ class TextItemParser extends Parser {
       else
         break;  // shouldn't happen
     }
-    return this.build_text_item();
+    // Assemble the parsed TextItem from the processed tokens.
+    if(this.elements.length > 0)
+      return new TextItem(
+        this.elements,
+        null /* tag */,
+        this.source_string /* source */);
+    else
+      return null;  // could happen for '$', '$$$', etc.
   }
 
   add_inline_math(math_text) {
@@ -523,15 +531,6 @@ class TextItemParser extends Parser {
     return this.elements.push(
       new TextItemTextElement(
         text, this.is_bold, this.is_italic));
-  }
-
-  build_text_item() {
-    if(this.elements.length > 0)
-      return new TextItem(
-        this.elements,
-        null /* tag */,
-        this.source_string /* source */);
-    else return null;  // could happen for '$', '$$$', etc.
   }
 }
 

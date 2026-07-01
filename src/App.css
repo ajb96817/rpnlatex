@@ -31,7 +31,9 @@ body {
 }
 
 body.inverse_video { filter: invert(100%); }
-body.sepia { filter: sepia(10%) brightness(95%); }
+body.sepia #stack_panel, body.sepia #document_panel {
+  filter: sepia(10%) brightness(95%);
+}
 body.hide_mouse_cursor { cursor: none; }
 
 /* Root node of the React app. */
@@ -70,8 +72,9 @@ div.panel {
 #stack_panel {
   overflow-x: scroll;
   overflow-y: auto;
-  /* Hide horizontal scrollbars for a cleaner look. */
-  scrollbar-width: none;  /* hide scrollbars in stack panel (but not document) */
+  /* Hide horizontal scrollbar in stack panel (but not document panel)
+     for a cleaner look. */
+  scrollbar-width: none;
   box-shadow: inset 0 0 1.5em 0 #ccc;
   box-sizing: border-box;
   border: 1px solid #ccc;
@@ -79,14 +82,18 @@ div.panel {
 }
 /* webkit version of scrollbar-width: none */
 #stack_panel::-webkit-scrollbar { display: none; }
+
 body.sepia #stack_panel {
   /* For better contrast against document panel. */
   background-color: #f0f0f0;
 }
+/* Remove "tinting" and shadow for E-ink displays. */
 body.eink_mode #stack_panel {
-  /* Remove "tinting" for E-ink displays. */
   box-shadow: none;
   background-color: white;
+}
+body.eink_mode #document_panel {
+  box-shadow: none;
 }
 
 /* NOTE: body.sepia #document_panel and body.eink_mode #document_panel rules
@@ -563,7 +570,10 @@ div.files_container {
   margin: 0;
   padding: 0.5em 1em;
 }
-body.eink_mode #files_panel { border: 2px solid black; }
+body.eink_mode #files_panel {
+  border: 2px solid black;
+  box-shadow: none;
+}
 #files_panel h2, div.help h1 {
   border-bottom: 2px solid #ddf;
   margin: 0.5em 0;
@@ -617,7 +627,14 @@ table.file_table td.timestamp { text-align: right; }
   background-color: white;
   box-shadow: 0 0 1em 2px #bbb;
 }
+
+body.inverse_video #helptext_panel {
+  /* Slight background tint to help contrast. */
+  background-color: #eee;
+}
+body.eink_mode #helptext_panel { box-shadow: none; }
 body.eink_mode #helptext_panel.popup { border: 2px solid black; }
+
 /* User Guide is visible in popup mode when 'popup' class is set. */
 #helptext_panel.popup {
   z-index: 5;
