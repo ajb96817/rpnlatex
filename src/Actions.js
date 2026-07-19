@@ -11,7 +11,7 @@ import {
   Expr, CommandExpr, FontExpr, InfixExpr, PrefixExpr,
   PostfixExpr, FunctionCallExpr, PlaceholderExpr, TextExpr,
   SubscriptSuperscriptExpr, DelimiterExpr,
-  ArrayExpr, TensorExpr /*, SequenceExpr*/
+  ArrayExpr, TensorExpr, SequenceExpr
 } from './Exprs';
 import {
   PyodideInterface, SymPyCommand, ExprToSymPy,
@@ -792,7 +792,7 @@ class InputContext {
     const anchor_elt = document.createElement('a');
     const file_url = URL.createObjectURL(blob);
     anchor_elt.href = file_url;
-    anchor_elt.download = filename + '.rpn';
+    anchor_elt.download = filename + '.rpx';
     document.body.appendChild(anchor_elt);
     anchor_elt.click();
     setTimeout(() => {
@@ -981,7 +981,7 @@ class InputContext {
   // operation:
   //   'larger' or 'smaller': increase or decrease in steps of +/- 1.
   //   Limit is -4 <= size <= 5.
-  do_adjust_size(stack, operation) {
+  do_size(stack, operation) {
     const delta = operation === 'larger' ? +1 : -1;
     const [new_stack, expr] = stack.pop_exprs(1);
     const font_expr = FontExpr.wrap(expr);
@@ -1399,13 +1399,16 @@ class InputContext {
   }
 
   do_start_text_entry(stack, text_entry_mode, initial_text) {
-    // Special cases:
-    //   conjunction_entry mode: make sure there are two expressions on the stack beforehand.
-    //   tag_entry: make sure there is one expression or text item.
-    if((text_entry_mode === 'conjunction_entry' && !stack.check_exprs(2)) ||
-       (text_entry_mode === 'tag_entry' && !(
-         stack.check(1) &&
-           ['expr', 'text'].includes(stack.peek(1).item_type()))))
+    // conjunction_entry mode needs two expressions on the stack beforehand
+    // (the two expressions to be combined with the inputted text).
+    // TODO: maybe allow joining text items with conjunction text this way
+    if(text_entry_mode === 'conjunction_entry' && !stack.check_exprs(2))
+      return this.error_flash_stack();
+    // tag_entry and prefix_entry modes need an expression or text item
+    // to which will be attached the tag or prefix.
+    if(['tag_entry', 'prefix_entry'].includes(text_entry_mode) &&
+       !(stack.check(1) &&
+         ['expr', 'text'].includes(stack.peek(1).item_type())))
       return this.error_flash_stack();
     this.text_entry = new TextEntryState(text_entry_mode, initial_text);
     this.switch_to_mode(text_entry_mode);
@@ -1503,6 +1506,8 @@ class InputContext {
   //   'bold_conjunction' - same but the "iff" is bolded
   //   'tag' - set the tag_string of the stack top
   //   'tag_with_parentheses' - same as 'tag' but automatically surround with parentheses
+  //   'prefix' - attach roman font textual prefix (e.g. x => 'Therefore: x')
+  //   'bold_prefix' - same but prefix text is bolded
   //   'mhchem_formula' - \ce{...} chemical formula
   //   'mhchem_unit' - \pu{...} physical unit expression
   do_finish_text_entry(stack, textstyle) {
@@ -1605,6 +1610,16 @@ class InputContext {
           ['(', trimmed_text, ')'].join('') : trimmed_text);
       this._cancel_text_entry(new_stack);
       return new_stack.push(new_item);
+    }
+    else if(textstyle === 'prefix' ||
+            textstyle === 'bold_prefix') {
+      // TODO: allow adding prefixes to TextItems as well as ExprItems
+      const [new_stack, expr] = stack.pop_exprs(1);
+      const prefix_expr = new CommandExpr(
+        textstyle === 'bold_prefix' ? 'textbf' : 'text',
+        [new TextExpr(trimmed_text + ': ')]);
+      this._cancel_text_entry(new_stack);
+      return new_stack.push_expr(new SequenceExpr([prefix_expr, expr]));
     }
     else if(textstyle === 'mhchem_formula' ||
             textstyle === 'mhchem_unit') {

@@ -30,12 +30,12 @@ class Expr {
     if(right_expr.is_text_expr_with('.') &&
        left_expr.is_text_expr() && left_expr.looks_like_integer())
       return new TextExpr(left_expr.text + '.');
-    // Ordinary integers concatenate directly, to support building larger
-    // integers out of digits.  But concatenating with a floating-point number
+    // Ordinary numbers concatenate directly, to support building larger
+    // numbers out of digits.  But concatenating with a floating-point number
     // on the right joins with a \cdot infix:
     //   '3 4' => '34'
     //   '3.2 4' => 3.24'
-    //   '3 2.3' => '3 \cdot 2.3'
+    //   '3 2.3' => '3 \cdot 2.3' (not 32.3)
     //   '3.4 2.3' => '3.4 \cdot 2.3'
     if((left_expr.is_text_expr_with_number() ||
         (left_expr.is_unary_minus_expr() &&
@@ -123,11 +123,13 @@ class Expr {
   // is_bold will make the conjunction phrase bolded.
   static combine_with_conjunction(left_expr, right_expr, phrase,
                                   is_bold = false, space_command = 'quad') {
+    // const sanitized_phrase = LatexEmitter.latex_escape(phrase);
+    const sanitized_phrase = phrase;
     return InfixExpr.combine_infix(
       left_expr, right_expr,
       new SequenceExpr([
         new CommandExpr(space_command),
-        new CommandExpr(is_bold ? 'textbf' : 'text', [new TextExpr(phrase)]),
+        new CommandExpr(is_bold ? 'textbf' : 'text', [new TextExpr(sanitized_phrase)]),
         new CommandExpr(space_command)]));
   }
 
@@ -176,9 +178,9 @@ class Expr {
   is_delimiter_expr() { return this.expr_type() === 'delimiter'; }
   is_subscriptsuperscript_expr() { return this.expr_type() === 'subscriptsuperscript'; }
   is_array_expr() { return this.expr_type() === 'array'; }
+  is_matrix_expr() { return this.is_array_expr() && this.is_matrix(); }
   is_tensor_expr() { return this.expr_type() === 'tensor'; }
   is_sympy_expr() { return this.expr_type() === 'sympy'; }
-  is_matrix_expr() { return this.is_array_expr() && this.is_matrix(); }
   is_text_expr_with(text) { return this.is_text_expr() && this.text === text; }
   is_text_expr_with_number() { return this.is_text_expr() && this.looks_like_number(); }
   is_unary_minus_expr() { return this.is_prefix_expr() && this.is_unary_minus(); }
@@ -339,8 +341,7 @@ class Expr {
   with_subscript_or_superscript(expr, is_subscript, autoparenthesize = true) {
     if(expr)
       return new SubscriptSuperscriptExpr(
-        autoparenthesize ?
-          DelimiterExpr.parenthesize_for_power(this) : this,
+        autoparenthesize ? DelimiterExpr.parenthesize_for_power(this) : this,
         is_subscript ? expr : null,
         is_subscript ? null : expr);
     else {
@@ -388,7 +389,7 @@ class Expr {
   // NOTE: This only applies to "small" hats; commands like \widehat don't
   //       get this treatment.
   with_hat(hat_op /* string */) {
-    // NOTE: Subclasses override this to implement the above rules.
+    // Subclasses override this to implement the above rules.
     return new CommandExpr(hat_op, [this]);
   }
 

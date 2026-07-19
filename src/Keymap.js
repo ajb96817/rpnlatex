@@ -479,6 +479,13 @@ const keybinding_table = {
     '[delegate]': "_editor_commands"
   },
 
+  // [/][:] prefix: prefix text
+  prefix_entry: {
+    'Enter': "finish_text_entry prefix",
+    'Shift+Enter': "finish_text_entry bold_prefix",
+    '[delegate]': "_editor_commands"
+  },
+
   // [)] prefix: special delimiters
   delimiters: {
     'b': "delimiters \\langle \\vert",  // <x| Dirac bra
@@ -615,6 +622,7 @@ const keybinding_table = {
     'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;parenthesize [ ];function_call",  // E_x[z|y]
     'z': "dissolve",
     ' ': "swap;concat",
+    ':': "start_text_entry prefix_entry",  // TODO: undocumented
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "fraction",
@@ -1266,8 +1274,8 @@ const keybinding_table = {
     '~': "hat tilde",
     '/': "operator cancel",
     "\\": "autoparenthesize;push 1;swap;autoparenthesize;infix /",  // 1/x
-    '(': "adjust_size smaller",
-    ')': "adjust_size larger",
+    '(': "size smaller",
+    ')': "size larger",
     '{': "operator overbrace",
     '}': "operator underbrace",
     '[': "operator overbracket",

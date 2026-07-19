@@ -88,21 +88,21 @@ body.sepia #stack_panel {
   background-color: #f0f0f0;
 }
 /* Remove "tinting" and shadow for E-ink displays. */
-body.eink_mode #stack_panel {
+body.eink #stack_panel {
   box-shadow: none;
   background-color: white;
 }
-body.eink_mode #document_panel {
+body.eink #document_panel {
   box-shadow: none;
 }
 
-/* NOTE: body.sepia #document_panel and body.eink_mode #document_panel rules
+/* NOTE: body.sepia #document_panel and body.eink #document_panel rules
    could be added here to tune the panel background-color.  Not currently used. */
 
-body.eink_mode #stack_panel.stack_on_bottom { border-top: 2px solid #888; }
-body.eink_mode #stack_panel.stack_on_right { border-left: 2px solid #888; }
-body.eink_mode #document_panel.stack_on_top { border-top: 2px solid #888; }
-body.eink_mode #document_panel.stack_on_left { border-left: 2px solid #888; }
+body.eink #stack_panel.stack_on_bottom { border-top: 2px solid #888; }
+body.eink #stack_panel.stack_on_right { border-left: 2px solid #888; }
+body.eink #document_panel.stack_on_top { border-top: 2px solid #888; }
+body.eink #document_panel.stack_on_left { border-left: 2px solid #888; }
 
 /* The pyodide_status div contains details about the current Pyodide state
    and/or the SymPy computation currently running if any.  When Pyodide is
@@ -278,7 +278,7 @@ div.floating_item div.tag_string {
 @keyframes errorflash_stack_sepia_2 {
   from { background-color: #f0f0f0; } 1% { background-color: #fdd; } to { background-color: #f0f0f0; } }
 @keyframes errorflash_stack_eink_1 {
-  /* E-ink mode background matches body.eink_mode #stack_panel. */
+  /* E-ink mode background matches body.eink #stack_panel. */
   from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
 @keyframes errorflash_stack_eink_2 {
   from { background-color: #fff; } 1% { background-color: #fdd; } to { background-color: #fff; } }
@@ -311,7 +311,7 @@ div.floating_item div.tag_string {
   background-color: #eee;
   box-shadow: inset 0 0 0.25em 0 #999;
 }
-body.eink_mode #document_panel div.selected {
+body.eink #document_panel div.selected {
   box-shadow: inset 0 0 1px 1px black;
 }
 
@@ -393,7 +393,7 @@ div.heading_style div.latex_fragment_inner {
   font-size: 125%;
   font-weight: bold;
 }
-body.eink_mode div.heading_style div.latex_fragment_inner { border-bottom-color: #666; }
+body.eink div.heading_style div.latex_fragment_inner { border-bottom-color: #666; }
 
 div.separator_item {
   display: flex;
@@ -489,7 +489,7 @@ div.stack_items {
   width: 100%;
   bottom: 0;
 }
-body.eink_mode div.stack_items { border-bottom: none; }
+body.eink div.stack_items { border-bottom: none; }
 
 div.stack_items div.text_entry {
   text-align: left;  /* overrides .rightalign_math if needed */
@@ -516,6 +516,7 @@ div.stack_items div.latex_entry_mode { background-color: #ded; }
 div.stack_items div.chemical_entry_mode { background-color: #efd; }
 div.stack_items div.conjunction_entry_mode { background-color: #fec; }
 div.stack_items div.tag_entry_mode { background-color: #e8ffe8; }
+div.stack_items div.prefix_entry_mode { background-color: #ffe; }
 
 div.stack_items div.latex_entry_mode::before {
   /* show an initial backslash at the beginning when in latex entry mode */
@@ -523,13 +524,12 @@ div.stack_items div.latex_entry_mode::before {
   font-weight: bold;
 }
 div.stack_items div.chemical_entry_mode::before {
-  /* show an initial backslash at the beginning when in latex entry mode */
   content: "chem: ";
   color: #280;
   font-weight: bold;
 }
 div.stack_items div.conjunction_entry_mode::before {
-  content: "phrase: ";
+  content: "conjunction: ";
   font-weight: bold;
   color: #620;
 }
@@ -537,6 +537,11 @@ div.stack_items div.tag_entry_mode::before {
   content: "tag: ";
   font-weight: bold;
   color: #264;
+}
+div.stack_items div.prefix_entry_mode::before {
+  content: "prefix: ";
+  font-weight: bold;
+  color: #544;
 }
 
 
@@ -550,7 +555,7 @@ span.k {
   border: 1px solid #bdb;
   padding: 0 0.3em;
 }
-body.eink_mode span.k { border-color: black; }
+body.eink span.k { border-color: black; }
 
 
 #files_panel {
@@ -570,7 +575,7 @@ div.files_container {
   margin: 0;
   padding: 0.5em 1em;
 }
-body.eink_mode #files_panel {
+body.eink #files_panel {
   border: 2px solid black;
   box-shadow: none;
 }
@@ -578,7 +583,7 @@ body.eink_mode #files_panel {
   border-bottom: 2px solid #ddf;
   margin: 0.5em 0;
 }
-body.eink_mode div.help h1 { border-bottom-color: #666; }
+body.eink div.help h1 { border-bottom-color: #666; }
 
 /* User Guide examples */
 div.help h3 {
@@ -632,8 +637,8 @@ body.inverse_video #helptext_panel {
   /* Slight background tint to help contrast. */
   background-color: #eee;
 }
-body.eink_mode #helptext_panel { box-shadow: none; }
-body.eink_mode #helptext_panel.popup { border: 2px solid black; }
+body.eink #helptext_panel { box-shadow: none; }
+body.eink #helptext_panel.popup { border: 2px solid black; }
 
 /* User Guide is visible in popup mode when 'popup' class is set. */
 #helptext_panel.popup {
@@ -667,7 +672,7 @@ div.help h2 {
   margin-bottom: 0.25em;
   padding: 0.15em 0;
 }
-body.eink_mode div.help h2 { border-bottom-color: #666; }
+body.eink div.help h2 { border-bottom-color: #666; }
 div.help p { margin: 0.7em 0; }
 div.help a {
   /* snap margin for internal links within helptext */
