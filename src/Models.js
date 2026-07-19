@@ -308,6 +308,27 @@ class LatexEmitter {
       match => replacements[match]);
   }
 
+  // Special escape sequences are needed within \text{...} commands.
+  // This is a quirk of TeX/LaTeX.
+  static latex_text_escape(text) {
+    // TODO: make this table a global (or switch statement) so it doesn't constantly get remade
+    const replacements = {
+      '_': "\\_",
+      '^': "\\textasciicircum",
+      '%': "\\%",
+      '$': "\\$",
+      '&': "\\&",
+      '#': "\\#",
+      '}': "\\}",
+      '{': "\\{",
+      '~': "\\textasciitilde",
+      "\\": "\\textbackslash "
+    };
+    return text.replaceAll(
+      /[_^%$&#}{~\\]/g,
+      match => replacements[match]);
+  }
+
   // selected_expr_path is optional, but if provided it is an ExprPath
   // object that indicates which Expr is to be rendered with a "highlight"
   // showing that it is currently selected.
@@ -1134,7 +1155,7 @@ class TextItemTextElement extends TextItemElement {
       else if(this.is_bold) pieces.push("\\textbf{");
       else if(this.is_italic) pieces.push("\\textit{");
       else pieces.push("\\text{");
-      pieces.push(this._latex_escape(token));
+      pieces.push(LatexEmitter.latex_text_escape(token));
       if(i < tokens.length-1) pieces.push(' ');  // preserve spacing between words
       if(this.is_bold && this.is_italic) pieces.push("}");
       // An extra empty group {} is needed to prevent the \allowbreak from possibly
@@ -1151,31 +1172,10 @@ class TextItemTextElement extends TextItemElement {
     if(this.is_bold && this.is_italic) pieces.push("\\textbf{\\textit{");
     else if(this.is_bold) pieces.push("\\textbf{");
     else if(this.is_italic) pieces.push("\\textit{");
-    pieces.push(this._latex_escape(this.text));
+    pieces.push(LatexEmitter.latex_text_escape(this.text));
     if(this.is_bold && this.is_italic) pieces.push("}}");
     else if(this.is_bold || this.is_italic) pieces.push("}");
     return pieces.join('');
-  }
-
-  // Special escape sequences are needed within \text{...} commands.
-  // This is a quirk of TeX/LaTeX.
-  _latex_escape(text) {
-    // TODO: make this table a global (or switch statement) so it doesn't constantly get remade
-    const replacements = {
-      '_': "\\_",
-      '^': "\\textasciicircum",
-      '%': "\\%",
-      '$': "\\$",
-      '&': "\\&",
-      '#': "\\#",
-      '}': "\\}",
-      '{': "\\{",
-      '~': "\\textasciitilde",
-      "\\": "\\textbackslash "
-    };
-    return text.replaceAll(
-      /[_^%$&#}{~\\]/g,
-      match => replacements[match]);
   }
 }
 

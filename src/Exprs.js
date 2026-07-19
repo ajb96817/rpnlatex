@@ -123,8 +123,7 @@ class Expr {
   // is_bold will make the conjunction phrase bolded.
   static combine_with_conjunction(left_expr, right_expr, phrase,
                                   is_bold = false, space_command = 'quad') {
-    // const sanitized_phrase = LatexEmitter.latex_escape(phrase);
-    const sanitized_phrase = phrase;
+    const sanitized_phrase = LatexEmitter.latex_text_escape(phrase);
     return InfixExpr.combine_infix(
       left_expr, right_expr,
       new SequenceExpr([

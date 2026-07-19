@@ -4,7 +4,7 @@
 // commands from the keymap according to user input.
 
 import {
-  AppState, Document, Stack, TextEntryState,
+  AppState, Document, Stack, TextEntryState, LatexEmitter,
   ExprPath, ExprItem, TextItem, CodeItem
 } from './Models';
 import {
@@ -1617,7 +1617,7 @@ class InputContext {
       const [new_stack, expr] = stack.pop_exprs(1);
       const prefix_expr = new CommandExpr(
         textstyle === 'bold_prefix' ? 'textbf' : 'text',
-        [new TextExpr(trimmed_text + ': ')]);
+        [new TextExpr(LatexEmitter.latex_text_escape(trimmed_text + ': '))]);
       this._cancel_text_entry(new_stack);
       return new_stack.push_expr(new SequenceExpr([prefix_expr, expr]));
     }
