@@ -321,7 +321,7 @@ class ExprParser extends Parser {
     do {
       [old_factors, factors] =
         [factors, this._combine_factors(factors)];
-    } while(factors.length !== old_factors.length);
+    } while(factors.length < old_factors.length);
     // Combine remaining factors (>1) into a sequence.
     if(factors.length === 1)
       return factors[0];
@@ -447,7 +447,7 @@ const text_item_tokenizer_pattern_table = [
   [/\[\]/y,           'placeholder'],
   [/\$[^\$]+\$/y,     'inline_math'],
   [/[^\*\/\[\]\$]+/y, 'text'],  // "normal" text spans
-  [/[\*\/\[\]\$]+/y,  'text']   // stray control codes like isolated ']'
+  [/[\*\/\[\]\$]/y,   'text']   // stray control codes like isolated ']'
 ];
 
 // Parser for text entry mode.  The following "escape sequences" are available:
@@ -464,8 +464,7 @@ class TextItemParser extends Parser {
       // Combine adjacent 'text' tokens together; this is needed
       // because of how the regexes are set up.
       // e.g. 'test ] abc' => ['test ', ']', ' abc'] tokens.
-      const tokens = Token
-            .coalesce_tokens_of_type(result.tokens, 'text');
+      const tokens = Token.coalesce_tokens_of_type(result.tokens, 'text');
       const parser = new this(tokens, s);
       return parser.parse();
     }

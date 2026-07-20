@@ -2526,11 +2526,24 @@
           adjoint/Hermitian: <code>A^{\dagger}</code>
         </li>
         <li>
-          Degrees notation: <code>x^{\circ}</code>
-          e.g.: <code>{45}^{\circ} \Rightarrow \pi/4</code>
+          Degrees notation: <code>{45}^{\circ} \Rightarrow \pi/4</code>
         </li>
         <li>Indefinite integrals: <code>\int x^2\,dx \Rightarrow x^3/3</code></li>
         <li>Definite integrals: <code>\int_0^{\pi/3} \tan{x}\,dx \Rightarrow \ln{2}</code></li>
+        <li>Dirac delta distribution and its &quot;derivatives&quot;:
+          <code>\delta{(x)}, \delta^\prime{(x)}</code>, etc. inside integrals:
+          <ul>
+            <li>
+              <code>\int\delta{\left(x-x_0\right)}f{\left(x\right)}\,dx
+                \Rightarrow f{\left(x_{0} \right)} \theta{\left(x - x_{0}\right)}</code>
+            </li>
+            <li>
+              <code>\int\delta^{\prime}{\left(x-x_0\right)}f{\left(x\right)}\,dx
+                \Rightarrow -\theta{\left(x - x_{0}\right)} \frac{d}{d x_{0}} f{\left(x_{0} \right)}</code>
+            </li>
+          </ul>
+          (<code>\theta{(x)}</code> being the Heaviside step function)
+        </li>
         <li>
           Derivatives:
           <ul>
@@ -2581,23 +2594,23 @@
         </li>
         <li>
           <span class="k">d</span>
-          <code>f\Rightarrow \mathtt{diff(f)}</code>
-          <em>(<strong>d</strong>ifferentiate)</em>
+          <code>f\Rightarrow f'</code>:
+          Differentiate an expression, guessing the independent variable from context.
         </li>
         <li>
           <span class="k">D</span>
-          <code>f\enspace x\Rightarrow \mathtt{diff(f,x)}</code>
-          <em>(differentiation variable specified)</em>
+          <code>f\enspace x\Rightarrow f'(x)</code>:
+          Differentiate <code>f(x)</code> with respect to the specified independent variable.
         </li>
         <li>
           <span class="k">i</span>
-          <code>f\Rightarrow \mathtt{integrate(f)}</code>
-          <em>(indefinite <strong>i</strong>ntegral)</em>
+          <code>f\Rightarrow \int f(x)\,dx</code>:
+          Indefinite integral (antiderivative/primitive) of an expression, guessing the independent variable.
         </li>
         <li>
           <span class="k">I</span>
-          <code>f\enspace x\Rightarrow \mathtt{integrate(f,x)}</code>
-          <em>(integration variable specified)</em>
+          <code>f\enspace x\Rightarrow \int f(x)\,dx</code>:
+          Indefinite integral <code>\int f(x)\, dx</code> using the specified independent variable.
         </li>
         <li>
           <span class="k">f</span>
@@ -2625,7 +2638,8 @@
         <li>
           <span class="k">z</span>
           <code>x \Rightarrow \mathtt{solveset(x)}</code>:
-          Try to find the <strong>z</strong>eroes of an expression or equation:
+          Try to find the <strong>z</strong>eroes of an expression or equation;
+          the variable to use is guessed:
           <code>x^2 = 3 \Rightarrow \left\{- \sqrt{3}, \sqrt{3}\right\}</code>
         </li>
         <li>
@@ -2641,7 +2655,7 @@
       <p>
         The <span class="k">#</span><span class="k">m</span> <em>(<strong>m</strong>anipulate)</em>
         subprefix gives access to less-commonly used symbolic manipulation
-        commands:
+        commands (refer to the SymPy documentation for details):
       </p>
       <ul class="keybindings">
         <li>
@@ -2711,23 +2725,23 @@
         <li>
           <span class="k">S</span>
           <code>f(x)\enspace x\Rightarrow \mathtt{stationary\_points(f(x), x)}</code>
-          Find stationary points of <code>f(x)</code>
-          (where <code>f'(x)=0</code>).
+          Find stationary point(s) of <code>f(x)</code>
+          (the <code>x</code> such that <code>f'(x)=0</code>).
         </li>
         <li>
           <span class="k">c</span>
           <code>f(x)\enspace x\Rightarrow \mathtt{is\_convex(f(x), x)}</code>
-          Check convexity of <code>f(x)</code>
+          Check convexity of <code>f(x)</code>.
         </li>
         <li>
           <span class="k">m</span>
           <code>f(x)\enspace x\Rightarrow \mathtt{maximum(f(x), x)}</code>
-          Find the maximum of <code>f(x)</code> over the reals.
+          Find the maximum value of <code>f(x)</code> over the reals.
         </li>
         <li>
           <span class="k">M</span>
           <code>f(x)\enspace x\Rightarrow \mathtt{minimum(f(x), x)}</code>
-          Find the minimum of <code>f(x)</code> over the reals.
+          Find the minimum value of <code>f(x)</code> over the reals.
         </li>
         <li>
           <span class="k">p</span>
@@ -2868,7 +2882,7 @@
           <kbd>build_expr()</kbd> that can be called to generate a SymPy object corresponding
           to the exported expression.  (You need to make sure SymPy is installed in your Python environment first
           via <kbd>pip3 install sympy</kbd>.)  This code is the same code that the editor passes to Pyodide
-          internally to implement the symbolic algebra functions here.
+          internally to implement the symbolic algebra functions here, so this can be useful for troubleshooting.
         </li>
       </ul>
           
