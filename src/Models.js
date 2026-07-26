@@ -533,6 +533,7 @@ class ItemClipboard {
   }
 
   set_slot(slot, new_item) {
+    // TODO: maybe .clone() when going into the clipboard.
     this.slot_to_item_map[slot] = new_item;
     return new_item;
   }

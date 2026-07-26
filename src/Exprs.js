@@ -2192,7 +2192,7 @@ class SubscriptSuperscriptExpr extends Expr {
 // Arrayed structures; these are all 2-dimensional grids of expressions.
 // Currently supported "array types" are:
 //   - Matrices: bmatrix, Bmatrix, matrix, pmatrix, vmatrix, Vmatrix
-//   - Alignment environments: gathered, gather, cases, rcases, substack
+//   - Alignment environments: aligned, gathered, gather, cases, rcases, substack
 class ArrayExpr extends Expr {
   // element_exprs is a nested array of length 'row_count', each of which is
   // an array of 'column_count' Exprs.
@@ -2319,6 +2319,12 @@ class ArrayExpr extends Expr {
     ].includes(this.array_type);
   }
 
+  is_aligned_environment() {
+    return [
+      'aligned', 'gather', 'gathered'
+    ].includes(this.array_type);
+  }
+
   // Return a copy of this expression but with a different array_type (e.g. 'pmatrix').
   // is_matrix() should be true before calling this.
   with_array_type(new_array_type) {
@@ -2397,11 +2403,47 @@ class ArrayExpr extends Expr {
   }
 
   // Return an array of 1xN ArrayExprs, one for each row in this matrix.
+  // This is used for things like breaking \cases environments apart.
   split_rows() {
     return this.element_exprs.map(
       row_exprs => new ArrayExpr(
         this.array_type, 1, this.column_count, [row_exprs],
         this.column_separators, null));
+  }
+
+  // Return an array of expressions/equations, one per row, from an
+  // alignment environment.
+  split_equations() {
+    return this.element_exprs
+      .map(row_exprs => this._equation_from_row_exprs(row_exprs))
+      .filter(expr => expr !== null);
+  }
+
+  // Return the 'reassembled' equation for the given row for an aligned
+  // environment array.  Assumes is_aligned_environment() is true.
+  // NOTE: may return null for malformed align environments
+  _equation_from_row_exprs(exprs) {
+    // The reassembly assumes the row was created with _split_expr(),
+    // which inserts blank TextExprs to split InfixExprs into left and
+    // right parts.
+    if(exprs.length === 1) return exprs[0];  // e.g. \gathered environment
+    if(exprs.length !== 2) return null;  // shouldn't happen
+    const [lhs, rhs] = exprs;
+    if(rhs.is_infix_expr() &&
+       rhs.operand_exprs[0].is_text_expr_with('')) {
+      // Equations get converted to columns like:
+      //   x + y = 3  =>  [x + y, (blank) = 3]
+      // and this does the inverse conversion.
+      return InfixExpr.combine_infix(
+        lhs,
+        rhs.extract_side_at(0, 'right'),
+        rhs.operator_exprs[0]);
+    }
+    else if(rhs.is_text_expr_with('')) {
+      // No right-hand side; assume this was built from a non-equation.
+      return lhs;
+    }
+    else return null;  // shouldn't happen
   }
 
   // Return a copy with a changed row or column separator at the specified location.
@@ -2530,14 +2572,18 @@ class ArrayExpr extends Expr {
   }
 
   // Matrices "dissolve" into their element expressions in row-major order.
-  // Non-matrices break up into their component rows, with each row becoming
-  // a 1xN row array of the same type as this one.  For example, a case
-  // structure with 3 rows becomes 3 separate case structures (each with its
-  // own "case brace").  However, dissolving something that's already a single
-  // row will split into the individual elements and lose the array structure.
+  // Aligned environments break up into the equations the environment was
+  // originally built from.  Other "matrix" types like case structures
+  // break up into their component rows, with each row becoming a 1xN row
+  // array of the same type as this one.  For example, a case structure with
+  // 3 rows becomes 3 separate case structures (each with its own "case brace").
+  // NOTE: Dissolving something that's already a single row will split into the
+  // individual elements and lose the array structure (regardless of type).
   dissolve() {
     if(this.is_matrix() || this.row_count <= 1)
       return this.subexpressions();
+    else if(this.is_aligned_environment())
+      return this.split_equations();
     else
       return this.split_rows();
   }

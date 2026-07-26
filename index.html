@@ -2492,7 +2492,7 @@
           <a href="#help_dissect">dissect mode</a> or destructured with
           commands such as <span class="k">/</span><span class="k">z</span>
           <em>(dissolve)</em>.  They can still be combined with other expressions
-          as usual, though.  This loss of structure is indicated by a green tint on
+          as usual, though.  This loss of structure is indicated by a blue-green tint on
           the expression.
           <strong>NOTE:</strong> This LaTeX conversion is only being done as a
           temporary stopgap.  In a future update, SymPy expressions will be
@@ -2839,27 +2839,44 @@
         </li>
       </ul>
       
-      
-      
-
-<!--  <h3>Differential Equations</h3>  -->      
-
-<!--      <h3>Integral Transforms</h3>
-      <p>
-        The <span class="k">#</span><span class="k">t</span> <em>(<strong>t</strong>ransform)</em>
-        subprefix covers various integral transforms:
-      </p>
-      <ul class="keybindings">
-        <li>
-          <span class="k">c</span>
-          <code>
-
-            -->
-
-      
       <!-- <p><strong>Matrix Operations:</strong></p>
       <p>
       </p> -->
+
+      <p><strong>Differential Equations:</strong></p>
+      <p>
+        The <span class="k">#</span><span class="k">q</span> subprefix
+        has commands for handling differential e<strong>q</strong>uations
+        (ordinary and partial).  Differential equations can be entered using
+        any of the notations listed in the &quot;Expression Evaluation&quot; section
+        above.
+      </p>
+      <ul class="keybindings">
+        <li>
+          <span class="k">s</span>
+          <code>y^\prime \Rightarrow y(x)</code>
+          Attempt to solve an ordinary differential equation with the SymPy <kbd>dsolve()</kbd> command.
+          The independent variable is inferred from context.  For example:
+          <code>y^{\prime\prime}+y={\mathrm{e}}^{2x} \Rightarrow 
+            y{\left(x \right)} = C_{1} \sin{\left(x \right)} + C_{2} \cos{\left(x \right)} + \frac{e^{2 x}}{5}</code>
+        </li>
+        <li>
+          <span class="k">S</span>
+          <code>y^\prime \enspace x \Rightarrow y(x)</code>
+          Like <span class="k">s</span>, but the independent variable is specified explicitly.
+        </li>
+
+        <li>
+          <span class="k">p</span>
+          <code>\partial y \Rightarrow y(x)</code>
+          Attempt to solve a partial differential equation with <kbd>pdsolve()</kbd>, with the independent variable inferred.
+        </li>
+        <li>
+          <span class="k">P</span>
+          <code>\partial y \enspace x \Rightarrow y(x)</code>
+          Like <span class="k">p</span>, with the independent variable specified explicitly.
+        </li>
+      </ul>
 
       <p><strong>SymPy Utilities:</strong></p>
       <ul class="keybindings">

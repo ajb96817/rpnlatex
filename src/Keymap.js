@@ -1446,8 +1446,8 @@ const keybinding_table = {
     't': "mode integral_transform",
     'x': "sympy expand 1",
     'y': "sympy_convert_series_arguments;sympy series 4",
-    'z': "sympy solveset 1 solve",  // [z]eroes
-    'Z': "sympy solveset 2 solve"
+    'z': "sympy solve 1 solve",  // [z]eroes
+    'Z': "sympy solve 2 solve"
   },
 
   // [#][-] prefix: "inverse" symbolic mode.

@@ -340,12 +340,6 @@ div.latex_fragment {
 div.latex_fragment span.katex-error { font-family: monospace; }
 div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
-/* div.sympy_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #5ca; } */
-/* div.sympy_item div.sympy_error { border-left: var(--itemtype-bar-width) solid #833; } */
-/* div.sympy_item div.sympy_errored_expr { */
-/*   font-size: 90%; */
-/*   margin-left: 1em; */
-/* } */
 
 /* Highlight the stack item(s) that are the "target" for a stack (Tab)
    or array (|) command with an active prefix argument. */
@@ -353,7 +347,6 @@ div.expr_item div.highlighted { border-left-color: #555; }
 div.text_item div.highlighted { border-left-color: #66d; }
 div.separator_item.highlighted { border-left-color: #66d; }
 div.latex_source_item.highlighted { border-left-color: #484; }
-/* div.sympy_item.highlighted { border-left-color: #96c; } */
 div.latex_fragment.highlighted:has(div.latex_error_message) { border-left-color: #833; }
 
 /* Override item type indicator bar if it contains a KaTeX error. */
@@ -390,9 +383,10 @@ div.heading_style div.latex_fragment_inner {
 body.eink div.heading_style div.latex_fragment_inner { border-bottom-color: #666; }
 
 div.separator_item {
+  /* This will have a single <hr /> inside it to be centered vertically. */
   display: flex;
-  align-items: center;  /* this will have a single <hr /> inside it to be centered vertically */
-  height: 0.75em;
+  align-items: center;
+  height: 0.8em;
   border-left: var(--itemtype-bar-width) solid #99f;  /* should match div.text_item's color */
   padding: 0.2em 0;
 }
@@ -414,7 +408,7 @@ div.floating_item div.separator_item hr { width: 4em; }
    SymPyExprs are shown in a green color to indicate that they are "native" SymPy
    objects and don't have structure as far as the editor is concerned (yet). */
 .placeholder_expr { color: #6c6; }
-.sympy_expr { text-shadow: 0 0 0.1em #6f6; }
+.sympy_expr { text-shadow: 0 0 0.15em #6f6; color: #03d; }
 
 /* "Emphasized" expressions created with [.][e]
    Note that because of how KaTeX layout works, we only really have the foreground color to

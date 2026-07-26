@@ -413,8 +413,18 @@ class PyodideInterface {
     // Generate builder functions, one per argument expression.
     const builder_function_name = index => 'build_expr_' + index.toString();
     const builder_function_codes = arg_exprs.map(
-      (arg_expr, arg_index) => ExprToSymPy.expr_to_code(
-        arg_expr, builder_function_name(arg_index)));
+      (arg_expr, arg_index) => {
+        // solve() and related commands need to special handling for
+        // solving simulataneous sets of equations:
+        const argument_type = command.is_solve_command() ?
+              (arg_index === 0 ? 'solve_equation' :
+               arg_index === 1 ? 'solve_variable' : null)
+              : null;
+        return ExprToSymPy.expr_to_code(
+          arg_expr,
+          builder_function_name(arg_index),
+          argument_type);
+      });
     // Generate a function to build all the argument expressions and
     // execute the requested command.
     let lines = [];
@@ -489,6 +499,12 @@ class SymPyCommand {
     this.arg_exprs = arg_exprs;
     this.extra_args = extra_args;
     this.transform_result_code = transform_result_code;
+  }
+
+  // solve()-like commands get some special handling to allow for solving
+  // systems of equations given in align environments.
+  is_solve_command() {
+    return ['solve', 'nsolve'].includes(this.function_name);
   }
 }
 
@@ -683,8 +699,9 @@ class ExprToSymPy {
   // that will create the corresponding SymPy expression.
   // The generated code will be a Python function with the
   // supplied 'builder_function_name'.
-  static expr_to_code(expr, builder_function_name = 'build_expr') {
-    return new this().expr_to_code(expr, builder_function_name);
+  static expr_to_code(expr, builder_function_name, argument_type = null) {
+    return new this().expr_to_code(
+      expr, builder_function_name, argument_type);
   }
   
   constructor() {
@@ -712,8 +729,20 @@ class ExprToSymPy {
     throw new ExprToSymPyError(message);
   }
 
+  // argument_type:
+  //   null:
+  //      No special handling.
+  //   'solve_equation':
+  //      First argument to solve() / solveset(); if this is an align enviroment
+  //      it is treated as a list of equations for simulataneous equation solving
+  //      and gets converted to, e.g. [x + y = 0, x + 2y = 1].
+  //   'solve_variable':
+  //      Second argument to solve() / solveset(); if this is an InfixExpr of
+  //      variable names separated by commas like InfixExpr(x, ',', y) it gets
+  //      converted to a list of variables like [x, y].  
   // NOTE: expr can be null here; will be converted to None.
-  expr_to_code(expr, builder_function_name) {
+  expr_to_code(expr, builder_function_name, argument_type = null) {
+    this.argument_type = argument_type;
     const return_node = expr ? this.emit_expr(expr) : this.raw('None');
     return this.generate_code(builder_function_name, return_node);
   }
@@ -877,6 +906,10 @@ class ExprToSymPy {
     return exprs.map(expr => this.emit_expr(expr));
   }
 
+  emit_expr_tuple(exprs) {
+    return this.tuple(exprs.map(expr => this.emit_expr(expr)));
+  }
+
   emit_text_expr(expr) {
     if(expr.looks_like_number())
       return this.number(expr.text);
@@ -904,12 +937,36 @@ class ExprToSymPy {
 
   // InfixExprs are flat lists of operators and operands, so we have
   // to "parse" the terms and take into account operator precedence.
-  // (x+y*z => x+(y*z)).
+  // e.g.: x+y*z => x+(y*z)
   emit_infix_expr(expr) {
+    if(this.argument_type === 'solve_variable') {
+      // Convert x,y,z variable lists to a tuple for solving
+      // simultaneous equations with solve().
+      const variables_result = this._try_emit_variable_list(expr);
+      if(variables_result)
+        return variables_result;
+    }
     const result = this.try_analyzers(analyzer_table.infix, [expr]);
     if(result)
       return result;
     else this.error('Invalid infix expression');
+  }
+
+  // Convert InfixExpr(x, ',', y, ',', z) to a Python tuple (x,y,z).
+  // Each operand has to be a valid SymPy variable name.
+  // Returns null if the conversion "failed".
+  _try_emit_variable_list(infix_expr) {
+    if(!(infix_expr.is_infix_expr() &&
+         infix_expr.operator_exprs.every(
+           expr => expr.is_text_expr_with(','))))
+      return null;
+    const variable_nodes = infix_expr.operand_exprs.map(expr => {
+      const variable_name = expr_to_variable_name(expr);
+      return variable_name ? this.variable(variable_name) : null;
+    });
+    if(variable_nodes.every(node => node !== null))
+      return this.tuple(variable_nodes);
+    else return null;
   }
 
   // Only '+' and '-' prefix operators are supported (and + is disregarded).
@@ -1025,11 +1082,16 @@ class ExprToSymPy {
   emit_array_expr(array_expr) {
     if(array_expr.is_matrix())
       return this.emit_matrix_expr(array_expr);
+    else if(this.argument_type === 'solve_equation' &&
+            array_expr.is_aligned_environment()) {
+      // Treat align environments (gather/gathered/aligned) as lists of
+      // equations for simulataneous solving.  These will be emitted
+      // as tuples of expressions, one per row in the align environment.
+      return this.emit_expr_tuple(array_expr.split_equations());
+    }
     else return this.error(
-      // TODO: support cases/rcases (becoming piecewise functions),
-      // and gather(ed) should become lists of expressions (for simultaneous
-      // solving, etc).
-      'Non-matrix arrayed expressions not supported yet',
+      // TODO: support cases/rcases (becoming piecewise functions)
+      'Non-matrix arrayed expressions not allow here',
       array_expr);
   }
 
