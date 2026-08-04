@@ -2623,6 +2623,21 @@
           <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
         </li>
         <li>
+          <span class="k">v</span>
+          <code>x \Rightarrow \mathtt{solve(x)}</code>:
+          Try to sol<strong>v</strong>e an equation (or try to find the zeroes of
+          an expression like <code>x^2+3</code>).  The variable to be solved for
+          is guessed from context.
+          <code>x^2 = 3 \Rightarrow \left\{- \sqrt{3}, \sqrt{3}\right\}</code>
+        </li>
+        <li>
+          <span class="k">V</span>
+          <code>y\enspace x \Rightarrow \mathtt{solve(y, x)}</code>:
+          Like <span class="k">v</span>, but the variable to be solved for
+          is given explicitly:
+          <code>x=c^2 \enspace c \Rightarrow \left\{- \sqrt{x}, \sqrt{x}\right\}</code>
+        </li>
+        <li>
           <span class="k">y</span>
           <code>f\enspace x \Rightarrow \mathtt{series(f, x, a=0, order=6)}</code>:
           Expand an expression in Ta<strong>y</strong>lor series using the given variable
@@ -2630,20 +2645,6 @@
           an expansion about <code>a</code> (defaulting to <code>x=0</code>).
           The expansion is performed up to (not including) order <code>O(x^6)</code>,
           which may be overridden by the prefix argument.
-        </li>
-        <li>
-          <span class="k">z</span>
-          <code>x \Rightarrow \mathtt{solveset(x)}</code>:
-          Try to find the <strong>z</strong>eroes of an expression or equation;
-          the variable to use is guessed:
-          <code>x^2 = 3 \Rightarrow \left\{- \sqrt{3}, \sqrt{3}\right\}</code>
-        </li>
-        <li>
-          <span class="k">Z</span>
-          <code>y\enspace x \Rightarrow \mathtt{solveset(y, x)}</code>:
-          Like <span class="k">z</span>, but the variable to be solved for
-          is given explicitly:
-          <code>x=c^2 \enspace c \Rightarrow \left\{- \sqrt{x}, \sqrt{x}\right\}</code>
         </li>
       </ul>
 

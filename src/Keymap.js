@@ -1444,10 +1444,10 @@ const keybinding_table = {
     'q': "mode diffeq",
     's': "sympy simplify 1",
     't': "mode integral_transform",
+    'v': "sympy solve 1",  // sol[v]e
+    'V': "sympy solve 2",
     'x': "sympy expand 1",
-    'y': "sympy_convert_series_arguments;sympy series 4",
-    'z': "sympy solve 1 solve",  // [z]eroes
-    'Z': "sympy solve 2 solve"
+    'y': "sympy_convert_series_arguments;sympy series 4"
   },
 
   // [#][-] prefix: "inverse" symbolic mode.

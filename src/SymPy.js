@@ -378,15 +378,51 @@ class PyodideInterface {
       };
     }
     else {
-      const result_expr = new SymPyExpr(
-        result.result_expr.srepr,
-        result.result_expr.latex);
+      const result_expr = this._expr_from_result_grid(result.result_grid);
       this.app_component.push_sympy_result_expr(result_expr);
     }
     this.execution_started_at = null;
     this.app_component.unlock_input();
     this.sympy_command = null;
     this.change_state('ready');
+  }
+
+  // Convert the "result grid" from a SymPy call into an editor Expr.
+  // Usually this is just a single SymPyExpr.  For cases like getting an array
+  // of results from SymPy, or solving simultaneous equations for multiple variables,
+  // we may get a list of results arranged into grid cells each with a row and column.
+  // Currently these are turned into matrix ArrayExpr (with no matrix delimiters).
+  _expr_from_result_grid(result_grid) {
+    if(result_grid.length === 1) {
+      const item = result_grid[0];
+      return new SymPyExpr(item.srepr, item.latex);
+    }
+    else if(result_grid.length === 0) {
+      // Shouldn't usually happen, but we might possibly get an empty list [] from SymPy
+      // if the are no solutions found in solve(), etc.
+      // TODO: revisit
+      return FontExpr.roman_text('No result');
+    }
+    else {
+      // We have a "sparse grid" of results, to be arranged into a matrix expression.
+      let ncols = 0, nrows = 0;
+      for(const item of result_grid) {
+        if(item.row > nrows) nrows = item.row;
+        if(item.col > ncols) ncols = item.col;
+      }
+      const elt_exprs = [];
+      for(let row = 0; row < nrows; row++) {
+        const row_exprs = [];
+        for(let col = 0; col < ncols; col++)
+          row_exprs.push(TextExpr.blank());
+        elt_exprs.push(row_exprs);
+      }
+      for(const item of result_grid) {
+        const sympy_expr = new SymPyExpr(item.srepr, item.latex);
+        elt_exprs[item.row-1][item.col-1] = sympy_expr;
+      }
+      return new ArrayExpr('matrix', nrows, ncols, elt_exprs);
+    }
   }
 
   clear() {
@@ -447,12 +483,11 @@ class PyodideInterface {
     // Convert the result expression into srepr/latex format
     // and return a dict structure.
     lines.push(`
+  result_grid = sympy_result_to_expr_grid(result)
   return {
     'result': 'success',
-    'result_expr': {
-      'srepr': srepr(result),
-      'latex': latex(result)
-    } }
+    'result_grid': result_grid
+  }
 `);
     // Build an exception-handling wrapper around execute_command();
     // this will return an error-result structure if needed.
@@ -733,13 +768,13 @@ class ExprToSymPy {
   //   null:
   //      No special handling.
   //   'solve_equation':
-  //      First argument to solve() / solveset(); if this is an align enviroment
+  //      First argument to solve() / nsolve(); if this is an align enviroment
   //      it is treated as a list of equations for simulataneous equation solving
-  //      and gets converted to, e.g. [x + y = 0, x + 2y = 1].
+  //      and gets converted to a Python tuple, e.g. (x + y = 0, x + 2y = 1)
   //   'solve_variable':
-  //      Second argument to solve() / solveset(); if this is an InfixExpr of
+  //      Second argument to solve() / nsolve(); if this is an InfixExpr of
   //      variable names separated by commas like InfixExpr(x, ',', y) it gets
-  //      converted to a list of variables like [x, y].  
+  //      converted to a tuple of variables like (x, y).
   // NOTE: expr can be null here; will be converted to None.
   expr_to_code(expr, builder_function_name, argument_type = null) {
     this.argument_type = argument_type;
@@ -1237,7 +1272,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
     if(!expr.is_subscriptsuperscript_expr())
       return this.no_match();  // shouldn't happen
     let {base_expr, subscript_expr, superscript_expr} = expr;
-    // First check things that might depend on the subscript.
+    // First check things that might depend on the subscript/superscript.
     let node =
       this.analyze_where(base_expr, subscript_expr, superscript_expr) ||
       this.analyze_exp(base_expr, subscript_expr, superscript_expr);
@@ -1246,8 +1281,8 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
     // At this point, any subscript must be something like 'f_a': a simple
     // variable name with simple subscript that translates into a valid SymPy
     // symbol.  Other notations involving subscripts have already been handled
-    // (e.g. 'where' syntax) or are handled by other analyzers (such as the
-    // lower limit of sums or integrals).
+    // (e.g. 'where' syntax) or are handled by other analyzers (such as integrals
+    // or the lower limit of sums/products).
     let base_expr_node = null;
     if(subscript_expr) {
       const variable_name = expr_to_variable_name(
@@ -2612,7 +2647,7 @@ const analyzer_table = {
 };
 
 
-// Convert SymPy expressions back to Expr trees.
+// TODO: Convert SymPy expressions back to Expr trees.
 class SymPyToExpr {
   static sympy_to_expr(sympy_object) {
   }

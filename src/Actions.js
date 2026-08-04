@@ -406,6 +406,9 @@ class InputContext {
     case 'nsimplify':
       extra_args.push('[pi, E]');
       break;
+    case 'solve': case 'nsolve':
+      extra_args.push('dict=True');
+      break;
     case 'laplace_transform':
     case 'mellin_transform':
       transform_result_code = 'result[0] if isinstance(result, tuple) else result';

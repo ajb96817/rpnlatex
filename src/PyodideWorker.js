@@ -20,6 +20,7 @@ async function load_pyodide_if_needed(index_url = '/') {
     postMessage({message: 'loading'});
     await self.pyodide.loadPackage('sympy', {checkIntegrity: false});
     await self.pyodide.runPythonAsync(pyodide_initcode_string);
+    await self.pyodide.runPythonAsync(pyodide_sympy_to_expr_code);
   } catch(e) {
     postMessage({message: 'init_error', error_message: e.message});
     return false;
@@ -62,7 +63,9 @@ async function run_sympy_command(code) {
   const elapsed_time = Date.now() - start_time;
   result = {elapsed_time: elapsed_time, ...result_js};
   /* result: {
-       result_expr: {srepr: ..., latex: ...},
+       result_grid: [
+         {srepr: ..., latex: ...,
+         row: 1, col: 1}, ...],
        elapsed_time: 123.4,
        error: { ... }
      }
@@ -119,10 +122,24 @@ def substitute(expr,x,y): return expr.subs(x,y)
 // The result of this "conversion" is a single string of Javascript code to
 // be eval()'d, which creates the corresponding Expr tree.  This is the Python
 // counterpart to the JS ExprToSymPy class.
-const _pyodide_sympy_to_expr_code = `
-class SymPyToExpr:
-  pass
+const pyodide_sympy_to_expr_code = `
+def sympy_result_to_expr_grid(sympy_result):
+  def convert_sympy_expr(expr):
+    return { 'srepr': srepr(expr), 'latex': latex(expr) }
+  sympy_result_rows = sympy_result if type(sympy_result) is list else [sympy_result]
+  result_grid = []
+  for row_index, row in enumerate(sympy_result_rows):
+    if type(row) is dict:
+      col = 1
+      for key, value in row.items():
+        result_grid.append(
+          convert_sympy_expr(Eq(key, value)) |
+          { 'row': row_index+1, 'col': col })
+        col += 1
+    else:
+      result_grid.append(convert_sympy_expr(row) | { 'row': row_index+1, 'col': 1 })
+  return result_grid
 `;
 
 
-export { pyodide_initcode_string };
+export { pyodide_initcode_string, pyodide_sympy_to_expr_code };
