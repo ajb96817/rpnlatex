@@ -114,14 +114,18 @@ class App extends React.Component {
   }
 
   // A Pyodide/SymPy command has finished successfully.
-  // Push the resulting expression onto the stack.
+  // Push the resulting expression(s) onto the stack.
+  // Normally there is just one result expr (a 1-element array),
+  // but some commands can return multiple results.
+  //
   // This happens "asynchronously" outside the normal action loop
   // so it needs some special handling.
+  //
   // TODO: maybe generalize this to push_item_asynchronously() or something
-  push_sympy_result_expr(result_expr) {
+  push_sympy_result_exprs(result_exprs) {
     // TODO: make sure undo state is handled properly
     const app_state = this.state.app_state;
-    const new_stack = app_state.stack.push_expr(result_expr);
+    const new_stack = app_state.stack.push_all_exprs(result_exprs);
     const new_app_state = new AppState(
       new_stack, app_state.document, app_state.properties);
     this.setState({app_state: new_app_state});
@@ -138,7 +142,6 @@ class App extends React.Component {
     if(new_app_state !== this.state.app_state)
       this.setState({app_state: new_app_state});
   }
-
 
   // Recenter the document panel scroll position to center on the selected item.
   // screen_percentage:

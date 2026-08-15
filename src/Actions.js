@@ -1250,6 +1250,16 @@ class InputContext {
       return stack.type_error();
   }
 
+  // TODO
+  // // 3 \pi => '3pi'
+  // // x \pi => 'pi x'
+  // // 3 2 => '2 \cdot 3'
+  // // ???
+  // do_attach_coefficient(stack) {
+  //   const [new_stack, expr, coefficient_expr] = stack.pop_exprs(2);
+    
+  // }
+
   // Combine a function name and its argument tuple into a FunctionCallExpr.
   // The arguments must already exist as a DelimiterExpr, e.g. (x,y).
   do_function_call(stack) {
@@ -2084,7 +2094,7 @@ class InputContext {
   // This switches to build_matrix mode which then expects another
   // prefix argument for the column count (M).  A final matrix-type key like
   // [ then creates the matrix with N*M items from the stack.
-  do_matrix(stack) {
+  do_matrix_build(stack) {
     const row_count = this._require_prefix_argument(false);
     this.matrix_row_count = row_count;  // save for do_finish_build_matrix()
     this.switch_to_mode('build_matrix');

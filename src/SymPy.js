@@ -378,8 +378,9 @@ class PyodideInterface {
       };
     }
     else {
-      const result_expr = this._expr_from_result_grid(result.result_grid);
-      this.app_component.push_sympy_result_expr(result_expr);
+      const result_exprs = result.result_grids
+            .map(result_grid => this._expr_from_result_grid(result_grid));
+      this.app_component.push_sympy_result_exprs(result_exprs);
     }
     this.execution_started_at = null;
     this.app_component.unlock_input();
@@ -387,7 +388,7 @@ class PyodideInterface {
     this.change_state('ready');
   }
 
-  // Convert the "result grid" from a SymPy call into an editor Expr.
+  // Convert a "result grid" from a SymPy call into one or more editor Exprs.
   // Usually this is just a single SymPyExpr.  For cases like getting an array
   // of results from SymPy, or solving simultaneous equations for multiple variables,
   // we may get a list of results arranged into grid cells each with a row and column.
@@ -442,9 +443,8 @@ class PyodideInterface {
   }
 
   generate_command_code(command) {
-    const { function_name, operation_label,
-            arg_exprs, extra_args,
-            transform_result_code } = command;
+    const { function_name, is_method_call, operation_label,
+            arg_exprs, extra_args, transform_result_code } = command;
     const insert_artificial_delay = false;  // TODO: make this a debug option
     // Generate builder functions, one per argument expression.
     const builder_function_name = index => 'build_expr_' + index.toString();
@@ -471,24 +471,25 @@ class PyodideInterface {
       ['  arg_', arg_index.toString(),
        ' = ', builder_function_name(arg_index), '()'
       ].join('')));
-    const arguments_string = arg_exprs
+    const argument_strings = arg_exprs
           .map((arg_expr, arg_index) => 'arg_'+arg_index.toString())
-          .concat(extra_args)
-          .join(', ');
-    lines.push([
-      '  result = ', function_name,
-      '(', arguments_string, ')'].join(''));
+          .concat(extra_args);
+    // Emit either a "normal" function call fn(x, y, z) or else a method
+    // call (x).fn(y, z).  Method receiver is always parenthesized to handle
+    // things like (x+y).fn(z).
+    const call_string =
+          (is_method_call ?
+           ['(', argument_strings[0], ').', function_name, '(', argument_strings.slice(1).join(', '), ')']
+           : [function_name, '(', argument_strings.join(', '), ')']).
+          join('');
+    lines.push('  result = ' + call_string);
+    // Optional final processing of the result Python object.
     if(transform_result_code)
-      lines.push(['  result = ', transform_result_code].join(''))
+      lines.push('  result = ' + transform_result_code);
     // Convert the result expression into srepr/latex format
     // and return a dict structure.
-    lines.push(`
-  result_grid = sympy_result_to_expr_grid(result)
-  return {
-    'result': 'success',
-    'result_grid': result_grid
-  }
-`);
+    lines.push('  result_grids = sympy_result_to_expr_grids(result)');
+    lines.push("  return { 'result': 'success', 'result_grids': result_grids }");
     // Build an exception-handling wrapper around execute_command();
     // this will return an error-result structure if needed.
     lines.push(`
@@ -496,10 +497,7 @@ def execute_command_safe():
   try:
     return execute_command()
   except Exception as ex:
-    return {
-      'result': 'error',
-      'error_message': str(ex)
-    }
+    return { 'result': 'error', 'error_message': str(ex) }
 `);
     const execute_command_code = lines.join("\n")
     return [
@@ -516,20 +514,35 @@ def execute_command_safe():
 // that will eventually be converted to Python code and sent to the Pyodide
 // web worker.
 //
-// 'function_name': Python function to call (can include an explicit module name)
-// 'operation_label': Optional user-visible label for the function name
-//                    (e.g. we might want to display 'differentiate' instead of just 'diff')
-// 'arg_exprs': Expr instances to be passed to the Python function
-// 'extra_args': Plain strings to be passed as extra arguments to the Python function
-//               (after the arg_exprs).  Used for things like 'optname=True' keyword arguments
-//               and other non-Expr values.
-// 'transform_result_code': An optional string to apply to the final result before it's
-//                          returned back from Python (used for small conversions like turning
-//                          a one-item list into a scalar, or extracting a relevant result from a tuple).
+// 'function_name':
+//   Python function to call (can include an explicit module name).
+//   If the function name starts with '.', it's treated as a method call
+//   instead (with the first argument as the receiver).
+//   i.e.: function_name(arg1, arg2) vs arg1.function_name(arg2)
+// 'operation_label':
+//   Optional user-visible label for the function name
+//   (e.g. we might want to display 'differentiate' instead of just 'diff')
+// 'arg_exprs':
+//   Expr instances to be passed to the Python function
+// 'extra_args':
+//   Plain strings to be passed as extra arguments to the Python function
+//   (after the arg_exprs).  Used for things like 'optname=True' keyword arguments
+//   and other non-Expr values.
+// 'transform_result_code':
+//   An optional string to apply to the final result before it's
+//   returned back from Python (used for small conversions like turning
+//   a one-item list into a scalar, or extracting a relevant result from a tuple).
 class SymPyCommand {
   constructor(function_name, operation_label,
               arg_exprs, extra_args, transform_result_code) {
-    this.function_name = function_name;
+    if(function_name.startsWith('.')) {
+      this.function_name = function_name.slice(1);
+      this.is_method_call = true;
+    }
+    else {
+      this.function_name = function_name;
+      this.is_method_call = false;
+    }
     this.operation_label = operation_label;
     this.arg_exprs = arg_exprs;
     this.extra_args = extra_args;
@@ -587,7 +600,6 @@ class SymPyMatrix extends SymPyNode {
     this.element_nodes = element_nodes;
   }
   to_py_string(emitter) {
-    console.log(this.element_nodes);
     const element_strings = this.element_nodes.map(
       element_node => element_node.to_py_string(emitter));
     return [
@@ -657,6 +669,25 @@ class SymPyFunctionObjectCall extends SymPyNode {
           .join(', ');
     return [
       "Function('", this.name, "')(", args_string, ')'
+    ].join('');
+  }
+}
+
+// Python method call: receiver.method_name(args...)
+class SymPyMethodCall extends SymPyNode {
+  constructor(receiver, method_name, args) {
+    super();
+    this.receiver = receiver;
+    this.method_name = method_name;
+    this.args = args;
+  }
+  to_py_string(emitter) {
+    const args_string = this.args
+          .map(arg_node => arg_node.to_py_string(emitter))
+          .join(', ');
+    return [
+      receiver.to_py_string(emitter),
+      '.', method_name, '(', args_string, ')'
     ].join('');
   }
 }
@@ -837,6 +868,12 @@ class ExprToSymPy {
   function_object_call(function_name, args = []) {
     return this.add_assignment(
       new SymPyFunctionObjectCall(function_name, args));
+  }
+
+  // receiver.method_name(args...)
+  method_call(receiver, method_name, args = []) {
+    return this.add_assignment(
+      new SymPyMethodCall(receiver, method_name, args));
   }
 
   // Python (x,y,z) tuple - treated as a function call with empty function name.

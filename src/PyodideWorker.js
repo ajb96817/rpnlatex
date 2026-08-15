@@ -62,6 +62,7 @@ async function run_sympy_command(code) {
   const result_js = result.toJs({create_pyproxies: false});
   const elapsed_time = Date.now() - start_time;
   result = {elapsed_time: elapsed_time, ...result_js};
+  // TODO: update this to reflect multi-result array
   /* result: {
        result_grid: [
          {srepr: ..., latex: ...,
@@ -70,10 +71,7 @@ async function run_sympy_command(code) {
        error: { ... }
      }
   */
-  postMessage({
-    message: 'command_finished',
-    result: result
-  });
+  postMessage({ message: 'command_finished', result: result });
 }
 
 
@@ -123,22 +121,24 @@ def substitute(expr,x,y): return expr.subs(x,y)
 // be eval()'d, which creates the corresponding Expr tree.  This is the Python
 // counterpart to the JS ExprToSymPy class.
 const pyodide_sympy_to_expr_code = `
-def sympy_result_to_expr_grid(sympy_result):
-  def convert_sympy_expr(expr):
-    return { 'srepr': srepr(expr), 'latex': latex(expr) }
-  sympy_result_rows = sympy_result if type(sympy_result) is list else [sympy_result]
-  result_grid = []
-  for row_index, row in enumerate(sympy_result_rows):
-    if type(row) is dict:
-      col = 1
-      for key, value in row.items():
-        result_grid.append(
-          convert_sympy_expr(Eq(key, value)) |
-          { 'row': row_index+1, 'col': col })
-        col += 1
-    else:
-      result_grid.append(convert_sympy_expr(row) | { 'row': row_index+1, 'col': 1 })
-  return result_grid
+def sympy_result_to_expr_grids(sympy_result):
+  def convert_sympy_expr(expr, row, col):
+    expr = expr.doit()
+    return { 'srepr': srepr(expr), 'latex': latex(expr), 'row': row, 'col': col }
+  def convert_result(result_expr):
+    sympy_result_rows = result_expr if type(result_expr) is list else [result_expr]
+    result_grid = []
+    for row_index, row in enumerate(sympy_result_rows):
+      if type(row) is dict:
+        col = 1
+        for key, value in row.items():
+          result_grid.append(convert_sympy_expr(Eq(key, value), row_index+1, col))
+          col += 1
+      else:
+        result_grid.append(convert_sympy_expr(row, row_index+1, 1))
+    return result_grid
+  sympy_result = sympy_result if type(sympy_result) is tuple else (sympy_result,)
+  return [convert_result(result_expr) for result_expr in sympy_result]
 `;
 
 

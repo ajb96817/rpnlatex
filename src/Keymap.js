@@ -1298,7 +1298,7 @@ const keybinding_table = {
     's': "split_array",
     't': "mode change_matrix_type",
     'T': "transpose_matrix",
-    'x': "matrix",
+    'x': "matrix_build",
 
     // Alignment/case building:
     'a': "align aligned",
@@ -1337,15 +1337,16 @@ const keybinding_table = {
     '-': "array_separator row solid"
   },
 
-  matrix: {
+  build_matrix: {
     '[digit]': "prefix_argument",
-    'm': "finish_matrix matrix",
+    'm': "finish_build_matrix matrix",
     ' ': "alias m",
-    'v': "finish_matrix vmatrix",
-    'V': "finish_matrix Vmatrix",
-    '(': "finish_matrix pmatrix",
-    '[': "finish_matrix bmatrix",
-    '{': "finish_matrix Bmatrix"
+    'v': "finish_build_matrix vmatrix",
+    'V': "finish_build_matrix Vmatrix",
+    '(': "finish_build_matrix pmatrix",
+    '[': "finish_build_matrix bmatrix",
+    'Enter': "alias [",  // undocumneted
+    '{': "finish_build_matrix Bmatrix"
   },
 
   change_matrix_type: {
@@ -1440,6 +1441,7 @@ const keybinding_table = {
     'i': "sympy integrate 1",
     'I': "sympy integrate 2",
     'f': "sympy factor 1",
+    'l': "mode linear_algebra",
     'm': "mode manipulate",
     'q': "mode diffeq",
     's': "sympy simplify 1",
@@ -1496,6 +1498,31 @@ const keybinding_table = {
     't': "sympy together 1"
   },
 
+  // [#][l] prefix: Matrix and linear algebra commands
+  linear_algebra: {
+    'c': "sympy .charpoly 1",  // TODO: postprocess PurePoly result
+    'C': "sympy .cholesky 1",  // TODO: verify
+    'd': "sympy .diagonalize 1",
+    'D': "sympy .dual 1",
+    // 'e': "sympy .eigenvals 1",  // TODO: fix these
+    // 'E': "sympy .eigenvects 1",
+    'f': "sympy .cofactor_matrix 1",
+    'i': "sympy .inv 1",
+    'I': "sympy .pinv 1",  // pseudoinverse
+    'j': "sympy .jacobian 2",  // TODO: test
+    'k': "sympy .nullspace 1",  // k = kernel
+    'l': "sympy .LUdecomposition 1",  // TODO: handle 3rd return value better
+    'L': "sympy .LUsolve 2",
+    'n': "sympy .norm 1",
+    'N': "sympy .normalized 1",
+    'R': "sympy .rref 1",  // TODO: handle the 2-element result tuple
+    's': "sympy .singular_value_decomposition 1",
+    'S': "sympy .singular_values 1",
+    'q': "sympy .QRdecomposition 1",
+    'Q': "sympy .QRsolve 2",
+    'x': "sympy .cross 2"
+  },
+
   // [#][q] prefix: differential equation commands
   diffeq: {
     'c': "sympy classify_ode 1",
@@ -1506,8 +1533,8 @@ const keybinding_table = {
     'K': "sympy checkodesol 3",  // TODO: also checkpdesol
     'p': "sympy pdsolve 1",
     'P': "sympy pdsolve 2",
-    's': "all_on_left true;sympy dsolve 1",
-    'S': "all_on_left true;sympy dsolve 2"
+    'v': "all_on_left true;sympy dsolve 1",
+    'V': "all_on_left true;sympy dsolve 2"
   },
 
   // [#][t] prefix: SymPy integral transforms
