@@ -200,7 +200,7 @@
         <li><span class="k">&quot;</span> Create a text object with <a href="#help_text_entry">text entry</a> mode.</li>
         <li><span class="k">Tab</span> <a href="#help_stack">Stack manipulation</a> and other utilities.</li>
         <li><span class="k">&#39;</span> <em>(apostrophe)</em> Create standalone <a href="#help_symbols">math symbols</a>.</li>
-        <li><span class="k">.</span> <em>(period)</em> Add a <a href="#help_decorations">decoration</a> to the stack top.</li>
+        <li><span class="k">.</span> <em>(period)</em> Add a <a href="#help_decorations">decoration</a> to an expression.</li>
         <li><span class="k">,</span> <em>(comma)</em> Combine two expressions with an <a href="#help_infix">infix operator</a>.</li>
         <li><span class="k">=</span> Combine two expressions with a <a href="#help_relational">relational operator</a>.</li>
         <li><span class="k">/</span> Apply various <a href="#help_operators">functions and operations</a>.</li>
@@ -224,6 +224,7 @@
         <li id="help_insert_calligraphic">
           <span class="k">@</span>
           Create calligraphic-style uppercase letters: <code>\mathcal{ABCDE}</code>
+          (type the letter you want after the <span class="k">@</span>).
         </li>
         <li>
           <span class="k" id="help_insert_script">&amp;</span>
@@ -320,7 +321,7 @@
         </li>
         <li>
           Parentheses may be used to indicate precedence:
-          <kbd>(x+1)//(x-1)</kbd> <code>\Rightarrow \displaystyle{\frac{x+1}{x-1}}</code>
+          <kbd>(x+1)//(x-1)</kbd> <code>\Rightarrow \frac{x+1}{x-1}</code>
         </li>
         <li>
           Function calls may be written as: <kbd>f(x)</kbd> or <kbd>f[x]</kbd>.
@@ -335,12 +336,6 @@
           <a href="#help_placeholders">Placeholders</a>
           can be entered with <kbd>[]</kbd>.
         </li>
-        
-        <!-- <li>
-          Column vectors may be entered using square brackets:
-          <kbd>[x, y]</kbd> and matrices with nested brackets:
-          <kbd>[[1, 2], [3, 4]]</kbd>.
-        </li> -->
       </ul>
       <p>
         <span class="k">Esc</span> (or <span class="k">Ctrl&nbsp;z</span>)
@@ -391,7 +386,7 @@
       <p>
         Typing another <span class="k">\</span>
         after the first one will instead switch into <em>LaTeX entry</em> mode where you can enter an arbitrary
-        zero-argument LaTeX command.  This can be used to create any standard LaTeX symbol:
+        zero-argument LaTeX command.  This can be used to create any supported LaTeX symbol:
         <code>\mathtt{\backslash\backslash boxdot}\Rightarrow\boxdot</code>
       </p>
       <p>
@@ -969,7 +964,7 @@
           </tr>
           <tr>
             <td><span class="k">C</span> <code>x\circledcirc y</code></td>
-            <td><span class="k">d</span> <code>x^\dagger y</code> <em>(dual)</em></td>
+            <td><span class="k">d</span> <code>x^\dagger y</code></td>
             <td><span class="k">D</span> <code>x\oplus y</code> <em>(direct&nbsp;sum)</em></td>
           </tr>
           <tr>
@@ -1165,7 +1160,7 @@
           </tr>
           <tr>
             <td><span class="k">q</span> or <span class="k">=</span> <code>x = y</code></td>
-            <td><span class="k">Q</span> <code>x\equiv y</code> <em>(e<strong>q</strong>uivalent)<em></td>
+            <td><span class="k">Q</span> <code>x\equiv y</code> <em>(e<strong>q</strong>uivalent)</em></td>
           </tr>
           <tr>
             <td><span class="k">t</span> <code>x\to y</code> <em>(<strong>t</strong>o)</em></td>
@@ -1196,8 +1191,8 @@
       <p><strong>Ordering relations:</strong></p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="k">l</span> <code>x &lt; y</code></td>
-            <td><span class="k">g</span> <code>x &gt; y</code></td>
+            <td><span class="k">l</span> <code>x &lt; y</code> <em>(<strong>l</strong>ess)</em></td>
+            <td><span class="k">g</span> <code>x &gt; y</code> <em>(<strong>g</strong>reater)</em></td>
           </tr>
           <tr>
             <td><span class="k">&lt;</span> or <span class="k">[</span> <code>x\le y</code></td>
@@ -1622,7 +1617,7 @@
         Derivatives and Differentials
       </h2>
       <p>
-        These are some shortcuts for quickly creating common types of expressions involving derivatives and differentials.
+        These are shortcuts for quickly creating common types of expressions involving derivatives and differentials.
         The commands shown here use the <span class="k">/</span><span class="k">d</span> prefix; variants can
         be obtained with <span class="k">/</span><span class="k">D</span> and
         <span class="k">/</span><span class="k">v</span> (see below).
@@ -1761,8 +1756,7 @@
         Integral Expressions
       </h2>
       <p>
-        These commands are shortcuts for creating integral signs with
-        common limits attached:
+        These commands are shortcuts for creating common structures involving integral signs:
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -1849,7 +1843,7 @@
         Named Operators
       </h2>
       <p>
-        These commands apply named operators or <strong>f</strong>unctions
+        These commands apply named <strong>f</strong>unctions or operators 
         like <code>\max</code> to the stack top.
         The argument(s) may or may not be automatically parenthesized, depending
         on the traditional usage of the operator.
@@ -2094,7 +2088,7 @@
       <p>
         <strong>Matrix Row Building:</strong>
         These commands assemble N items from the
-        stack into a <code>1\times N</code> row matrix with the indicated bracket type.
+        stack into a <code>1\times N</code> matrix (row vector) with the indicated bracket type.
       </p>
       <table class="keybindings"><tbody>
           <tr>
@@ -2112,7 +2106,7 @@
           </tr>
       </tbody></table>
       <p>
-        A column matrix can be entered by first building a row matrix, then transposing
+        A column vector can be entered by first building a row vector, then transposing
         with <span class="k">|</span><span class="k">T</span>.
       </p>
       <p>
@@ -2577,6 +2571,11 @@
             </li>
           </ul>
         </li>
+        <li>
+          Matrix and vector arithmetic, for example:
+          <code>{\begin{bmatrix} 0 & 1\\-1 & 0\end{bmatrix}}^{2}
+            \Rightarrow \begin{bmatrix} -1 & 0\\0 & -1\end{bmatrix}</code>
+        </li>
       </ul>
 
       <p><strong>Common Symbolic Actions:</strong></p>
@@ -2628,7 +2627,7 @@
         <li>
           <span class="k">s</span>
           <code>x\Rightarrow \mathtt{simplify(x)}</code>
-          - Best-effort general expression simplification.
+          - Apply general expression simplification rules.
         </li>
         <li>
           <span class="k">v</span>
@@ -2666,7 +2665,7 @@
       <p><strong>Expression Manipulation:</strong></p>
       <p>
         The <span class="k">#</span><span class="k">m</span> <em>(<strong>m</strong>anipulate)</em>
-        subprefix gives access to less-commonly used symbolic manipulation
+        subprefix gives access to less commonly used symbolic manipulation
         commands (refer to the SymPy documentation for details):
       </p>
       <ul class="keybindings">
@@ -2748,33 +2747,33 @@
         </li> -->
         <li>
           <span class="k">s</span>
-          <code>f(x)\enspace x\Rightarrow \mathtt{singularities(f(x), x)}</code> -
+          <code>f\enspace x\Rightarrow \mathtt{singularities(f(x), x)}</code> -
           Find singularities/poles of <code>f(x)</code>.
         </li>
         <li>
           <span class="k">S</span>
-          <code>f(x)\enspace x\Rightarrow \mathtt{stationary\_points(f(x), x)}</code> -
-          Find stationary point(s) of <code>f(x)</code>
-          (the <code>x</code> such that <code>f'(x)=0</code>).
+          <code>f\enspace x\Rightarrow \mathtt{stationary\_points(f(x), x)}</code> -
+          Find stationary point(s) of <code>f(x)</code>; that is, the <code>x</code>
+          values where <code>f'(x)=0</code>.
         </li>
         <li>
           <span class="k">c</span>
-          <code>f(x)\enspace x\Rightarrow \mathtt{is\_convex(f(x), x)}</code> -
+          <code>f\enspace x\Rightarrow \mathtt{is\_convex(f(x), x)}</code> -
           Check convexity of <code>f(x)</code>.
         </li>
         <li>
           <span class="k">m</span>
-          <code>f(x)\enspace x\Rightarrow \mathtt{maximum(f(x), x)}</code> -
+          <code>f\enspace x\Rightarrow \mathtt{maximum(f(x), x)}</code> -
           Find the maximum value of <code>f(x)</code> over the reals.
         </li>
         <li>
           <span class="k">M</span>
-          <code>f(x)\enspace x\Rightarrow \mathtt{minimum(f(x), x)}</code> -
+          <code>f\enspace x\Rightarrow \mathtt{minimum(f(x), x)}</code> -
           Find the minimum value of <code>f(x)</code> over the reals.
         </li>
         <li>
           <span class="k">p</span>
-          <code>f(x)\enspace x\Rightarrow \mathtt{periodicity(f(x), x)}</code> -
+          <code>f\enspace x\Rightarrow \mathtt{periodicity(f(x), x)}</code> -
           Try to find the period of <code>f(x)</code>
           (e.g. <code>\sin x \Rightarrow 2\pi</code>).
         </li>
@@ -2885,12 +2884,13 @@
       </p>
       <p>
         Some common operations such as trace and determinant can also be
-        performed this way (using <span class="k">/</span><span class="k">f</span><span class="k">t</span>
+        done this way (using <span class="k">/</span><span class="k">f</span><span class="k">t</span>
         and <span class="k">/</span><span class="k">f</span><span class="k">d</span> respectively).
       </p>
       <p>
         The <span class="k">#</span><span class="k">l</span> subprefix
-        has commands for other less commonly-used <strong>l</strong>inear algebra operations.  Please refer to the SymPy documentation for details.
+        has commands for other <strong>l</strong>inear algebra operations.
+        Please refer to the SymPy documentation for details.
       </p>
       <ul class="keybindings">
         <li>
@@ -2950,7 +2950,7 @@
           <span class="k">l</span>
           <code>M \Rightarrow \mathtt{M.LUdecomposition()}</code> -
           LU decomposition of <code>M \to L,U,P</code> such that <code>PM = LU</code>.
-          If <code>P</code> is an identity matrix it will be shown as &quot;No result&quot; instead.
+          If the <code>P</code> permutation is an identity matrix it will be shown as &quot;No result&quot; instead.
         </li>
         <li>
           <span class="k">L</span>
