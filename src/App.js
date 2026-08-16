@@ -83,6 +83,8 @@ class App extends React.Component {
     if(settings.filter === 'sepia') body_classes.push('sepia');
     if(settings.filter === 'eink') body_classes.push('eink');
     if(settings.hide_mouse_cursor) body_classes.push('hide_mouse_cursor');
+    if(settings.outline_stack_items) body_classes.push('outline_stack_items');
+    if(settings.outline_document_items) body_classes.push('outline_document_items');
     document.getElementById('body').className = body_classes.join(' ');
     // Set up stack position classes.  Currently these are only used to
     // create a solid border between stack and document in E-ink mode.

@@ -48,6 +48,8 @@ class Settings {
       'show_mode_indicator',
       'hide_mouse_cursor',
       'autoparenthesize',
+      'outline_stack_items',
+      'outline_document_items',
       'layout'  // nested layout object
     ];
   }
@@ -68,6 +70,8 @@ class Settings {
     this.show_mode_indicator = true;
     this.hide_mouse_cursor = false;
     this.autoparenthesize = true;
+    this.outline_stack_items = false;
+    this.outline_document_items = false;
     this.layout = {
       zoom_factor: 0,
       helptext_zoom_factor: 0,

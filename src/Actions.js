@@ -2005,6 +2005,16 @@ class InputContext {
       this.notify("Mouse cursor now " +
                   (settings.hide_mouse_cursor ? "hidden" : "visible"));
       break;
+    case 'toggle_outline_stack_items':
+      settings.outline_stack_items = !settings.outline_stack_items;
+      this.notify("Stack item outlining " +
+                  (settings.outline_stack_items ? "on" : "off"));
+      break;
+    case 'toggle_outline_document_items':
+      settings.outline_document_items = !settings.outline_document_items;
+      this.notify("Document item outlining " +
+                  (settings.outline_document_items ? "on" : "off"));
+      break;
     case 'stack_side':
       layout.stack_side = value;
       break;

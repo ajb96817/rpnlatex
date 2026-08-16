@@ -387,6 +387,8 @@ const keybinding_table = {
     'E': "config eink_mode",
     'f': "fullscreen on",
     'F': "fullscreen off",
+    'g': "config toggle_outline_stack_items",
+    'G': "config toggle_outline_document_items",
     'i': "config toggle_inline_math",
     'I': "config toggle_mode_indicator",
     'M': "config toggle_hide_mouse_cursor",

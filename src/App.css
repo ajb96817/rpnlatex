@@ -326,6 +326,28 @@ div.item {
   min-width: 100%;
 }
 
+/* Cosmetic changes for when "outline stack/document items" mode is enabled.
+   These config options set body.outline_{stack,document}_items CSS class(es). */
+body.outline_stack_items #stack_panel { background-color: #eee; /* more contrast for empty stack area */ }
+body.outline_stack_items #stack_panel div.item,
+    body.outline_document_items #document_panel div.item {
+  box-shadow: 0 0 0.2em 0 #aaa;
+  margin-top: 4px;  /* overrides 2px */
+}
+body.outline_stack_items #stack_panel div.item { background-color: #f8f8f8; }
+body.outline_stack_items.eink #stack_panel div.item,
+    body.outline_stack_items.eink #stack_panel div.floating_item { background-color: white; }
+body.outline_stack_items #stack_panel div.floating_item {
+  box-shadow: inset 0 0 0.35em 0.1em #f8f8f8;
+  background-color: #f8f8f8;  /* should match #stack_panel div.floating_item background color */
+}
+body.outline_stack_items #stack_panel div.floating_item div.item { box-shadow: none; }
+/* Some subtle spacing adjustments to make it look better: */
+body.outline_stack_items #stack_panel div.latex_fragment,
+    body.outline_document_items #document_panel div.latex_fragment { padding-top: 1px; padding-bottom: 1px; }
+body.outline_stack_items #stack_panel div.latex_fragment .katex-display,
+    body.outline_document_items #document_panel div.latex_fragment .katex-display { padding: 0; }
+
 /* div.expr_item {}
    div.text_item {} */
 
