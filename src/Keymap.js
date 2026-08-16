@@ -1435,7 +1435,7 @@ const keybinding_table = {
     '?': "mode query",
     '/': "sympy nsimplify 1",  // convert float to "fraction"
     // "\\": "rationalize",  // non-SymPy float-to-fraction
-    '|': "sympy substitute 3",
+    '|': "sympy .subs 3",
     'd': "sympy diff 1",
     'D': "sympy diff 2",
     'i': "sympy integrate 1",
@@ -1487,14 +1487,14 @@ const keybinding_table = {
   // the expression without changing the mathematical meaning.
   manipulate: {
     'a': "sympy apart 1",
-    'b': "sympy expand_power_base 1",  // TODO: doesn't seem to work right on e.g. (xy)^a
     'c': "sympy collect 2",
+    'C': "sympy cancel 1",
     'f': "sympy expand_func 1",  // TODO: doesn't work for Gamma(x+3)
-    'g': "sympy expand_trig 1",
-    'k': "sympy cancel 1",
-    'l': "sympy expand_log 1",
+    'g': "sympy trigsimp 1",
+    'G': "sympy expand_trig 1",
     'L': "sympy logcombine 1",  // TODO: same problem as expand_power_base
-    'p': "sympy expand_power_exp 1",
+    'p': "sympy expand_power_base 1",  // TODO: doesn't seem to work right on e.g. (xy)^a
+    'P': "sympy expand_power_exp 1",
     't': "sympy together 1"
   },
 
@@ -1513,13 +1513,13 @@ const keybinding_table = {
     'k': "sympy .nullspace 1",  // k = kernel
     'l': "sympy .LUdecomposition 1",  // TODO: handle 3rd return value better
     'L': "sympy .LUsolve 2",
-    'n': "sympy .norm 1",
-    'N': "sympy .normalized 1",
+    'n': "sympy .normalized 1",
+    'N': "sympy .norm 1",
     'R': "sympy .rref 1",  // TODO: handle the 2-element result tuple
     's': "sympy .singular_value_decomposition 1",
     'S': "sympy .singular_values 1",
     'q': "sympy .QRdecomposition 1",
-    'Q': "sympy .QRsolve 2",
+    //'Q': "sympy .QRsolve 2",  // not really needed, just use LRsolve
     'x': "sympy .cross 2"
   },
 

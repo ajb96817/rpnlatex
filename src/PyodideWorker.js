@@ -87,9 +87,8 @@ onmessage = async (event) => {
 // convenience functions for Expr->SymPy conversions.
 // Basically, we try to translate everything involved with building SymPy
 // expressions into direct function calls (and literals like numbers), avoiding
-// infix operators like x+y in favor of Add(x,y), and method calls like
-// expr.subs(...) in favor of substitute(expr, ...) (defined here).
-// Things like PrefixExpr('-', x) become negate(x), etc.
+// infix operators like x+y in favor of Add(x,y).  Things like PrefixExpr('-', x)
+// become negate(x), etc.
 //
 // It's kept here in an inline string instead of being a separate .py file
 // for simplicity, so that we don't have to fetch it in a separate HTTP request
@@ -102,7 +101,6 @@ def log10(x): return log(x,10)
 def divide(x,y): return S(x)/S(y)
 def subtract(x,y): return S(x)-S(y)
 def negate(x): return -S(x)
-def substitute(expr,x,y): return expr.subs(x,y)
 `;
 
 
