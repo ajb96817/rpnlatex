@@ -1,7 +1,7 @@
 # rpnlatex - RPN style LaTeX editor and scratchpad
 
-  * **Current release version**: `1.5.0` - ([live build](https://ajb96817.github.io/rpnlatex/)) - ([alternative site](https://andrewbrault.com/rpnlatex/))
-  * **Development version**: `1.5.1` - ([live build](https://andrewbrault.com/rpnlatex_dev/)) - ([source code](https://github.com/ajb96817/rpnlatex))
+  * **Current release version**: `1.5.1 - ([live build](https://ajb96817.github.io/rpnlatex/)) - ([alternative site](https://andrewbrault.com/rpnlatex/))
+  * **Development version**: `1.5.2` - ([live build](https://andrewbrault.com/rpnlatex_dev/)) - ([source code](https://github.com/ajb96817/rpnlatex))
 
 This is a browser-based math editor meant for quickly entering and manipulating
 formulas using a Reverse Polish Notation (RPN) input system inspired by HP calculators.

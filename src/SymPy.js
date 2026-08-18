@@ -1377,7 +1377,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
   // This notation is special in that the subscript should be a sequence
   // of either one-letter variable names or integer constants.
   // TODO: break multi-digit integer constants into single digits: 123 => 1 2 3
-  // TODO: handle comma-separated infix lists: \epsilon{a,b,c}
+  // TODO: handle comma-separated infix lists: \epsilon_{a,b,c}
   analyze_levi_civita(base_expr, subscript_expr, superscript_expr) {
     if(superscript_expr)
       return null;
