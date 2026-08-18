@@ -326,30 +326,43 @@ div.item {
   min-width: 100%;
 }
 
+
 /* Cosmetic changes for when "outline stack/document items" mode is enabled.
-   These config options set body.outline_{stack,document}_items CSS class(es). */
-body.outline_stack_items #stack_panel { background-color: #eee; /* more contrast for empty stack area */ }
-body.outline_stack_items #stack_panel div.item,
-    body.outline_document_items #document_panel div.item {
-  box-shadow: 0 0 0.2em 0 #aaa;
-  margin-top: 4px;  /* overrides 2px */
-}
+   These config options set body.outline_{stack,document}_items CSS class(es).
+   NOTE: The order/priority of these CSS rules matters, so be careful when changing these. */
+/* Give some contrast to empty stack / document area: */
+body.outline_stack_items #stack_panel { background-color: #eee; }
+body.outline_document_items #document_panel { background-color: #f4f4f4; }
 body.outline_stack_items #stack_panel div.item { background-color: #f8f8f8; }
-body.outline_stack_items.eink #stack_panel div.item,
-    body.outline_stack_items.eink #stack_panel div.floating_item { background-color: white; }
+body.outline_document_items #document_panel div.item { background-color: white; }
+body.outline_stack_items #stack_panel div.item,
+body.outline_document_items #document_panel div.item {
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  margin-top: 3px;  /* overrides 2px */
+}
 body.outline_stack_items #stack_panel div.floating_item {
   box-shadow: inset 0 0 0.35em 0.1em #f8f8f8;
-  background-color: #f8f8f8;  /* should match #stack_panel div.floating_item background color */
+  background-color: #f8f8f8;
 }
-body.outline_stack_items #stack_panel div.floating_item div.item { box-shadow: none; }
-/* Some subtle spacing adjustments to make it look better: */
+body.outline_stack_items #stack_panel div.floating_item div.item { border: none; }
+/* Tweaks for eink-mode: */
+body.outline_stack_items.eink #stack_panel div.item,
+body.outline_stack_items.eink #stack_panel div.floating_item { background-color: white; }
+body.outline_stack_items.eink #stack_panel div.separator_item { background-color: transparent; }
+/* Some subtle spacing adjustments to make things look better: */
 body.outline_stack_items #stack_panel div.latex_fragment,
-    body.outline_document_items #document_panel div.latex_fragment { padding-top: 1px; padding-bottom: 1px; }
+body.outline_document_items #document_panel div.latex_fragment { padding-top: 1px; padding-bottom: 1px; }
 body.outline_stack_items #stack_panel div.latex_fragment .katex-display,
-    body.outline_document_items #document_panel div.latex_fragment .katex-display { padding: 0; }
+body.outline_document_items #document_panel div.latex_fragment .katex-display { padding: 0; }
+/* Text items are shown "directly against the background", not in an outlined cell.
+   Note that 'separator bar' TextItems are shown without their type indicator bar. */
+body.outline_stack_items #stack_panel div.text_item,
+body.outline_stack_items #stack_panel div.separator_item,
+body.outline_document_items #document_panel div.text_item,
+body.outline_document_items #document_panel div.separator_item { background-color: transparent; border: none; }
+/* End "outline stack/document items" rules. */
 
-/* div.expr_item {}
-   div.text_item {} */
 
 div.latex_fragment {
   /* NOTE: vertical margins should match .katex-display margins below.
@@ -360,7 +373,14 @@ div.latex_fragment {
   padding-left: var(--item-margin-width);
 }
 div.latex_fragment span.katex-error { font-family: monospace; }
-div.expr_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #aaa; }
+
+/* Item-type indicators for left border.
+   Note that Expr items' tags take up the whole cell height,
+   while Text items tag height is matched to the text item height.
+   This doesn't normally make a difference, but gives a better visual
+   effect when "outlined item" mode is enabled with [$][g/G], since
+   Text items are rendered to not appear as a "grid cell" like Expr items. */
+div.expr_item { border-left: var(--itemtype-bar-width) solid #aaa; }
 div.text_item div.latex_fragment { border-left: var(--itemtype-bar-width) solid #99f; }
 
 /* Highlight the stack item(s) that are the "target" for a stack (Tab)

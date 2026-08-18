@@ -17,7 +17,8 @@
     <div id="root"></div>
     <script type="module" src="src/index.js"></script>
 
-    <!-- The entire user manual is inline here, to be unhidden at runtime when requested. -->
+    <!-- The entire user manual is inline here, to be unhidden at runtime when requested.
+         This #helptext node will be moved into #help_content once the app is initialized. -->
     <div id="helptext" style="display: none;">
       <div class="version_info">rpnlatex v1.5.1</div>
       <div class="version_info">pyodide v314.0.2</div>
@@ -2516,7 +2517,7 @@
           <code>\overline{3+4i} \Rightarrow 3-4i</code>
         </li>
         <li>
-          Matrix transpose: <code>A^{\mathrm{T}}</code>,
+          Matrix or vector transpose: <code>A^{\mathrm{T}}</code>,
           adjoint/Hermitian: <code>A^{\dagger}</code>
         </li>
         <li>
@@ -2575,6 +2576,8 @@
           Matrix and vector arithmetic, for example:
           <code>{\begin{bmatrix} 0 & 1\\-1 & 0\end{bmatrix}}^{2}
             \Rightarrow \begin{bmatrix} -1 & 0\\0 & -1\end{bmatrix}</code>
+          and <code>\det{\begin{bmatrix} a & b\\c & d\end{bmatrix}}
+            \Rightarrow ad-bc</code>
         </li>
       </ul>
 
@@ -2582,18 +2585,20 @@
       <ul class="keybindings">
         <li>
           <span class="k">=</span>
-          Try to numerically evaluate an expression:
-          <code>2\pi \Rightarrow \mathtt{N(2*pi)} \Rightarrow 6.28318530717959</code>
+          <code>x \Rightarrow \mathtt{N(x)}</code> -
+          Evaluate numerical values in <code>x</code> when possible:
+          <code>2\pi \Rightarrow 6.28318530717959</code>
         </li>
         <li>
           <span class="k">/</span>
-          Try to convert a floating-point value back into a rational value
+          <code>x \Rightarrow \mathtt{nsimplify(x)}</code> -
+          Try to convert floating-point numbers back into rational values
           (possibly up to a factor of certain values like <code>\sqrt{3}</code>):
-          <code>6.28318530717959 \Rightarrow \mathtt{nsimplify(6.283\dots)} \Rightarrow 2\pi</code>
+          <code>6.28318530717959 \Rightarrow 2\pi</code>
         </li>
         <li>
           <span class="k">|</span>
-          <code>f\enspace x\enspace y</code>:
+          <code>f\enspace x\enspace y \Rightarrow \mathtt{f.subs(x,y)}</code> -
           Replace occurrences of <code>x</code> with <code>y</code> in <code>f</code>.
           This can be used to evaluate expressions at a given value:
           <code>x^2\enspace x\enspace 5 \Rightarrow 25</code>
@@ -2621,17 +2626,17 @@
         </li>
         <li>
           <span class="k">f</span>
-          <code>x\Rightarrow \mathtt{factor(x)}</code>:
+          <code>f\Rightarrow \mathtt{factor(f)}</code>:
           <code>x^2-2x+1 \Rightarrow (x-1)^2</code>
         </li>
         <li>
           <span class="k">s</span>
-          <code>x\Rightarrow \mathtt{simplify(x)}</code>
+          <code>f\Rightarrow \mathtt{simplify(f)}</code>
           - Apply general expression simplification rules.
         </li>
         <li>
           <span class="k">v</span>
-          <code>x \Rightarrow \mathtt{solve(x)}</code> -
+          <code>f \Rightarrow \mathtt{solve(f)}</code> -
           Try to sol<strong>v</strong>e an equation (or try to find the zeroes of
           an expression like <code>x^2-3</code>).  The variable to be solved for
           is guessed from context.
@@ -2641,14 +2646,14 @@
         </li>
         <li>
           <span class="k">V</span>
-          <code>y\enspace x \Rightarrow \mathtt{solve(y, x)}</code> -
+          <code>f\enspace x \Rightarrow \mathtt{solve(f, x)}</code> -
           Like <span class="k">v</span>, but the variable to be solved for
           is given explicitly:
           <code>x=c^2 \enspace c \Rightarrow -\sqrt{x}, \sqrt{x}</code>
         </li>
         <li>
           <span class="k">x</span>
-          <code>x\Rightarrow \mathtt{expand(x)}</code>:
+          <code>f\Rightarrow \mathtt{expand(f)}</code>:
           <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
         </li>
         <li>
@@ -2671,59 +2676,59 @@
       <ul class="keybindings">
         <li>
           <span class="k">a</span>
-          <code>x\Rightarrow \mathtt{apart(x)}</code> - Partial fraction expansion:
+          <code>f\Rightarrow \mathtt{apart(f)}</code> - Partial fraction expansion:
           <code>\frac{1}{1-x^2} \Rightarrow \frac{1}{2(x + 1)} - \frac{1}{2(x - 1)}</code>
         </li>
         <li>
           <span class="k">c</span>
-          <code>y\enspace x\Rightarrow \mathtt{collect(y, x)}</code> -
+          <code>f\enspace x\Rightarrow \mathtt{collect(f, x)}</code> -
           Collect like terms in the variable <code>x</code>:
           <code>2x+3x \Rightarrow 5x</code>
         </li>
         <li>
           <span class="k">C</span>
-          <code>x\Rightarrow \mathtt{cancel(x)}</code> -
+          <code>f\Rightarrow \mathtt{cancel(f)}</code> -
           Cancel factors in a rational expression:
           <code>\frac{2x^2-2}{x^2-2x+1} \Rightarrow \frac{2x+2}{x-1}</code>
         </li>
         <li>
           <span class="k">f</span>
-          <code>x\Rightarrow \mathtt{expand\_func(x)}</code> -
+          <code>f\Rightarrow \mathtt{expand\_func(f)}</code> -
           Expand some special function identities such as
           <code>\Gamma(x+3) \Rightarrow x(x+1)(x+2)\Gamma(x)</code>
         </li>
         <li>
           <span class="k">g</span>
-          <code>x\Rightarrow \mathtt{trigsimp(x)}</code> - Simplify trigonometric identities:
+          <code>f\Rightarrow \mathtt{trigsimp(f)}</code> - Simplify trigonometric identities:
           <code>\frac{\sin{x}\tan{x}}{\sec{x}} \Rightarrow \sin^2{x}</code>
         </li>
         <li>
           <span class="k">G</span>
-          <code>x\Rightarrow \mathtt{expand\_trig(x)}</code> - Expand trigonometric
+          <code>f\Rightarrow \mathtt{expand\_trig(f)}</code> - Expand trigonometric
           functions using sum or double angle identities:
           <code>\sin{(x+y)} \Rightarrow \sin{x}\cos{y} + \sin{y}\cos{x}</code>
         </li>
         <li>
           <span class="k">L</span>
-          <code>x\Rightarrow \mathtt{logcombine(x)}</code> - Try to bring values
+          <code>f\Rightarrow \mathtt{logcombine(f)}</code> - Try to bring values
           inside the argument of logarithm functions:
           <code>\ln{x}+\ln{y} \Rightarrow \ln{(xy)}</code>
           and <code>a\ln{x} \Rightarrow \ln{x^a}</code>
         </li>
         <li>
           <span class="k">p</span>
-          <code>x\Rightarrow \mathtt{expand\_power\_base(x)}</code> - Expand exponents
+          <code>f\Rightarrow \mathtt{expand\_power\_base(f)}</code> - Expand exponents
           when the base is a product:
-          <code>(ab)^x \Rightarrow a^x b^x</code>.
+          <code>(ab)^x \Rightarrow a^x b^x</code>
         </li>
         <li>
           <span class="k">P</span>
-          <code>x\Rightarrow \mathtt{expand\_power\_exp(x)}</code> - Expand addition
+          <code>f\Rightarrow \mathtt{expand\_power\_exp(f)}</code> - Expand addition
           in exponents: <code>\mathrm{e}^{a+b} \Rightarrow \mathrm{e}^a \mathrm{e}^b</code>
         </li>
         <li>
           <span class="k">t</span>
-          <code>x\Rightarrow \mathtt{together(x)}</code> - Combine rational functions:
+          <code>f\Rightarrow \mathtt{together(f)}</code> - Combine rational functions:
           <code>\frac{1}{x} + \frac{1}{x+1} \Rightarrow \frac{2x+1}{x(x+1)}</code>
         </li>
       </ul>
@@ -2805,7 +2810,7 @@
         <li>
           <span class="k">l</span>
           <code>f \Rightarrow \mathscr{L}\{f(t)\}(s)</code>
-          (assumes <code>x \mapsto k</code>)
+          (assumes <code>t \mapsto s</code>)
         </li>
         <li>
           <span class="k">-</span><span class="k">L</span>
@@ -3309,7 +3314,7 @@
           &ndash; same as <span class="k">.</span><span class="k">0-4</span>
         </li>
         <li><span class="k">Ctrl&nbsp;a</span>
-          Swap the top two stack top items
+          Swap the top two stack items
           &ndash; same as <span class="k">Tab</span><span class="k">a</span>
         </li>
         <li><span class="k">Ctrl&nbsp;b</span>
