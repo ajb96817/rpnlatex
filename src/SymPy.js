@@ -1311,8 +1311,9 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
     let {base_expr, subscript_expr, superscript_expr} = expr;
     // First check things that might depend on the subscript/superscript.
     let node =
-      this.analyze_where(base_expr, subscript_expr, superscript_expr) ||
-      this.analyze_exp(base_expr, subscript_expr, superscript_expr);
+        this.analyze_where(base_expr, subscript_expr, superscript_expr) ||
+        this.analyze_exp(base_expr, subscript_expr, superscript_expr) ||
+        this.analyze_levi_civita(base_expr, subscript_expr, superscript_expr);
     if(node)
       return this.success(node, index);
     // At this point, any subscript must be something like 'f_a': a simple
@@ -1370,6 +1371,31 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
         this.emitter.emit_expr(superscript_expr)]);
     else
       return null;
+  }
+
+  // \epsilon_{xyz} (or \varepsilon) - Levi-Civita symbol
+  // This notation is special in that the subscript should be a sequence
+  // of either one-letter variable names or integer constants.
+  // TODO: break multi-digit integer constants into single digits: 123 => 1 2 3
+  // TODO: handle comma-separated infix lists: \epsilon{a,b,c}
+  analyze_levi_civita(base_expr, subscript_expr, superscript_expr) {
+    if(superscript_expr)
+      return null;
+    if(!(base_expr.is_command_expr_with(0, 'epsilon') ||
+         base_expr.is_command_expr_with(0, 'varepsilon')))
+      return null;
+    const subscript_exprs = subscript_expr.is_sequence_expr() ?
+          subscript_expr.exprs : [subscript_expr];
+    const argument_nodes = subscript_exprs.map(expr => {
+      if(expr.is_text_expr() && expr.looks_like_integer())
+        return this.emitter.number(expr.text);
+      const v = expr_to_variable_name(expr);
+      return v ? this.emitter.variable(v) : null;
+    });
+    if(argument_nodes.every(node => node))
+      return this.emitter.fncall('LeviCivita', argument_nodes);
+    else
+      return null;  // something wasn't an integer or variable name
   }
 
   // x^T: transpose

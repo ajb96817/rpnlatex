@@ -332,6 +332,7 @@ div.item {
    NOTE: The order/priority of these CSS rules matters, so be careful when changing these. */
 /* Give some contrast to empty stack / document area: */
 body.outline_stack_items #stack_panel { background-color: #eee; }
+body.outline_stack_items div.stack_items { bottom: 0.15em; }
 body.outline_document_items #document_panel { background-color: #f4f4f4; }
 body.outline_stack_items #stack_panel div.item { background-color: #f8f8f8; }
 body.outline_document_items #document_panel div.item { background-color: white; }
