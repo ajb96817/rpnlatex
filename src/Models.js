@@ -493,7 +493,7 @@ class AppState {
   _default_stack() {
     const item = TextItem.parse_string(
       "Welcome to the editor.  Type **[?]** to view the User Guide.");
-    return new Stack().push(item);
+    return new Stack().push_item(item);
   }
 
   same_as(app_state) {
@@ -1412,14 +1412,14 @@ class Stack {
     else return this.underflow();
   }
 
-  // Returns [new_stack, item1, item2, ...].
-  pop(n = 1) {
+  // Returns [new_stack, item1, ...].
+  pop_items(n = 1) {
     if(this.check(n)) 
       return this._unchecked_pop(n);
     else return this.underflow();
   }
 
-  // Like pop(n) but all the items have to be ExprItems, and the wrapped Expr
+  // Like pop_items(n) but all the items have to be ExprItems, and the wrapped Expr
   // instances are returned, not the ExprItems.
   pop_exprs(n = 1) {
     if(!this.check(n)) this.underflow();
@@ -1442,22 +1442,25 @@ class Stack {
     else this.type_error();
   }
 
+  // Returns [new_stack, item1, ...].
   _unchecked_pop(n) {
     if(n <= 0)
       return [this];
     else
       return [
-        new Stack(this.items.slice(0, -n), this.floating_items)
-      ].concat(this.items.slice(-n));
+        new Stack(this.items.slice(0, -n), this.floating_items),
+        ...this.items.slice(-n)];
   }
   
-  push_all(items) {
+  push_all_items(items) {
     if(!items.every(item => item instanceof Item))
       throw new Error('pushing invalid item onto stack');
     return new Stack(this.items.concat(items), this.floating_items);
   }
-  push_all_exprs(exprs) { return this.push_all(exprs.map(expr => new ExprItem(expr))); }
-  push(item) { return this.push_all([item]); }
+  push_all_exprs(exprs) {
+    return this.push_all_items(exprs.map(expr => new ExprItem(expr)));
+  }
+  push_item(item) { return this.push_all_items([item]); }
   push_expr(expr) { return this.push_all_exprs([expr]); }
 
   // The floating items work as a limited pseudo-stack within the main stack.

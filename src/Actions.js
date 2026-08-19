@@ -342,7 +342,7 @@ class InputContext {
 
   // Hook for [$][~] debugging command.
   do_debug(stack) {
-    const [, item] = stack.pop(1);
+    const [, item] = stack.pop_items(1);
     console.log(item);
     return stack;
   }
@@ -537,31 +537,31 @@ class InputContext {
   // Duplicate the top N stack items (default=1).
   do_dup(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
+    const [new_stack, ...items] = stack.pop_items(arg);
     const new_items = items.map(item => item.clone());  // keep item serial_numbers unique
-    return new_stack.push_all(items.concat(new_items));
+    return new_stack.push_all_items(items.concat(new_items));
   }
 
   // Drop the top N stack items (default=1).
   do_pop(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
-    const [new_stack, ] = stack.pop(arg);
+    const [new_stack, ] = stack.pop_items(arg);
     return new_stack;
   }
 
   // Drop the Nth stack item (default=2, i.e.: a b -> b)
   do_nip(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
-    return new_stack.push_all(items.slice(1));
+    const [new_stack, ...items] = stack.pop_items(arg);
+    return new_stack.push_all_items(items.slice(1));
   }
 
   // Reverse top N stack items (default=2)
   do_swap(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
+    const [new_stack, ...items] = stack.pop_items(arg);
     items.reverse();
-    return new_stack.push_all(items);
+    return new_stack.push_all_items(items);
   }
 
   // Copy stack top above the current Nth stack item.
@@ -569,55 +569,47 @@ class InputContext {
   // Argument of 1 acts as "dup".
   do_tuck(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
-    if(items.length > 0) {
-      const last_item = items.at(-1);
-      return new_stack.push_all([last_item.clone()].concat(items));
-    }
-    else
-      return new_stack;
+    const [new_stack, ...items] = stack.pop_items(arg);
+    if(items.length > 0)
+      return new_stack.push_all_items([items.at(-1).clone(), ...items]);
+    else return new_stack;
   }
 
   // Pick the Nth item from the stack and copy it to the stack top.
   // Default argument of 2 is: a b => a b a
   do_over(stack) {
     const arg = this._get_prefix_argument(2, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
+    const [new_stack, ...items] = stack.pop_items(arg);
     if(items.length > 0)
-      return new_stack.push_all(items.concat([items[0].clone()]));
-    else
-      return new_stack;
+      return new_stack.push_all_items([...items, items[0].clone()]);
+    else return new_stack;
   }
 
   // Rotate N top stack items (default=3: a b c => b c a)
   do_rot(stack) {
     const arg = this._get_prefix_argument(3, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
-    if(items.length > 0) {
-      const new_items = items.slice(1).concat([items[0]]);
-      return new_stack.push_all(new_items);
-    }
-    else
-      return new_stack;
+    const [new_stack, ...items] = stack.pop_items(arg);
+    if(items.length > 0)
+      return new_stack.push_all_items([...items.slice(1), items[0]]);
+    else return new_stack;
   }
 
   // Rotate N top stack items backwards (default=3: a b c => c a b)
   do_unrot(stack) {
     const arg = this._get_prefix_argument(3, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
-    if(items.length > 0) {
-      const new_items = items.slice(-1).concat(items.slice(0, -1));
-      return new_stack.push_all(new_items);
-    }
-    else
-      return new_stack;
+    const [new_stack, ...items] = stack.pop_items(arg);
+    if(items.length > 0)
+      return new_stack.push_all_items(items.slice(-1).concat(items.slice(0, -1)));
+    else return new_stack;
   }
 
   // Remove all but the top N stack items (default=1).
   do_keep(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
-    const [new_stack, ...items] = stack.pop(arg);
-    return new_stack.pop(new_stack.depth())[0].push_all(items);
+    const [new_stack, ...items] = stack.pop_items(arg);
+    return new_stack
+      .pop_items(new_stack.depth())[0]
+      .push_all_items(items);
   }
 
   // amount_string: integer or 'top'/'bottom'
@@ -884,7 +876,7 @@ class InputContext {
   // into the document.  Otherwise, the items are removed from the stack.
   do_pop_to_document(stack, preserve) {
     const item_count = this._get_prefix_argument(1, stack.depth());
-    const [new_stack, ...items] = stack.pop(item_count);
+    const [new_stack, ...items] = stack.pop_items(item_count);
     const new_items = items.map(item => item.clone());
     const new_document = this.app_state.document.insert_items(new_items);
     this.update_document(new_document);
@@ -900,7 +892,7 @@ class InputContext {
     const new_items = deleted_items.map(item => item.clone());
     if(!preserve)
       this.update_document(new_document);
-    return stack.push_all(new_items);
+    return stack.push_all_items(new_items);
   }
 
   // Clear stack and/or document, according to 'which'.
@@ -930,7 +922,7 @@ class InputContext {
   }
 
   do_push_separator(stack) {
-    return stack.push(TextItem.separator_item());
+    return stack.push_item(TextItem.separator_item());
   }
 
   // Like do_push, but use a PrefixExpr('-') for negative integers.
@@ -1086,8 +1078,8 @@ class InputContext {
   }
 
   do_make_bold(stack) {
-    const [new_stack, item] = stack.pop(1);
-    return new_stack.push(item.as_bold());
+    const [new_stack, item] = stack.pop_items(1);
+    return new_stack.push_item(item.as_bold());
   }
 
   // side: 'left' or 'right'
@@ -1233,7 +1225,7 @@ class InputContext {
   // otherwise the behavior depends on the global settings.
   // (Default is to always autoparenthesize).
   do_concat(stack, autoparenthesize) {
-    const [new_stack, left_item, right_item] = stack.pop(2);
+    const [new_stack, left_item, right_item] = stack.pop_items(2);
     const no_parenthesize = autoparenthesize === 'false' ||
           !this.settings.autoparenthesize;
     if(left_item.is_expr_item() && right_item.is_expr_item())
@@ -1244,7 +1236,7 @@ class InputContext {
       return stack.type_error();  // disallow concatenating separators
     else if((left_item.is_expr_item() || left_item.is_text_item()) &&
             (right_item.is_expr_item() || right_item.is_text_item()))
-      return new_stack.push(
+      return new_stack.push_item(
         TextItem.concatenate_items(left_item, right_item));
     else
       return stack.type_error();
@@ -1299,7 +1291,7 @@ class InputContext {
   // item second from top.  That (second) item can be either an ExprItem or TextItem.
   do_substitute_placeholder(stack) {
     const [new_stack, substitution_expr] = stack.pop_exprs(1);
-    const [new_stack_2, item] = new_stack.pop(1);
+    const [new_stack_2, item] = new_stack.pop_items(1);
     if(item.is_expr_item()) {
       const original_expr = item.expr;
       const placeholder_expr_path = original_expr
@@ -1314,7 +1306,7 @@ class InputContext {
       const new_text_item = item
             .try_substitute_placeholder(substitution_expr);
       if(new_text_item)
-        return new_stack_2.push(new_text_item);
+        return new_stack_2.push_item(new_text_item);
     }
     return stack.type_error();
   }
@@ -1438,7 +1430,7 @@ class InputContext {
     const edited_item = this.text_entry.edited_item;
     this.text_entry = null;
     if(edited_item)
-      return stack.push(edited_item);
+      return stack.push_item(edited_item);
     else
       return stack;
   }
@@ -1537,7 +1529,7 @@ class InputContext {
       if(item) {
         if(textstyle === 'heading') item.is_heading = true;
         this._cancel_text_entry(stack);
-        return stack.push(item);
+        return stack.push_item(item);
       }
       else {
         this.suppress_undo();
@@ -1616,13 +1608,13 @@ class InputContext {
     }
     else if(textstyle === 'tag' ||
             textstyle === 'tag_with_parentheses') {
-      const [new_stack, item] = stack.pop(1);
+      const [new_stack, item] = stack.pop_items(1);
       const new_item = item.with_tag(
         trimmed_text.length === 0 ? null :
           textstyle === 'tag_with_parentheses' ?
           ['(', trimmed_text, ')'].join('') : trimmed_text);
       this._cancel_text_entry(new_stack);
-      return new_stack.push(new_item);
+      return new_stack.push_item(new_item);
     }
     else if(textstyle === 'prefix' ||
             textstyle === 'bold_prefix') {
@@ -1657,7 +1649,7 @@ class InputContext {
       }
     }
     this._cancel_text_entry(stack);
-    return stack.push(new ExprItem(
+    return stack.push_item(new ExprItem(
       new_expr,
       null /* no tag */,
       text /* source_string */));
@@ -1676,7 +1668,7 @@ class InputContext {
   //     (this is to allow expressions created via Shift+Enter in the minieditor to be editable).
   //   - ExprItems that represent \operatorname{x}.
   do_edit_item(stack) {
-    const [new_stack, item] = stack.pop(1);
+    const [new_stack, item] = stack.pop_items(1);
     let is_editable = true;  // set to false if it turns out to be uneditable
     if(item.is_text_item()) {
       if(item.source_string)
@@ -1742,7 +1734,7 @@ class InputContext {
         null /* tag */,
         null /* source_string - discard */,
         new ExprPath(expr, [0]));
-      return new_stack.push(new_item);
+      return new_stack.push_item(new_item);
     }
     else
       return this.error_flash_stack();
@@ -1753,7 +1745,7 @@ class InputContext {
     this.suppress_undo();
     const original_expr = this.dissect_mode_initial_expr;
     this.dissect_mode_initial_expr = null;
-    return new_stack.push(
+    return new_stack.push_item(
       new ExprItem(original_expr, null, null, null));
   }
 
@@ -1768,7 +1760,7 @@ class InputContext {
         this.dissect_undo_stack = null;
         // A new ExprItem needs to be constructed in order to remove
         // the existing ExprPath selection.
-        return new_stack.push(new ExprItem(expr, null, null, null));
+        return new_stack.push_item(new ExprItem(expr, null, null, null));
         }     */
 
   // Descend into a subexpression, if possible.
@@ -1811,7 +1803,7 @@ class InputContext {
   // the original expression with placeholder is left on the stack.
   // This command also exits dissect mode.
   do_dissect_extract_selection(stack, trim) {
-    const [new_stack, item] = stack.pop(1);
+    const [new_stack, item] = stack.pop_items(1);
     if(!item.is_expr_item())
       stack.type_error();
     const expr_path = item.selected_expr_path;
@@ -1828,7 +1820,7 @@ class InputContext {
   // If 'trim' is given, the original expression is removed from the stack,
   // leaving only the selected subexpression.
   do_dissect_copy_selection(stack, trim) {
-    const [new_stack, item] = stack.pop(1);
+    const [new_stack, item] = stack.pop_items(1);
     if(!item.is_expr_item())
       stack.type_error();
     const expr_path = item.selected_expr_path;
@@ -1843,7 +1835,7 @@ class InputContext {
   // takes the existing ExprPath, and should return the new ExprPath,
   // or null if the operation is considered an error.
   _do_dissect_operation(stack, fn) {
-    const [new_stack, item] = stack.pop(1);
+    const [new_stack, item] = stack.pop_items(1);
     if(!item.is_expr_item())
       stack.type_error();
     this.switch_to_mode(this.mode);
@@ -1853,14 +1845,14 @@ class InputContext {
       this.suppress_undo();
       const new_expr_item = new ExprItem(
         new_expr_path.expr, null, null, new_expr_path);
-      return new_stack.push(new_expr_item);
+      return new_stack.push_item(new_expr_item);
     }
     else
       return this.error_flash_stack();
   }
 
   do_toggle_is_heading(stack) {
-    let [new_stack, item] = stack.pop(1);
+    let [new_stack, item] = stack.pop_items(1);
     if(item.is_expr_item()) {
       // Implicitly turn ExprItems into TextItems.
       item = TextItem.from_expr(item.expr);
@@ -1872,7 +1864,7 @@ class InputContext {
         return this.error_flash_stack();
       item = item.clone();
       item.is_heading = !item.is_heading;
-      return new_stack.push(item);
+      return new_stack.push_item(item);
     }
     else
       this.error_flash_stack();
@@ -1881,7 +1873,7 @@ class InputContext {
   // TODO: optional argument to specify export vs. display mode in to_latex()
   do_extract_latex_source(stack) {
     const latex_source = stack.peek().to_latex(true /* export mode */);
-    return stack.push(new CodeItem('latex', latex_source));
+    return stack.push_item(new CodeItem('latex', latex_source));
   }
 
   do_delimiters(stack, left, right) {
@@ -1911,7 +1903,7 @@ class InputContext {
   // are autoparenthesized.  If any of them is not actually an ExprItem, nothing is done.
   do_autoparenthesize(stack, expr_count_string = '1') {
     const expr_count = parseInt(expr_count_string);
-    const [new_stack, ...items] = stack.pop(expr_count);
+    const [new_stack, ...items] = stack.pop_items(expr_count);
     if(this.settings.autoparenthesize &&
        items.every(item => item.is_expr_item()))
       return new_stack.push_all_exprs(
@@ -1960,6 +1952,8 @@ class InputContext {
     let layout = settings.layout;
     let full_refresh_needed = false;  // set to true if everything needs to be re-rendered afterwards
     let scratch, scratch2;
+    const logic = (val, s) =>
+          s === 'on' ? true : s === 'toggle' ? !val : false;
     switch(config_option) {
     case 'zoom_factor':
     case 'helptext_zoom_factor':
@@ -1974,7 +1968,8 @@ class InputContext {
       layout[config_option] = scratch2 = Math.max(Math.min(scratch2, 80), -80);
       this.notify([
         config_option === 'helptext_zoom_factor' ? 'User guide zoom: ' : 'Zoom level: ',
-        scratch2 > 0 ? '+' : '', scratch2.toString()].join(''));
+        scratch2 > 0 ? '+' : '', scratch2.toString()
+      ].join(''));
       break;
     case 'math_align':
       scratch = value === 'document' ?
@@ -1990,28 +1985,28 @@ class InputContext {
         (value === 'document' ? 'Document' : 'Stack') +
           ' alignment: ' + scratch);
       break;
-    case 'toggle_inline_math':
-      layout.inline_math = !layout.inline_math;
+    case 'inline_math':
+      layout.inline_math = logic(layout.inline_math, value);
       full_refresh_needed = true;
       this.notify("Inline math display " + (layout.inline_math ? "on" : "off"));
       break;
-    case 'toggle_mode_indicator':
-      settings.show_mode_indicator = !settings.show_mode_indicator;
+    case 'mode_indicator':
+      settings.show_mode_indicator = logic(settings.show_mode_indicator, value);
       this.notify("Mode indicator " +
                   (settings.show_mode_indicator ? "enabled" : "disabled"));
       break;
-    case 'toggle_hide_mouse_cursor':
-      settings.hide_mouse_cursor = !settings.hide_mouse_cursor;
+    case 'hide_mouse_cursor':
+      settings.hide_mouse_cursor = logic(settings.hide_mouse_cursor, value);
       this.notify("Mouse cursor now " +
                   (settings.hide_mouse_cursor ? "hidden" : "visible"));
       break;
-    case 'toggle_outline_stack_items':
-      settings.outline_stack_items = !settings.outline_stack_items;
+    case 'outline_stack_items':
+      settings.outline_stack_items = logic(settings.outline_stack_items, value);
       this.notify("Stack item outlining " +
                   (settings.outline_stack_items ? "on" : "off"));
       break;
-    case 'toggle_outline_document_items':
-      settings.outline_document_items = !settings.outline_document_items;
+    case 'outline_document_items':
+      settings.outline_document_items = logic(settings.outline_document_items, value);
       this.notify("Document item outlining " +
                   (settings.outline_document_items ? "on" : "off"));
       break;
@@ -2046,7 +2041,7 @@ class InputContext {
       settings.dock_helptext = (value === 'on');
       break;
     case 'autoparenthesize':
-      settings.autoparenthesize = (value === 'on');
+      settings.autoparenthesize = logic(settings.autoparenthesize, value);
       this.notify("Autoparenthesize " + (settings.autoparenthesize ? "on" : "off"));
       break;
     case 'reset_layout':
@@ -2057,8 +2052,8 @@ class InputContext {
     case 'reload_page':
       window.location.reload();
       break;
-    case 'toggle_debug_mode':
-      settings.debug_mode = !settings.debug_mode;
+    case 'debug_mode':
+      settings.debug_mode = logic(settings.debug_mode, value);
       this.notify("Debug mode " + (settings.debug_mode ? "on" : "off"));
       break;
     default:
@@ -2304,7 +2299,7 @@ class InputContext {
   // TODO: A prefix argument may be given to access other slots but prefix
   // arguments with stack commands highlight items on the stack which is bad UI.
   do_copy_to_clipboard(stack) {
-    const [new_stack, item] = stack.pop(1);
+    const [new_stack, item] = stack.pop_items(1);
     const clipboard = this.app_component.state.clipboard;
     const slot = this._get_prefix_argument(1, '*').toString();
     clipboard.set_slot(slot, item);
@@ -2313,7 +2308,7 @@ class InputContext {
     else
       this.notify("Copied to clipboard slot " + slot);
     this.suppress_undo();
-    return new_stack.push(item);
+    return new_stack.push_item(item);
   }
 
   do_paste_from_clipboard(stack) {
@@ -2321,7 +2316,7 @@ class InputContext {
     const slot = this._get_prefix_argument(1, '*').toString();
     const item = clipboard.copy_from_slot(slot);
     if(item)
-      return stack.push(item);
+      return stack.push_item(item);
     else
       return this.error_flash_stack();
   }
@@ -2349,14 +2344,14 @@ class InputContext {
     // Create the ExprItem with an explicit empty source_string;
     // this will inhibit editing with the minieditor.
     const item = new ExprItem(new TextExpr(code), null, '');
-    return stack.push(item);
+    return stack.push_item(item);
   }
 
   // Move items from the stack to the floating item(s) area.
   // Item count can be specified with a prefix argument (default=1).
   do_push_floating_item(stack) {
     const item_count = this._get_prefix_argument(1, stack.depth());
-    const [new_stack, ...items] = stack.pop(item_count);
+    const [new_stack, ...items] = stack.pop_items(item_count);
     return new_stack.push_floating_items(items);
   }
 
@@ -2364,7 +2359,7 @@ class InputContext {
   do_pop_floating_item(stack) {
     const item_count = this._get_prefix_argument(1, stack.floating_item_count());
     const [new_stack, ...items] = stack.pop_floating_items(item_count);
-    return new_stack.push_all(items);
+    return new_stack.push_all_items(items);
   }
 
   // See App.recenter_document()
@@ -2417,7 +2412,7 @@ class InputContext {
 
   do_export_stack_items_as_text(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
-    const [, ...items] = stack.pop(arg);
+    const [, ...items] = stack.pop_items(arg);
     this._do_export_items(items);
     return stack;
   }

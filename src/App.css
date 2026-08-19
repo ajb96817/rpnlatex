@@ -353,7 +353,7 @@ body.outline_stack_items.eink #stack_panel div.floating_item { background-color:
 body.outline_stack_items.eink #stack_panel div.separator_item { background-color: transparent; }
 /* Some subtle spacing adjustments to make things look better: */
 body.outline_stack_items #stack_panel div.latex_fragment,
-body.outline_document_items #document_panel div.latex_fragment { padding-top: 1px; padding-bottom: 1px; }
+body.outline_document_items #document_panel div.latex_fragment { padding-top: 0; padding-bottom: 0; }
 body.outline_stack_items #stack_panel div.latex_fragment .katex-display,
 body.outline_document_items #document_panel div.latex_fragment .katex-display { padding: 0; }
 /* Text items are shown "directly against the background", not in an outlined cell.
