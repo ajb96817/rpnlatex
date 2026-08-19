@@ -2119,6 +2119,32 @@ class InputContext {
     return new_stack.push_expr(matrix_expr);
   }
 
+  // Start a command to swap two array rows (doesn't have to be a matrix).
+  // This works similarly to do_build_matrix().
+  do_matrix_swap_rows(stack) {
+    const [_, array_expr] = stack.pop_arrays(1);
+    this._require_prefix_argument(true);
+    const row_index = this._get_prefix_argument(1, array_expr.row_count);
+    // Reuse this.matrix_row_count from do_matrix_build() to store the initial row index.
+    this.matrix_row_count = row_index;
+    this.switch_to_mode('swap_matrix_rows');
+    return stack;  // keep array on stack
+  }
+
+  do_finish_matrix_swap_rows(stack) {
+    const [new_stack, array_expr] = stack.pop_arrays(1);
+    this._require_prefix_argument(true);
+    const row_index_1 = this._get_prefix_argument(1, array_expr.row_count);
+    const row_index_2 = this.matrix_row_count;
+    if(row_index_1 >= 1 && row_index_1 <= array_expr.row_count &&
+       row_index_2 >= 1 && row_index_2 <= array_expr.row_count) {
+      const new_array_expr = array_expr.swap_rows(row_index_1-1, row_index_2-1);
+      return new_stack.push_expr(new_array_expr);
+    }
+    else
+      return stack.type_error();
+  }
+
   // Stack N ArrayExprs together (default=2).
   // direction:
   //   'vertical': Stack vertically; arrays must have the same number of columns.

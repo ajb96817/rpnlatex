@@ -2402,6 +2402,17 @@ class ArrayExpr extends Expr {
       return cell_expr;
   }
 
+  // Swap the rows at the given (zero-based) row indexes.
+  // Assumes the row indexes are in-bounds.
+  swap_rows(row_1, row_2) {
+    const new_element_exprs = this.element_exprs
+          .toSpliced(row_1, 1, this.element_exprs[row_2])
+          .toSpliced(row_2, 1, this.element_exprs[row_1]);
+    return new ArrayExpr(
+      this.array_type, this.row_count, this.column_count,
+      new_element_exprs, this.row_separators, this.column_separators);
+  }
+
   // Return an array of 1xN ArrayExprs, one for each row in this matrix.
   // This is used for things like breaking \cases environments apart.
   split_rows() {
