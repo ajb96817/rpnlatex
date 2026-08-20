@@ -1300,7 +1300,7 @@ const keybinding_table = {
     's': "split_array",
     't': "mode change_matrix_type",
     'T': "transpose_matrix",
-    'w': "matrix_swap_rows",
+    'w': "start_swap_rows",
     'x': "matrix_build",
 
     // Alignment/case building:
@@ -1340,11 +1340,10 @@ const keybinding_table = {
     '-': "array_separator row solid"
   },
 
-  swap_matrix_rows: {
-    '[digit]': "prefix_argument",
-    '*': "prefix_argument",
-    'Enter': "finish_matrix_swap_rows",
-    'w': "alias Enter"
+  // [|][w]: swap array rows (see do_start_swap_rows())
+  swap_rows: {
+    '[digit]': "finish_swap_rows",
+    '*': "finish_swap_rows"
   },
 
   build_matrix: {

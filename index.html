@@ -2191,12 +2191,12 @@
         <li>
           <span class="k">w</span>
           S<strong>w</strong>ap two rows in a matrix or other arrayed structure.
-          This works similarly to the <span class="k">x</span> matrix building command
-          in that the first row number to be swapped must be given as a prefix argument,
-          and the second row number is entered after the <span class="k">w</span>.  Then use
-          <span class="k">Enter</span> to complete the row swap.  For example,
-          <span class="k">|</span><span class="k">2</span><span class="k">w</span><span class="k">3</span><span class="k">Enter</span>
+          The first row number to be swapped is given as a prefix argument (defaulting to 1),
+          then the second row number is entered after the <span class="k">w</span>.
+          For example, <span class="k">|</span><span class="k">2</span><span class="k">w</span><span class="k">3</span>
           swaps the second and third rows.  <span class="k">*</span> can be used to indicate the last row in the array.
+          <strong>NOTE:</strong> The swap happens right away when the second row digit is entered,
+          so only rows 1 through 9 can be specified.
         </li>
       </ul>
 

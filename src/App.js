@@ -513,20 +513,16 @@ class IndicatorsComponent extends React.Component {
     // Input mode indicator, unless in base mode:
     if(show_mode_indicator && input_mode !== 'base') {
       let displayed_input_mode = input_mode;
-      if(input_mode === 'build_matrix' || input_mode == 'swap_matrix_rows') {
-        // Special case: build_matrix or swap_matrix_rows modes:
+      if(input_mode === 'build_matrix') {
+        // Special case for build_matrix mode:
         // We have already received a prefix argument with the number of rows
         // or initial row index.  The current prefix argument will become the
-        // number of columns (for build_matrix) or the destination row index
-        // (for swap_matrix_rows).
+        // number of columns for the matrix being built.
         displayed_input_mode = [
-          input_mode === 'build_matrix' ? 'matrix' : 'swap_row',
-          '(',
-          input_context.matrix_row_count,
-          input_mode === 'build_matrix' ? 'x' : ',',
+          'matrix(', input_context.matrix_row_count, 'x',
           input_context.prefix_argument > 0 ? input_context.prefix_argument.toString() :
-            input_context.prefix_argument < 0 ? '*' : '',
-          ')'].join('');
+            input_context.prefix_argument < 0 ? '*' : '', ')'
+        ].join('');
       }
       else if(input_context.prefix_argument !== null) {
         // Show current prefix argument in the mode indicator: stack(5)

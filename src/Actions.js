@@ -2121,22 +2121,28 @@ class InputContext {
   }
 
   // Start a command to swap two array rows (doesn't have to be a matrix).
-  // This works similarly to do_build_matrix().
-  do_matrix_swap_rows(stack) {
+  // This works similarly to do_build_matrix(), but instead of taking a full
+  // prefix argument for the 2nd row index, it swaps immediately as soon as
+  // a single digit (or *) is pressed.  Therefore, only rows 1-9 can be specified
+  // as the second row index to swap.
+  do_start_swap_rows(stack) {
     const [_, array_expr] = stack.pop_arrays(1);
-    this._require_prefix_argument(true);
     const row_index = this._get_prefix_argument(1, array_expr.row_count);
-    // Reuse this.matrix_row_count from do_matrix_build() to store the initial row index.
+    // Reuse (abuse) this.matrix_row_count from do_matrix_build()
+    // to store the initial row index.
     this.matrix_row_count = row_index;
-    this.switch_to_mode('swap_matrix_rows');
+    this.prefix_argument ??= 1;  // show 'swap rows(1)' if no prefix argument was given
+    this.preserve_prefix_argument = true;  // show 'swap rows(n)' after we switch modes here
+    this.switch_to_mode('swap_rows');
     return stack;  // keep array on stack
   }
 
-  do_finish_matrix_swap_rows(stack) {
+  // This handles, e.g., the [3] in: [|][2][w][3]
+  do_finish_swap_rows(stack) {
+    const key = this.last_keypress;
     const [new_stack, array_expr] = stack.pop_arrays(1);
-    this._require_prefix_argument(true);
-    const row_index_1 = this._get_prefix_argument(1, array_expr.row_count);
-    const row_index_2 = this.matrix_row_count;
+    const row_index_1 = this.matrix_row_count;  // from previous do_start_swap_rows()
+    const row_index_2 = key === '*' ? array_expr.row_count : parseInt(key);
     if(row_index_1 >= 1 && row_index_1 <= array_expr.row_count &&
        row_index_2 >= 1 && row_index_2 <= array_expr.row_count) {
       const new_array_expr = array_expr.swap_rows(row_index_1-1, row_index_2-1);
