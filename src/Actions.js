@@ -1455,15 +1455,15 @@ class InputContext {
         if(!/^[a-zA-Z]$/.test(key))
           return this.error_flash_stack();
       }
-      else if(this.text_entry.mode === 'math_entry' &&
+      else if(this.text_entry.mode === 'algebraic_entry' &&
               key === "\\" && this.text_entry.is_empty()) {
-        // Switch from math_entry -> latex_entry
+        // Switch from algebraic_entry -> latex_entry
         // when entering as '\' as the first character.
         return this.do_start_text_entry(stack, 'latex_entry', '');
       }
-      else if(this.text_entry.mode === 'math_entry' &&
+      else if(this.text_entry.mode === 'algebraic_entry' &&
               key === "%" && this.text_entry.is_empty()) {
-        // math_entry -> chemical formula entry (mhchem).
+        // algebraic_entry -> chemical formula entry (mhchem).
         return this.do_start_text_entry(stack, 'chemical_entry', '');
       }
       this.text_entry.insert(key);
@@ -1473,7 +1473,7 @@ class InputContext {
 
   // If new_mode_when_empty is provided, switch to that mode if this
   // backspace was done while the text field is empty.  This is currently
-  // used to switch back from latex entry mode to normal math entry mode.
+  // used to switch back from latex entry mode to normal algebraic entry mode.
   // 'backspace_type' can be 'backspace' or 'delete'.
   do_text_entry_backspace(stack, backspace_type, new_mode_when_empty) {
     if(this.text_entry.is_empty()) {
@@ -1499,7 +1499,7 @@ class InputContext {
   }
 
   // textstyle determines what the entered text becomes:
-  //   'math' - ExprItem with "parsed" italic math text
+  //   'algebraic' - ExprItem with "parsed" italic math text
   //   'roman_text' - Expr with \mathrm{...}, where ... is always a TextExpr (not parsed as a math)
   //   'operatorname' - Similar to 'roman_text' but use \operatorname instead of \mathrm
   //   'latex' - ExprItem with arbitrary 0-argument latex command
@@ -1633,6 +1633,7 @@ class InputContext {
         [new TextExpr(trimmed_text)]);
     }
     else {
+      // Default: assume textstyle === 'algebraic'
       try {
         new_expr = ExprParser.parse_string(text);
       }
@@ -1678,9 +1679,9 @@ class InputContext {
     else if(item.is_expr_item()) {
       const expr = item.expr;
       if(expr.is_command_expr_with(0) && expr.is_special_latex_command()) {
-        // "Special" LaTeX command like \&.  These use math_entry mode with
+        // "Special" LaTeX command like \&.  These use algebraic_entry mode with
         // the underlying escaped character (without the \).
-        this.do_start_text_entry(new_stack, 'math_entry', expr.command_name);
+        this.do_start_text_entry(new_stack, 'algebraic_entry', expr.command_name);
       }
       else if(expr.is_command_expr_with(0)) {
         // LaTeX command with no arguments, e.g. \circledast
@@ -1698,7 +1699,7 @@ class InputContext {
           is_editable = false;
         else {
           s ??= expr.as_editable_string();
-          if(s) this.do_start_text_entry(new_stack, 'math_entry', s);
+          if(s) this.do_start_text_entry(new_stack, 'algebraic_entry', s);
           else is_editable = false;
         }
       }

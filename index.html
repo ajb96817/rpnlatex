@@ -20,9 +20,11 @@
     <!-- The entire user manual is inline here, to be unhidden at runtime when requested.
          This #helptext node will be moved into #help_content once the app is initialized. -->
     <div id="helptext" style="display: none;">
-      <div class="version_info">rpnlatex v1.5.2</div>
-      <div class="version_info">pyodide v314.0.2</div>
-      <div class="version_info">sympy v1.15.0.dev0</div>
+      <div class="version_info">
+        <div class="version_item">rpnlatex v1.5.2</div>
+        <div class="version_item">pyodide v314.0.2</div>
+        <div class="version_item">sympy v1.15.0.dev0</div>
+      </div>
       <h1>User Guide</h1>
       <p>
         Scroll this text up and down with
@@ -187,7 +189,7 @@
         <li>
           <span class="k">\</span>
           Input a longer character string or formula with
-          <a href="#help_math_entry">math entry</a> mode.
+          <a href="#help_algebraic_entry">algebraic entry</a> mode.
         </li>
         <li>
           <span class="k">\</span><span class="k">\</span>
@@ -284,11 +286,11 @@
         <code>x\Rightarrow -x/3</code>.
       </p>
 
-      <h2 id="help_math_entry">
-        <span class="k">\</span> Math Entry
+      <h2 id="help_algebraic_entry">
+        <span class="k">\</span> Algebraic Entry
       </h2>
       <p>
-        The <span class="k">\</span> prefix starts <em>math entry</em> mode.  A small input field
+        The <span class="k">\</span> prefix starts <em>algebraic entry</em> mode.  A small input field
         will be shown where you can type a number or a simple math expression in traditional algebraic (infix) notation.
         <span class="k">Enter</span> will parse what you have typed and put it on the stack.
         A malformed expression will signal an error; allowed expressions include:
@@ -308,7 +310,7 @@
         </li>
         <li>
           Infix expressions use the usual math syntax: <kbd>x+2y-z</kbd>.
-          Supported are: <kbd>+, -, *, /</kbd> and <kbd>^</kbd> for powers;
+          Supported are: <kbd>+, -, *, /</kbd> and <kbd>^</kbd> (for powers);
           equations and comparisons may be written using:
           <kbd>x=y, x!=y, x&lt;y, x&gt;y, x&lt;=y, x&gt;=y</kbd>.
           Full-size fractions use: <kbd>x//y</kbd>
@@ -340,10 +342,10 @@
       </ul>
       <p>
         <span class="k">Esc</span> (or <span class="k">Ctrl&nbsp;z</span>)
-        will cancel math entry mode.
+        will cancel algebraic entry mode.
       </p>
       <p>
-        This math entry mode is entirely optional; all the above forms can be
+        This algebraic entry mode is entirely optional; all the above forms can be
         entered using stack-based operations instead.  This mode is provided
         as a convenience.
       </p>
@@ -428,7 +430,7 @@
       </h2>
       <p>
         The <span class="k">&quot;</span> prefix starts <em>text entry</em> mode which
-        is similar to <a href="#help_math_entry">math entry</a> but creates <em>text objects</em>.
+        is similar to <a href="#help_algebraic_entry">algebraic entry</a> but creates <em>text objects</em>.
         Text objects are shown with a blue bar to the left (instead of grey) and differ from normal
         math objects in some important ways:
       </p>
@@ -442,7 +444,7 @@
           and will wrap around to multiple lines if needed.
         </li>
         <li>
-          Inline math expressions of the kind allowed in <em>math entry</em> mode
+          Inline math expressions of the kind allowed in <em>algebraic entry</em> mode
           can be included between pairs of <kbd>$</kbd> signs
           (for example: <kbd>$x+y$</kbd>).
         </li>
@@ -463,7 +465,7 @@
       </ul>
       <p>
         Note that <a href="#help_placeholders">placeholders</a> can be included by
-        in text objects by writing <kbd>[]</kbd>, the same as with math entry mode.
+        in text objects by writing <kbd>[]</kbd>, the same as with algebraic entry mode.
       </p>
 
       <h2 id="help_edit_text">
@@ -471,7 +473,7 @@
       </h2>
       <p>
         Expressions and text objects that were created with
-        <a href="#help_math_entry">math entry</a> or <a href="#help_text_entry">text entry</a> modes
+        <a href="#help_algebraic_entry">algebraic entry</a> or <a href="#help_text_entry">text entry</a> modes
         may be brought back into the math or text entry editor for further editing
         with <span class="k">Shift&nbsp;Enter</span>.
         Simple expressions like numbers and variables may also be editable even
@@ -819,7 +821,7 @@
         </li>
         <li>
           <span class="k">/</span><span class="k">&#39;</span>
-          Substitute the stack top item for the placeholder in the item above it.
+          Substitute the stack top expression for the placeholder in the second to top item.
           If there is more than one placeholder, only the first one is substituted.
           Example: <code>\sqrt{1 + \htmlClass{placeholder_expr}{\blacksquare}} \enspace x^2 \Rightarrow \sqrt{1+x^2}</code>
         </li>
@@ -1905,7 +1907,7 @@
 
       <p>
         <strong>NOTE:</strong> Arbitrarily-named operators can be created with
-        <a href="#help_math_entry">math entry</a> mode by finishing the entry with
+        <a href="#help_algebraic_entry">algebraic entry</a> mode by finishing the entry with
         <span class="k">Tab</span>.
       </p>
 

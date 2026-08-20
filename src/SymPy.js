@@ -727,22 +727,21 @@ class SymPyVariable extends SymPyNode {
     const [independent_var_name, is_ambiguous] =
           emitter.lookup_independent_variable_for(this.name);
     if(is_ambiguous)
-      emitter.error('Ambiguous independent variable');
-    if(this.reverse_lookup) {
+      return emitter.error('Ambiguous independent variable');
+    else if(this.reverse_lookup) {
       if(independent_var_name)
         return ["Symbol('", independent_var_name, "')"].join('')
       else  // shouldn't happen
-        emitter.error('Independent variable not found');
+        return emitter.error('Independent variable not found');
     }
     else {
       // If we have a variable dependency recorded for this variable,
       // use it to make a function call, otherwise use the "plain"
       // variable symbol.
-      if(independent_var_name) {
+      if(independent_var_name)
         return [
           "Function('", this.name, "')(Symbol('", independent_var_name, "'))"
         ].join('');
-      }
       else
         return ["Symbol('", this.name, "')"].join('')
     }

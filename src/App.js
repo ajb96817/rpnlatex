@@ -855,7 +855,7 @@ class FileManagerPanelComponent extends React.Component {
       'div', {},
       $e('p', {},
          $e('span', {}, 'Upload (import) a '),
-         $e('kbd', {}, '.rpn'),
+         $e('kbd', {}, '.rpx'),
          $e('span', {}, ' document:')),
       $e('p', {},
          $e('input', {

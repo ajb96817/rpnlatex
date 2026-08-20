@@ -162,7 +162,7 @@ const keybinding_table = {
     '%': "mode blackboard",
     '/': "mode operator",
     '*': "mode coefficient",
-    "\\": "start_text_entry math_entry",
+    "\\": "start_text_entry algebraic_entry",
     "\"": "start_text_entry text_entry",
     '|': "mode array",
     '~': "mode tensor",
@@ -286,7 +286,7 @@ const keybinding_table = {
     '%': "scroll_to help_insert_blackboard",
     '@': "scroll_to help_insert_calligraphic",
     '*': "scroll_to help_coefficient",
-    "\\": "scroll_to help_math_entry",
+    "\\": "scroll_to help_algebraic_entry",
     "\"": "scroll_to help_text_entry",
     'Backspace': "scroll_to help_prefix_keys",
     "Shift+Enter": "scroll_to help_edit_text",
@@ -438,9 +438,9 @@ const keybinding_table = {
     '[delegate]': "_editor_commands"
   },
 
-  // [\] prefix: math entry
-  math_entry: {
-    'Enter': "finish_text_entry math",
+  // [\] prefix: algebraic entry
+  algebraic_entry: {
+    'Enter': "finish_text_entry algebraic",
     'Shift+Enter': "finish_text_entry roman_text",
     'Tab': "finish_text_entry operatorname",
     '[delegate]': "_editor_commands"
@@ -450,8 +450,8 @@ const keybinding_table = {
   latex_entry: {
     'Enter': "finish_text_entry latex",
     'Shift+Enter': "finish_text_entry latex_unary",
-    'Delete': "text_entry_backspace delete math_entry",
-    'Backspace': "text_entry_backspace backspace math_entry",
+    'Delete': "text_entry_backspace delete algebraic_entry",
+    'Backspace': "text_entry_backspace backspace algebraic_entry",
     ',': "finish_text_entry latex_infix",
     '[delegate]': "_editor_commands"
   },
@@ -460,8 +460,8 @@ const keybinding_table = {
   chemical_entry: {
     'Enter': "finish_text_entry mhchem_formula",
     'Shift+Enter': "finish_text_entry mhchem_unit",
-    'Delete': "text_entry_backspace delete math_entry",
-    'Backspace': "text_entry_backspace backspace math_entry",
+    'Delete': "text_entry_backspace delete algebraic_entry",
+    'Backspace': "text_entry_backspace backspace algebraic_entry",
     '[delegate]': "_editor_commands"
   },
 

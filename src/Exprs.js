@@ -70,7 +70,10 @@ class Expr {
       // 'F \cdot dr' will not parenthesize the integrand.
       // However, 'F \cdot r' will still be parenthesized.
       [left_expr, right_expr] = [left_expr, right_expr].map(expr => {
-        if(expr.is_infix_expr() && !expr.is_differential_form() && !no_parenthesize)
+        // TODO: turn this check into a method like expr.needs_parenthesization_when_concatenated()
+        if(expr.is_infix_expr() || expr.is_sympy_expr() ||
+           (expr.is_text_expr() && expr.text.length > 1) &&
+           !expr.is_differential_form() && !no_parenthesize)
           return DelimiterExpr.parenthesize(expr);
         else return expr;
       });
@@ -132,7 +135,7 @@ class Expr {
         new CommandExpr(space_command)]));
   }
 
-  // "Parse" a roman_text string (via Shift+Enter from [\] math entry mode).
+  // "Parse" a roman_text string (via Shift+Enter from [\] algebraic entry mode).
   // This just wraps the string in a roman typeface FontExpr; but if
   // the string contains [] sequences, those are converted into placeholders
   // and the resulting Expr is a SequenceExpr with a mixture of FontExprs
@@ -217,10 +220,10 @@ class Expr {
 
   emit_latex(emitter) { emitter.text('INVALID'); }
 
-  // Try to convert this Expr into a string for use in math entry mode.
+  // Try to convert this Expr into a string for use in algebraic entry mode.
   // The string should be something that will recreate this Expr when parsed.
   // Generally, we use the source_string from the ExprItem wrapping this Expr
-  // if available (i.e., the math entry mode input originally used), and only
+  // if available (i.e., the algebraic entry mode input originally used), and only
   // if that's not available is this method tried instead.  Currently only
   // some simple Expr types will convert to editable strings.
   as_editable_string() { return null; }
@@ -487,7 +490,7 @@ class CommandExpr extends Expr {
   
   // Something like \sin{x} that represents a named function/operator, as opposed
   // to a "decoration" like \hat{x}.  This affects autoparenthesization.
-  // Commands like \operatorname{myfunc} (as created with [Tab] in math entry mode)
+  // Commands like \operatorname{myfunc} (as created with [Tab] in algebraic entry mode)
   // are also considered named operators.
   is_named_operator() {
     if(this.operand_count() === 0)
@@ -496,7 +499,7 @@ class CommandExpr extends Expr {
     // \operatorname{myfunc}{x} vs \operatorname{myfunc}.
     if(this.command_name === 'operatorname')
       return true;
-    // Trigonometric functions may have a superscript attached directly
+    // Trigonometric functions (only) may have a superscript attached directly
     // to the command_name, as in \sin^{-1} (see do_named_function()).
     if(this.command_name.indexOf('^') >= 0 ||
        this.command_name.indexOf('_') >= 0)
@@ -541,7 +544,7 @@ class CommandExpr extends Expr {
 
   as_editable_string() {
     // Check for \operatorname{...} with a TextExpr inside.
-    // This may have been created with [Tab] from math entry mode.
+    // This may have been created with [Tab] from algebraic entry mode.
     if(this.is_command_expr_with(1, 'operatorname') &&
        this.operand_exprs[0].is_text_expr())
       return this.operand_exprs[0].text;
@@ -1860,6 +1863,10 @@ class DelimiterExpr extends Expr {
       // and also not things like \hat{x}
       (expr.is_command_expr() && expr.is_named_operator() &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
+      // "Long variable names" (normally these are concatenated sequences
+      // like xyz => SequenceExpr['x', 'y', 'z'] but they can also be entered
+      // directly with e.g. [\] entry mode).
+      (expr.is_text_expr() && expr.text.length > 1) ||
       // FontExpr(x) where x itself should be parenthesized.
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
        this.should_parenthesize_for_power(expr.expr)) ||

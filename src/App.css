@@ -541,7 +541,7 @@ div.stack_items div.text_entry span.error_character { color: black; background-c
 div.stack_items div.text_entry span.cursor_character.error_character { color: white; background-color: #c66; }
 
 /* Different background colors for text entry depending on the mode. */
-div.stack_items div.math_entry_mode { background-color: #eee; }
+div.stack_items div.algebraic_entry_mode { background-color: #eee; }
 div.stack_items div.text_entry_mode { background-color: #eef; }
 div.stack_items div.latex_entry_mode { background-color: #ded; }
 div.stack_items div.chemical_entry_mode { background-color: #efd; }
@@ -690,10 +690,16 @@ div.help { padding: 0.5em 1em; }
 div.help .version_info {
   float: right;
   clear: right;
+  /* color should be the same as #helptext_panel:background-color: */
+  background-color: white;
+  border-left: 1em solid white;
+  border-bottom: 1em solid white;
+}
+.version_info .version_item {
   color: #888;
   font-family: monospace;
   text-align: right;
-  font-size: 75%;
+  font-size: 80%;
 }
 div.help h2 {
   font-size: 120%;
