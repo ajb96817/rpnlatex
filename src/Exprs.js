@@ -18,8 +18,7 @@ class Expr {
     // Also, concat(x, +y) => x+y.  Other PrefixExprs are handled normally.
     if(right_expr.is_prefix_expr() &&
        ['-', '+'].includes(right_expr.operator_text()))
-      return InfixExpr.combine_infix(
-        left_expr, right_expr.base_expr, right_expr.operator_expr);
+      return left_expr.combine_infix(right_expr.base_expr, right_expr.operator_expr);
     // concat(-x, y) => -{xy}
     if(left_expr.is_unary_minus_expr())
       return PrefixExpr.unary_minus(
@@ -44,8 +43,7 @@ class Expr {
       if(right_expr.looks_like_integer())
         return new TextExpr(left_expr.text + right_expr.text);
       else
-        return InfixExpr.combine_infix(
-          left_expr, right_expr, new CommandExpr('cdot'));
+        return left_expr.combine_infix(right_expr, new CommandExpr('cdot'));
     }
     // Some types of CommandExprs (integral signs) can be combined in special ways.
     if(left_expr.is_command_expr_with(0) && right_expr.is_command_expr_with(0)) {
@@ -125,14 +123,17 @@ class Expr {
   // with largish spacing, for example "X  iff  Y" as in the [,][F] command.
   // is_bold will make the conjunction phrase bolded.
   static combine_with_conjunction(left_expr, right_expr, phrase,
-                                  is_bold = false, space_command = 'quad') {
+                                  is_bold = false, space_command = "\\quad") {
     const sanitized_phrase = LatexEmitter.latex_text_escape(phrase);
-    return InfixExpr.combine_infix(
-      left_expr, right_expr,
+    const space_expr = Expr.text_or_command(space_command);
+    return left_expr.combine_infix(
+      right_expr,
       new SequenceExpr([
-        new CommandExpr(space_command),
-        new CommandExpr(is_bold ? 'textbf' : 'text', [new TextExpr(sanitized_phrase)]),
-        new CommandExpr(space_command)]));
+        space_expr,
+        new CommandExpr(
+          is_bold ? 'textbf' : 'text',
+          [new TextExpr(sanitized_phrase)]),
+        space_expr]));
   }
 
   // "Parse" a roman_text string (via Shift+Enter from [\] algebraic entry mode).
@@ -300,6 +301,13 @@ class Expr {
 
   concatenate(right_expr, no_parenthesize = false) {
     return Expr.concatenate(this, right_expr, no_parenthesize);
+  }
+
+  // TODO: Maybe remove the static Expr.combine_infix() method
+  // and put the logic here directly.
+  combine_infix(right_expr, op_expr, check_special_cases = true) {
+    return InfixExpr.combine_infix(
+      this, right_expr, op_expr, check_special_cases);
   }
 
   // "Dissolve" this expression into its component parts as appropriate.
@@ -920,14 +928,14 @@ class InfixExpr extends Expr {
       if(op_expr.is_text_expr_with('+'))
          return this.add_exprs(left_expr, right_expr);
     }
-    let new_operand_exprs = [];
-    let new_operator_exprs = [];
-    let new_linebreaks_at = [];
+    const new_operand_exprs = [];
+    const new_operator_exprs = [];
+    const new_linebreaks_at = [];
     let linebreaks_midpoint = null;
     if(left_expr.is_infix_expr()) {
-      new_operand_exprs = new_operand_exprs.concat(left_expr.operand_exprs);
-      new_operator_exprs = new_operator_exprs.concat(left_expr.operator_exprs);
-      new_linebreaks_at = new_linebreaks_at.concat(left_expr.linebreaks_at);
+      new_operand_exprs.push(...left_expr.operand_exprs);
+      new_operator_exprs.push(...left_expr.operator_exprs);
+      new_linebreaks_at.push(...left_expr.linebreaks_at);
       linebreaks_midpoint = 2*left_expr.operand_count();
     }
     else {
@@ -940,18 +948,17 @@ class InfixExpr extends Expr {
     const split_at_index = new_operator_exprs.length;
     new_operator_exprs.push(op_expr);
     if(right_expr.is_infix_expr()) {
-      new_operand_exprs = new_operand_exprs.concat(right_expr.operand_exprs);
-      new_operator_exprs = new_operator_exprs.concat(right_expr.operator_exprs);
-      new_linebreaks_at = new_linebreaks_at.concat(
-        right_expr.linebreaks_at.map(index => linebreaks_midpoint+index));
+      new_operand_exprs.push(...right_expr.operand_exprs);
+      new_operator_exprs.push(...right_expr.operator_exprs);
+      new_linebreaks_at.push(
+        ...right_expr.linebreaks_at
+          .map(index => linebreaks_midpoint+index));
     }
     else
       new_operand_exprs.push(right_expr);
     return new InfixExpr(
-      new_operand_exprs,
-      new_operator_exprs,
-      split_at_index,
-      new_linebreaks_at);
+      new_operand_exprs, new_operator_exprs,
+      split_at_index, new_linebreaks_at);
   }
 
   // Combine all exprs using the same op_expr between each term
@@ -960,7 +967,7 @@ class InfixExpr extends Expr {
     if(exprs.length === 0)
       return TextExpr.blank();
     else return exprs.reduce((infix_expr, expr) =>
-      this.combine_infix(infix_expr, expr, op_expr));
+      infix_expr.combine_infix(expr, op_expr));
   }
 
   // Combining with infix + has some special cases that should be
@@ -971,8 +978,8 @@ class InfixExpr extends Expr {
   static add_exprs(left_expr, right_expr) {
     if(right_expr.is_unary_minus_expr()) {
       // x + PrefixExpr(-y) => x - y
-      return this.combine_infix(
-        left_expr, right_expr.base_expr,
+      return left_expr.combine_infix(
+        right_expr.base_expr,
         new TextExpr('-'),
         false /* prevent recursion for checking this case */);
     }
@@ -985,8 +992,8 @@ class InfixExpr extends Expr {
       //   x + {-y + z} => x - y + z
       //   x + {-y - z} => x - y - z
       // (but x + {-y / z} stays as is).
-      return this.combine_infix(
-        left_expr, new InfixExpr(
+      return left_expr.combine_infix(
+        new InfixExpr(
           [right_expr.operand_exprs[0].base_expr,
            ...right_expr.operand_exprs.slice(1)],
           right_expr.operator_exprs,
@@ -998,15 +1005,14 @@ class InfixExpr extends Expr {
             right_expr.exprs.length >= 2 &&
             right_expr.exprs[0].is_unary_minus_expr()) {
       // Adding left_expr to a SequenceExpr where the first term is negated.
-      return this.combine_infix(
-        left_expr,
+      return left_expr.combine_infix(
         new SequenceExpr([
           right_expr.exprs[0].base_expr,
           ...right_expr.exprs.slice(1)]),
         new TextExpr('-'), false);
     }
-    else return this.combine_infix(
-      left_expr, right_expr, new TextExpr('+'), false);
+    else return left_expr.combine_infix(
+      right_expr, new TextExpr('+'), false);
   }
 
   expr_type() { return 'infix'; }
@@ -1104,7 +1110,7 @@ class InfixExpr extends Expr {
 
   subexpressions() {
     // Interleave operators and operands.
-    let exprs = [];
+    const exprs = [];
     for(const [i, operator_expr] of this.operator_exprs.entries()) {
       exprs.push(this.operand_exprs[i]);
       exprs.push(operator_expr);
@@ -1137,6 +1143,7 @@ class InfixExpr extends Expr {
       if(this._check_partial_match(search_expr, i)) {
         // Splice substitution_expr into this InfixExpr;
         // split_at_index/linebreaks_at are discarded.
+        // TODO: use toSpliced()
         return new InfixExpr(
           // operands
           [...this.operand_exprs.slice(0, i),
@@ -1172,19 +1179,15 @@ class InfixExpr extends Expr {
 
   without_linebreak_at(old_index) {
     return new InfixExpr(
-      this.operand_exprs,
-      this.operator_exprs,
-      this.split_at_index,
-      this.linebreaks_at.filter(index => index !== old_index));
+      this.operand_exprs, this.operator_exprs,
+      this.split_at_index, this.linebreaks_at.filter(index => index !== old_index));
   }
 
   // TODO: check for duplicates
   with_linebreak_at(new_index) {
     return new InfixExpr(
-      this.operand_exprs,
-      this.operator_exprs,
-      this.split_at_index,
-      this.linebreaks_at.concat([new_index]));
+      this.operand_exprs, this.operator_exprs,
+      this.split_at_index, this.linebreaks_at.concat([new_index]));
   }
 
   // Swap everything to the left of operator_index with everything
@@ -1228,7 +1231,7 @@ class InfixExpr extends Expr {
         return new InfixExpr(
           this.operand_exprs.slice(0, operator_index+1),
           this.operator_exprs.slice(0, operator_index),
-          0, null);
+          0, null /* clear linebreaks */);
     }
   }
 
@@ -1237,13 +1240,12 @@ class InfixExpr extends Expr {
     const negated_operator_expr =
           this.operator_exprs[this.split_at_index].as_logical_negation();
     if(negated_operator_expr) {
-      let new_operator_exprs = [...this.operator_exprs];  // shallow copy
+      // TODO: use toSpliced()
+      const new_operator_exprs = [...this.operator_exprs];  // shallow copy
       new_operator_exprs[this.split_at_index] = negated_operator_expr;
       return new InfixExpr(
-        this.operand_exprs,
-        new_operator_exprs,
-        this.split_at_index,
-        this.linebreaks_at);
+        this.operand_exprs, new_operator_exprs,
+        this.split_at_index, this.linebreaks_at);
     }
     else return super.as_logical_negation();
   }
@@ -1255,7 +1257,7 @@ class InfixExpr extends Expr {
   // Overridden from base Expr.  Look for any InfixExprs that are immediate
   // operand subexpressions of this one and merge them in.
   flatten() {
-    let new_operand_exprs = [], new_operator_exprs = [];
+    const new_operand_exprs = [], new_operator_exprs = [];
     let any_changed = false, any_merged = false;
     for(const [index, operand_expr] of this.operand_exprs.entries()) {
       const flattened_subexpr = operand_expr.flatten();
@@ -1283,17 +1285,14 @@ class InfixExpr extends Expr {
         any_merged ? null : this.split_at_index,
         any_merged ? null : this.linebreaks_at);
     }
-    else
-      return this;
+    else return this;
   }
 
   // Bold each operand, but leave the operators alone.
   as_bold() {
     return new InfixExpr(
-      this.operand_exprs.map(expr => expr.as_bold()),
-      this.operator_exprs,
-      this.split_at_index,
-      this.linebreaks_at);
+      this.operand_exprs.map(expr => expr.as_bold()), this.operator_exprs,
+      this.split_at_index, this.linebreaks_at);
   }
 
   // Add 'amount' (integer) to an InfixExpr.  The amount may be negative (or zero).
@@ -1350,12 +1349,12 @@ class PlaceholderExpr extends Expr {
 
   emit_latex(emitter) {
     if(emitter.export_mode)
-      emitter.expr(new TextExpr("\\blacksquare"), null);
+      emitter.expr(new CommandExpr('blacksquare'), null);
     else
       emitter.expr(
         new CommandExpr('htmlClass', [
           new TextExpr('placeholder_expr'),
-          new TextExpr("\\blacksquare")]),
+          new CommandExpr('blacksquare')]),
         null);
   }
 
@@ -1612,10 +1611,8 @@ class FunctionCallExpr extends Expr {
         argument_exprs.push(argument_expr);
         argument_expr = inner_args_expr.operand_exprs[i+1];
       }
-      else argument_expr = InfixExpr.combine_infix(
-        argument_expr,
-        inner_args_expr.operand_exprs[i+1],
-        operator_expr);
+      else argument_expr = argument_expr.combine_infix(
+        inner_args_expr.operand_exprs[i+1], operator_expr);
     }
     argument_exprs.push(argument_expr);
     return argument_exprs;
@@ -2283,8 +2280,7 @@ class ArrayExpr extends Expr {
         // blank operand to give it the right structure.
         return [
           expr.extract_side_at(expr.split_at_index, 'left'),
-          InfixExpr.combine_infix(
-            TextExpr.blank(),
+          TextExpr.blank().combine_infix(
             expr.extract_side_at(expr.split_at_index, 'right'),
             expr.operator_exprs[expr.split_at_index])];
       }
@@ -2452,8 +2448,7 @@ class ArrayExpr extends Expr {
       // Equations get converted to columns like:
       //   x + y = 3  =>  [x + y, (blank) = 3]
       // and this does the inverse conversion.
-      return InfixExpr.combine_infix(
-        lhs,
+      return lhs.combine_infix(
         rhs.extract_side_at(0, 'right'),
         rhs.operator_exprs[0]);
     }

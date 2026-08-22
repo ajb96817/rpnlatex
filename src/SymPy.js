@@ -2783,8 +2783,7 @@ function double_to_scientific_notation_expr(x) {
   if(exponent_is_negative)
     exponent_expr = PrefixExpr.unary_minus(exponent_expr);
   // 3 \cdot 10^4
-  return InfixExpr.combine_infix(
-    coefficient_expr,
+  return coefficient_expr.combine_infix(
     TextExpr.integer(10).with_superscript(exponent_expr),
     new CommandExpr('cdot'));
 }

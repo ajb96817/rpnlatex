@@ -621,7 +621,8 @@ class InputContext {
       // of items scrolled to percentage of panel height scrolled.
       const percentage_string =
             ['top', 'bottom'].includes(amount_string) ? amount_string :   
-            parseInt(amount_string) > 3 ? '75' : parseInt(amount_string) < -3 ? '-75' :
+            parseInt(amount_string) > 3 ? '75' :
+            parseInt(amount_string) < -3 ? '-75' :
             parseInt(amount_string) > 0 ? '25' : '-25';
       return this.do_scroll(
         stack, 'document_panel', 'vertical', percentage_string);
@@ -773,15 +774,11 @@ class InputContext {
   do_export_selected_file(stack) {
     const file_manager = this.app_component.state.file_manager;
     const filename = file_manager.selected_filename;
-    if(!filename) {
-      this.report_error('No file selected to export');
-      return stack;
-    }
+    if(!filename)
+      return this.report_error('No file selected to export');
     const base64_string = file_manager.fetch_file_base64(filename);
-    if(!base64_string) {
-      this.report_error('Could not load file to export');
-      return stack;
-    }
+    if(!base64_string)
+      return this.report_error('Could not load file to export');
     // Send the file by creating a temporary <a> element and clicking it.
     const blob = new Blob([base64_string]);  // TODO: MIME type
     const anchor_elt = document.createElement('a');
@@ -914,7 +911,7 @@ class InputContext {
   }
 
   do_push_last_keypress(stack) {
-    return this.do_push(stack, this.last_keypress);
+    return stack.push_expr(new TextExpr(this.last_keypress));
   }
 
   do_push_placeholder(stack) {
@@ -968,8 +965,11 @@ class InputContext {
         return stack;  // don't do anything
       else expr = new CommandExpr(command_name);
     }
-    const font_expr = FontExpr.wrap(expr).with_typeface(typeface);
-    return new_stack.push_expr(font_expr.unwrap_if_possible());
+    const font_expr = FontExpr
+          .wrap(expr)
+          .with_typeface(typeface)
+          .unwrap_if_possible();
+    return new_stack.push_expr(font_expr);
   }
 
   // Increase or decrease the size of an expression via commands like \large and \small.
@@ -980,7 +980,8 @@ class InputContext {
     const delta = operation === 'larger' ? +1 : -1;
     const [new_stack, expr] = stack.pop_exprs(1);
     const font_expr = FontExpr.wrap(expr);
-    const new_expr = font_expr.with_size_adjustment(font_expr.size_adjustment + delta);
+    const new_expr = font_expr
+          .with_size_adjustment(font_expr.size_adjustment + delta);
     return new_stack.push_expr(new_expr.unwrap_if_possible());
   }
 
@@ -1123,16 +1124,15 @@ class InputContext {
   // 'opname' can be either a \latex_command or a regular string like '+'
   do_infix(stack, opname) {
     const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
-    const new_expr = InfixExpr.combine_infix(
-      left_expr, right_expr,
-      Expr.text_or_command(opname));
+    const new_expr = left_expr.combine_infix(
+      right_expr, Expr.text_or_command(opname));
     return new_stack.push_expr(new_expr);
   }
 
   // Take (left, right, operator) from the stack and create an InfixExpr.
   do_apply_infix(stack) {
     let [new_stack, left_expr, right_expr, operator_expr] = stack.pop_exprs(3);
-    const new_expr = InfixExpr.combine_infix(left_expr, right_expr, operator_expr);
+    const new_expr = left_expr.combine_infix(right_expr, operator_expr);
     return new_stack.push_expr(new_expr);
   }
 
@@ -1154,7 +1154,7 @@ class InputContext {
     const new_expr = Expr.combine_with_conjunction(
       left_expr, right_expr,
       phrase.replaceAll('_', ' '),
-      false, space_command);
+      false, "\\" + space_command);
     return new_stack.push_expr(new_expr);
   }
 
@@ -1389,11 +1389,10 @@ class InputContext {
       else
         return stack;
     }
-    const new_lhs = InfixExpr.combine_infix(lhs, rhs, new TextExpr('-'));
-    const new_expr = (drop_rhs === 'true') ? new_lhs :
-          InfixExpr.combine_infix(
-            new_lhs, TextExpr.integer(0),
-            relational_op_expr);
+    const new_lhs = lhs.combine_infix(rhs, new TextExpr('-'));
+    const new_expr = (drop_rhs === 'true') ?
+          new_lhs :
+          new_lhs.combine_infix(TextExpr.integer(0), relational_op_expr);
     return new_stack.push_expr(new_expr);
   }
 
@@ -1585,8 +1584,8 @@ class InputContext {
       // check for two expressions on the stack.
       if(stack.check_exprs(2)) {
         const [new_stack, left_expr, right_expr] = stack.pop_exprs(2);
-        const infix_op_expr = new CommandExpr(trimmed_text);
-        new_expr = InfixExpr.combine_infix(left_expr, right_expr, infix_op_expr);
+        new_expr = left_expr.combine_infix(
+          right_expr, new CommandExpr(trimmed_text));
         this._cancel_text_entry(new_stack);
         return new_stack.push_expr(new_expr);
       }
