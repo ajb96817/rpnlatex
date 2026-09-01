@@ -443,7 +443,7 @@ class PyodideInterface {
   }
 
   generate_command_code(command) {
-    const { function_name, is_method_call, operation_label,
+    const { function_name, is_method_call,
             arg_exprs, extra_args, transform_result_code } = command;
     const insert_artificial_delay = false;  // TODO: make this a debug option
     // Generate builder functions, one per argument expression.
@@ -519,9 +519,6 @@ def execute_command_safe():
 //   If the function name starts with '.', it's treated as a method call
 //   instead (with the first argument as the receiver).
 //   i.e.: function_name(arg1, arg2) vs arg1.function_name(arg2)
-// 'operation_label':
-//   Optional user-visible label for the function name
-//   (e.g. we might want to display 'differentiate' instead of just 'diff')
 // 'arg_exprs':
 //   Expr instances to be passed to the Python function
 // 'extra_args':
@@ -533,8 +530,7 @@ def execute_command_safe():
 //   returned back from Python (used for small conversions like turning
 //   a one-item list into a scalar, or extracting a relevant result from a tuple).
 class SymPyCommand {
-  constructor(function_name, operation_label,
-              arg_exprs, extra_args, transform_result_code) {
+  constructor(function_name, arg_exprs, extra_args, transform_result_code) {
     if(function_name.startsWith('.')) {
       this.function_name = function_name.slice(1);
       this.is_method_call = true;
@@ -543,7 +539,6 @@ class SymPyCommand {
       this.function_name = function_name;
       this.is_method_call = false;
     }
-    this.operation_label = operation_label;
     this.arg_exprs = arg_exprs;
     this.extra_args = extra_args;
     this.transform_result_code = transform_result_code;

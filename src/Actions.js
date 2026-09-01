@@ -394,13 +394,17 @@ class InputContext {
   /* For short-running commands, keystrokes are buffered up to be replayed later
      while the command is running.  See the comment in InputContext.constructor
      for more information on this. */
-  do_sympy(stack, operation, arg_count_string, operation_label = null) {
+  do_sympy(stack, function_name, arg_count_string) {
     const arg_count = parseInt(arg_count_string);
     const extra_args = [];
     let transform_result_code = null;
-    switch(operation) {
+    switch(function_name) {
     case 'N':
-      // Truncate low-significance digits.
+      // Default precision is 15, lower it some for "legibility"
+      // but note that if it's too low then 'nsimplify()' may not
+      // have enough to work with.
+      extra_args.push('12');
+      // Truncate low-significance digits (3.100 => 3.1).
       extra_args.push('chop=True');
       break;
     case 'nsimplify':
@@ -415,10 +419,7 @@ class InputContext {
       break;
     }
     return this._sympy_command(
-      stack,
-      operation,
-      operation_label ?? operation,
-      arg_count, extra_args,
+      stack, function_name, arg_count, extra_args,
       transform_result_code);
   }
 
@@ -461,28 +462,18 @@ class InputContext {
   // (applying a Python/SymPy function to the expressions).
   //
   // function_name: 'solve' (SymPy function to call)
-  // operation_label: user-visible version of function_name (usually the same)
   // arg_count: Number of argument expressions from the stack
   // extra_args: ['optname=True', ...]
   //     (extra keyword options to the function call)
-  _sympy_command(stack, function_name, operation_label,
-                 arg_count, extra_args = [],
+  _sympy_command(stack, function_name, arg_count, extra_args = [],
                  transform_result_code = null) {
     const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
-    this._start_executing_sympy_command(
-      function_name, operation_label,
-      arg_exprs, extra_args, transform_result_code);
-    return new_stack;
-  }
-
-  // TODO: remove this method
-  _start_executing_sympy_command(function_name, operation_label,
-                                 arg_exprs, extra_args, transform_result_code) {
     const pyodide = this.app_component.state.pyodide_interface;
     const command = new SymPyCommand(
-      function_name, operation_label, arg_exprs,
-      extra_args, transform_result_code);
+      function_name, arg_exprs, extra_args,
+      transform_result_code);
     pyodide.start_executing(command);
+    return new_stack;
   }
 
   // This has been replaced with SymPy nsimplify().

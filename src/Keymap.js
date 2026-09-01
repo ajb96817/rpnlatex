@@ -1437,13 +1437,13 @@ const keybinding_table = {
   symbolic: {
     '[digit]': "prefix_argument",
     '-': "mode inverse_symbolic",
-    '#': "sympy sympify 1 evaluate",
-    '!': "sympy_terminate",
-    '=': "sympy N 1",  // numeric eval
-    '@': "export_stack_item_as_sympy",
-    '?': "mode query",
+    '#': "sympy S 1",  // sympify / evaluate
+    '=': "sympy N 1",  // numerical evaluate
     '/': "sympy nsimplify 1",  // convert float to "fraction"
     // "\\": "rationalize",  // non-SymPy float-to-fraction
+    '!': "sympy_terminate",
+    '@': "export_stack_item_as_sympy",
+    '?': "mode query",
     '|': "sympy .subs 3",
     'd': "sympy diff 1",
     'D': "sympy diff 2",

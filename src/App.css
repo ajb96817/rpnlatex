@@ -122,11 +122,11 @@ div.pyodide_status div.sympy_args_running div.expr_item div.latex_fragment {
   from { border-left-color: #bbf; }
   to { border-left-color: #55c; }
 }
-div.pyodide_status div.status_line span.operation_label { font-weight: bold; }
+div.pyodide_status div.status_line span.function_name { font-weight: bold; }
 span.spinner {
   width: 1em;
   height: 1em;
-  margin-bottom: -0.2em;
+  margin-bottom: -0.125em;
   margin-right: 0.75em;
   border: 0.15em solid #3a3;
   border-left-color: transparent;
@@ -152,7 +152,7 @@ div.sympy_error div.error_summary {
   float: left;
   width: auto;
 }
-div.sympy_error div.error_summary span.errored_operation_name {
+div.sympy_error div.error_summary span.errored_function_name {
   font-weight: bold;
 }
 /* The first argument to the errored SymPy command is shown inline in the error block. */

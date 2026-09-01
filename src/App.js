@@ -395,8 +395,8 @@ class PyodideStatusComponent extends React.Component {
     case 'long_running':
       msg = $e('span', {className: 'message'}, 'Running: ');
       label = $e(
-        'span', {className: 'operation_label'},
-        sympy_command.operation_label || sympy_command.function_name);
+        'span', {className: 'function_name'},
+        sympy_command.function_name);
       break;
     default:
       msg = $e('span', {className: 'message'}, '??? (bad pyodide state)');
@@ -443,10 +443,8 @@ class PyodideStatusComponent extends React.Component {
       return null;
     const [error_message, errored_command] =
           [error_details.message, error_details.command]
-    const operation_name =
-          errored_command ?
-          (errored_command.operation_label ?? errored_command.function_name) :
-          '(unknown)';
+    const function_name =
+          errored_command ? errored_command.function_name : '(unknown)';
     const errored_expr = errored_command ?
           errored_command.arg_exprs[0] : null;
     let errored_expr_component = null;
@@ -473,8 +471,8 @@ class PyodideStatusComponent extends React.Component {
          // Only show the operation name if the error is from a SymPy operation
          // (so not shown for Expr->Python conversion errors or init errors).
          (error_details.error_type === 'sympy_execution' ?
-          $e('span', {className: 'errored_operation_name'},
-             ' ' + operation_name) : null),
+          $e('span', {className: 'errored_function_name'},
+             ' ' + function_name) : null),
          ':'),
       errored_expr_component,
       $e('div', {className: 'error_message'}, error_message));
