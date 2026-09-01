@@ -396,31 +396,11 @@ class InputContext {
      for more information on this. */
   do_sympy(stack, function_name, arg_count_string) {
     const arg_count = parseInt(arg_count_string);
-    const extra_args = [];
-    let transform_result_code = null;
-    switch(function_name) {
-    case 'N':
-      // Default precision is 15, lower it some for "legibility"
-      // but note that if it's too low then 'nsimplify()' may not
-      // have enough to work with.
-      extra_args.push('12');
-      // Truncate low-significance digits (3.100 => 3.1).
-      extra_args.push('chop=True');
-      break;
-    case 'nsimplify':
-      extra_args.push('[pi, E]');
-      break;
-    case 'solve': case 'nsolve':
-      extra_args.push('dict=True');
-      break;
-    case 'laplace_transform':
-    case 'mellin_transform':
-      transform_result_code = 'result[0] if isinstance(result, tuple) else result';
-      break;
-    }
-    return this._sympy_command(
-      stack, function_name, arg_count, extra_args,
-      transform_result_code);
+    const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
+    const pyodide = this.app_component.state.pyodide_interface;
+    const command = new SymPyCommand(function_name, arg_exprs);
+    pyodide.start_executing(command);
+    return new_stack;
   }
 
   // Terminate the Pyodide web worker if it's running.
@@ -456,24 +436,6 @@ class InputContext {
     return new_stack.push_all_exprs([
       expr, x_expr, x0_expr,
       TextExpr.integer(order)]);
-  }
-
-  // Take SymPyExprs from the stack and start up a computation
-  // (applying a Python/SymPy function to the expressions).
-  //
-  // function_name: 'solve' (SymPy function to call)
-  // arg_count: Number of argument expressions from the stack
-  // extra_args: ['optname=True', ...]
-  //     (extra keyword options to the function call)
-  _sympy_command(stack, function_name, arg_count, extra_args = [],
-                 transform_result_code = null) {
-    const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
-    const pyodide = this.app_component.state.pyodide_interface;
-    const command = new SymPyCommand(
-      function_name, arg_exprs, extra_args,
-      transform_result_code);
-    pyodide.start_executing(command);
-    return new_stack;
   }
 
   // This has been replaced with SymPy nsimplify().
@@ -536,7 +498,7 @@ class InputContext {
   // Drop the top N stack items (default=1).
   do_pop(stack) {
     const arg = this._get_prefix_argument(1, stack.depth());
-    const [new_stack, ] = stack.pop_items(arg);
+    const [new_stack, ..._items] = stack.pop_items(arg);
     return new_stack;
   }
 
@@ -581,7 +543,8 @@ class InputContext {
     const arg = this._get_prefix_argument(3, stack.depth());
     const [new_stack, ...items] = stack.pop_items(arg);
     if(items.length > 0)
-      return new_stack.push_all_items([...items.slice(1), items[0]]);
+      return new_stack.push_all_items(
+        [...items.slice(1), items[0]]);
     else return new_stack;
   }
 
@@ -590,7 +553,8 @@ class InputContext {
     const arg = this._get_prefix_argument(3, stack.depth());
     const [new_stack, ...items] = stack.pop_items(arg);
     if(items.length > 0)
-      return new_stack.push_all_items(items.slice(-1).concat(items.slice(0, -1)));
+      return new_stack.push_all_items(
+        [...items.slice(-1), ...items.slice(0, -1)]);
     else return new_stack;
   }
 

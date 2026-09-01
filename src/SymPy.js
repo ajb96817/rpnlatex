@@ -531,23 +531,52 @@ def execute_command_safe():
 //   a one-item list into a scalar, or extracting a relevant result from a tuple).
 class SymPyCommand {
   constructor(function_name, arg_exprs, extra_args, transform_result_code) {
-    if(function_name.startsWith('.')) {
-      this.function_name = function_name.slice(1);
-      this.is_method_call = true;
-    }
-    else {
-      this.function_name = function_name;
-      this.is_method_call = false;
-    }
+    this.is_method_call = function_name.startsWith('.');
+    this.function_name = function_name.slice(this.is_method_call ? 1 : 0);
     this.arg_exprs = arg_exprs;
-    this.extra_args = extra_args;
-    this.transform_result_code = transform_result_code;
+    // Use default 'extra' parameters for certain SymPy functions
+    // if they are not passed explicitly to the constructor here.
+    if(extra_args === undefined && transform_result_code === undefined)
+      this._set_default_parameters();
+    else {
+      this.extra_args = extra_args;
+      this.transform_result_code = transform_result_code;
+    }
   }
 
   // solve()-like commands get some special handling to allow for solving
   // systems of equations given in align environments.
   is_solve_command() {
     return ['solve', 'nsolve'].includes(this.function_name);
+  }
+
+  _set_default_parameters() {
+    if(this.is_method_call) return;
+    this.extra_args = [];
+    switch(this.function_name) {
+    case 'N':
+      // Default precision is 15, lower it some for "legibility"
+      // but note that if it's too low then 'nsimplify()' may not
+      // have enough to work with.
+      this.extra_args.push('12');
+      // Truncate low-significance digits (3.100 => 3.1).
+      this.extra_args.push('chop=True');
+      break;
+    case 'nsimplify':
+      this.extra_args.push('[pi, E]');
+      break;
+    case 'solve':
+    case 'nsolve':
+      this.extra_args.push('dict=True');
+      break;
+    case 'laplace_transform':
+    case 'mellin_transform':
+      this.transform_result_code =
+        'result[0] if isinstance(result, tuple) else result';
+      break;
+    default:
+      break;
+    }
   }
 }
 
