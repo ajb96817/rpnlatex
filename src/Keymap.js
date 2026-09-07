@@ -780,6 +780,27 @@ const keybinding_table = {
 
   // [/][d] prefix: derivative operations
   derivative: {
+    /* TODO: use do_build_derivative() etc;
+       keymap will then look something like this:
+    '[digit]': "prefix_argument",  // NOTE: no [*] allowed
+    // d/dx
+    'x': "build_derivative normal operator_only order_from_prefix",
+    // dy/dx
+    'y': "build_derivative normal include_expr order_from_prefix",
+    // d^(n) / dx^(n) (n from stack)
+    'X': "build_derivative normal operator_only order_from_stack",
+    // d^(n)y / dx^(n) (n from stack)
+    'Y': "build_derivative normal include_expr order_from_stack",
+    // p/px (\partial)
+    'p': "build_derivative partial operator_only order_from_prefix",
+    // py/px
+    'q': "build_derivative partial include_expr order_from_prefix",
+    // p^(n) / px^(n) (n from stack)
+    'P': "build_derivative partial operator_only order_from_stack",
+    // p^(n)y / px^(n) (n from stack)
+    'Q': "build_derivative partial include_expr order_from_stack",
+    */
+
     // \partial y / \partial x
     'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;fraction",
     // \partial^2 y / \partial x^2

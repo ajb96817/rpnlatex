@@ -381,8 +381,14 @@ class InputContext {
   }
 
   do_increment(stack, amount_string) {
-    const amount = parseInt(amount_string);
     const [new_stack, expr] = stack.pop_exprs(1);
+    let amount = parseInt(amount_string);
+    // Prefix argument overrides the amount_string, but sign is kept
+    // (so that decrement works as expected).  This is undocumented and
+    // since [/] doesn't allow full prefix arguments anyways it's not
+    // very useful yet (only [/][2][u] works).
+    if(this.prefix_argument !== null && this.prefix_argument > 0)
+      amount = this.prefix_argument * (amount > 0 ? 1 : -1);
     return new_stack.push_expr(expr.increment(amount));
   }
 
@@ -972,18 +978,75 @@ class InputContext {
     return new_stack.push_expr(expr);
   }
 
+  // Create "full" derivative expressions (using a full fraction bar) of various types,
+  // depending on the arguments:
+  //
+  // d_style:
+  //   'normal': normal (italic) math font 'd/dx' notation
+  //   'roman': d/dx notation with upright (roman) font
+  //   'partial': '\partial / \partial x' notation
+  //
+  // //  'mixed_partial': '\partial^n / {\partial x \partial y}
+  //                    (the derivative order corresponds to the number of
+  //                    variables to be taken from the stack)
+  // include_expr:
+  //   'operator_only': (the default) - don't include the differentiated expression in the
+  //            result (e.g. x => d/dx)
+  //   'include_expr': the first item in the arguments from the stack will be the differentiated
+  //            expression (e.g. y x => dy/dx)
+  // order_from_stack:
+  //   'order_from_prefix': (the default) - the prefix argument, if any, becomes the order
+  //            of the derivative (defaulting to 1 if no prefix argument)
+  //   'order_from_stack': an expression from the stack is taken and becomes the "order" of
+  //            the derivative, for notation like d^(n) / dx^(n)
+  do_build_derivative(stack, d_style, include_expr, order_from_stack) {
+    // Arguments from stack are: [f] x [order] where [f] and [order] are
+    // optional, depending on the action's parameters.
+    let new_stack = stack;
+    // Get [order] argument (the '3' in d^3 / dx^3);
+    // null means a 'plain' order-1 dx.
+    let order_expr = null;
+    if(order_from_stack === 'order_from_stack')
+      [new_stack, order_expr] = new_stack.pop_exprs(1);
+    else {
+      const order = this._get_prefix_argument(1, 1);
+      if(order > 1) order_expr = TextExpr.integer(order);
+    }
+    // Get required 'x' argument (variable of differentiation).
+    let variable_expr = null;
+    [new_stack, variable_expr] = new_stack.pop_exprs(1);
+    // Get [f] argument:
+    let differentiated_expr = null;
+    if(include_expr === 'include_expr')
+      [new_stack, differentiated_expr] = new_stack.pop_exprs(1);
+    // Build df/dx result:
+    const d_expr = this._differential_d(d_style);
+    let top_expr = d_expr.with_superscript(order_expr /* null is ok */);
+    if(differentiated_expr)
+      top_expr = top_expr.concatenate(differentiated_expr);
+    const bottom_expr = d_expr.concatenate(
+      order_expr ?
+        variable_expr.with_superscript(order_expr) :
+        variable_expr);
+    return new_stack.push_expr(
+      CommandExpr.frac(top_expr, bottom_expr));
+  }
+
+  // TODO
+  do_build_mixed_partial(stack, include_expr) {
+  }
+
   // Create a differential form infix expression like: dx ^ dy ^ dz.
   // degree_string is the number of differential elements to combine:
   //   degree_string='0' creates a lone 'd'.
   //   degree_string='1' creates the usual 'dx'.
   //   degree_string>='2' combines the differentials with \wedge into an InfixExpr.
-  // typeface='roman' typesets the 'd' with \mathrm.
+  // style='roman' typesets the 'd' with \mathrm.
   // Unary minus signs are pulled out into the differential, e.g. -x -> -dx,
   // and the 'x' expressions are autoparenthesized if the autoparenthesization mode is on.
-  do_differential_form(stack, degree_string, typeface = null) {
+  do_differential_form(stack, degree_string, style = 'normal') {
     const degree = parseInt(degree_string);
-    const d_expr = typeface === 'roman' ?
-          FontExpr.roman_text('d') : new TextExpr('d');
+    const d_expr = this._differential_d(style);
     const [new_stack, ...exprs] = stack.pop_exprs(degree);
     if(degree === 0)  // special case
       return new_stack.push_expr(d_expr);
@@ -1003,6 +1066,14 @@ class InputContext {
     });
     const form_expr = InfixExpr.combine_infix_all(dx_exprs, new CommandExpr('wedge'));
     return new_stack.push_expr(form_expr);
+  }
+
+  _differential_d(style) {
+    switch(style) {
+    case 'roman': return FontExpr.roman_text('d');
+    case 'partial': return new CommandExpr('partial');
+    case 'normal': default: return new TextExpr('d');
+    }
   }
 
   // Similar to do_operator, but implements some "hat special cases".
