@@ -451,7 +451,7 @@ class InputContext {
   //   return new_stack.push_expr(result_expr);
   // }
 
-  do_prefix_argument() {
+  do_prefix_argument(stack) {
     const key = this.last_keypress;
     this.suppress_undo();
     this.switch_to_mode(this.mode);  // preserve current mode
@@ -470,6 +470,12 @@ class InputContext {
     else if(key === '*')
       new_prefix_argument = -1;
     this.prefix_argument = new_prefix_argument;
+    return stack;
+  }
+
+  do_clear_prefix_argument(stack) {
+    this.prefix_argument = null;
+    return stack;
   }
 
   // Convenience function for interpreting the prefix_argument in commands that support it.
@@ -978,52 +984,48 @@ class InputContext {
     return new_stack.push_expr(expr);
   }
 
-  // Create "full" derivative expressions (using a full fraction bar) of various types,
-  // depending on the arguments:
+  // Create "full" derivative expressions (using \frac fraction bar).
+  // The order of the derivative is 1 by default (d/dx), but a prefix
+  // argument can be used to generate d^2/dx^2, etc.  A prefix argument
+  // of [*] instead takes the order from the stack top to allow for
+  // expressions like d^(n) / dx^(n).
   //
-  // d_style:
-  //   'normal': normal (italic) math font 'd/dx' notation
-  //   'roman': d/dx notation with upright (roman) font
-  //   'partial': '\partial / \partial x' notation
+  // 'd_style' determines what to use for the "d" in the numerator or
+  // denominator of the derivative:
+  //   - 'normal': normal (italic) math font 'd/dx' notation
+  //   - 'roman': d/dx notation with upright (roman) font
+  //   - 'partial': '\partial / \partial x' notation
+  //   - 'delta': \delta instead of \partial, for variational calculus commands
   //
-  // //  'mixed_partial': '\partial^n / {\partial x \partial y}
-  //                    (the derivative order corresponds to the number of
-  //                    variables to be taken from the stack)
-  // include_expr:
-  //   'operator_only': (the default) - don't include the differentiated expression in the
-  //            result (e.g. x => d/dx)
-  //   'include_expr': the first item in the arguments from the stack will be the differentiated
-  //            expression (e.g. y x => dy/dx)
-  // order_from_stack:
-  //   'order_from_prefix': (the default) - the prefix argument, if any, becomes the order
-  //            of the derivative (defaulting to 1 if no prefix argument)
-  //   'order_from_stack': an expression from the stack is taken and becomes the "order" of
-  //            the derivative, for notation like d^(n) / dx^(n)
-  do_build_derivative(stack, d_style, include_expr, order_from_stack) {
-    // Arguments from stack are: [f] x [order] where [f] and [order] are
-    // optional, depending on the action's parameters.
+  // 'operator_only' can be:
+  //   'true': (the default) - don't include the differentiated expression in the
+  //           result (e.g. x => d/dx)
+  //   'false': the expression to be differentiated is taken from the
+  //            stack: (y x => dy/dx)
+  //
+  // The arguments taken from the stack are: [f] x [order], where [f] and [order] are
+  // optional, depending on the action's parameters and the prefix argument.
+  do_build_derivative(stack, d_style, operator_only = 'true') {
     let new_stack = stack;
-    // Get [order] argument (the '3' in d^3 / dx^3);
-    // null means a 'plain' order-1 dx.
-    let order_expr = null;
-    if(order_from_stack === 'order_from_stack')
+    const order = this._get_prefix_argument(1, -1);
+    let order_expr = null;  // default order of 1: 'plain' dy/dx
+    if(order < 0)  // [*] - take order expression from stack
       [new_stack, order_expr] = new_stack.pop_exprs(1);
-    else {
-      const order = this._get_prefix_argument(1, 1);
-      if(order > 1) order_expr = TextExpr.integer(order);
-    }
+    else if(order > 1)  // integer order from prefix argument
+      order_expr = TextExpr.integer(order);
     // Get required 'x' argument (variable of differentiation).
     let variable_expr = null;
     [new_stack, variable_expr] = new_stack.pop_exprs(1);
-    // Get [f] argument:
-    let differentiated_expr = null;
-    if(include_expr === 'include_expr')
-      [new_stack, differentiated_expr] = new_stack.pop_exprs(1);
-    // Build df/dx result:
+    variable_expr = this._parenthesize_differential(variable_expr);
     const d_expr = this._differential_d(d_style);
     let top_expr = d_expr.with_superscript(order_expr /* null is ok */);
-    if(differentiated_expr)
-      top_expr = top_expr.concatenate(differentiated_expr);
+    // Get the expression to differentiate from the stack if specified:
+    if(operator_only === 'false') {
+      let differentiated_expr = null;
+      [new_stack, differentiated_expr] = new_stack.pop_exprs(1);
+      top_expr = top_expr.concatenate(
+        this._parenthesize_differential(differentiated_expr));
+    }
     const bottom_expr = d_expr.concatenate(
       order_expr ?
         variable_expr.with_superscript(order_expr) :
@@ -1032,39 +1034,50 @@ class InputContext {
       CommandExpr.frac(top_expr, bottom_expr));
   }
 
-  // TODO
-  do_build_mixed_partial(stack, include_expr) {
+  // Create a differential expression like 'dx' from 'x' on the stack.
+  // The prefix argument controls the order of the differential:
+  //   0: => d (a "plain" differential operator)
+  //   1: x => dx (the default)
+  //   2: x => d^2 x
+  //   *: x n => d^n x (order expression taken from the stack)
+  do_build_differential(stack, d_style) {
+    let new_stack = stack;
+    const d_expr = this._differential_d(d_style);
+    let order_expr;
+    const order = this._get_prefix_argument(1, -1);
+    if(order === 0)  // prefix argument of 0 just puts a 'd'
+      return new_stack.push_expr(d_expr);
+    else if(order < 0)  // [*] takes the order expression from the stack
+      [new_stack, order_expr] = new_stack.pop_exprs(1);
+    else if(order > 1)  // d^2 x, etc.
+      order_expr = TextExpr.integer(order);
+    else  // default order of 1 gives a "plain" dx
+      order_expr = null;
+    const [new_stack_2, variable_expr] = new_stack.pop_exprs(1);
+    const dx_expr = d_expr
+          .with_superscript(order_expr)
+          .concatenate(
+            this._parenthesize_differential(variable_expr));
+    return new_stack_2.push_expr(dx_expr);
   }
 
-  // Create a differential form infix expression like: dx ^ dy ^ dz.
-  // degree_string is the number of differential elements to combine:
-  //   degree_string='0' creates a lone 'd'.
-  //   degree_string='1' creates the usual 'dx'.
-  //   degree_string>='2' combines the differentials with \wedge into an InfixExpr.
-  // style='roman' typesets the 'd' with \mathrm.
-  // Unary minus signs are pulled out into the differential, e.g. -x -> -dx,
-  // and the 'x' expressions are autoparenthesized if the autoparenthesization mode is on.
-  do_differential_form(stack, degree_string, style = 'normal') {
-    const degree = parseInt(degree_string);
-    const d_expr = this._differential_d(style);
-    const [new_stack, ...exprs] = stack.pop_exprs(degree);
-    if(degree === 0)  // special case
-      return new_stack.push_expr(d_expr);
-    const dx_exprs = exprs.map(expr => {
-      let is_negated = false;
-      let base_expr = expr;
-      if(expr.is_unary_minus_expr()) {
-        is_negated = true;
-        base_expr = expr.base_expr;
-      }
-      if(this.settings.autoparenthesize)
-        base_expr = DelimiterExpr.autoparenthesize(base_expr);
-      let dx_expr = d_expr.concatenate(base_expr);
-      if(is_negated)
-        dx_expr = PrefixExpr.unary_minus(dx_expr);
-      return dx_expr;
-    });
-    const form_expr = InfixExpr.combine_infix_all(dx_exprs, new CommandExpr('wedge'));
+  // Create a differential form infix expression joined with \wedge:
+  //   x y z => dx ^ dy ^ dz
+  // The number of expressions to combine into the differential form
+  // is given by the prefix argument (default 2) unless overridden by
+  // the override_order parameter (this is used for some integral building
+  // commands).
+  do_build_differential_form(stack, d_style, override_order = null) {
+    const order = override_order ?
+          parseInt(override_order) :
+          this._get_prefix_argument(2, stack.depth());
+    if(order < 1) return stack;  // no-op
+    const [new_stack, ...exprs] = stack.pop_exprs(order);
+    const dx_exprs = exprs.map(expr =>
+      this._differential_d(d_style)
+        .concatenate(this._parenthesize_differential(expr)));
+    const form_expr = InfixExpr.combine_infix_all(
+      dx_exprs, new CommandExpr('wedge'));
     return new_stack.push_expr(form_expr);
   }
 
@@ -1072,8 +1085,16 @@ class InputContext {
     switch(style) {
     case 'roman': return FontExpr.roman_text('d');
     case 'partial': return new CommandExpr('partial');
+    case 'delta': return new CommandExpr('delta');
     case 'normal': default: return new TextExpr('d');
     }
+  }
+
+  // x => dx but -x => d(-x), etc.
+  _parenthesize_differential(expr) {
+    if(this.settings.autoparenthesize)
+      return DelimiterExpr.parenthesize_for_power(expr);
+    else return expr;
   }
 
   // Similar to do_operator, but implements some "hat special cases".

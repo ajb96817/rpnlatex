@@ -1627,20 +1627,48 @@
       </p>
       <table class="keybindings"><tbody>
           <tr>
-            <td><span class="k">x</span> <code>x \Rightarrow \displaystyle{\frac{d}{dx}}</code></td>
-            <td><span class="k">X</span> <code>x \Rightarrow \displaystyle{\frac{d^2}{dx^2}}</code></td>
+            <td>
+              <span class="k">x</span>
+              <code>x \Rightarrow \displaystyle{\frac{d}{dx}}</code>
+            </td>
+            <td>
+              <span class="k">2</span><span class="k">x</span>
+              <code>x \Rightarrow \displaystyle{\frac{d^2}{dx^2}}</code>
+            </td>
           </tr>
           <tr>
-            <td><span class="k">y</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{dy}{dx}}</code></td>
-            <td><span class="k">Y</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{d^2 y}{dx^2}}</code></td>
+            <td>
+              <span class="k">y</span>
+              <code>y\enspace x \Rightarrow \displaystyle{\frac{dy}{dx}}</code>
+            </td>
+            <td>
+              <span class="k">2</span><span class="k">y</span>
+              <code>y\enspace x \Rightarrow \displaystyle{\frac{d^2 y}{dx^2}}</code>
+            </td>
           </tr>
           <tr>
-            <td><span class="k">j</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial y}{\partial x}}</code></td>
-            <td><span class="k">J</span> <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial^2 y}{\partial x^2}}</code></td>
+            <td><span class="k">d</span> <code>x \Rightarrow dx</code></td>
+            <td><span class="k">2</span><span class="k">d</span> <code>x \Rightarrow d^2 x</code></td>
           </tr>
           <tr>
-            <td><span class="k">q</span> <code>x \Rightarrow \displaystyle{\frac{\partial}{\partial x}}</code></td>
-            <td><span class="k">Q</span> <code>x \Rightarrow \displaystyle{\frac{\partial^2}{\partial x^2}}</code></td>
+            <td>
+              <span class="k">q</span>
+              <code>x \Rightarrow \displaystyle{\frac{\partial}{\partial x}}</code>
+            </td>
+            <td>
+              <span class="k">2</span><span class="k">q</span>
+              <code>x \Rightarrow \displaystyle{\frac{\partial^2}{\partial x^2}}</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="k">j</span>
+              <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial y}{\partial x}}</code>
+            </td>
+            <td>
+              <span class="k">2</span><span class="k">j</span>
+              <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial^2 y}{\partial x^2}}</code>
+            </td>
           </tr>
           <tr>
             <td><span class="k">m</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code> (<strong>m</strong>ixed)</td>
@@ -1667,20 +1695,15 @@
             <td><span class="k">n</span> <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)</td>
           </tr>
           <tr>
-            <td><span class="k">d</span> <code>x \Rightarrow dx</code></td>
-            <td><span class="k">2</span> <code>x \Rightarrow d^2 x</code></td>
-          </tr>
-          <tr>
-            <td><span class="k">3</span> <code>x \Rightarrow d^3 x</code></td>
-            <td><span class="k">4</span> <code>x \Rightarrow d^4 x</code></td>
-          </tr>
-          <tr>
             <td>
               <span class="k">f</span>
               <code>x\enspace y \Rightarrow dx \wedge dy</code>
               (<strong>f</strong>orm)
             </td>
-            <td><span class="k">F</span> <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code></td>
+            <td>
+              <span class="k">3</span><span class="k">f</span>
+              <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code>
+            </td>
           </tr>
           <tr>
             <td>
@@ -1694,11 +1717,24 @@
           </tr>
       </tbody></table>
       <p>
-        <strong>Differential Forms:</strong>
-        The <span class="k">d</span> <span class="k">2</span> <span class="k">3</span>
-        <span class="k">4</span> <span class="k">f</span> <span class="k">F</span>
-        commands for building differential forms will pull out minus signs as needed, as in:
-        <code>-y\enspace x \Rightarrow -dy \wedge dx</code>.
+        <strong>Derivative Order:</strong>
+        Commands like <span class="k">/</span><span class="k">d</span><span class="k">x</span>
+        can take a prefix argument to specify the <em>order</em> of the derivative or
+        differential.  For example:
+        <span class="k">/</span><span class="k">d</span><span class="k">5</span><span class="k">x</span>
+        <code>x \Rightarrow \displaystyle{\frac{d^5}{dx^5}}</code>.
+        This also applies to the <span class="k">f</span> differential form
+        building command to indicate the number of items in the form.
+        If <span class="k">*</span> is used as the prefix argument, the order will
+        be instead taken from the stack top, as in:
+        <span class="k">/</span><span class="k">d</span><span class="k">*</span><span class="k">y</span>
+        <code>f\enspace x\enspace (n) \Rightarrow
+          \displaystyle{\frac{d^{(n)} f}{dx^{(n)}}}</code>.
+        <strong>NOTE:</strong> the <span class="k">m</span> and <span class="k">M</span>
+        commands for mixed derivatives are currently limited to order 2.
+      </p>
+      <p>
+        <strong>Differential Spacing:</strong>
         Differential forms concatenated with other expressions automatically receive some
         extra spacing to match traditional math notation:
         <code>\int x^2\,dx</code>, <code>\int dx\,x^2</code>,
@@ -1714,11 +1750,6 @@
         commands can be used to immediately create a differential
         and concatenate it to an existing integral expression, for example:
         <code>x \Rightarrow \int x^2\,dx</code>.
-      </p>
-      <p>
-        <strong>NOTE:</strong> Higher-order differential forms can be created by
-        joining with <span class="k">,</span><span class="k">w</span> (wedge):
-        <code>dx\wedge dy\wedge dz,\, dw \Rightarrow dx\wedge dy\wedge dz\wedge dw</code>
       </p>
       <p>
         <strong>Alternative Notation:</strong>

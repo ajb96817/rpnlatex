@@ -753,13 +753,13 @@ const keybinding_table = {
     // [l]imits: lower upper => \int_{lower}^{upper}
     'l': "push \\int;swap;superscript;swap;subscript",
     // f x => \int f dx (indefinite integral)
-    'i': "differential_form 1;concat;push \\int;swap;concat",
+    'i': "build_differential_form normal 1;concat;push \\int;swap;concat",
     // lower upper integrand variable => full definite integral
-    'd': "differential_form 1;concat;unrot;push \\int;swap;superscript;swap;subscript;swap;concat",
+    'd': "build_differential_form normal 1;concat;unrot;push \\int;swap;superscript;swap;subscript;swap;concat",
     // f x \int => \int f\,dx
-    'a': "unrot;differential_form 1;concat;concat",
+    'a': "unrot;build_differential_form normal 1;concat;concat",
     // \int f x => \int f\,dx
-    ' ': "differential_form 1;concat;concat",
+    ' ': "build_differential_form normal 1;concat;concat",
 
     // Ctrl aliases, as in 'derivative' mode.
     'Ctrl+r': "alias r",
@@ -775,98 +775,61 @@ const keybinding_table = {
     'Ctrl+i': "alias i",
     'Ctrl+d': "alias d",
     'Ctrl+a': "alias a",
-    'Ctrl+ ': "differential_form 1;concat;concat"  // can't use alias for space
+    'Ctrl+ ': "build_differential_form normal 1;concat;concat"  // can't use alias for space
   },
 
   // [/][d] prefix: derivative operations
   derivative: {
-    /* TODO: use do_build_derivative() etc;
-       keymap will then look something like this:
-    '[digit]': "prefix_argument",  // NOTE: no [*] allowed
-    // d/dx
-    'x': "build_derivative normal operator_only order_from_prefix",
-    // dy/dx
-    'y': "build_derivative normal include_expr order_from_prefix",
-    // d^(n) / dx^(n) (n from stack)
-    'X': "build_derivative normal operator_only order_from_stack",
-    // d^(n)y / dx^(n) (n from stack)
-    'Y': "build_derivative normal include_expr order_from_stack",
-    // p/px (\partial)
-    'p': "build_derivative partial operator_only order_from_prefix",
-    // py/px
-    'q': "build_derivative partial include_expr order_from_prefix",
-    // p^(n) / px^(n) (n from stack)
-    'P': "build_derivative partial operator_only order_from_stack",
-    // p^(n)y / px^(n) (n from stack)
-    'Q': "build_derivative partial include_expr order_from_stack",
-    */
+    '[digit]': "prefix_argument",
+    '*': "prefix_argument",
 
-    // \partial y / \partial x
-    'j': "push \\partial;swap;concat;swap;push \\partial;swap;concat;swap;fraction",
-    // \partial^2 y / \partial x^2
-    'J': "integer 2;superscript;push \\partial;swap;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
-    // d/dx
-    'x': "differential_form 1;differential_form 0;swap;fraction",
-    // d^2 / dx^2
-    'X': "integer 2;superscript;differential_form 1;differential_form 0;integer 2;superscript;swap;fraction",
-    // dy/dx
-    'y': "differential_form 1;swap;differential_form 1;swap;fraction",
-    // d^2(y) / dx^2 (NOTE: differential_form(1) can't be used in the numerator because of the exponent)
-    'Y': "integer 2;superscript;differential_form 1;swap;differential_form 0;integer 2;superscript;swap;concat;swap;fraction",
-    // \partial / \partial x
-    'q': "push \\partial;swap;concat;push \\partial;swap;fraction",
-    // \partial^2 / \partial x^2
-    'Q': "integer 2;superscript;push \\partial;swap;concat;push \\partial;integer 2;superscript;swap;fraction",
-    // \partial^2 / \partial x\,\partial y
-    'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;fraction",
-    // \partial^2 z / \partial x\,\partial y
-    'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
-    // gradient
-    'g': "push \\nabla;swap;concat",
-    // gradient with respect to x
-    'G': "push \\nabla;swap;subscript;swap;concat",
-    // divergence
-    '.': "autoparenthesize;push \\nabla;swap;infix \\cdot",
-    // directional derivative operator
-    '>': "autoparenthesize;push \\nabla;infix \\cdot",
-    // curl
-    'c': "autoparenthesize;push \\nabla;swap;infix \\times",
-    // curl pullback
-    'C': "autoparenthesize;push \\nabla;infix \\times",
-    // Laplacian
-    'l': "autoparenthesize;push \\nabla;integer 2;superscript;swap;concat",
-    // Delta-x
-    'n': "autoparenthesize;push \\Delta;swap;concat",  // i[n]crement (?)
-    // x -> dx
-    'd': "differential_form 1",
-    // x y -> dx/y
-    '/': "swap;differential_form 1;swap;fraction",
-    // x -> \partial x
-    'p': "push \\partial;swap;concat",
-    // y x -> \partial_x y
-    'P': "push \\partial;swap;subscript;swap;concat",
-    // x y -> dx ^ dy
-    'f': "differential_form 2",
-    // x y z -> dx ^ dy ^ dz
-    'F': "differential_form 3",
-    // x -> d^2x
-    '2': "differential_form 0;integer 2;superscript;swap;concat",
-    '3': "differential_form 0;integer 3;superscript;swap;concat",
-    '4': "differential_form 0;integer 4;superscript;swap;concat",
-    // y x -> y dx (concatenate to integral sign)
-    'i': "differential_form 1;concat",
+    // These commands can use a prefix argument to specify the differential order:
+    'x': "build_derivative normal true",  // d/dx
+    'y': "build_derivative normal false",  // dy/dx
+    'q': "build_derivative partial true",  // p/px (\partial)
+    'j': "build_derivative partial false",  // py/px
+    'd': "build_differential normal",  // dx
+    'p': "build_differential partial",  // \partial x
+    'P': "clear_prefix_argument;push \\partial;swap;subscript;swap;concat",  // \partial_x y
+    'f': "build_differential_form normal",  // dx ^ dy
+    'i': "build_differential normal;concat",  // y dx (concatenate to integral form)
     ' ': "alias i",
+
+    // mixed partial: \partial^2 / \partial x\,\partial y
+    'm': "clear_prefix_argument;push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;fraction",
+    // mixed partial with expr: \partial^2 z / \partial x\,\partial y
+    'M': "clear_prefix_argument;push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
+    // gradient
+    'g': "clear_prefix_argument;push \\nabla;swap;concat",
+    // gradient with respect to x
+    'G': "clear_prefix_argument;push \\nabla;swap;subscript;swap;concat",
+    // divergence
+    '.': "clear_prefix_argument;autoparenthesize;push \\nabla;swap;infix \\cdot",
+    // directional derivative operator
+    '>': "clear_prefix_argument;autoparenthesize;push \\nabla;infix \\cdot",
+    // curl
+    'c': "clear_prefix_argument;autoparenthesize;push \\nabla;swap;infix \\times",
+    // curl pullback
+    'C': "clear_prefix_argument;autoparenthesize;push \\nabla;infix \\times",
+    // Laplacian
+    'l': "clear_prefix_argument;autoparenthesize;push \\nabla;integer 2;superscript;swap;concat",
+    // Delta-x
+    'n': "clear_prefix_argument;autoparenthesize;push \\Delta;swap;concat",  // i[n]crement (?)
+    // x y -> dx/y
+    '/': "clear_prefix_argument;swap;build_differential normal;swap;fraction",
 
     // Ctrl aliases for all the subcommands; this makes it possible to
     // use e.g. [Ctrl+d][Ctrl+y] instead of [/][d][y].
-    'Ctrl+j': "alias j",
-    'Ctrl+J': "alias J",
     'Ctrl+x': "alias x",
-    'Ctrl+X': "alias X",
     'Ctrl+y': "alias y",
-    'Ctrl+Y': "alias Y",
     'Ctrl+q': "alias q",
-    'Ctrl+Q': "alias Q",
+    'Ctrl+j': "alias j",
+    'Ctrl+d': "alias d",
+    'Ctrl+p': "alias p",
+    'Ctrl+P': "alias P",
+    'Ctrl+f': "alias f",
+    'Ctrl+i': "alias i",
+    'Ctrl+ ': "alias i",
     'Ctrl+m': "alias m",
     'Ctrl+M': "alias M",
     'Ctrl+g': "alias g",
@@ -877,83 +840,52 @@ const keybinding_table = {
     'Ctrl+C': "alias C",
     'Ctrl+l': "alias l",
     'Ctrl+n': "alias n",
-    'Ctrl+d': "alias d",
-    'Ctrl+/': "alias /",
-    'Ctrl+p': "alias p",
-    'Ctrl+P': "alias P",
-    'Ctrl+f': "alias f",
-    'Ctrl+F': "alias F",
-    'Ctrl+2': "alias 2",
-    'Ctrl+3': "alias 3",
-    'Ctrl+4': "alias 4",
-    'Ctrl+i': "alias i",
-    'Ctrl+ ': "alias i"
+    'Ctrl+/': "alias /"
   },
 
   // [/][D] prefix: derivative operations, but using roman-font 'd'
   derivative_alt: {
-    'd': "differential_form 1 roman",
-    'D': "alias d",  // (undocumented)
-    '/': "swap;differential_form 1 roman;swap;fraction",
-    'f': "differential_form 2 roman",
-    'F': "differential_form 3 roman",
-    '2': "differential_form 0 roman;integer 2;superscript;swap;concat",
-    '3': "differential_form 0 roman;integer 3;superscript;swap;concat",
-    '4': "differential_form 0 roman;integer 4;superscript;swap;concat",
-    'i': "differential_form 1 roman;concat",
+    '[digit]': "prefix_argument",
+    '*': "prefix_argument",
+    'x': "build_derivative roman true",  // d/dx
+    'y': "build_derivative roman false",  // dy/dx
+    'd': "build_differential roman",  // dx
+    'f': "build_differential_form roman",  // dx ^ dy
+    'i': "build_differential roman;concat",  // y dx (concatenate to integral form)
     ' ': "alias i",
-    'x': "differential_form 1 roman;differential_form 0 roman;swap;fraction",
-    'X': "integer 2;superscript;differential_form 1 roman;differential_form 0 roman;integer 2;superscript;swap;fraction",
-    'y': "differential_form 1 roman;swap;differential_form 1 roman;swap;fraction",
-    'Y': "integer 2;superscript;differential_form 1 roman;swap;differential_form 0 roman;integer 2;superscript;swap;concat;swap;fraction",
+    '/': "clear_prefix_argument;swap;build_differential_form roman 1;swap;fraction",
 
     // Ctrl aliases, same as with normal 'derivative' mode.
-    'Ctrl+d': "alias d",
-    'Ctrl+D': "alias D",
-    'Ctrl+/': "alias /",
-    'Ctrl+f': "alias f",
-    'Ctrl+F': "alias F",
-    'Ctrl+2': "alias 2",
-    'Ctrl+3': "alias 3",
-    'Ctrl+4': "alias 4",
-    'Ctrl+i': "alias i",
-    'Ctrl+I': "alias i",  // for convenience
-    'Ctrl+ ': "alias i",
     'Ctrl+x': "alias x",
-    'Ctrl+X': "alias X",
     'Ctrl+y': "alias y",
-    'Ctrl+Y': "alias Y",
-    
+    'Ctrl+d': "alias d",
+    'Ctrl+f': "alias f",
+    'Ctrl+i': "alias i",
+    'Ctrl+ ': "alias i",
+
     '[delegate]': "derivative"
   },
 
   // [/][v] prefix: functional derivatives (variational calculus)
   // (same as [/][d] commands but \partial -> \delta)
   variational: {
-    'j': "push \\delta;swap;concat;swap;push \\delta;swap;concat;swap;fraction",
-    'J': "integer 2;superscript;push \\delta;swap;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
-    'q': "push \\delta;swap;concat;push \\delta;swap;fraction",
-    'Q': "integer 2;superscript;push \\delta;swap;concat;push \\delta;integer 2;superscript;swap;fraction",
-    'm': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;push \\delta;integer 2;superscript;swap;fraction",
-    'M': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
-    'p': "push \\delta;swap;concat",
-    'P': "push \\delta;swap;subscript;swap;concat",
-
+    '[digit]': "prefix_argument",
+    '*': "prefix_argument",
+    'q': "build_derivative delta true",
+    'j': "build_derivative delta false",
+    'p': "build_differential delta",
+    'P': "clear_prefix_argument;push \\delta;swap;subscript;swap;concat",
+    'f': "build_differential_form delta",
+    'i': "build_differential delta;concat",
+    ' ': "alias i",
+    'm': "clear_prefix_argument;push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;push \\delta;integer 2;superscript;swap;fraction",
+    'M': "clear_prefix_argument;push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
+    'd': "build_differential delta",
+    '/': "clear_prefix_argument;swap;build_differential_form delta 1;swap;fraction",
     // Additional aliases for dy/dx style commands (total derivatives);
     // these will be treated as synonyms for the corresponding \partial commands.
     'x': "alias q",
-    'X': "alias Q",
     'y': "alias j",
-    'Y': "alias J",
-
-    // Counterparts to ordinary differential form commands.
-    'd': "push \\delta;swap;concat",
-    '/': "swap;push \\delta;swap;concat;swap;fraction",
-    '2': "push \\delta;integer 2;superscript;swap;concat",
-    '3': "push \\delta;integer 3;superscript;swap;concat",
-    '4': "push \\delta;integer 4;superscript;swap;concat",
-    'i': "push \\delta;swap;concat;swap;push \\,;concat;swap;concat",
-    ' ': "alias i"
 
     // maybe: '[delegate]': "derivative"
   },
