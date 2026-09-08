@@ -790,33 +790,33 @@ const keybinding_table = {
     'j': "build_derivative partial false",  // py/px
     'd': "build_differential normal",  // dx
     'p': "build_differential partial",  // \partial x
-    'P': "clear_prefix_argument;push \\partial;swap;subscript;swap;concat",  // \partial_x y
+    'P': "push \\partial;swap;subscript;swap;concat",  // \partial_x y
     'f': "build_differential_form normal",  // dx ^ dy
     'i': "build_differential normal;concat",  // y dx (concatenate to integral form)
     ' ': "alias i",
 
     // mixed partial: \partial^2 / \partial x\,\partial y
-    'm': "clear_prefix_argument;push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;fraction",
+    'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;fraction",
     // mixed partial with expr: \partial^2 z / \partial x\,\partial y
-    'M': "clear_prefix_argument;push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
+    'M': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\partial;integer 2;superscript;swap;concat;swap;fraction",
     // gradient
-    'g': "clear_prefix_argument;push \\nabla;swap;concat",
+    'g': "push \\nabla;swap;concat",
     // gradient with respect to x
-    'G': "clear_prefix_argument;push \\nabla;swap;subscript;swap;concat",
+    'G': "push \\nabla;swap;subscript;swap;concat",
     // divergence
-    '.': "clear_prefix_argument;autoparenthesize;push \\nabla;swap;infix \\cdot",
+    '.': "autoparenthesize;push \\nabla;swap;infix \\cdot",
     // directional derivative operator
-    '>': "clear_prefix_argument;autoparenthesize;push \\nabla;infix \\cdot",
+    '>': "autoparenthesize;push \\nabla;infix \\cdot",
     // curl
-    'c': "clear_prefix_argument;autoparenthesize;push \\nabla;swap;infix \\times",
+    'c': "autoparenthesize;push \\nabla;swap;infix \\times",
     // curl pullback
-    'C': "clear_prefix_argument;autoparenthesize;push \\nabla;infix \\times",
+    'C': "autoparenthesize;push \\nabla;infix \\times",
     // Laplacian
-    'l': "clear_prefix_argument;autoparenthesize;push \\nabla;integer 2;superscript;swap;concat",
+    'l': "autoparenthesize;push \\nabla;integer 2;superscript;swap;concat",
     // Delta-x
-    'n': "clear_prefix_argument;autoparenthesize;push \\Delta;swap;concat",  // i[n]crement (?)
+    'n': "autoparenthesize;push \\Delta;swap;concat",  // i[n]crement (?)
     // x y -> dx/y
-    '/': "clear_prefix_argument;swap;build_differential normal;swap;fraction",
+    '/': "swap;build_differential normal;swap;fraction",
 
     // Ctrl aliases for all the subcommands; this makes it possible to
     // use e.g. [Ctrl+d][Ctrl+y] instead of [/][d][y].
@@ -853,7 +853,7 @@ const keybinding_table = {
     'f': "build_differential_form roman",  // dx ^ dy
     'i': "build_differential roman;concat",  // y dx (concatenate to integral form)
     ' ': "alias i",
-    '/': "clear_prefix_argument;swap;build_differential_form roman 1;swap;fraction",
+    '/': "swap;build_differential_form roman 1;swap;fraction",
 
     // Ctrl aliases, same as with normal 'derivative' mode.
     'Ctrl+x': "alias x",
@@ -874,14 +874,14 @@ const keybinding_table = {
     'q': "build_derivative delta true",
     'j': "build_derivative delta false",
     'p': "build_differential delta",
-    'P': "clear_prefix_argument;push \\delta;swap;subscript;swap;concat",
+    'P': "push \\delta;swap;subscript;swap;concat",
     'f': "build_differential_form delta",
     'i': "build_differential delta;concat",
     ' ': "alias i",
-    'm': "clear_prefix_argument;push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;push \\delta;integer 2;superscript;swap;fraction",
-    'M': "clear_prefix_argument;push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
+    'm': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;push \\delta;integer 2;superscript;swap;fraction",
+    'M': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
     'd': "build_differential delta",
-    '/': "clear_prefix_argument;swap;build_differential_form delta 1;swap;fraction",
+    '/': "swap;build_differential_form delta 1;swap;fraction",
     // Additional aliases for dy/dx style commands (total derivatives);
     // these will be treated as synonyms for the corresponding \partial commands.
     'x': "alias q",
@@ -965,7 +965,7 @@ const keybinding_table = {
     'b': "infix \\bullet",
     'c': "infix \\cap",
     'C': "infix \\circledcirc",
-    'd': "swap;push \\dagger;superscript false;swap;concat",  // x^\dagger y
+    'd': "pass;swap;push \\dagger;superscript false;swap;concat",  // 'pass' drops the prefix argument if any
     'D': "infix \\oplus",  // [D]irect sum
     'e': "infix ,\\dots,",
     'f': "conjunction if",
@@ -987,7 +987,7 @@ const keybinding_table = {
     'q': "conjunction and",
     'Q': "conjunction or",
     'r': "conjunction for",
-    's': "push \\,;swap;concat false;concat false",
+    's': "pass;push \\,;swap;concat false;concat false",
     ' ': "alias s",
     'S': "infix \\circledast",
     't': "infix \\to",
@@ -997,26 +997,26 @@ const keybinding_table = {
     'V': "infix \\veebar",
     'w': "infix \\wedge",
     'W': "infix \\barwedge",
-    'x': "autoparenthesize 2;infix \\times",
+    'x': "pass;autoparenthesize 2;infix \\times",
     'X': "infix \\otimes",
     '=': "infix \\Rightarrow",
     '+': "infix \\Longrightarrow",
     '-': "infix \\ominus",
-    '.': "autoparenthesize 2;infix \\cdot",
+    '.': "pass;autoparenthesize 2;infix \\cdot",
     ',': "infix ,",
     '(': "tuple ( )",
     '<': "tuple \\langle \\rangle",
     '[': "tuple [ ]",
     '{': "tuple \\{ \\}",
     '>': "infix \\cdots",
-    '*': "autoparenthesize 2;infix *",
-    '^': "autoparenthesize 2;infix \\star",
+    '*': "pass;autoparenthesize 2;infix *",
+    '^': "pass;autoparenthesize 2;infix \\star",
     ':': "infix \\colon",
     ';': "infix semicolon",
-    '`': "swap;autoparenthesize;push T;typeface roman;superscript false;swap;concat",  // xTy
-    '~': "push T;typeface roman;superscript false;concat",  // xyT
-    '/': "autoparenthesize 2;infix /",
-    "\\": "autoparenthesize 2;infix \\backslash",
+    '`': "pass;swap;autoparenthesize;push T;typeface roman;superscript false;swap;concat",  // xTy
+    '~': "pass;push T;typeface roman;superscript false;concat",  // xyT
+    '/': "pass;autoparenthesize 2;infix /",
+    "\\": "pass;autoparenthesize 2;infix \\backslash",
     '%': "infix \\div",
     'Tab': "infix \\quad",
     '_': "infix \\_",

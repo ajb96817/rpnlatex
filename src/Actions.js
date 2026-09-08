@@ -162,7 +162,7 @@ class InputContext {
   // Each command is of the form [command_name, param1, param2, ...]
   process_command_batch(commands, app_state) {
     this.perform_undo_or_redo = null;
-    for(const command of commands) {
+    for(const [command_index, command] of commands.entries()) {
       const [command_name, ...parameters] = command;
       const handler_function = this['do_' + command_name];
       if(!handler_function)
@@ -171,12 +171,26 @@ class InputContext {
         this.app_state = app_state;
         // Reset context variables for the handler functions to use.
         this._reset();
+        // For multi-command "macro" keybindings, hide the prefix_argument
+        // from the individual commands beyond the first one.  Otherwise, the (same)
+        // prefix argument would be passed along to each command separately with
+        // possibly unwanted side effects, e.g.: "something_using_prefix;swap"
+        // (we don't want 'swap' to get a spurious prefix argument).
+        // TODO: Maybe have something like 'this.saved_prefix_argument' for special
+        // cases where the prefix argument is actually needed.
+        const suppress_prefix_argument = command_index >= 1;
+        let old_prefix_argument = this.prefix_argument;
+        if(suppress_prefix_argument)
+          this.prefix_argument = null;
         // Execute the handler and assemble the new state.
         // The action handler function is expected to return the "new" (updated) stack,
         // or null/undefined to indicate no changes (leaving any arguments on the stack).
         // Helper functions like .notify() therefore should return 'undefined' so the
         // action handler functions can do "return this.notify('...')" etc.
         const new_stack = (handler_function.bind(this))(app_state.stack, ...parameters);
+        // Restore prefix argument for multi-command keybindings (see above).
+        if(suppress_prefix_argument)
+          this.prefix_argument = old_prefix_argument;
         let new_app_state = new AppState(
           new_stack || app_state.stack,
           this.new_document || app_state.document,
@@ -335,7 +349,8 @@ class InputContext {
         'errorflash_document');
   }
 
-  do_cancel() {}
+  do_pass() {}  // no-op; can be used to drop prefix argument in multi-command keybindings
+  do_cancel() {}  // also no-op, but may abort multi-command keybindings in the future
   do_mode(stack, new_mode) { this.switch_to_mode(new_mode); }
   do_undo() { this.perform_undo_or_redo = 'undo'; }
   do_redo() { this.perform_undo_or_redo = 'redo'; }
@@ -470,11 +485,6 @@ class InputContext {
     else if(key === '*')
       new_prefix_argument = -1;
     this.prefix_argument = new_prefix_argument;
-    return stack;
-  }
-
-  do_clear_prefix_argument(stack) {
-    this.prefix_argument = null;
     return stack;
   }
 
