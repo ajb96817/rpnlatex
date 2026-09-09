@@ -2633,7 +2633,7 @@
       <ul class="keybindings">
         <li>
           <span class="k">#</span>
-          <code>x \Rightarrow \mathtt{sympify(x)}</code> -
+          <code>x \Rightarrow \mathtt{S(x)}</code> -
           Evaluate an expression with SymPy, as described above.
         </li>
         <li>
@@ -2658,23 +2658,23 @@
         </li>
         <li>
           <span class="k">d</span>
-          <code>f\Rightarrow f'</code>:
+          <code>f\Rightarrow \mathtt{diff(f)}</code>:
           Differentiate an expression, guessing the independent variable from context.
         </li>
         <li>
           <span class="k">D</span>
-          <code>f\enspace x\Rightarrow f'(x)</code>:
+          <code>f\enspace x\Rightarrow \mathtt{diff(f, x)}</code>:
           Differentiate <code>f(x)</code> with respect to the specified independent variable.
         </li>
         <li>
           <span class="k">i</span>
-          <code>f\Rightarrow \int f(x)\,dx</code>:
+          <code>f\Rightarrow \mathtt{integrate(f)}</code>:
           Indefinite integral (antiderivative/primitive) of an expression, guessing the
           independent variable.  The constant of integration is omitted.
         </li>
         <li>
           <span class="k">I</span>
-          <code>f\enspace x\Rightarrow \int f(x)\,dx</code>:
+          <code>f\enspace x\Rightarrow \mathtt{integrate(f, x)}</code>:
           Indefinite integral <code>\int f(x)\, dx</code> using the specified independent variable.
         </li>
         <li>
@@ -2683,31 +2683,30 @@
           <code>x^2-2x+1 \Rightarrow (x-1)^2</code>
         </li>
         <li>
+          <span class="k">x</span>
+          <code>f\Rightarrow \mathtt{expand(f)}</code>:
+          <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
+        </li>
+        <li>
           <span class="k">s</span>
           <code>f\Rightarrow \mathtt{simplify(f)}</code>
           - Apply general expression simplification rules.
         </li>
         <li>
           <span class="k">v</span>
-          <code>f \Rightarrow \mathtt{solve(f)}</code> -
-          Try to sol<strong>v</strong>e an equation (or try to find the zeroes of
-          an expression like <code>x^2-3</code>).  The variable to be solved for
-          is guessed from context.
-          <code>x^2 = 3 \Rightarrow -\sqrt{3}, \sqrt{3}</code>.
+          <code>f\enspace x \Rightarrow \mathtt{solve(f, x)}</code> -
+          Try to sol<strong>v</strong>e an equation for the given variable
+          (or try to find the zeroes of an expression like <code>x^2-3</code>).
           If there are multiple solutions, they will be grouped into an array structure which can be
           split apart with the <span class="k">/</span><span class="k">z</span> (dissolve) command if needed.
-        </li>
-        <li>
-          <span class="k">V</span>
-          <code>f\enspace x \Rightarrow \mathtt{solve(f, x)}</code> -
-          Like <span class="k">v</span>, but the variable to be solved for
-          is given explicitly:
-          <code>x=c^2 \enspace c \Rightarrow -\sqrt{x}, \sqrt{x}</code>
-        </li>
-        <li>
-          <span class="k">x</span>
-          <code>f\Rightarrow \mathtt{expand(f)}</code>:
-          <code>(x-1)^2 \Rightarrow x^2-2x+1</code>
+          <br /><strong>Simultaneous equations:</strong>
+          To solve two or more equations simultaneously, place the equations in an
+          <em>aligned structure</em> using the
+          <span class="k">|</span><span class="k">a</span> <em>(align)</em>
+          or <span class="k">|</span><span class="k">g</span> <em>(gather)</em>
+          commands.  Then place the variables to be solved for into a row or column
+          matrix with, for example, the <span class="k">|</span><span class="k">2</span><span class="k">[</span>
+          command (which builds a 1x2 row matrix).
         </li>
         <li>
           <span class="k">y</span>
