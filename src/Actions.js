@@ -1192,13 +1192,18 @@ class InputContext {
   // do_infix() look at the prefix argument because we may not always want to
   // use the prefix argument when using 'infix' as a subcommand within a
   // multi-command keybinding.
-  do_multi_infix(stack, opname) {
+  do_multi_infix(stack, opname, autoparenthesize = 'false') {
     const expr_count = this._get_prefix_argument(2, stack.depth());
     if(expr_count <= 1) return stack;
     const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
     const operator_expr = Expr.text_or_command(opname);
-    const new_expr = InfixExpr.combine_infix_all(exprs, operator_expr);
-    return new_stack.push_expr(new_expr);
+    const operand_exprs = 
+          (autoparenthesize === 'autoparenthesize' && this.settings.autoparenthesize) ?
+          exprs.map(expr => DelimiterExpr.autoparenthesize(expr)) :
+          exprs;
+    return new_stack.push_expr(
+      InfixExpr.combine_infix_all(
+        operand_exprs, operator_expr));
   }
 
   // Take (left, right, operator) from the stack and create an InfixExpr.
