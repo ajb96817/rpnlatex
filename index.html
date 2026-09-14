@@ -1652,6 +1652,17 @@
           </tr>
           <tr>
             <td>
+              <span class="k">f</span>
+              <code>x\enspace y \Rightarrow dx \wedge dy</code>
+              (<strong>f</strong>orm)
+            </td>
+            <td>
+              <span class="k">3</span><span class="k">f</span>
+              <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
               <span class="k">q</span>
               <code>x \Rightarrow \displaystyle{\frac{\partial}{\partial x}}</code>
             </td>
@@ -1679,31 +1690,20 @@
             <td><span class="k">P</span> <code>x\enspace y \Rightarrow \partial_y x</code></td>
           </tr>
           <tr>
-            <td><span class="k">g</span> <code>x \Rightarrow \nabla x</code></td>
+            <td><span class="k">g</span> <code>x \Rightarrow \nabla x</code> (<strong>g</strong>radient)</td>
             <td><span class="k">G</span> <code>x\enspace y \Rightarrow \nabla_y x</code></td>
           </tr>
           <tr>
-            <td><span class="k">.</span> <code>x \Rightarrow \nabla\cdot x</code></td>
+            <td><span class="k">.</span> <code>x \Rightarrow \nabla\cdot x</code> (divergence)</td>
             <td><span class="k">&gt;</span> <code>x \Rightarrow x\cdot\nabla</code></td>
           </tr>
           <tr>
-            <td><span class="k">c</span> <code>x \Rightarrow \nabla\times x</code></td>
+            <td><span class="k">c</span> <code>x \Rightarrow \nabla\times x</code> (<strong>c</strong>url)</td>
             <td><span class="k">C</span> <code>x \Rightarrow x\times\nabla</code></td>
           </tr>
           <tr>
             <td><span class="k">l</span> <code>x \Rightarrow \nabla^2 x</code> (<strong>L</strong>aplacian)</td>
             <td><span class="k">n</span> <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)</td>
-          </tr>
-          <tr>
-            <td>
-              <span class="k">f</span>
-              <code>x\enspace y \Rightarrow dx \wedge dy</code>
-              (<strong>f</strong>orm)
-            </td>
-            <td>
-              <span class="k">3</span><span class="k">f</span>
-              <code>x\enspace y\enspace z \Rightarrow dx \wedge dy \wedge dz</code>
-            </td>
           </tr>
           <tr>
             <td>
@@ -2519,7 +2519,7 @@
           will be signaled.
         </li>
         <li style="margin-top: 0.5em;">
-          Conversely, the output from SymPy must be translated into math
+          Conversely, the output from SymPy must be translated back into math
           expressions usable by the editor.  SymPy can perform its own
           translation into LaTeX code, but that comes with a loss of symbolic structure.
           The output of these symbolic commands cannot be edited with
@@ -2527,10 +2527,8 @@
           commands such as <span class="k">/</span><span class="k">z</span>
           <em>(dissolve)</em>.  They can still be combined with other expressions
           as usual, though.  This loss of structure is indicated by a blue-green tint on
-          the expression.
-          <strong>NOTE:</strong> This LaTeX conversion is only being done as a
-          temporary stopgap.  In a future update, SymPy expressions will be
-          converted fully back into editor objects.
+          the expression, indicating that is a <em>SymPy object</em> rather than
+          a normal editor expression.
         </li>
       </ul>
       <p>
@@ -2550,6 +2548,16 @@
         will be interpreted:
       </p>
       <ul>
+        <li>
+          Variables and function names
+          like <code>x, \alpha, f{(t)}, y_n, \boldsymbol{z}</code> -
+          Greek letters, subscripts, and bolding (via <span class="k">]</span>)
+          are allowed
+        </li>
+        <li>
+          Common math functions such as
+          <code>\sin{2\pi t}</code> or <code>\operatorname{erf}{(x)}</code>
+        </li>
         <li>
           Complex conjugation: <code>\overline{x}</code>
           or <code>x^{*}</code>, e.g.:
@@ -2593,13 +2601,19 @@
               <code>(x^2 + c)^\prime \Rightarrow 2x</code>
               (assumes <code>x</code> is the variable)
             </li>
+            <li>
+              <code>f^{\prime}{(x)}</code> for &quot;generic&quot; functions
+            </li>
+            <li>
+              <code>f^{(n)}{(x)}</code> to indicate the <code>n</code>-th derivative
+            </li>
           </ul>
         </li>
         <li>Summations: <code>\sum_{k\ge1}\frac{1}{k^2} \Rightarrow \pi^2/6</code></li>
         <li>Products: <code>\prod^2_{k=0}(x+k) \Rightarrow x(x+1)(x+2)</code></li>
         <li>Limits: <code>\lim_{x\to 0} \frac{\sin x}{x} \Rightarrow 1</code></li>
         <li>
-          &quot;Where&quot; notation, such as:
+          &quot;Where&quot; notation:
           <code>\left. \frac{\cos{x}}{x} \right\vert_{x=\pi}</code>
           (<span class="k">/</span><span class="k">|</span> can create this)
         </li>
@@ -2626,6 +2640,8 @@
             \Rightarrow \begin{bmatrix} -1 & 0\\0 & -1\end{bmatrix}</code>
           and <code>\det{\begin{bmatrix} a & b\\c & d\end{bmatrix}}
             \Rightarrow ad-bc</code>
+          (use <span class="k">/</span><span class="k">f</span><span class="k">d</span>
+          to get the <code>\det</code>)
         </li>
       </ul>
 
@@ -2706,7 +2722,7 @@
           or <span class="k">|</span><span class="k">g</span> <em>(gather)</em>
           commands.  Then place the variables to be solved for into a row or column
           matrix with, for example, the <span class="k">|</span><span class="k">2</span><span class="k">[</span>
-          command (which builds a 1x2 row matrix).
+          command (which builds a <code>1\times 2</code> row matrix).
         </li>
         <li>
           <span class="k">y</span>

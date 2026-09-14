@@ -1186,22 +1186,26 @@ class InputContext {
     return new_stack.push_expr(new_expr);
   }
 
+  // Like do_infix(), but instead of always combining 2 expressions with
+  // an operator, the number to combine is taken from the prefix argument,
+  // if any (defaulting to 2).  This is its own action instead of just having
+  // do_infix() look at the prefix argument because we may not always want to
+  // use the prefix argument when using 'infix' as a subcommand within a
+  // multi-command keybinding.
+  do_multi_infix(stack, opname) {
+    const expr_count = this._get_prefix_argument(2, stack.depth());
+    if(expr_count <= 1) return stack;
+    const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
+    const operator_expr = Expr.text_or_command(opname);
+    const new_expr = InfixExpr.combine_infix_all(exprs, operator_expr);
+    return new_stack.push_expr(new_expr);
+  }
+
   // Take (left, right, operator) from the stack and create an InfixExpr.
   do_apply_infix(stack) {
     let [new_stack, left_expr, right_expr, operator_expr] = stack.pop_exprs(3);
     const new_expr = left_expr.combine_infix(right_expr, operator_expr);
     return new_stack.push_expr(new_expr);
-  }
-
-  // x y z => (x,y,z)
-  // Number of items is taken from the prefix argument, defaulting to 2.
-  do_tuple(stack, left_delimiter = '(', right_delimiter = ')', separator = ',') {
-    const expr_count = this._get_prefix_argument(2, -1);
-    const [new_stack, ...exprs] = stack.pop_exprs(expr_count);
-    const separator_expr = new TextExpr(separator);
-    const inner_expr = InfixExpr.combine_infix_all(exprs, separator_expr);
-    const tuple_expr = new DelimiterExpr(left_delimiter, right_delimiter, inner_expr);
-    return new_stack.push_expr(tuple_expr);
   }
 
   // Similar to do_infix but joins two expressions with an English phrase
