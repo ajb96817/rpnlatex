@@ -1308,16 +1308,6 @@ class InputContext {
       return stack.type_error();
   }
 
-  // TODO
-  // // 3 \pi => '3pi'
-  // // x \pi => 'pi x'
-  // // 3 2 => '2 \cdot 3'
-  // // ???
-  // do_attach_coefficient(stack) {
-  //   const [new_stack, expr, coefficient_expr] = stack.pop_exprs(2);
-    
-  // }
-
   // Combine a function name and its argument tuple into a FunctionCallExpr.
   // The arguments must already exist as a DelimiterExpr, e.g. (x,y).
   do_function_call(stack) {
@@ -1426,8 +1416,8 @@ class InputContext {
   // For an equation or relational expression like x^2 + x < 3,
   // subtract the right hand side from the left, leaving x^2 + x - 3 < 0.
   // If the expression is not an equation, it's left alone.
-  // If 'drop_rhs' is set, leave out the "< 0" part.
-  do_all_on_left(stack, drop_rhs) {
+  // If 'drop_rhs'==='true', leave out the "< 0" part.
+  do_all_on_left(stack, drop_rhs = null) {
     const [new_stack, expr] = stack.pop_exprs(1);
     if(!expr.is_infix_expr())
       return stack;

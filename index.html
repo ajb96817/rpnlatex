@@ -1555,18 +1555,18 @@
           with a replacement <code>z</code>.
           Example: <code>\sqrt{x^2+1}\enspace x\enspace (t-1) \Rightarrow \sqrt{(t-1)^2+1}</code>
         </li>
+      </ul>
+
+      <p><strong>Other Operations:</strong></p>
+      <ul class="keybindings">
         <li>
-          <span class="k">&quot;</span>
+          <span class="k">&quot;</span> <strong>Make Header:</strong>
           Turn the stack top into a <em>section header</em> text object, with a larger font and an underline.
           Math expressions will be automatically converted into text objects containing the expression.
           Applying this command a second time will remove the section header property.
         </li>
-      </ul>
-
-      <p><strong>Equation Splitting:</strong></p>
-      <ul class="keybindings">
         <li>
-          <span class="k">,</span>
+          <span class="k">,</span> <strong>Split Equation:</strong>
           Split a long equation across multiple lines.  The stack top must be an expression
           just joined with an <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operator.
           This command inserts a line break after the operator.  A second application of this command to the
@@ -1575,24 +1575,28 @@
           to the expression.  Line breaks only affect the "top level" terms in an expression; expressions will not
           be broken inside of delimiters, etc.
         </li>
-      </ul>
-
-      <p><strong>Tags:</strong></p>
-      <ul class="keybindings">
         <li>
-          <span class="k">;</span>
+          <span class="k">;</span> <strong>Add Tag:</strong>
           Prompt for a text string and attach it as a &quot;tag&quot; to the expression on the stack top.
           Tags can be used as equation numbers or labels and will be displayed to the right of the tagged item.
           Note that any further operations on a tagged item will remove the tag, so tags are generally added
           just before moving an item into the document.
-        </li>
-        <li>
           <strong>NOTE:</strong>
           Using <span class="k">Shift&nbsp;Enter</span> will automatically enclose the tag string
           in parentheses, useful for equation numbers like <kbd>(1)</kbd>.
         </li>
+        <li>
+          <span class="k">:</span> <strong>Add Text Prefix:</strong>
+          Prompt for a text string and place it in front of the expression on the stack top
+          as a Roman-font textual label along with a colon.
+          Example: <code>\sqrt{x^2+y^2} \Rightarrow \text{Length: }\sqrt{x^2+y^2}</code>.
+          Using <span class="k">Shift&nbsp;Enter</span> will make the label bold.
+          <strong>NOTE:</strong> Unlike the <span class="k">;</span> <em>add tag</em> command
+          above, the label here becomes part of the expression and will not be removed by
+          further operations.
+        </li>
       </ul>
-
+      
       <p>
         <strong>Subprefix Modes:</strong>
         These commands enter dedicated modes for other types of operations.
@@ -2557,6 +2561,10 @@
         <li>
           Common math functions such as
           <code>\sin{2\pi t}</code> or <code>\operatorname{erf}{(x)}</code>
+        </li>
+        <li>
+          Traditional squared/inverse notation for trigonometric functions:
+          <code>\sin^2{\theta}, \tan^{-1}{x}</code>
         </li>
         <li>
           Complex conjugation: <code>\overline{x}</code>
