@@ -1464,9 +1464,9 @@ class InputContext {
     // TODO: maybe allow joining text items with conjunction text this way
     if(text_entry_mode === 'conjunction_entry' && !stack.check_exprs(2))
       return this.error_flash_stack();
-    // tag_entry and prefix_entry modes need an expression or text item
-    // to which will be attached the tag or prefix.
-    if(['tag_entry', 'prefix_entry'].includes(text_entry_mode) &&
+    // tag_entry and label_entry modes need an expression or text item
+    // to which will be attached the tag or label.
+    if(['tag_entry', 'label_entry'].includes(text_entry_mode) &&
        !(stack.check(1) &&
          ['expr', 'text'].includes(stack.peek(1).item_type())))
       return this.error_flash_stack();
@@ -1566,8 +1566,8 @@ class InputContext {
   //   'bold_conjunction' - same but the "iff" is bolded
   //   'tag' - set the tag_string of the stack top
   //   'tag_with_parentheses' - same as 'tag' but automatically surround with parentheses
-  //   'prefix' - attach roman font textual prefix (e.g. x => 'Therefore: x')
-  //   'bold_prefix' - same but prefix text is bolded
+  //   'label' - attach roman font textual prefix (e.g. x => 'Therefore: x')
+  //   'bold_label' - same but prefix text is bolded
   //   'mhchem_formula' - \ce{...} chemical formula
   //   'mhchem_unit' - \pu{...} physical unit expression
   do_finish_text_entry(stack, textstyle) {
@@ -1671,15 +1671,15 @@ class InputContext {
       this._cancel_text_entry(new_stack);
       return new_stack.push_item(new_item);
     }
-    else if(textstyle === 'prefix' ||
-            textstyle === 'bold_prefix') {
-      // TODO: allow adding prefixes to TextItems as well as ExprItems
+    else if(textstyle === 'label' ||
+            textstyle === 'bold_label') {
+      // TODO: allow adding labels to TextItems as well as ExprItems
       const [new_stack, expr] = stack.pop_exprs(1);
-      const prefix_expr = new CommandExpr(
-        textstyle === 'bold_prefix' ? 'textbf' : 'text',
+      const label_expr = new CommandExpr(
+        textstyle === 'bold_label' ? 'textbf' : 'text',
         [new TextExpr(LatexEmitter.latex_text_escape(trimmed_text + ': '))]);
       this._cancel_text_entry(new_stack);
-      return new_stack.push_expr(new SequenceExpr([prefix_expr, expr]));
+      return new_stack.push_expr(new SequenceExpr([label_expr, expr]));
     }
     else if(textstyle === 'mhchem_formula' ||
             textstyle === 'mhchem_unit') {

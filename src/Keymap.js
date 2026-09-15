@@ -479,10 +479,10 @@ const keybinding_table = {
     '[delegate]': "_editor_commands"
   },
 
-  // [/][:] prefix: prefix text
-  prefix_entry: {
-    'Enter': "finish_text_entry prefix",
-    'Shift+Enter': "finish_text_entry bold_prefix",
+  // [/][:] prefix: text label
+  label_entry: {
+    'Enter': "finish_text_entry label",
+    'Shift+Enter': "finish_text_entry bold_label",
     '[delegate]': "_editor_commands"
   },
 
@@ -622,7 +622,7 @@ const keybinding_table = {
     'Y': "push E;typeface blackboard;swap;subscript;unrot;infix \\,\\vert\\,;parenthesize [ ];function_call",  // E_x[z|y]
     'z': "dissolve",
     ' ': "swap;concat",
-    ':': "start_text_entry prefix_entry",  // TODO: undocumented
+    ':': "start_text_entry label_entry",
     ';': "start_text_entry tag_entry",
     ',': "infix_linebreak",
     '/': "fraction",

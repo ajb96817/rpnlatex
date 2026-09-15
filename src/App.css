@@ -537,7 +537,7 @@ div.stack_items div.latex_entry_mode { background-color: #ded; }
 div.stack_items div.chemical_entry_mode { background-color: #efd; }
 div.stack_items div.conjunction_entry_mode { background-color: #fec; }
 div.stack_items div.tag_entry_mode { background-color: #e8ffe8; }
-div.stack_items div.prefix_entry_mode { background-color: #ffe; }
+div.stack_items div.label_entry_mode { background-color: #ffe; }
 
 div.stack_items div.latex_entry_mode::before {
   /* show an initial backslash at the beginning when in latex entry mode */
@@ -559,8 +559,8 @@ div.stack_items div.tag_entry_mode::before {
   font-weight: bold;
   color: #264;
 }
-div.stack_items div.prefix_entry_mode::before {
-  content: "prefix: ";
+div.stack_items div.label_entry_mode::before {
+  content: "label: ";
   font-weight: bold;
   color: #544;
 }
