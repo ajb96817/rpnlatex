@@ -49,12 +49,12 @@
         followed by <span class="k">+</span> to apply the addition operation.
       </p>
       <p>
-        The stack is displayed bottom-up: the item most recently placed on the stack
-        (called the &quot;stack top&quot;) is the one shown at the bottom of the screen.
-        The older items are stacked up above it.
-        Editor operations always work with the first few items on the stack.
-        In this user guide, the labels <em>x</em>, <em>y</em> and <em>z</em> are usually
-        used to refer to these first few items.
+        The stack is displayed bottom-up: the item most recently <em>pushed</em> onto the stack
+        (called the &quot;stack top&quot;) is the one shown at the bottom of the stack area.
+        The older items are stacked up above it.  Editor operations typically work with the first
+        few items on the stack, <em>popping</em> their operand(s) and then pushing their result.
+        In this user guide, the labels <strong><em>x</em></strong>, <strong><em>y</em></strong>
+        and <strong><em>z</em></strong> are usually used to refer to these first few items.
       </p>
       <p>
         The items on the stack have a small colored <em>type indicator bar</em>
@@ -95,22 +95,26 @@
         </li>
         <li>
           <span class="k">a-z</span> <span class="k">A-Z</span> <span class="k">0-9</span>
-          Place a single letter or digit onto the stack.
+          Push a single letter or digit onto the stack.
         </li>
         <li>
           <span class="k">+</span> <span class="k">-</span>
           <span class="k">&lt;</span> <span class="k">&gt;</span>
-          Join two expressions with the corresponding operator between them.
+          Join two expressions with the corresponding operator between them:
+          <code>x\enspace y \Rightarrow x+y</code>
         </li>
         <li>
           <span class="k">&nbsp;</span> <em>(space)</em>
-          Concatenate the top two stack items.  This can be used to &quot;implicitly&quot;
+          Concatenate the top two stack items: <code>x\enspace y \Rightarrow xy</code>.
+          This can be used to &quot;implicitly&quot;
           multiply terms together (as in <code>xy</code>), and to create longer integers
           from individual digits (<code>1\enspace 2 \Rightarrow 12</code>).
         </li>
         <li>
           <span class="k">Shift Space</span>
-          Concatenate the top three stack items.  Same as <span class="k">&nbsp;</span><span class="k">&nbsp;</span>.
+          Concatenate the top three stack items:
+          <code>x\enspace y\enspace z \Rightarrow xyz</code>.
+          Same as <span class="k">&nbsp;</span><span class="k">&nbsp;</span>.
         </li>
         <li>
           <span class="k">^</span> or <span class="k">`</span> <em>(backtick)</em>
@@ -121,24 +125,27 @@
         </li>
         <li>
           <span class="k">Backspace</span>
-          Drop the top item from the stack.
+          Drop the top item from the stack:
+          <code>x \Rightarrow</code>
         </li>
         <li>
           <span class="k">Shift&nbsp;Backspace</span>
-          Drop the secondmost top item from the stack.
+          Drop the secondmost top item from the stack:
+          <code>x\enspace y \Rightarrow y</code>
         </li>
         <li>
           <span class="k">(</span> <span class="k">[</span> <span class="k">{</span>
-          Enclose the stack top in paired delimiters: <code>(x), [x], \{x\}</code>.
+          Enclose the stack top in paired delimiters: <code>x \Rightarrow (x), [x], \{x\}</code>.
           These delimiters automatically adjust to fit their contents.
         </li>
         <li>
           <span class="k">]</span>
-          Apply a <strong>bold font</strong> to the stack top.
+          Apply a <strong>bold font</strong> to the stack top:
+          <code>x \Rightarrow \bold{x}</code>
         </li>
         <li>
           <span class="k">!</span>
-          Append a <kbd>!</kbd> to the stack top (factorial notation).
+          Factorial notation: <code>x \Rightarrow x!</code>
         </li>
         <li>
           <span class="k">&uarr;</span> <span class="k">&darr;</span>
@@ -296,7 +303,10 @@
         A malformed expression will signal an error; allowed expressions include:
       </p>
       <ul>
-        <li>Numbers such as <kbd>3, -10, 5.12</kbd></li>
+        <li>
+          Numbers such as <kbd>3, -10, 5.12</kbd>.  This algebraic entry mode is the easiest
+          way to create decimals or numbers longer than a couple digits.
+        </li>
         <li>
           Single- or multi-letter variable or function names such as <kbd>x, abc</kbd>.
           Multi-letter variables are typeset in a roman (non-italic) font.
@@ -506,28 +516,51 @@
       <ul class="keybindings">
         <li>
           <span class="k">Enter</span> or <span class="k">Tab</span>
-          <em>(Dup)</em> Duplicate the top N items (default 1).
+          <em>(Dup)</em> Duplicate the top N items (default 1):
+          <code>x\Rightarrow x\enspace x</code>
         </li>
         <li><span class="k">a</span> <em>(Sw<strong>a</strong>p)</em>
-          Reverse the order of the top N items (default 2).
+          Reverse the order of the top N items (default 2):
+          <code>x\enspace y \Rightarrow y\enspace x</code>
         </li>
         <li>
           <span class="k">d</span>
-          <em>(Drop)</em> Remove the top N items (default 1).
+          <em>(Drop)</em> Remove the top N items (default 1):
+          <code>x\enspace y \Rightarrow x</code>.
           <span class="k">Backspace</span> can also be used by itself to drop single items from the stack
           instead of <span class="k">Tab</span><span class="k">d</span>.
         </li>
         <li>
           <span class="k">n</span> <em>(Nip)</em>
-          Delete the Nth item from the top (default 2).
+          Delete the Nth item from the top (default 2):
+          <code>x\enspace y \Rightarrow y</code>.
           <span class="k">Shift&nbsp;Backspace</span> or
           <span class="k">Ctrl&nbsp;Backspace</span> also do this.
         </li>
-        <li><span class="k">o</span> <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2).</li>
-        <li><span class="k">p</span> <em>(Kee<strong>p</strong>)</em> Remove all but the top N items (default 1).</li>
-        <li><span class="k">r</span> <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3). </li>
-        <li><span class="k">t</span> <em>(Tuck)</em> Copy the stack top into the Nth stack position (default 2).</li>
-        <li><span class="k">u</span> <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3).</li>
+        <li><span class="k">o</span>
+          <em>(Over)</em> Put a copy of the Nth item from the top onto the stack (default 2):
+          <code>x\enspace y \Rightarrow x\enspace y\enspace x</code>
+        </li>
+        <li>
+          <span class="k">p</span>
+          <em>(Kee<strong>p</strong>)</em> Remove all but the top N items (default 1):
+          <code>\dots x \enspace y \Rightarrow y</code>
+        </li>
+        <li>
+          <span class="k">r</span>
+          <em>(Rotate)</em> Move the Nth item from the top to the stack top (default 3):
+          <code>x\enspace y\enspace z \Rightarrow y\enspace z\enspace x</code>
+        </li>
+        <li>
+          <span class="k">t</span> <em>(Tuck)</em>
+          Copy the stack top into the Nth stack position (default 2):
+          <code>x\enspace y \Rightarrow y\enspace x\enspace y</code>
+        </li>
+        <li>
+          <span class="k">u</span>
+          <em>(Unrotate)</em> Move the stack top to the Nth stack position (default 3):
+          <code>x\enspace y\enspace z \Rightarrow z\enspace x\enspace y</code>
+        </li>
       </ul>
       <p>
         <strong>Document Operations:</strong>
@@ -1567,7 +1600,7 @@
         </li>
         <li>
           <span class="k">,</span> <strong>Split Equation:</strong>
-          Split a long equation across multiple lines.  The stack top must be an expression
+          Split a long equation across multiple lines.  The stack top should be an expression
           just joined with an <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operator.
           This command inserts a line break after the operator.  A second application of this command to the
           same expression will change it to break before the operator instead, and a third will put it back to not
