@@ -42,7 +42,7 @@
         you can transfer it to the document for storage.
       </p>
       <p>
-        Expressions are entered using <em>reverse Polish notation</em> (RPN) which means
+        Expressions are entered using a postfix <em>reverse Polish notation (RPN)</em> which means
         that operands come before their operators.  For example, to enter the expression <code>a+b</code> you would
         first type
         <span class="k">a</span> then <span class="k">b</span>
@@ -141,7 +141,7 @@
         <li>
           <span class="k">]</span>
           Apply a <strong>bold font</strong> to the stack top:
-          <code>x \Rightarrow \bold{x}</code>
+          <code>x \Rightarrow \boldsymbol{x}</code>
         </li>
         <li>
           <span class="k">!</span>
@@ -372,7 +372,7 @@
         will typeset your entry in a roman (non-italic) font instead of the normal italic math font,
         and it will not be parsed as a math expression, so you can use any text you want.  This can be
         used to include normal English words or phrases in math expressions.
-        <a href="#help_placeholders">Placeholders</a> can also be included by writing <kbd>[]</kbd>.
+        <a href="#help_placeholders">Placeholders</a> can still be included by writing <kbd>[]</kbd>.
       </p>
       <p>
         <strong>NOTE:</strong> The <a href="#conjunction_anchor"><em>conjunction</em></a>
@@ -1350,7 +1350,7 @@
           </tr>
       </tbody></table>
 
-      <p><strong>Common Functions:</strong></p>
+      <p><strong>Power Functions:</strong></p>
       <table class="keybindings"><tbody>
           <tr>
             <td><span class="k">q</span> <code>\sqrt{x}</code> <em>(s<strong>q</strong>uare root)</em></td>
@@ -1368,6 +1368,10 @@
             <td><span class="k">2</span><span class="k">n</span> <code>\lg{x}</code></td>
             <td><span class="k">2</span><span class="k">N</span> <code>\log_2{x}</code></td>
           </tr>
+      </tbody></table>
+
+      <p><strong>Complex Numbers:</strong></p>
+      <table class="keybindings"><tbody>
           <tr>
             <td><span class="k">m</span> <code>\operatorname{Im} x</code></td>
             <td><span class="k">M</span> <code>\operatorname{Re} x</code></td>
@@ -1459,8 +1463,10 @@
         </li>
         <li>
           <span class="k">O</span> <code>x\enspace y \Rightarrow \overset{y}{x}</code>
+          <em>(<strong>o</strong>ver)</em>
           &nbsp;&nbsp;
           <span class="k">U</span> <code>x\enspace y \Rightarrow \underset{y}{x}</code>
+          <em>(<strong>u</strong>nder)</em>
         </li>
         <!-- <li>
           <span class="k">J</span> <code>x\enspace y \Rightarrow \displaystyle{x\atop y}\enspace</code>
@@ -1593,13 +1599,13 @@
       <p><strong>Other Operations:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="k">&quot;</span> <strong>Make Header:</strong>
+          <span class="k">&quot;</span> <em>Make Header:</em>
           Turn the stack top into a <em>section header</em> text object, with a larger font and an underline.
           Math expressions will be automatically converted into text objects containing the expression.
           Applying this command a second time will remove the section header property.
         </li>
         <li>
-          <span class="k">,</span> <strong>Split Equation:</strong>
+          <span class="k">,</span> <em>Split Equation:</em>
           Split a long equation across multiple lines.  The stack top should be an expression
           just joined with an <a href="#help_infix">infix</a> or <a href="#help_relational">relational</a> operator.
           This command inserts a line break after the operator.  A second application of this command to the
@@ -1609,7 +1615,7 @@
           be broken inside of delimiters, etc.
         </li>
         <li>
-          <span class="k">;</span> <strong>Add Tag:</strong>
+          <span class="k">;</span> <em>Add Tag:</em>
           Prompt for a text string and attach it as a &quot;tag&quot; to the expression on the stack top.
           Tags can be used as equation numbers or labels and will be displayed to the right of the tagged item.
           Note that any further operations on a tagged item will remove the tag, so tags are generally added
@@ -1619,7 +1625,7 @@
           in parentheses, useful for equation numbers like <kbd>(1)</kbd>.
         </li>
         <li>
-          <span class="k">:</span> <strong>Add Label:</strong>
+          <span class="k">:</span> <em>Add Label:</em>
           Prompt for a text string and place it in front of the expression on the stack top
           as a Roman-font textual label along with a colon.
           Example: <code>\sqrt{x^2+y^2} \Rightarrow \text{Length: }\sqrt{x^2+y^2}</code>.

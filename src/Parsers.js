@@ -113,8 +113,6 @@ class Tokenizer {
           any_matched = true;
           break;
         }
-        else
-          ;  // try next pattern in the table
       }
       if(!any_matched) {
         this.error("Syntax error");
@@ -133,8 +131,7 @@ class Tokenizer {
       this.scan_position += text.length;
       return new Token(token_type, text, this.scan_position);
     }
-    else
-      return null;
+    else return null;
   }
 }
 
@@ -236,8 +233,7 @@ class ExprParser extends Parser {
   parse_expr() {
     const initial_minus = this.consume('minus');
     let term = this.parse_term() || this.parse_error();
-    let terms = [term], operator_tokens = [];
-    let binary_token;
+    let terms = [term], operator_tokens = [], binary_token;
     do {
       binary_token = this.consume(
         'plus', 'minus', 'multiply', 'divide',
@@ -255,7 +251,7 @@ class ExprParser extends Parser {
     return this._combine_expr_terms(terms, operator_tokens);
   }
 
-  // '//' fraction bars at the "highest precedence" and all other
+  // '//' fraction bars are at the "highest precedence" and all other
   // binary operators are at the same, lower precedence.
   _combine_fractions_in_expr(terms, operator_tokens) {
     const new_terms = [terms[0]];
@@ -418,19 +414,19 @@ class ExprParser extends Parser {
       return new PlaceholderExpr();
     else if(this.consume('left_paren', 'left_bracket', 'left_brace')) {
       const [closing_delim_type, left, right] =
-            this.matching_closing_delimiter_info(this.current_token.type);
+            this._matching_closing_delimiter_info(this.current_token.type);
       const inner_expr = this.parse_expr() || this.parse_error();
       const closing_token = this.consume('right_paren', 'right_bracket', 'right_brace');
-      if(!(closing_token && closing_token.type === closing_delim_type))
-        return this.parse_error();
-      else
+      if(closing_token && closing_token.type === closing_delim_type)
         return new DelimiterExpr(left, right, inner_expr);
+      else
+        return this.parse_error();
     }
     else
       return null;
   }
 
-  matching_closing_delimiter_info(open_delim) {
+  _matching_closing_delimiter_info(open_delim) {
     switch(open_delim) {
     case 'left_bracket': return ['right_bracket', '[', ']'];
     case 'left_brace': return ['right_brace', "\\{", "\\}"];
@@ -465,8 +461,7 @@ class TextItemParser extends Parser {
       // because of how the regexes are set up.
       // e.g. 'test ] abc' => ['test ', ']', ' abc'] tokens.
       const tokens = Token.coalesce_tokens_of_type(result.tokens, 'text');
-      const parser = new this(tokens, s);
-      return parser.parse();
+      return new this(tokens, s).parse();
     }
     else
       return null;  // TODO: report error

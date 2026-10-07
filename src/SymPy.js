@@ -450,7 +450,7 @@ class PyodideInterface {
     const builder_function_name = index => 'build_expr_' + index.toString();
     const builder_function_codes = arg_exprs.map(
       (arg_expr, arg_index) => {
-        // solve() and related commands need to special handling for
+        // solve() and related commands need special handling for
         // solving simulataneous sets of equations:
         const argument_type = command.is_solve_command() ?
               (arg_index === 0 ? 'solve_equation' :
@@ -520,7 +520,7 @@ def execute_command_safe():
 //   instead (with the first argument as the receiver).
 //   i.e.: function_name(arg1, arg2) vs arg1.function_name(arg2)
 // 'arg_exprs':
-//   Expr instances to be passed to the Python function
+//   Expr instances to be passed to the Python function.
 // 'extra_args':
 //   Plain strings to be passed as extra arguments to the Python function
 //   (after the arg_exprs).  Used for things like 'optname=True' keyword arguments
@@ -1090,9 +1090,7 @@ class ExprToSymPy {
 
   emit_function_call_expr(expr) {
     const result = this.try_analyzers(analyzer_table.function_call, [expr]);
-    if(result)
-      return result;
-    else this.error('Invalid function call');
+    return result ?? this.error('Invalid function call');
   }
 
   // Other than the basic grouping delimiters, some particular delimiter types
@@ -1277,14 +1275,14 @@ class Analyzer {
   // returned (null if there is no valid term at start_index), along with
   // the updated index pointing directly after the last scanned term.
   scan_implicit_product(exprs, start_index, stop_index) {
-    let index = start_index, term_exprs = [];
-    while(index < stop_index &&
-          exprs[index].is_term_expr(index === start_index)) {
-      if(exprs[index].is_whitespace())  // ignore whitespace
-        ;
+    let index, term_exprs = [];
+    for(index = start_index;
+        index < stop_index && exprs[index].is_term_expr(index === start_index);
+        index++) {
+      if(exprs[index].is_whitespace())
+        ; // ignore whitespace
       else
         term_exprs.push(exprs[index]);
-      index++;
     }
     const result_node =
           term_exprs.length === 0 ? null :
@@ -1331,7 +1329,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
     const index = start_index+1;
     if(!expr.is_subscriptsuperscript_expr())
       return this.no_match();  // shouldn't happen
-    let {base_expr, subscript_expr, superscript_expr} = expr;
+    let { base_expr, subscript_expr, superscript_expr } = expr;
     // First check things that might depend on the subscript/superscript.
     let node =
         this.analyze_where(base_expr, subscript_expr, superscript_expr) ||
@@ -1370,7 +1368,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
        base_expr.left_type === '.' && base_expr.right_type === "\\vert" &&
        subscript_expr && subscript_expr.is_infix_expr() &&
        subscript_expr.operator_text_at(0) === '=') {
-      if(superscript_expr)  // TODO
+      if(superscript_expr)  // TODO: f_y^z => f(z)-f(y)
         return this.error('Cannot use superscript here', expr);
       const lhs = subscript_expr.operand_exprs[0];
       const rhs = subscript_expr.extract_side_at(0, 'right');
@@ -1422,7 +1420,7 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
   }
 
   // x^T: transpose
-  // x^{*}: conjugate
+  // x^*: conjugate
   // x^\dagger: conjugate transpose (hermitian conjugate)
   // x^\circ: degrees notation
   analyze_transposelike(base_expr_node, superscript_expr) {
@@ -1433,18 +1431,19 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
        (superscript_expr.is_font_expr() && superscript_expr.typeface === 'roman' &&
         superscript_expr.expr.is_text_expr_with('T')))
       return this.emitter.fncall('transpose', [base_expr_node]);
-    if(superscript_expr.is_text_expr_with('*'))
+    else if(superscript_expr.is_text_expr_with('*'))
       return this.emitter.fncall('conjugate', [base_expr_node]);
-    if(superscript_expr.is_command_expr_with(0, 'dagger'))
+    else if(superscript_expr.is_command_expr_with(0, 'dagger'))
       return this.emitter.fncall('conjugate', [
         this.emitter.fncall('transpose', [base_expr_node])]);
-    if(superscript_expr.is_command_expr_with(0, 'circ'))
+    else if(superscript_expr.is_command_expr_with(0, 'circ'))
       return this.emitter.fncall('Mul', [
         base_expr_node,
         this.emitter.fncall('divide', [
           this.emitter.symbol('pi'),
           this.emitter.number(180)])]);
-    return null;    
+    else
+      return null;    
   }
 
   // "Default" (x+1)^2 type expression.
@@ -1465,17 +1464,17 @@ class SubscriptSuperscriptAnalyzer extends Analyzer {
 //   \int \frac{... dx}{...} - see below
 //   \int \frac{dx ...}{...}
 //   \int\int (x+y)^2 dx dy - inner integral evaluated first
-//   \int x^2 dx \int y^2 - product of two separate integrals;
-//      this is handled as ordinary implicit multiplication and
-//      not treated specially here
 //   \int\int (x+y)^2 dx \wedge dy - the dx^dy differential form
 //      is treated as 'dx dy' (not exactly correct mathematically
 //      but it's the best we can do without actual exterior calculus
 //      support in SymPy)
 // Notes:
+//   - \int x^2 dx \int y^2 - Product of two separate integrals
+//      is handled as ordinary implicit multiplication and not treated
+//      specially here.
 //   - Whitespace around the integrand is disregarded;
 //     \int x^2 \, dx is a typical case.
-//   - \iint and \iiint are treated as synonyms for multiple \int
+//   - \iint and \iiint are treated as synonyms for multiple \int.
 //   - \int signs may have limits or not; if not, it's treated as an
 //     indefinite integration.
 //   - The integrand must be either:
@@ -1558,14 +1557,16 @@ class IntegralAnalyzer extends Analyzer {
     if(dx_exprs.length > 1) {
       // Recurse to construct the inner integral(s) first.
       integrand_node = this.build_integrate_command(
-        integrand_node, integral_limit_exprs.slice(1), dx_exprs.slice(0, -1));
+        integrand_node,
+        integral_limit_exprs.slice(1),
+        dx_exprs.slice(0, -1));
     }
     const inner_integral_limit_exprs = integral_limit_exprs[0];
     const inner_dx_expr = dx_exprs.at(-1);
     // Construct 2nd argument to integrate();
     // indefinite integrals use 'x', definite use '(x, a, b)' tuple.
     let dx_node = this.emitter.emit_expr(inner_dx_expr);
-    const {lower, upper} = inner_integral_limit_exprs;
+    const { lower, upper } = inner_integral_limit_exprs;
     if(lower && upper)
       dx_node = this.emitter.tuple([
         dx_node,
@@ -1585,10 +1586,10 @@ class IntegralAnalyzer extends Analyzer {
   //   \frac{dx dy}{x+y} -> \frac{1}{x+y}, [x, y]
   extract_differentials_from_fraction(frac_expr) {
     const [numer_expr, denom_expr] = frac_expr.operand_exprs;
-    let all_dx_exprs = [];
+    const all_dx_exprs = [];
     // Check the numerator as a whole to see if it's a differential
     // on its own, like SequenceExpr['d', 'x'].
-    let new_numer_exprs = [];
+    const new_numer_exprs = [];
     const dx_exprs = this.analyze_differential_form(numer_expr);
     if(dx_exprs.length > 0)
       all_dx_exprs.push(...dx_exprs);
@@ -1651,8 +1652,8 @@ class IntegralAnalyzer extends Analyzer {
     if(!expr.is_differential_form())
       return [];
     else if(expr.is_infix_expr())  // dx^dy
-      return [].concat(...expr.operand_exprs.map(
-        operand_expr => this.analyze_differential_form()));
+      return expr.operand_exprs.map(
+        operand_expr => this.analyze_differential_form()).flat(1);
     else if(expr.is_sequence_expr())
       return [expr.exprs[1]];  // [d x] sequence -> x
     else
