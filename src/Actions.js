@@ -395,6 +395,25 @@ class InputContext {
         base_expr.with_prime(this.settings.autoparenthesize));
   }
 
+  // x y => \overset{y}{x} (or \underset)
+  // If x is an InfixExpr, however, the \overset or \underset is applied
+  // to its split_at_index operator instead.  This can be used to add text or
+  // expressions over/under arrows.
+  do_overunderset(stack, operator_type = 'overset') {
+    const [new_stack, base_expr, arg_expr] = stack.pop_exprs(2);
+    let new_expr;
+    if(base_expr.is_infix_expr()) {
+      const operator_index = base_expr.split_at_index;
+      const new_operator_expr = new CommandExpr(
+        operator_type, [arg_expr, base_expr.operator_exprs[operator_index]]);
+      new_expr = base_expr.replace_subexpression(
+        operator_index*2 + 1, new_operator_expr);
+    }
+    else
+      new_expr = new CommandExpr(operator_type, [arg_expr, base_expr]);
+    return new_stack.push_expr(new_expr);
+  }
+
   do_increment(stack, amount_string) {
     const [new_stack, expr] = stack.pop_exprs(1);
     let amount = parseInt(amount_string);

@@ -505,11 +505,11 @@
       <p>
         <strong>Stack Operations:</strong>
         These commands manipulate the stack with traditional RPN operations.
-        These can optionally take numeric <em>prefix arguments</em> which specify the number
+        They can optionally take numeric <em>prefix arguments</em> which specify the number
         of stack items to operate on.  Prefix arguments are entered by typing one or more digits
         after the <span class="k">Tab</span> and before one of the following subcommand
         keys.  Also, instead of a digit, <span class="k">*</span> may be used to indicate that the operation
-        should apply to the entire stack.  For example, to reverse the entire stack you can type
+        should apply to the entire stack.  For example, you can reverse the entire stack with
         <span class="k">Tab</span><span class="k">*</span><span class="k">a</span>.
         In the descriptions below, N refers to the prefix argument if given, otherwise the default is used.
       </p>
@@ -572,7 +572,7 @@
         will shift the selected item up or down within the document.
       </p>
       <p>
-        Items inserted into the document will be placed directly below the
+        Items inserted into the document will be placed directly <em>below</em> the
         current selection.  There is also a small margin at the top of the document that can be
         selected to insert items at the very top.
       </p>
@@ -1462,17 +1462,25 @@
           <span class="k">}</span> <code>x\enspace y \Rightarrow \underbrace{x}_y</code>
         </li>
         <li>
-          <span class="k">O</span> <code>x\enspace y \Rightarrow \overset{y}{x}</code>
-          <em>(<strong>o</strong>ver)</em>
-          &nbsp;&nbsp;
-          <span class="k">U</span> <code>x\enspace y \Rightarrow \underset{y}{x}</code>
-          <em>(<strong>u</strong>nder)</em>
+          <span class="k">O</span> or <span class="k">&uarr;</span>
+          <code>x\enspace y \Rightarrow \overset{y}{x}</code>
+          <em>(<strong>o</strong>verset)</em>
         </li>
-        <!-- <li>
-          <span class="k">J</span> <code>x\enspace y \Rightarrow \displaystyle{x\atop y}\enspace</code>
-          (<strong>j</strong>oin vertically)
-        </li> -->
+        <li>
+          <span class="k">U</span> or <span class="k">&darr;</span>
+          <code>x\enspace y \Rightarrow \underset{y}{x}</code>
+          <em>(<strong>u</strong>nderset)</em>
+        </li>
       </ul>
+      <p>
+        <strong>NOTE:</strong> <span class="k">O</span> and <span class="k">U</span> applied
+        to an infix expression will place the other expression above or below the most recently
+        applied infix operator, instead of over the whole expression.  This can be used to
+        place things above or below arrows:
+        <code>x\overset{f}{\longmapsto}f(x)</code>
+        or to decorate operators:
+        <code>x\overset{!}{=}y</code>.
+      </p>
 
       <p><strong>Probability and Statistics:</strong></p>
       <table class="keybindings"><tbody>
@@ -1774,7 +1782,7 @@
         <code>f\enspace x\enspace (n) \Rightarrow
           \displaystyle{\frac{d^{(n)} f}{dx^{(n)}}}</code>.
         <strong>NOTE:</strong> the <span class="k">m</span> and <span class="k">M</span>
-        commands for mixed derivatives are currently limited to order 2.
+        commands for mixed derivatives are currently limited to order 2 and ignore the prefix argument.
       </p>
       <p>
         <strong>Differential Spacing:</strong>
@@ -2183,7 +2191,7 @@
           </tr>
       </tbody></table>
       <p>
-        A column vector can be entered by first building a row vector, then transposing
+        A column vector can be created by first building a row vector, then transposing
         with <span class="k">|</span><span class="k">T</span>.
       </p>
       <p>
@@ -2568,8 +2576,8 @@
           The output of these symbolic commands cannot be edited with
           <a href="#help_dissect">dissect mode</a> or destructured with
           commands such as <span class="k">/</span><span class="k">z</span>
-          <em>(dissolve)</em>.  They can still be combined with other expressions
-          as usual, though.  This loss of structure is indicated by a blue-green tint on
+          <em>(dissolve)</em>.  They can however still be combined with other expressions
+          as usual.  This loss of structure is indicated by a blue-green tint on
           the expression, indicating that is a <em>SymPy object</em> rather than
           a normal editor expression.
         </li>
@@ -2587,7 +2595,7 @@
         performs general <em>expression evaluation</em> through SymPy.
         Arithmetic expressions such as <code>1+2 \Rightarrow 3</code>
         and <code>\sqrt{16} \Rightarrow 4</code> will be evaluated, default simplifications
-        performed (such as combining like terms) and also a variety of math notation
+        performed (such as combining like terms) and a variety of math notation
         will be interpreted:
       </p>
       <ul>

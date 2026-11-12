@@ -600,7 +600,8 @@ const keybinding_table = {
     'n': "named_function ln",
     'N': "named_function log",
     'o': "autoparenthesize 2;parenthesize;function_call",  // f x -> f(x)  "[o]f"
-    'O': "swap;operator overset 2",
+    'O': "overunderset overset",
+    'ArrowUp': "alias O",
     'p': "parenthesize;push P;typeface blackboard;swap;function_call",  // P(X) (probability)
     'P': "infix \\,\\vert\\,;parenthesize;push P;typeface blackboard;swap;function_call",  // P(y|x)
     'q': "operator sqrt",
@@ -612,7 +613,8 @@ const keybinding_table = {
     't': "named_function tan",
     'T': "named_function cot",
     'u': "increment 1",
-    'U': "swap;operator underset 2",
+    'U': "overunderset underset",
+    'ArrowDown': "alias U",
     'v': "mode variational",
     'V': "parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x]
     'w': "swap_pieces",
