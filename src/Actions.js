@@ -1113,6 +1113,7 @@ class InputContext {
   _differential_d(style) {
     switch(style) {
     case 'roman': return FontExpr.roman_text('d');
+    case 'total': return FontExpr.roman_text('D');
     case 'partial': return new CommandExpr('partial');
     case 'delta': return new CommandExpr('delta');
     case 'normal': default: return new TextExpr('d');

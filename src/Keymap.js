@@ -219,7 +219,7 @@ const keybinding_table = {
     'Ctrl+-': "increment -1",
     "Ctrl+'": "alias decoration '",
     'Ctrl+.': "alias decoration .",
-    'Ctrl+Backspace': "alias stack n"
+    'Ctrl+Backspace': "alias stack n",
   },
 
   // File Manager mode
@@ -238,7 +238,7 @@ const keybinding_table = {
     'ArrowDown': "select_adjacent_file 1",
     // TODO: PageUp/PageDown/Home/End
     'j': 'scroll files_panel vertical 25',
-    'k': 'scroll files_panel vertical -25'
+    'k': 'scroll files_panel vertical -25',
   },
 
   // User Guide mode
@@ -274,7 +274,7 @@ const keybinding_table = {
     '0': "config helptext_zoom_factor reset",
 
     '[delegate]': "_help_jump",  // jump directly to prefix key help section
-    '[default]': "toggle_popup help"  // never actually invoked
+    '[default]': "toggle_popup help",  // never actually invoked
   },
 
   // Quick navigation to each User Guide section.
@@ -313,7 +313,7 @@ const keybinding_table = {
     ';': "alias :",
     '$': "scroll_to help_configuration",
     'c': "scroll_to help_control_keys",
-    'x': "scroll_to help_examples"
+    'x': "scroll_to help_examples",
   },
 
   // [Tab] prefix: stack/misc operations
@@ -360,7 +360,7 @@ const keybinding_table = {
     'ArrowUp': "alias base ArrowUp",
     'ArrowDown': "alias base ArrowDown",
     'Shift+ArrowUp': "alias base Shift+ArrowUp",
-    'Shift+ArrowDown': "alias base Shift+ArrowDown"
+    'Shift+ArrowDown': "alias base Shift+ArrowDown",
   },
 
   // [Tab][?] prefix: jump to User Guide sections while docked
@@ -370,7 +370,7 @@ const keybinding_table = {
     // (luckily these don't conflict with the prefix keys).
     '+': "config helptext_zoom_factor increase",
     '-': "config helptext_zoom_factor decrease",
-    '0': "config helptext_zoom_factor reset"
+    '0': "config helptext_zoom_factor reset",
   },
 
   // [$] prefix: configuration
@@ -405,7 +405,7 @@ const keybinding_table = {
     '(': "config autoparenthesize on",
     ')': "config autoparenthesize off",
     '~': "debug",  // debugging command hook: calls do_debug() (undocumented)
-    '$': "push \\$"  // undocumented
+    '$': "push \\$",  // undocumented
   },
 
   // Delegate (shared) keymap for the text_entry modes' editor commands.
@@ -428,14 +428,14 @@ const keybinding_table = {
     'Ctrl+ArrowRight': "alias End",
     'Ctrl+f': "alias ArrowRight",
     'Ctrl+b': "alias ArrowLeft",
-    '[default]': "append_text_entry"
+    '[default]': "append_text_entry",
   },
 
   // ["] prefix: text entry
   text_entry: {
     'Enter': "finish_text_entry text",
     'Shift+Enter': "finish_text_entry heading",
-    '[delegate]': "_editor_commands"
+    '[delegate]': "_editor_commands",
   },
 
   // [\] prefix: algebraic entry
@@ -443,7 +443,7 @@ const keybinding_table = {
     'Enter': "finish_text_entry algebraic",
     'Shift+Enter': "finish_text_entry roman_text",
     'Tab': "finish_text_entry operatorname",
-    '[delegate]': "_editor_commands"
+    '[delegate]': "_editor_commands",
   },
 
   // [\][\] prefix: latex command
@@ -453,7 +453,7 @@ const keybinding_table = {
     'Delete': "text_entry_backspace delete algebraic_entry",
     'Backspace': "text_entry_backspace backspace algebraic_entry",
     ',': "finish_text_entry latex_infix",
-    '[delegate]': "_editor_commands"
+    '[delegate]': "_editor_commands",
   },
 
   // [\][%] prefix: mhchem entry (chemical formula or physical unit)
@@ -462,28 +462,28 @@ const keybinding_table = {
     'Shift+Enter': "finish_text_entry mhchem_unit",
     'Delete': "text_entry_backspace delete algebraic_entry",
     'Backspace': "text_entry_backspace backspace algebraic_entry",
-    '[delegate]': "_editor_commands"
+    '[delegate]': "_editor_commands",
   },
 
   // [,]['] prefix: custom conjunction
   conjunction_entry: {
     'Enter': "finish_text_entry conjunction",
     'Shift+Enter': "finish_text_entry bold_conjunction",
-    '[delegate]': "_editor_commands"
+    '[delegate]': "_editor_commands",
   },
 
   // [/][;] prefix: equation tag
   tag_entry: {
     'Enter': "finish_text_entry tag",
     'Shift+Enter': "finish_text_entry tag_with_parentheses",
-    '[delegate]': "_editor_commands"
+    '[delegate]': "_editor_commands",
   },
 
   // [/][:] prefix: text label
   label_entry: {
     'Enter': "finish_text_entry label",
     'Shift+Enter': "finish_text_entry bold_label",
-    '[delegate]': "_editor_commands"
+    '[delegate]': "_editor_commands",
   },
 
   // [)] prefix: special delimiters
@@ -517,7 +517,7 @@ const keybinding_table = {
     '{': "delimiters \\{ .",
     '}': "delimiters . \\}",
     '.': "delimiters . .",
-    ' ': "alias ."
+    ' ': "alias .",
   },
 
   // [)][l] prefix: change left delimiter type
@@ -543,7 +543,7 @@ const keybinding_table = {
     ' ': "modify_delimiter . left",
     '/': "modify_delimiter / left",
     "\\": "modify_delimiter \\backslash left",
-    '|': "modify_delimiter \\vert left"
+    '|': "modify_delimiter \\vert left",
   },
 
   // [)][r] prefix: change left delimiter type
@@ -569,7 +569,7 @@ const keybinding_table = {
     ' ': "modify_delimiter . right",
     '/': "modify_delimiter / right",
     "\\": "modify_delimiter \\backslash right",
-    '|': "modify_delimiter \\vert right"
+    '|': "modify_delimiter \\vert right",
   },
 
   // [/] prefix: assorted functions/operators
@@ -589,14 +589,12 @@ const keybinding_table = {
     'f': "mode named_operator",
     'h': "mode hyperbolic",
     'i': "mode integral",
-    // 'j': "push i;swap;concat;push e;typeface roman;swap;superscript",  // x -> e^ix (undocumented; not sure how useful this is)
-    // 'J': "push i;swap;concat;named_function exp",  // x -> exp(ix) (undocumented)
+    'j': "push i;swap;concat;push e;typeface roman;swap;superscript",  // e^ix
+    'J': "push i;negate;swap;concat;push e;typeface roman;swap;superscript",  // e^(-ix)
     'k': "infix \\,\\vert\\,;autoparenthesize 2;parenthesize;function_call",  // f x y -> f(x|y)
-    'K': "unrot;infix ,;swap;infix \\,\\vert\\,;autoparenthesize 2;parenthesize;function_call",  // f x y z -> f(x,y|z)
+    // 'K': "unrot;infix ,;swap;infix \\,\\vert\\,;autoparenthesize 2;parenthesize;function_call",  // f x y z -> f(x,y|z)
     'l': "push \\lim;swap;subscript",  // lim_{x}
     'L': "infix \\to;push \\lim;swap;subscript",  // lim_{y \to x}
-    'm': "parenthesize_argument;push Im;swap;operator operatorname 2",  // Im(x)
-    'M': "parenthesize_argument;push Re;swap;operator operatorname 2",  // Re(x)
     'n': "named_function ln",
     'N': "named_function log",
     'o': "autoparenthesize 2;parenthesize;function_call",  // f x -> f(x)  "[o]f"
@@ -643,7 +641,7 @@ const keybinding_table = {
     "'": "substitute_placeholder",
     "\"": "toggle_is_heading",
     '%': "substitute",  // % is from Emacs' Esc-% search and replace command
-    'Enter': "unrot;subscript;swap;superscript"  // apply superscript and subscript at once
+    'Enter': "unrot;subscript;swap;superscript",  // apply superscript and subscript at once
   },
 
   // [/][f] prefix
@@ -657,11 +655,12 @@ const keybinding_table = {
     'D': "named_function dim",
     'e': "parenthesize;push erf;swap;operator operatorname 2",
     'E': "parenthesize;push erfc;swap;operator operatorname 2",
+    'f': "operator inf",
+    'F': "operator liminf",
     'g': "infix ,;parenthesize;operator gcd",  // NOTE: no lcm(x,y) currently
     'G': "named_function deg",
     'h': "named_function hom",
-    'i': "operator inf",
-    'I': "operator liminf",
+    'i': "parenthesize_argument;push Im;swap;operator operatorname 2",  // Im(x)
     'k': "named_function ker",
     'l': "operator lim",
     'm': "named_function min",
@@ -669,13 +668,14 @@ const keybinding_table = {
     'n': "parenthesize;push sgn;swap;operator operatorname 2",
     'p': "named_function Pr",
     'P': "infix ,;named_function Pr",  // Pr(x,y)
+    'r': "parenthesize_argument;push Re;swap;operator operatorname 2",  // Re(x)
     's': "operator sup",  // TODO: "named_function sup" (?)
     'S': "operator limsup",
     't': "parenthesize_argument;push Tr;swap;operator operatorname 2",
     'v': "parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x]
     'V': "infix ,;parenthesize [ ];push Var;typeface roman;swap;function_call",  // Var[x,y]
     'x': "named_function max",
-    'X': "operator argmax"
+    'X': "operator argmax",
   },
 
   // [/][h] prefix: hyperbolic trig functions
@@ -688,13 +688,15 @@ const keybinding_table = {
     't': "named_function tanh",
     'T': "named_function coth",
     '2': "mode squared_hyperbolic",
-    '-': "mode inverse_hyperbolic"
+    '-': "mode inverse_hyperbolic",
   },
   // [/][-] prefix
   inverse: {
     'u': "increment -1",  // special case: [/][-][u]: decrement
     '-': "alias u",  // (undocumented)
     '1': "alias u",  // (undocumented)
+    'j': "alias operator J",  // e^(-ix) alias, undocumented
+    'J': "alias operator j",  // e^(ix) alias, undocumented
     's': "named_function sin -1",
     'S': "named_function sec -1",
     'c': "named_function cos -1",
@@ -702,7 +704,7 @@ const keybinding_table = {
     't': "named_function tan -1",
     'T': "named_function cot -1",
     'h': "mode inverse_hyperbolic",
-    '2': "mode squared"
+    '2': "mode squared",
   },
   // [/][-][h] or [/][h][-] prefix
   inverse_hyperbolic: {
@@ -712,7 +714,7 @@ const keybinding_table = {
     'C': "named_function csch -1",
     't': "named_function tanh -1",
     'T': "named_function coth -1",
-    '2': "mode squared_hyperbolic"
+    '2': "mode squared_hyperbolic",
   },
   // [/][2] prefix
   squared: {
@@ -728,7 +730,9 @@ const keybinding_table = {
     'N': "named_function log _2",
     'h': "mode squared_hyperbolic",
     '-': "mode inverse",
-    'u': "increment 2"  // undocumented
+    'u': "increment 2",  // undocumented
+    'j': "integer 2;push i;concat;swap;concat;push e;typeface roman;swap;superscript",  // e^(2ix), undocumented
+    'J': "integer -2;push i;concat;swap;concat;push e;typeface roman;swap;superscript",  // e^(-2ix), undocumented
   },
   // [/][2][h] or [/][h][2] prefix
   squared_hyperbolic: {
@@ -738,7 +742,7 @@ const keybinding_table = {
     'C': "named_function csch 2",
     't': "named_function tanh 2",
     'T': "named_function coth 2",
-    '-': "mode inverse_hyperbolic"
+    '-': "mode inverse_hyperbolic",
   },
 
   // [/][i] prefix - create integral sign with common limits
@@ -777,7 +781,7 @@ const keybinding_table = {
     'Ctrl+i': "alias i",
     'Ctrl+d': "alias d",
     'Ctrl+a': "alias a",
-    'Ctrl+ ': "build_differential_form normal 1;concat;concat"  // can't use alias for space
+    'Ctrl+ ': "build_differential_form normal 1;concat;concat",  // can't use alias for space
   },
 
   // [/][d] prefix: derivative operations
@@ -791,6 +795,7 @@ const keybinding_table = {
     'q': "build_derivative partial true",  // p/px (\partial)
     'j': "build_derivative partial false",  // py/px
     'd': "build_differential normal",  // dx
+    'D': "build_differential total",  // Dx
     'p': "build_differential partial",  // \partial x
     'P': "push \\partial;swap;subscript;swap;concat",  // \partial_x y
     'f': "build_differential_form normal",  // dx ^ dy
@@ -842,7 +847,7 @@ const keybinding_table = {
     'Ctrl+C': "alias C",
     'Ctrl+l': "alias l",
     'Ctrl+n': "alias n",
-    'Ctrl+/': "alias /"
+    'Ctrl+/': "alias /",
   },
 
   // [/][D] prefix: derivative operations, but using roman-font 'd'
@@ -865,7 +870,7 @@ const keybinding_table = {
     'Ctrl+i': "alias i",
     'Ctrl+ ': "alias i",
 
-    '[delegate]': "derivative"
+    '[delegate]': "derivative",
   },
 
   // [/][v] prefix: functional derivatives (variational calculus)
@@ -902,7 +907,7 @@ const keybinding_table = {
     '[digit]': "push_last_keypress;swap;concat",
     'i': "push i;swap;concat",
     'p': "push \\pi;swap;concat",
-    'P': "integer 2;push \\pi;concat;swap;concat"
+    'P': "integer 2;push \\pi;concat;swap;concat",
   },
   // [*][-] prefix: premultiply by -n
   negative_coefficient: {
@@ -913,7 +918,7 @@ const keybinding_table = {
     '[digit]': "push_last_keypress;negate;swap;concat",
     'i': "push i;negate;swap;concat",
     'p': "push \\pi;negate;swap;concat",
-    'P': "integer -2;push \\pi;concat;swap;concat"
+    'P': "integer -2;push \\pi;concat;swap;concat",
   },
   // [*][/] prefix (x => x/5, etc.)
   fraction_coefficient: {
@@ -924,7 +929,7 @@ const keybinding_table = {
     '[digit]': "push_last_keypress;fraction",
     'i': "push i;fraction",
     'p': "push \\pi;fraction",
-    'P': "integer 2;push \\pi;concat;fraction"
+    'P': "integer 2;push \\pi;concat;fraction",
   },
   // [*][-][/] or [*][/][-] prefix (x => -x/5, etc.)
   negative_fraction_coefficient: {
@@ -935,7 +940,7 @@ const keybinding_table = {
     '[digit]': "push_last_keypress;fraction;negate",
     'i': "push i;fraction;negate",
     'p': "push \\pi;fraction;negate",
-    'P': "integer 2;push \\pi;concat;fraction;negate"
+    'P': "integer 2;push \\pi;concat;fraction;negate",
   },
   // [*][\] prefix: (x => x/5, inline (infix) fraction)
   infix_fraction_coefficient: {
@@ -946,7 +951,7 @@ const keybinding_table = {
     '[digit]': "autoparenthesize;push_last_keypress;infix /",
     'i': "autoparenthesize;push i;infix /",
     'p': "autoparenthesize;push \\pi;infix /",
-    'P': "autoparenthesize;integer 2;push \\pi;concat;infix /"
+    'P': "autoparenthesize;integer 2;push \\pi;concat;infix /",
   },
   // [*][-][\] or [*][\][-] prefix: (x => -x/5, inline)
   negative_infix_fraction_coefficient: {
@@ -957,7 +962,7 @@ const keybinding_table = {
     '[digit]': "autoparenthesize;push_last_keypress;infix /;negate",
     'i': "autoparenthesize;push i;infix /;negate",
     'p': "autoparenthesize;push \\pi;infix /;negate",
-    'P': "autoparenthesize;integer 2;push \\pi;concat;infix /;negate"
+    'P': "autoparenthesize;integer 2;push \\pi;concat;infix /;negate",
   },
 
   // [,] prefix: combine two objects with an infix operation
@@ -972,8 +977,6 @@ const keybinding_table = {
     'e': "multi_infix ,\\dots,",
     'f': "conjunction if",
     'F': "conjunction iff",
-    'g': "multi_infix \\gets",
-    'G': "multi_infix \\Leftarrow",
     'i': "multi_infix \\,\\vert\\,;delimiters \\langle \\rangle",  // <x | y>
     'j': "multi_infix \\Join",
     'k': "multi_infix \\,\\vert\\,",  // x | y  ([k]onditional)
@@ -1022,7 +1025,7 @@ const keybinding_table = {
     '%': "multi_infix \\div",
     'Tab': "multi_infix \\quad",
     '_': "multi_infix \\_",
-    "'": "start_text_entry conjunction_entry"
+    "'": "start_text_entry conjunction_entry",
   },
 
   // [=] prefix: relational operators
@@ -1044,10 +1047,6 @@ const keybinding_table = {
     'G': "infix \\gg",
     'i': "infix \\in",
     'I': "infix \\notin",
-    'j': "infix \\leftarrow",  // not sure about j,J,k,K bindings
-    'J': "infix \\longleftarrow",
-    'k': "infix \\Leftarrow",
-    'K': "infix \\Longleftarrow",
     'l': "infix <",
     'L': "infix \\ll",
     'm': "infix \\mapsto",
@@ -1062,17 +1061,12 @@ const keybinding_table = {
     'Q': "infix \\equiv",
     's': "infix \\subset",
     'S': "infix \\subseteq",
-    't': "alias infix t",
-    'T': "alias infix T",
     'u': "infix \\supset",
     'U': "infix \\supseteq",
-    'v': "alias infix =",
-    'V': "alias infix +",
     ';': "infix \\coloncolon",
     ':': "infix \\coloneqq",
     '~': "infix \\sim",
     '.': "infix \\doteq",
-    '+': "alias infix +",
     '^': "infix \\triangleq",
     '?': "push ?;push =;operator overset 2;apply_infix",
     '<': "infix \\le",
@@ -1082,7 +1076,7 @@ const keybinding_table = {
     '{': "infix \\lll",
     '}': "infix \\ggg",
     '-': "infix \\vdash",
-    '|': "infix \\vDash"
+    '|': "infix \\vDash",
   },
 
   // [=][2] prefix
@@ -1098,7 +1092,7 @@ const keybinding_table = {
     '<': "infix \\preceq",
     '[': "alias <",
     '>': "infix \\succeq",
-    ']': "alias >"
+    ']': "alias >",
   },
 
   // ['] prefix: assorted standalone math symbols
@@ -1170,7 +1164,7 @@ const keybinding_table = {
     '&': "push \\&",
     '=': "push_separator",
     "'": "push_placeholder",
-    ' ': "push "  // "blank", e.g. when you don't want something on one side of an infix
+    ' ': "push ",  // "blank", e.g. when you don't want something on one side of an infix
   },
 
   // [.] prefix: expression decorators (fonts, hats, etc)
@@ -1240,7 +1234,7 @@ const keybinding_table = {
     ']': "operator underbracket",
     '!': "parenthesize_argument;prefix \\neg",
     '_': "operator underline",
-    'Tab': "push \\quad;swap;concat false"
+    'Tab': "push \\quad;swap;concat false",
   },
 
   // [|] prefix: array/matrix operations
@@ -1295,13 +1289,13 @@ const keybinding_table = {
     ':': "array_separator column dashed",
     '!': "array_separator column solid",
     '_': "array_separator row dashed",
-    '-': "array_separator row solid"
+    '-': "array_separator row solid",
   },
 
   // [|][w]: swap array rows (see do_start_swap_rows())
   swap_rows: {
     '[digit]': "finish_swap_rows",
-    '*': "finish_swap_rows"
+    '*': "finish_swap_rows",
   },
 
   build_matrix: {
@@ -1313,7 +1307,7 @@ const keybinding_table = {
     '(': "finish_build_matrix pmatrix",
     '[': "finish_build_matrix bmatrix",
     'Enter': "alias [",  // undocumneted
-    '{': "finish_build_matrix Bmatrix"
+    '{': "finish_build_matrix Bmatrix",
   },
 
   change_matrix_type: {
@@ -1323,7 +1317,7 @@ const keybinding_table = {
     'V': "change_matrix_type Vmatrix",
     '(': "change_matrix_type pmatrix",
     '[': "change_matrix_type bmatrix",
-    '{': "change_matrix_type Bmatrix"
+    '{': "change_matrix_type Bmatrix",
   },
 
   // [~] prefix: tensor commands
@@ -1339,7 +1333,7 @@ const keybinding_table = {
     'w': "swap_tensor_index_type",
     'c': "condense_tensor",
     '.': "push \\,\\cdots\\,;affix_tensor_index right",
-    ',': "push ,;affix_tensor_index right"
+    ',': "push ,;affix_tensor_index right",
   },
 
   // [~][l] prefix: tensor commands for left-side indices
@@ -1355,7 +1349,7 @@ const keybinding_table = {
     'w': "swap_tensor_index_type",
     'c': "condense_tensor",
     '.': "push \\,\\cdots\\,;affix_tensor_index left",
-    ',': "push ,;affix_tensor_index left"
+    ',': "push ,;affix_tensor_index left",
   },
 
   // [_] prefix: dissect mode
@@ -1388,7 +1382,7 @@ const keybinding_table = {
     'c': "dissect_copy_selection",
     'C': "alias c",
     'k': "dissect_copy_selection trim",
-    'K': "alias k"
+    'K': "alias k",
   },
 
   // [#] prefix: SymPy - work in progress
@@ -1415,7 +1409,7 @@ const keybinding_table = {
     't': "mode integral_transform",
     'v': "sympy solve 2",  // sol[v]e
     'x': "sympy expand 1",
-    'y': "sympy_convert_series_arguments;sympy series 4"
+    'y': "sympy_convert_series_arguments;sympy series 4",
   },
 
   // [#][-] prefix: "inverse" symbolic mode.
@@ -1434,7 +1428,7 @@ const keybinding_table = {
     'f': "alias symbolic x",  // factor <-> expand
     'x': "alias symbolic f",
     '=': "alias symbolic /",  // N <-> nsimplify
-    '/': "alias symbolic ="
+    '/': "alias symbolic =",
   },
 
   // [#][?] prefix: SymPy commands for querying properties of an expression
@@ -1446,7 +1440,7 @@ const keybinding_table = {
     'M': "sympy minimum 2",
     'p': "sympy periodicity 2",
     's': "sympy singularities 2",
-    'S': "sympy stationary_points 2"
+    'S': "sympy stationary_points 2",
   },
 
   // [#][m] prefix: SymPy "manipulation" commands; these change or rearrange
@@ -1461,7 +1455,7 @@ const keybinding_table = {
     'L': "sympy logcombine 1",  // TODO: same problem as expand_power_base
     'p': "sympy expand_power_base 1",  // TODO: doesn't seem to work right on e.g. (xy)^a
     'P': "sympy expand_power_exp 1",
-    't': "sympy together 1"
+    't': "sympy together 1",
   },
 
   // [#][l] prefix: Matrix and linear algebra commands
@@ -1486,7 +1480,7 @@ const keybinding_table = {
     'S': "sympy .singular_values 1",
     'q': "sympy .QRdecomposition 1",
     //'Q': "sympy .QRsolve 2",  // not really needed, just use LRsolve
-    'x': "sympy .cross 2"
+    'x': "sympy .cross 2",
   },
 
   // [#][q] prefix: differential equation commands
@@ -1500,7 +1494,7 @@ const keybinding_table = {
     'p': "sympy pdsolve 1",
     'P': "sympy pdsolve 2",
     'v': "all_on_left true;sympy dsolve 1",
-    'V': "all_on_left true;sympy dsolve 2"
+    'V': "all_on_left true;sympy dsolve 2",
   },
 
   // [#][t] prefix: SymPy integral transforms
@@ -1516,7 +1510,7 @@ const keybinding_table = {
     's': "push x;push k;sympy sine_transform 3",
     'L': "sympy laplace_transform 3",
     'l': "push t;push s;sympy laplace_transform 3",
-    'H': "sympy hankel_transform 4"
+    'H': "sympy hankel_transform 4",
   },
 
   // [#][t][-] prefix: SymPy inverse integral transforms
@@ -1532,26 +1526,26 @@ const keybinding_table = {
     's': "push k;push x;sympy inverse_sine_transform 3",
     'L': "sympy inverse_laplace_transform 3",
     'l': "push s;push t;sympy inverse_laplace_transform 3",
-    'H': "sympy inverse_hankel_transform 4"
+    'H': "sympy inverse_hankel_transform 4",
   },
 
   // [@] prefix: \mathcal letters (uppercase only)
   calligraphic: {
     '[alpha]': "push_last_keypress;uppercase;typeface calligraphic",
-    '@': "push @"  // undocumented
+    '@': "push @",  // undocumented
   },
 
   // [%] prefix: \mathbb letters (uppercase only except 'k')
   blackboard: {
     '[alpha]': "push_last_keypress;uppercase;typeface blackboard",
     'k': "push k;typeface blackboard",  // there's (only) a lowercase k in LaTeX (aka \Bbbk).
-    '%': "push \\%"  // undocumented
+    '%': "push \\%",  // undocumented
   },
 
   // [&] prefix: \mathscr letters (uppercase only)
   script: {
     '[alpha]': "push_last_keypress;uppercase;typeface script",
-    '&': "push \\&"  // undocumented
+    '&': "push \\&",  // undocumented
   },
 
   // [;] or [:] prefix: Greek letters
@@ -1588,7 +1582,7 @@ const keybinding_table = {
 
     '2': "mode variant_greek",
     ';': "infix semicolon",
-    ':': "infix :"
+    ':': "infix :",
   },
 
   // [;][2] prefix: "variant" uppercase Greek letters
@@ -1605,7 +1599,7 @@ const keybinding_table = {
     's': "push \\varSigma",    'S': "push \\varSigma",
     'u': "push \\varUpsilon",  'U': "push \\varUpsilon",
     'v': "push \\varTheta",    'V': "push \\varTheta",
-    'y': "push \\varPsi",      'Y': "push \\varPsi"
+    'y': "push \\varPsi",      'Y': "push \\varPsi",
   }
 };
 
