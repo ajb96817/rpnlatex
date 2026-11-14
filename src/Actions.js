@@ -1694,11 +1694,17 @@ class InputContext {
             textstyle === 'bold_label') {
       // TODO: allow adding labels to TextItems as well as ExprItems
       const [new_stack, expr] = stack.pop_exprs(1);
-      const label_expr = new CommandExpr(
-        textstyle === 'bold_label' ? 'textbf' : 'text',
-        [new TextExpr(LatexEmitter.latex_text_escape(trimmed_text + ': '))]);
+      const labelled_expr = new SequenceExpr([
+        new CommandExpr(
+          textstyle === 'bold_label' ? 'textbf' : 'text',
+          [new TextExpr(LatexEmitter.latex_text_escape(
+            // A trailing ':' is always added automatically;
+            // if the user entered one manually, clip it off first.
+            trimmed_text.replace(/:\s*$/, '') + ':'))]),
+        new CommandExpr('enspace'),  // \enspace looks "better" than a plain space
+        expr]);
       this._cancel_text_entry(new_stack);
-      return new_stack.push_expr(new SequenceExpr([label_expr, expr]));
+      return new_stack.push_expr(labelled_expr);
     }
     else if(textstyle === 'mhchem_formula' ||
             textstyle === 'mhchem_unit') {
