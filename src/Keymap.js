@@ -792,16 +792,16 @@ const keybinding_table = {
     // These commands can use a prefix argument to specify the differential order:
     'x': "build_derivative normal true",  // d/dx
     'y': "build_derivative normal false",  // dy/dx
-    'q': "build_derivative partial true",  // p/px (\partial)
-    'j': "build_derivative partial false",  // py/px
     'd': "build_differential normal",  // dx
-    'D': "build_differential total",  // Dx
-    'p': "build_differential partial",  // \partial x
-    'P': "push \\partial;swap;subscript;swap;concat",  // \partial_x y
+    't': "build_differential total",  // Dx
+    'T': "build_differential total take_subscript", // D_y x
     'f': "build_differential_form normal",  // dx ^ dy
+    'p': "build_derivative partial true",  // p/px (\partial)
+    'q': "build_derivative partial false",  // py/px
+    'j': "build_differential partial",  // \partial x
+    'J': "build_differential partial take_subscript",  // \partial_y x
     'i': "build_differential normal;concat",  // y dx (concatenate to integral form)
     ' ': "alias i",
-
     // mixed partial: \partial^2 / \partial x\,\partial y
     'm': "push \\partial;swap;concat;push \\partial;rot;concat;swap;push \\,;swap;concat;concat;push \\partial;integer 2;superscript;swap;fraction",
     // mixed partial with expr: \partial^2 z / \partial x\,\partial y
@@ -829,12 +829,14 @@ const keybinding_table = {
     // use e.g. [Ctrl+d][Ctrl+y] instead of [/][d][y].
     'Ctrl+x': "alias x",
     'Ctrl+y': "alias y",
+    'Ctrl+d': "alias d",
+    'Ctrl+t': "alias t",
+    'Ctrl+T': "alias T",
+    'Ctrl+f': "alias f",
+    'Ctrl+p': "alias p",
     'Ctrl+q': "alias q",
     'Ctrl+j': "alias j",
-    'Ctrl+d': "alias d",
-    'Ctrl+p': "alias p",
-    'Ctrl+P': "alias P",
-    'Ctrl+f': "alias f",
+    'Ctrl+J': "alias J",
     'Ctrl+i': "alias i",
     'Ctrl+ ': "alias i",
     'Ctrl+m': "alias m",
@@ -857,6 +859,8 @@ const keybinding_table = {
     'x': "build_derivative roman true",  // d/dx
     'y': "build_derivative roman false",  // dy/dx
     'd': "build_differential roman",  // dx
+    't': "build_differential roman_total",  // Dx
+    'T': "build_differential roman_total take_subscript", // D_y x
     'f': "build_differential_form roman",  // dx ^ dy
     'i': "build_differential roman;concat",  // y dx (concatenate to integral form)
     ' ': "alias i",
@@ -866,6 +870,8 @@ const keybinding_table = {
     'Ctrl+x': "alias x",
     'Ctrl+y': "alias y",
     'Ctrl+d': "alias d",
+    'Ctrl+t': "alias t",
+    'Ctrl+T': "alias T",
     'Ctrl+f': "alias f",
     'Ctrl+i': "alias i",
     'Ctrl+ ': "alias i",
@@ -878,23 +884,39 @@ const keybinding_table = {
   variational: {
     '[digit]': "prefix_argument",
     '*': "prefix_argument",
-    'q': "build_derivative delta true",
-    'j': "build_derivative delta false",
-    'p': "build_differential delta",
-    'P': "push \\delta;swap;subscript;swap;concat",
-    'f': "build_differential_form delta",
-    'i': "build_differential delta;concat",
+    'p': "build_derivative delta true",  // p/px
+    'q': "build_derivative delta false",  // py/px
+    'j': "build_differential delta",  // \partial x
+    'J': "build_differential delta take_subscript",  // \partial_y x
+    'f': "build_differential_form delta",  // dx ^ dy
+    'i': "build_differential delta;concat",  // y dx
     ' ': "alias i",
     'm': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;push \\delta;integer 2;superscript;swap;fraction",
     'M': "push \\delta;swap;concat;push \\delta;rot;concat;swap;push \\,;swap;concat;concat;swap;push \\delta;integer 2;superscript;swap;concat;swap;fraction",
-    'd': "build_differential delta",
     '/': "swap;build_differential_form delta 1;swap;fraction",
+
     // Additional aliases for dy/dx style commands (total derivatives);
     // these will be treated as synonyms for the corresponding \partial commands.
-    'x': "alias q",
-    'y': "alias j",
+    'x': "alias p",
+    'y': "alias q",
+    'd': "alias j",
+    
+    // Ctrl aliases, same as with normal 'derivative' mode.
+    'Ctrl+p': "alias p",
+    'Ctrl+q': "alias q",
+    'Ctrl+j': "alias j",
+    'Ctrl+J': "alias J",
+    'Ctrl+f': "alias f",
+    'Ctrl+i': "alias i",
+    'Ctrl+ ': "alias i",
+    'Ctrl+m': "alias m",
+    'Ctrl+M': "alias M",
+    'Ctrl+/': "alias /",
+    'Ctrl+x': "alias x",
+    'Ctrl+y': "alias y",
+    'Ctrl+d': "alias d",
 
-    // maybe: '[delegate]': "derivative"
+    '[delegate]': "derivative",
   },
 
   // [*] prefix: premultiply by a coefficient

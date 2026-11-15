@@ -1069,9 +1069,18 @@ class InputContext {
   //   1: x => dx (the default)
   //   2: x => d^2 x
   //   *: x n => d^n x (order expression taken from the stack)
-  do_build_differential(stack, d_style) {
+  // If 'take_subscript' is specified, the stack top becomes the
+  // subscript of the 'd' (or whatever).  If the prefix argument
+  // is also '*' in this case, the subscript is taken from the stack
+  // first: f 5 x [/][*][T] => D^5_x f
+  do_build_differential(stack, d_style, take_subscript = null) {
     let new_stack = stack;
-    const d_expr = this._differential_d(d_style);
+    let d_expr = this._differential_d(d_style);
+    if(take_subscript) {
+      const [new_stack_2, subscript_expr] = new_stack.pop_exprs(1);
+      d_expr = d_expr.with_subscript(subscript_expr);
+      new_stack = new_stack_2;
+    }
     let order_expr;
     const order = this._get_prefix_argument(1, -1);
     if(order === 0)  // prefix argument of 0 just puts a 'd'
@@ -1113,7 +1122,8 @@ class InputContext {
   _differential_d(style) {
     switch(style) {
     case 'roman': return FontExpr.roman_text('d');
-    case 'total': return FontExpr.roman_text('D');
+    case 'total': return new TextExpr('D');
+    case 'roman_total': return FontExpr.roman_text('D');
     case 'partial': return new CommandExpr('partial');
     case 'delta': return new CommandExpr('delta');
     case 'normal': default: return new TextExpr('d');

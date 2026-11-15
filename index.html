@@ -1342,38 +1342,38 @@
             <td></td>
           </tr>
           <tr>
-            <td><span class="k">q</span> <code>\sqrt{x}</code> <em>(s<strong>q</strong>uare root)</em></td>
-            <td><span class="k">Q</span> <code>\sqrt[3]{x}</code></td>
+            <td><span class="k">q</span> <code>x \Rightarrow \sqrt{x}</code> <em>(s<strong>q</strong>uare root)</em></td>
+            <td><span class="k">Q</span> <code>x \Rightarrow \sqrt[3]{x}</code></td>
           </tr>
           <tr>
-            <td><span class="k">e</span> <code>\mathrm{e}^x</code></td>
-            <td><span class="k">E</span> <code>\exp x</code></td>
+            <td><span class="k">e</span> <code>x \Rightarrow \mathrm{e}^x</code></td>
+            <td><span class="k">E</span> <code>x \Rightarrow \exp x</code></td>
           </tr>
           <tr>
-            <td><span class="k">j</span> <code>\mathrm{e}^{ix}</code></td>
-            <td><span class="k">J</span> <code>\mathrm{e}^{-ix}</code></td>
+            <td><span class="k">j</span> <code>x \Rightarrow \mathrm{e}^{ix}</code></td>
+            <td><span class="k">J</span> <code>x \Rightarrow \mathrm{e}^{-ix}</code></td>
           </tr>
           <tr>
-            <td><span class="k">n</span> <code>\ln{x}</code></td>
-            <td><span class="k">N</span> <code>\log{x}</code></td>
+            <td><span class="k">n</span> <code>x \Rightarrow \ln{x}</code></td>
+            <td><span class="k">N</span> <code>x \Rightarrow \log{x}</code></td>
           </tr>
           <tr>
-            <td><span class="k">2</span><span class="k">n</span> <code>\lg{x}</code></td>
-            <td><span class="k">2</span><span class="k">N</span> <code>\log_2{x}</code></td>
+            <td><span class="k">2</span><span class="k">n</span> <code>x \Rightarrow \lg{x}</code></td>
+            <td><span class="k">2</span><span class="k">N</span> <code>x \Rightarrow \log_2{x}</code></td>
           </tr>
       </tbody></table>
 
       <p><strong>Trigonometric Functions:</strong></p>
       <ul class="keybindings">
         <li>
-          <span class="k">s</span> <code>\sin x</code>&nbsp;
-          <span class="k">c</span> <code>\cos x</code>&nbsp;
-          <span class="k">t</span> <code>\tan x</code>&nbsp;
+          <span class="k">s</span> <code>x \Rightarrow \sin x</code>&nbsp;
+          <span class="k">c</span> <code>x \Rightarrow \cos x</code>&nbsp;
+          <span class="k">t</span> <code>x \Rightarrow \tan x</code>&nbsp;
         </li>
         <li>
-          <span class="k">S</span> <code>\sec x</code>&nbsp;
-          <span class="k">C</span> <code>\csc x</code>&nbsp;
-          <span class="k">T</span> <code>\cot x</code>&nbsp;
+          <span class="k">S</span> <code>x \Rightarrow \sec x</code>&nbsp;
+          <span class="k">C</span> <code>x \Rightarrow \csc x</code>&nbsp;
+          <span class="k">T</span> <code>x \Rightarrow \cot x</code>&nbsp;
         </li>
         <li><span class="k">-</span> <em>inverse</em> mode (see below)</li>
         <li><span class="k">h</span> <em>hyperbolic</em> mode</li>
@@ -1686,8 +1686,21 @@
             <td><span class="k">2</span><span class="k">d</span> <code>x \Rightarrow d^2 x</code></td>
           </tr>
           <tr>
-            <td><span class="k">D</span> <code>x \Rightarrow Dx</code></td>
-            <td><span class="k">2</span><span class="k">D</span> <code>x \Rightarrow D^2 x</code></td>
+            <td>
+              <span class="k">t</span> <code>x \Rightarrow Dx</code>
+              (<strong>t</strong>otal)
+            </td>
+            <td><span class="k">2</span><span class="k">t</span> <code>x \Rightarrow D^2 x</code></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="k">T</span>
+              <code>f\enspace x \Rightarrow D_x f</code>
+            </td>
+            <td>
+              <span class="k">2</span><span class="k">T</span>
+              <code>f\enspace x \Rightarrow D_x^2 f</code>
+            </td>
           </tr>
           <tr>
             <td>
@@ -1702,35 +1715,55 @@
           </tr>
           <tr>
             <td>
-              <span class="k">q</span>
+              <span class="k">p</span>
               <code>x \Rightarrow \displaystyle{\frac{\partial}{\partial x}}</code>
+              (<strong>p</strong>artial)
             </td>
             <td>
-              <span class="k">2</span><span class="k">q</span>
+              <span class="k">2</span><span class="k">p</span>
               <code>x \Rightarrow \displaystyle{\frac{\partial^2}{\partial x^2}}</code>
             </td>
           </tr>
           <tr>
             <td>
-              <span class="k">j</span>
+              <span class="k">q</span>
               <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial y}{\partial x}}</code>
             </td>
             <td>
-              <span class="k">2</span><span class="k">j</span>
+              <span class="k">2</span><span class="k">q</span>
               <code>y\enspace x \Rightarrow \displaystyle{\frac{\partial^2 y}{\partial x^2}}</code>
             </td>
           </tr>
           <tr>
-            <td><span class="k">m</span> <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code> (<strong>m</strong>ixed)</td>
-            <td><span class="k">M</span> <code>f\enspace x\enspace y \Rightarrow \displaystyle{\frac{\partial^2 f}{\partial x\,\partial y}}</code></td>
+            <td>
+              <span class="k">m</span>
+              <code>x\enspace y \Rightarrow \displaystyle{\frac{\partial^2}{\partial x\,\partial y}}</code>
+              (<strong>m</strong>ixed)
+            </td>
+            <td>
+              <span class="k">M</span>
+              <code>f\enspace x\enspace y \Rightarrow \displaystyle{\frac{\partial^2 f}{\partial x\,\partial y}}</code>
+            </td>
           </tr>
           <tr>
-            <td><span class="k">p</span> <code>x \Rightarrow \partial x</code> (<strong>p</strong>artial)</td>
-            <td><span class="k">P</span> <code>x\enspace y \Rightarrow \partial_y x</code></td>
+            <td>
+              <span class="k">j</span>
+              <code>x \Rightarrow \partial x</code>
+            </td>
+            <td>
+              <span class="k">J</span>
+              <code>f\enspace x \Rightarrow \partial_x f</code>
+            </td>
           </tr>
           <tr>
-            <td><span class="k">g</span> <code>x \Rightarrow \nabla x</code> (<strong>g</strong>radient)</td>
-            <td><span class="k">G</span> <code>x\enspace y \Rightarrow \nabla_y x</code></td>
+            <td>
+              <span class="k">g</span>
+              <code>x \Rightarrow \nabla x</code> (<strong>g</strong>radient)
+            </td>
+            <td>
+              <span class="k">G</span>
+              <code>f\enspace x \Rightarrow \nabla_x f</code>
+            </td>
           </tr>
           <tr>
             <td><span class="k">.</span> <code>x \Rightarrow \nabla\cdot x</code> (divergence)</td>
@@ -1741,8 +1774,14 @@
             <td><span class="k">C</span> <code>x \Rightarrow x\times\nabla</code></td>
           </tr>
           <tr>
-            <td><span class="k">l</span> <code>x \Rightarrow \nabla^2 x</code> (<strong>L</strong>aplacian)</td>
-            <td><span class="k">n</span> <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)</td>
+            <td>
+              <span class="k">l</span>
+              <code>x \Rightarrow \nabla^2 x</code> (<strong>L</strong>aplacian)
+            </td>
+            <td>
+              <span class="k">n</span>
+              <code>x \Rightarrow \Delta x</code> (i<strong>n</strong>crement)
+            </td>
           </tr>
           <tr>
             <td>
