@@ -109,12 +109,14 @@
           This can be used to &quot;implicitly&quot;
           multiply terms together (as in <code>xy</code>), and to create longer integers
           from individual digits (<code>1\enspace 2 \Rightarrow 12</code>).
+          Parentheses will be inserted automatically when unambiguously required:
+          <code>x\enspace y+1 \Rightarrow x(y+1)</code>.
         </li>
         <li>
           <span class="k">Shift Space</span>
-          Concatenate the top three stack items:
-          <code>x\enspace y\enspace z \Rightarrow xyz</code>.
-          Same as <span class="k">&nbsp;</span><span class="k">&nbsp;</span>.
+          Concatenate the top two items but suppress automatic parenthesization:
+          <code>x\enspace y+1 \Rightarrow xy+1</code>.
+          Normally not needed.
         </li>
         <li>
           <span class="k">^</span> or <span class="k">`</span> <em>(backtick)</em>
@@ -3443,6 +3445,8 @@
           For example, concatenating <code>a+b</code> and <code>c+d</code> yields <code>(a+b)(c+d)</code>.
           <span class="k">$</span><span class="k">)</span>
           disables this behavior to yield <code>a+bc+d</code> instead.
+          <strong>NOTE:</strong> When concatenating expressions with <span class="k">&nbsp;</span> <em>(space)</em>,
+          autoparenthesization can be suppressed manually by using <span class="k">Shift Space</span> instead.
         </li>
         <li>
           <span class="k">(</span>

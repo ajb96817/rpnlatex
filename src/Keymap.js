@@ -112,7 +112,7 @@ const keybinding_table = {
     'Shift+Backspace': "nip",
     
     ' ': "concat",
-    'Shift+ ': "concat;concat",
+    'Shift+ ': "concat false",
     '!': "push !;concat",  // creates a PostfixExpr, see Expr.concatenate()
     '^': "superscript",
     "`": "superscript",
