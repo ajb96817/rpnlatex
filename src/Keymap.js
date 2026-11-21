@@ -929,7 +929,7 @@ const keybinding_table = {
     '[digit]': "push_last_keypress;swap;concat",
     'i': "push i;swap;concat",
     'p': "push \\pi;swap;concat",
-    'P': "integer 2;push \\pi;concat;swap;concat",
+    't': "integer 2;push \\pi;concat;swap;concat",
   },
   // [*][-] prefix: premultiply by -n
   negative_coefficient: {
