@@ -955,8 +955,8 @@ class InputContext {
     let [new_stack, expr] = stack.pop_exprs(1);
     // Some command+typeface combinations are not supported or require conversion.
     if(expr.is_command_expr_with(0)) {
-      const command_name = FontExpr.
-            check_typeface_support_for_command(typeface, expr.command_name);
+      const command_name = FontExpr
+            .check_typeface_support_for_command(typeface, expr.command_name);
       if(command_name === false)
         return stack;  // don't do anything
       else expr = new CommandExpr(command_name);
