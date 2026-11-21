@@ -1111,9 +1111,16 @@ class InputContext {
           this._get_prefix_argument(2, stack.depth());
     if(order < 1) return stack;  // no-op
     const [new_stack, ...exprs] = stack.pop_exprs(order);
-    const dx_exprs = exprs.map(expr =>
-      this._differential_d(d_style)
-        .concatenate(this._parenthesize_differential(expr)));
+    const dx_exprs = exprs.map(expr => {
+      // Don't add the 'd' to dots objects; this allows creation of
+      // things like dx_1 ^ ... ^ dx_n
+      const is_dots =
+            expr.is_command_expr_with(0, 'cdots') ||
+            expr.is_command_expr_with(0, 'dots');
+      return is_dots ? expr :
+        this._differential_d(d_style).concatenate(
+          this._parenthesize_differential(expr));
+    });
     const form_expr = InfixExpr.combine_infix_all(
       dx_exprs, new CommandExpr('wedge'));
     return new_stack.push_expr(form_expr);
