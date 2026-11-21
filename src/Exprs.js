@@ -69,11 +69,14 @@ class Expr {
       // However, 'F \cdot r' will still be parenthesized.
       [left_expr, right_expr] = [left_expr, right_expr].map(expr => {
         // TODO: turn this check into a method like expr.needs_parenthesization_when_concatenated()
-        if(expr.is_infix_expr() || expr.is_sympy_expr() ||
+        if(no_parenthesize)
+          return expr;
+        else if(expr.is_infix_expr() || expr.is_sympy_expr() ||
            (expr.is_text_expr() && expr.text.length > 1) &&
-           !expr.is_differential_form() && !no_parenthesize)
+           !expr.is_differential_form())
           return DelimiterExpr.parenthesize(expr);
-        else return expr;
+        else
+          return expr;
       });
     }
     // Concatenating a literal +, -, \pm, \mp to something creates the
@@ -2252,10 +2255,12 @@ class ArrayExpr extends Expr {
   //   'infix': place alignment markers before infix, if any
   //   'colon': if there is a ':' infix, remove it and place alignment marker where it was
   //   'colon_if': like 'colon', but place the word "if" before the right-hand side if there
-  //               is a ':' infix.  If there is no ':' infix, the right-hand side becomes 'otherwise'.
+  //               is a ':' infix.  If there is no ':' infix, the right-hand side becomes
+  //               'otherwise' (but only for the last item; others remain blank).
   static split_elements(exprs, split_mode) {
     const element_exprs = exprs.map(
-      expr => this._split_expr(expr, split_mode));
+      (expr, index) => this._split_expr(
+        expr, split_mode, index === exprs.length-1));
     // Special case: when building a \cases structure, and there are
     // no colon-infix expressions, strip out the second column that
     // would normally have the subexpressions to the right of the
@@ -2269,7 +2274,7 @@ class ArrayExpr extends Expr {
   }
 
   // Split up 'expr' into separately-aligned 'columns'.
-  static _split_expr(expr, split_mode) {
+  static _split_expr(expr, split_mode, is_last_row) {
     switch(split_mode) {
     case 'none':
       return [expr];
@@ -2305,7 +2310,11 @@ class ArrayExpr extends Expr {
               expr.extract_side_at(
                 expr.split_at_index, 'right'), true)];
       else
-        return [expr, FontExpr.roman_text('otherwise')];
+        return [
+          expr,
+          is_last_row ?
+            FontExpr.roman_text('otherwise') :
+            TextExpr.blank()];
     default:
       return [expr];
     }
