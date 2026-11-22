@@ -81,7 +81,7 @@ onmessage = async (event) => {
 };
 
 
-// "Helper" Python code for interfacing with Pyodide.
+// "Helper" initialization Python code for interfacing with Pyodide.
 //
 // We need to make sure SymPy itself is imported, and need a few extra
 // convenience functions for Expr->SymPy conversions.
@@ -104,10 +104,11 @@ def negate(x): return -S(x)
 `;
 
 
-// TODO: Not currently used/finished; this is a placeholder.
-// This should be included into pyodide_initcode_string, but make sure it's
-// not included as part of the generated code when exporting expressions
-// via do_export_stack_item_as_sympy().
+// SymPy Python prelude code for converting SymPy results.
+//
+// This should be executed after pyodide_initcode_string, but it's not included
+// as part of the generated code when exporting expressions via
+// do_export_stack_item_as_sympy().
 //
 // This utility class attempts to convert SymPy result expressions back into
 // rpnlatex Expr trees.  This could be done on the Javascript side instead,
@@ -118,6 +119,11 @@ def negate(x): return -S(x)
 // The result of this "conversion" is a single string of Javascript code to
 // be eval()'d, which creates the corresponding Expr tree.  This is the Python
 // counterpart to the JS ExprToSymPy class.
+//
+// The result(s) are returned as a "grid of cells" list to support multiple results
+// from things like solve() which may find multiple roots for each of multiple
+// variables (when solving simultaneous equations).  Normally the "grid" is a
+// single 1x1 cell with row=col=1.
 const pyodide_sympy_to_expr_code = `
 def sympy_result_to_expr_grids(sympy_result):
   def convert_sympy_expr(expr, row, col):
