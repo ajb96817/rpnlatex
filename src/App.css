@@ -336,7 +336,7 @@ body.outline_stack_items #stack_panel div.floating_item {
   box-shadow: inset 0 0 0.35em 0.1em #f8f8f8;
   background-color: #f8f8f8;
 }
-body.outline_stack_items #stack_panel div.floating_item div.item { border: none; }
+body.outline_stack_items #stack_panel div.floating_item div.item { border-top: none; border-bottom: none; }
 /* Tweaks for eink-mode: */
 body.outline_stack_items.eink #stack_panel div.item,
 body.outline_stack_items.eink #stack_panel div.floating_item { background-color: white; }

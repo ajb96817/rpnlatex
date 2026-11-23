@@ -75,15 +75,15 @@ class Keymap {
     const mode_map = this.bindings[mode];
     if(!mode_map)
       return null;  // unknown mode; shouldn't happen
-    if(mode_map[key])
+    else if(mode_map[key])
       return mode_map[key];  // direct match
-    if(mode_map['[alpha]'] && /^[a-zA-Z]$/.test(key))
+    else if(mode_map['[alpha]'] && /^[a-zA-Z]$/.test(key))
       return mode_map['[alpha]'];
-    if(mode_map['[digit]'] && /^[0-9]$/.test(key))
+    else if(mode_map['[digit]'] && /^[0-9]$/.test(key))
       return mode_map['[digit]'];
-    if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key))
+    else if(mode_map['[alnum]'] && /^[a-zA-Z0-9]$/.test(key))
       return mode_map['[alnum]'];
-    if(mode_map['[delegate]'] && !in_delegate_lookup) {
+    else if(mode_map['[delegate]'] && !in_delegate_lookup) {
       const command = this.lookup_binding(
         mode_map['[delegate]'], key, true);
       if(command) return command;
@@ -91,7 +91,7 @@ class Keymap {
     }
     if(mode_map['[default]'])
       return mode_map['[default]'];
-    if(mode === 'base' || in_delegate_lookup)
+    else if(mode === 'base' || in_delegate_lookup)
       return null;
     else
       return 'cancel';

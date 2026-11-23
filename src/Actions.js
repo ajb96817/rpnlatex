@@ -241,7 +241,7 @@ class InputContext {
     // The handler function will set this if the document changes.
     // (Stack changes are expected to be returned by the handler function.)
     this.new_document = null;
-    // This this will be set to true if anything changed about the file list /
+    // This will be set to true if anything changed about the file list /
     // file selection.  The file_manager.available_files will be reloaded from
     // localStorage and the FileManagerComponent will be re-rendered
     // (so this is set even for things like changing the selected_filename).    
@@ -437,9 +437,8 @@ class InputContext {
   do_sympy(stack, function_name, arg_count_string) {
     const arg_count = parseInt(arg_count_string);
     const [new_stack, ...arg_exprs] = stack.pop_exprs(arg_count);
-    const pyodide = this.app_component.state.pyodide_interface;
     const command = new SymPyCommand(function_name, arg_exprs);
-    pyodide.start_executing(command);
+    this.pyodide_interface.start_executing(command);
     return new_stack;
   }
 

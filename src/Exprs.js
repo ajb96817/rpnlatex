@@ -1864,8 +1864,7 @@ class DelimiterExpr extends Expr {
       (expr.is_command_expr() && expr.is_named_operator() &&
        !expr.operand_exprs[0].is_delimiter_expr()) ||
       // "Long variable names" (normally these are concatenated sequences
-      // like xyz => SequenceExpr['x', 'y', 'z'] but they can also be entered
-      // directly with e.g. [\] entry mode).
+      // like xyz => SequenceExpr['x', 'y', 'z']).
       (expr.is_text_expr() && expr.text.length > 1) ||
       // FontExpr(x) where x itself should be parenthesized.
       (expr.is_font_expr() && expr.typeface !== 'normal' &&
